@@ -1,184 +1,179 @@
 // ═══════════════════════════════════════════════
-// DATA
+// MARKER SCHEMA (no personal data — just biomarker definitions)
 // ═══════════════════════════════════════════════
-const LAB_DATA = {
-  dates: ["2024-07-08", "2025-07-16", "2026-01-16"],
-  dateLabels: ["Jul 2024", "Jul 2025", "Jan 2026"],
-  categories: {
-    biochemistry: {
-      label: "Biochemistry", icon: "\u{1F9EA}",
-      markers: {
-        glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60, values: [4.40, 4.33, 4.77] },
-        urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3, values: [6.8, 5.8, 4.6] },
-        creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106, values: [24, 36, 30] },
-        egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30, values: [3.02, 2.54, 2.73] },
-        uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417, values: [369, 393, 403] },
-        bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0, values: [5.5, 7.9, 7.4] },
-        ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85, values: [0.25, 0.29, 0.48] },
-        alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83, values: [0.36, 0.43, 0.79] },
-        alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15, values: [1.40, 1.01, 1.28] },
-        ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19, values: [0.44, 0.70, 1.31] },
-        ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75, values: [2.09, 2.64, null] },
-        creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14, values: [1.37, 2.33, 2.89] },
-        cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95, values: [null, 0.83, 0.81] },
-        gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63, values: [null, 1.93, 2.01] }
-      }
-    },
-    hormones: {
-      label: "Hormones", icon: "\u26A1",
-      markers: {
-        testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, values: [17.30, 11.60, 11.20] },
-        freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, values: [28.80, 57.60, null] },
-        shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1, values: [33.0, 22.7, null] },
-        dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60, values: [10.10, 12.00, null] },
-        fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0, values: [52.4, 51.1, null] },
-        estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0, values: [null, 80.1, null] },
-        progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474, values: [null, 0.201, null] },
-        calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, values: [null, 3.1, null] },
-        dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, values: [null, 0.92, null] },
-        igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8, values: [null, 221.3, null] },
-        insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, values: [6.8, 10.3, 15.5] }
-      }
-    },
-    electrolytes: {
-      label: "Electrolytes & Minerals", icon: "\u2699\uFE0F",
-      markers: {
-        sodium: { name: "Sodium", unit: "mmol/l", refMin: 136, refMax: 145, values: [139, 141, 139] },
-        potassium: { name: "Potassium", unit: "mmol/l", refMin: 3.5, refMax: 5.1, values: [4.4, 4.4, 4.9] },
-        chloride: { name: "Chloride", unit: "mmol/l", refMin: 97, refMax: 108, values: [104, 103, 101] },
-        calciumTotal: { name: "Calcium Total", unit: "mmol/l", refMin: 2.15, refMax: 2.50, values: [2.40, 2.42, 2.40] },
-        phosphorus: { name: "Phosphorus", unit: "mmol/l", refMin: 0.81, refMax: 1.45, values: [1.16, 1.05, 1.11] },
-        magnesium: { name: "Magnesium (serum)", unit: "mmol/l", refMin: 0.66, refMax: 1.07, values: [0.91, 0.95, 0.95] },
-        magnesiumRBC: { name: "Magnesium RBC", unit: "mmol/l", refMin: 1.44, refMax: 2.60, values: [2.34, 2.14, 2.40] },
-        copper: { name: "Copper", unit: "\u00b5mol/l", refMin: 11.6, refMax: 20.6, values: [12.5, 13.1, null] },
-        zinc: { name: "Zinc", unit: "\u00b5mol/l", refMin: 9.8, refMax: 18.0, values: [null, null, 12.8] }
-      }
-    },
-    lipids: {
-      label: "Lipid Panel", icon: "\uD83D\uDCA7",
-      markers: {
-        cholesterol: { name: "Total Cholesterol", unit: "mmol/l", refMin: 2.90, refMax: 5.00, values: [4.49, 4.86, 4.83] },
-        triglycerides: { name: "Triglycerides", unit: "mmol/l", refMin: 0.45, refMax: 1.70, values: [0.79, 0.88, 0.94] },
-        hdl: { name: "HDL Cholesterol", unit: "mmol/l", refMin: 1.00, refMax: 2.10, values: [1.30, 1.51, 1.40] },
-        ldl: { name: "LDL Cholesterol", unit: "mmol/l", refMin: 1.20, refMax: 3.00, values: [2.73, 3.02, 3.16] },
-        nonHdl: { name: "Non-HDL Cholesterol", unit: "mmol/l", refMin: 0.00, refMax: 3.80, values: [3.19, 3.35, 3.43] },
-        cholHdlRatio: { name: "Chol/HDL Ratio", unit: "", refMin: 0.0, refMax: 5.0, values: [3.5, 3.2, 3.5] },
-        apoAI: { name: "Apo A-I", unit: "g/l", refMin: 1.00, refMax: 1.70, values: [1.30, null, null] },
-        apoB: { name: "Apo B", unit: "g/l", refMin: 0.50, refMax: 1.00, values: [0.83, null, null] }
-      }
-    },
-    iron: {
-      label: "Iron Metabolism", icon: "\uD83D\uDD34",
-      markers: {
-        iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5, values: [20.4, 27.1, 23.4] },
-        ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400, values: [209, 195, null] },
-        transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6, values: [2.2, 2.6, null] },
-        tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7, values: [48.1, null, null] },
-        transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0, values: [42.4, null, null] }
-      }
-    },
-    proteins: {
-      label: "Proteins & Inflammation", icon: "\uD83D\uDEE1\uFE0F",
-      markers: {
-        hsCRP: { name: "hs-CRP", unit: "mg/l", refMin: 0.00, refMax: 3.00, values: [0.68, 0.70, 1.21] },
-        totalProtein: { name: "Total Protein", unit: "g/l", refMin: 64.0, refMax: 83.0, values: [67.2, 73.2, 72.8] },
-        albumin: { name: "Albumin", unit: "g/l", refMin: 35.0, refMax: 52.0, values: [44.1, 47.1, 46.9] },
-        ceruloplasmin: { name: "Ceruloplasmin", unit: "g/l", refMin: 0.15, refMax: 0.30, values: [0.19, 0.20, null] }
-      }
-    },
-    thyroid: {
-      label: "Thyroid", icon: "\uD83E\uDD8B",
-      markers: {
-        tsh: { name: "TSH", unit: "mU/l", refMin: 0.270, refMax: 4.200, values: [1.370, 1.600, 1.970] },
-        ft4: { name: "Free T4", unit: "pmol/l", refMin: 11.9, refMax: 21.6, values: [17.2, null, null] },
-        ft3: { name: "Free T3", unit: "pmol/l", refMin: 3.1, refMax: 6.8, values: [4.3, 4.9, null] },
-        t4total: { name: "Total T4", unit: "nmol/l", refMin: 66.0, refMax: 181.0, values: [101.0, null, null] },
-        t3total: { name: "Total T3", unit: "nmol/l", refMin: 1.30, refMax: 3.10, values: [1.68, null, 1.88] }
-      }
-    },
-    vitamins: {
-      label: "Vitamins", icon: "\u2600\uFE0F",
-      markers: {
-        vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0, values: [126.0, 112.0, 68.7] },
-        vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0, values: [null, 99.8, null] },
-        vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, values: [2.39, null, null] }
-      }
-    },
-    diabetes: {
-      label: "Diabetes / Glucose", icon: "\uD83D\uDCCA",
-      markers: {
-        hba1c: { name: "HbA1c", unit: "mmol/mol", refMin: 20.0, refMax: 42.0, values: [32.0, 32.0, 34.0] },
-        insulin_d: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, values: [6.8, 10.3, 15.5] },
-        homaIR: { name: "HOMA-IR (calc)", unit: "", refMin: 0, refMax: 2.5, values: [1.33, 1.98, 3.28] }
-      }
-    },
-    tumorMarkers: {
-      label: "Tumor Markers", icon: "\uD83D\uDD2C",
-      markers: {
-        psa: { name: "PSA", unit: "\u00b5g/l", refMin: 0.003, refMax: 1.400, values: [0.196, 0.196, 0.252] }
-      }
-    },
-    coagulation: {
-      label: "Coagulation", icon: "\uD83E\uDE78",
-      markers: {
-        homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0, values: [12.5, 12.4, null] }
-      }
-    },
-    hematology: {
-      label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
-      markers: {
-        wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00, values: [5.20, 5.67, 5.47] },
-        rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, values: [5.09, 5.37, 5.52] },
-        hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, values: [145, 156, 160] },
-        hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, values: [0.443, 0.473, 0.483] },
-        mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0, values: [87.0, 88.1, 87.5] },
-        mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0, values: [28.5, 29.1, 29.0] },
-        mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360, values: [327, 330, 331] },
-        rdwcv: { name: "RDW-CV", unit: "%", refMin: 10.0, refMax: 15.2, values: [13.3, 13.2, 13.0] },
-        platelets: { name: "Platelets", unit: "10^9/l", refMin: 150, refMax: 400, values: [215, 177, 215] },
-        mpv: { name: "MPV", unit: "fl", refMin: 7.8, refMax: 12.8, values: [11.5, 11.2, 11.2] },
-        pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0, values: [14.4, 14.6, 14.6] }
-      }
-    },
-    differential: {
-      label: "WBC Differential", icon: "\uD83E\uDDEB",
-      markers: {
-        neutrophils: { name: "Neutrophils #", unit: "10^9/l", refMin: 2.0, refMax: 7.0, values: [3.16, 3.47, 3.03] },
-        lymphocytes: { name: "Lymphocytes #", unit: "10^9/l", refMin: 0.8, refMax: 4.0, values: [1.53, 1.67, 1.86] },
-        monocytes: { name: "Monocytes #", unit: "10^9/l", refMin: 0.08, refMax: 1.20, values: [0.41, 0.37, 0.44] },
-        eosinophils: { name: "Eosinophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.5, values: [0.07, 0.13, 0.11] },
-        basophils: { name: "Basophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.2, values: [0.03, 0.03, 0.03] },
-        neutrophilsPct: { name: "Neutrophils %", unit: "", refMin: 0.45, refMax: 0.70, values: [0.608, 0.612, 0.555] },
-        lymphocytesPct: { name: "Lymphocytes %", unit: "", refMin: 0.20, refMax: 0.45, values: [0.294, 0.295, 0.340] },
-        monocytesPct: { name: "Monocytes %", unit: "", refMin: 0.02, refMax: 0.12, values: [0.079, 0.065, 0.080] }
-      }
-    },
-    fattyAcids: {
-      label: "Fatty Acids (Jul 2024)", icon: "\uD83D\uDC1F",
-      singleDate: "2024-07-04",
-      markers: {
-        palmiticC16: { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1, values: [31.5], singlePoint: true },
-        stearicC18: { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8, values: [18.7], singlePoint: true },
-        oleicC18_1: { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4, values: [23.7], singlePoint: true },
-        linoleicC18_2: { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3, values: [18.3], singlePoint: true },
-        glaC18_3: { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22, values: [0.16], singlePoint: true },
-        arachidonicC20_4: { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50, values: [2.35], singlePoint: true },
-        dglaC20_3: { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16, values: [0.28], singlePoint: true },
-        alaC18_3: { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89, values: [1.75], singlePoint: true },
-        epaC20_5: { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72, values: [0.90], singlePoint: true },
-        dpaC22_5: { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36, values: [0.27], singlePoint: true },
-        dhaC22_6: { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64, values: [2.04], singlePoint: true },
-        omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0, values: [3.2], singlePoint: true },
-        omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0, values: [2.6], singlePoint: true },
-        membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0, values: [15.6], singlePoint: true },
-        mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, values: [0.7], singlePoint: true }
-      }
-    },
-    boneMetabolism: {
-      label: "Bone Metabolism", icon: "\uD83E\uDDB4",
-      markers: {
-        osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0, values: [null, 19.4, null] }
-      }
+const MARKER_SCHEMA = {
+  biochemistry: {
+    label: "Biochemistry", icon: "\u{1F9EA}",
+    markers: {
+      glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60 },
+      urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3 },
+      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106 },
+      egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30 },
+      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417 },
+      bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0 },
+      ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85 },
+      alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83 },
+      alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15 },
+      ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19 },
+      ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75 },
+      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14 },
+      cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95 },
+      gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63 }
+    }
+  },
+  hormones: {
+    label: "Hormones", icon: "\u26A1",
+    markers: {
+      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00 },
+      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70 },
+      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1 },
+      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60 },
+      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0 },
+      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0 },
+      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474 },
+      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8 },
+      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40 },
+      igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8 },
+      insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 }
+    }
+  },
+  electrolytes: {
+    label: "Electrolytes & Minerals", icon: "\u2699\uFE0F",
+    markers: {
+      sodium: { name: "Sodium", unit: "mmol/l", refMin: 136, refMax: 145 },
+      potassium: { name: "Potassium", unit: "mmol/l", refMin: 3.5, refMax: 5.1 },
+      chloride: { name: "Chloride", unit: "mmol/l", refMin: 97, refMax: 108 },
+      calciumTotal: { name: "Calcium Total", unit: "mmol/l", refMin: 2.15, refMax: 2.50 },
+      phosphorus: { name: "Phosphorus", unit: "mmol/l", refMin: 0.81, refMax: 1.45 },
+      magnesium: { name: "Magnesium (serum)", unit: "mmol/l", refMin: 0.66, refMax: 1.07 },
+      magnesiumRBC: { name: "Magnesium RBC", unit: "mmol/l", refMin: 1.44, refMax: 2.60 },
+      copper: { name: "Copper", unit: "\u00b5mol/l", refMin: 11.6, refMax: 20.6 },
+      zinc: { name: "Zinc", unit: "\u00b5mol/l", refMin: 9.8, refMax: 18.0 }
+    }
+  },
+  lipids: {
+    label: "Lipid Panel", icon: "\uD83D\uDCA7",
+    markers: {
+      cholesterol: { name: "Total Cholesterol", unit: "mmol/l", refMin: 2.90, refMax: 5.00 },
+      triglycerides: { name: "Triglycerides", unit: "mmol/l", refMin: 0.45, refMax: 1.70 },
+      hdl: { name: "HDL Cholesterol", unit: "mmol/l", refMin: 1.00, refMax: 2.10 },
+      ldl: { name: "LDL Cholesterol", unit: "mmol/l", refMin: 1.20, refMax: 3.00 },
+      nonHdl: { name: "Non-HDL Cholesterol", unit: "mmol/l", refMin: 0.00, refMax: 3.80 },
+      cholHdlRatio: { name: "Chol/HDL Ratio", unit: "", refMin: 0.0, refMax: 5.0 },
+      apoAI: { name: "Apo A-I", unit: "g/l", refMin: 1.00, refMax: 1.70 },
+      apoB: { name: "Apo B", unit: "g/l", refMin: 0.50, refMax: 1.00 }
+    }
+  },
+  iron: {
+    label: "Iron Metabolism", icon: "\uD83D\uDD34",
+    markers: {
+      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5 },
+      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400 },
+      transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6 },
+      tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7 },
+      transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0 }
+    }
+  },
+  proteins: {
+    label: "Proteins & Inflammation", icon: "\uD83D\uDEE1\uFE0F",
+    markers: {
+      hsCRP: { name: "hs-CRP", unit: "mg/l", refMin: 0.00, refMax: 3.00 },
+      totalProtein: { name: "Total Protein", unit: "g/l", refMin: 64.0, refMax: 83.0 },
+      albumin: { name: "Albumin", unit: "g/l", refMin: 35.0, refMax: 52.0 },
+      ceruloplasmin: { name: "Ceruloplasmin", unit: "g/l", refMin: 0.15, refMax: 0.30 }
+    }
+  },
+  thyroid: {
+    label: "Thyroid", icon: "\uD83E\uDD8B",
+    markers: {
+      tsh: { name: "TSH", unit: "mU/l", refMin: 0.270, refMax: 4.200 },
+      ft4: { name: "Free T4", unit: "pmol/l", refMin: 11.9, refMax: 21.6 },
+      ft3: { name: "Free T3", unit: "pmol/l", refMin: 3.1, refMax: 6.8 },
+      t4total: { name: "Total T4", unit: "nmol/l", refMin: 66.0, refMax: 181.0 },
+      t3total: { name: "Total T3", unit: "nmol/l", refMin: 1.30, refMax: 3.10 }
+    }
+  },
+  vitamins: {
+    label: "Vitamins", icon: "\u2600\uFE0F",
+    markers: {
+      vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0 },
+      vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0 },
+      vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80 }
+    }
+  },
+  diabetes: {
+    label: "Diabetes / Glucose", icon: "\uD83D\uDCCA",
+    markers: {
+      hba1c: { name: "HbA1c", unit: "mmol/mol", refMin: 20.0, refMax: 42.0 },
+      insulin_d: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 },
+      homaIR: { name: "HOMA-IR (calc)", unit: "", refMin: 0, refMax: 2.5 }
+    }
+  },
+  tumorMarkers: {
+    label: "Tumor Markers", icon: "\uD83D\uDD2C",
+    markers: {
+      psa: { name: "PSA", unit: "\u00b5g/l", refMin: 0.003, refMax: 1.400 }
+    }
+  },
+  coagulation: {
+    label: "Coagulation", icon: "\uD83E\uDE78",
+    markers: {
+      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0 }
+    }
+  },
+  hematology: {
+    label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
+    markers: {
+      wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00 },
+      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80 },
+      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175 },
+      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500 },
+      mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0 },
+      mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0 },
+      mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360 },
+      rdwcv: { name: "RDW-CV", unit: "%", refMin: 10.0, refMax: 15.2 },
+      platelets: { name: "Platelets", unit: "10^9/l", refMin: 150, refMax: 400 },
+      mpv: { name: "MPV", unit: "fl", refMin: 7.8, refMax: 12.8 },
+      pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0 }
+    }
+  },
+  differential: {
+    label: "WBC Differential", icon: "\uD83E\uDDEB",
+    markers: {
+      neutrophils: { name: "Neutrophils #", unit: "10^9/l", refMin: 2.0, refMax: 7.0 },
+      lymphocytes: { name: "Lymphocytes #", unit: "10^9/l", refMin: 0.8, refMax: 4.0 },
+      monocytes: { name: "Monocytes #", unit: "10^9/l", refMin: 0.08, refMax: 1.20 },
+      eosinophils: { name: "Eosinophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.5 },
+      basophils: { name: "Basophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.2 },
+      neutrophilsPct: { name: "Neutrophils %", unit: "", refMin: 0.45, refMax: 0.70 },
+      lymphocytesPct: { name: "Lymphocytes %", unit: "", refMin: 0.20, refMax: 0.45 },
+      monocytesPct: { name: "Monocytes %", unit: "", refMin: 0.02, refMax: 0.12 }
+    }
+  },
+  fattyAcids: {
+    label: "Fatty Acids", icon: "\uD83D\uDC1F", singlePoint: true,
+    markers: {
+      palmiticC16: { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1 },
+      stearicC18: { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8 },
+      oleicC18_1: { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4 },
+      linoleicC18_2: { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3 },
+      glaC18_3: { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22 },
+      arachidonicC20_4: { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50 },
+      dglaC20_3: { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16 },
+      alaC18_3: { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89 },
+      epaC20_5: { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72 },
+      dpaC22_5: { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36 },
+      dhaC22_6: { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64 },
+      omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0 },
+      omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0 },
+      membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0 },
+      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0 }
+    }
+  },
+  boneMetabolism: {
+    label: "Bone Metabolism", icon: "\uD83E\uDDB4",
+    markers: {
+      osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0 }
     }
   }
 };
@@ -379,7 +374,7 @@ function getStatus(value, refMin, refMax) {
   return "normal";
 }
 function getRangePosition(value, refMin, refMax) {
-  if (value === null) return null;
+  if (value === null || value === undefined) return null;
   return ((value - refMin) / (refMax - refMin)) * 100;
 }
 
@@ -396,42 +391,89 @@ let selectedCorrelationMarkers = [];
 // DATA PIPELINE
 // ═══════════════════════════════════════════════
 function getActiveData() {
-  const data = JSON.parse(JSON.stringify(LAB_DATA));
-  if (importedData && importedData.entries && importedData.entries.length > 0) {
-    mergeImportedIntoData(data);
+  const data = {
+    dates: [],
+    dateLabels: [],
+    categories: JSON.parse(JSON.stringify(MARKER_SCHEMA))
+  };
+
+  const entries = (importedData && importedData.entries) ? importedData.entries : [];
+  const hasEntries = entries.length > 0;
+
+  // Build entry lookup: date → merged markers
+  const entryLookup = {};
+  for (const entry of entries) {
+    if (!entryLookup[entry.date]) entryLookup[entry.date] = {};
+    Object.assign(entryLookup[entry.date], entry.markers);
   }
-  data.dateLabels = data.dates.map(d => {
+
+  // Identify singlePoint categories
+  const singlePointCats = new Set();
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    if (cat.singlePoint) singlePointCats.add(catKey);
+  }
+
+  // Collect dates from entries that have non-singlePoint markers
+  const regularDates = new Set();
+  if (hasEntries) {
+    for (const entry of entries) {
+      for (const key of Object.keys(entry.markers)) {
+        if (!singlePointCats.has(key.split('.')[0])) {
+          regularDates.add(entry.date);
+          break;
+        }
+      }
+    }
+  }
+
+  const sortedDates = [...regularDates].sort();
+  data.dates = sortedDates;
+  data.dateLabels = sortedDates.map(d => {
     const dt = new Date(d + 'T00:00:00');
     return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   });
-  if (unitSystem === 'US') applyUnitConversion(data);
-  return data;
-}
 
-function mergeImportedIntoData(data) {
-  const existingDates = [...data.dates];
-  const importedDates = importedData.entries.map(e => e.date);
-  const allDates = [...new Set([...existingDates, ...importedDates])].sort();
-  const importLookup = {};
-  for (const entry of importedData.entries) importLookup[entry.date] = entry.markers;
+  // Populate values for each category
   for (const [catKey, cat] of Object.entries(data.categories)) {
-    for (const [markerKey, marker] of Object.entries(cat.markers)) {
-      if (marker.singlePoint) continue;
-      const fullKey = `${catKey}.${markerKey}`;
-      marker.values = allDates.map(date => {
-        const origIdx = existingDates.indexOf(date);
-        if (origIdx !== -1 && origIdx < marker.values.length && marker.values[origIdx] !== null) {
-          return marker.values[origIdx];
+    if (cat.singlePoint) {
+      // Find the first entry that has any marker in this category
+      let singleDate = null;
+      for (const entry of entries) {
+        for (const key of Object.keys(entry.markers)) {
+          if (key.startsWith(catKey + '.')) { singleDate = entry.date; break; }
         }
-        if (importLookup[date] && importLookup[date][fullKey] !== undefined) {
-          return importLookup[date][fullKey];
+        if (singleDate) break;
+      }
+      cat.singleDate = singleDate;
+      const singleDateLabel = singleDate
+        ? new Date(singleDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : null;
+      cat.singleDateLabel = singleDateLabel;
+      for (const [markerKey, marker] of Object.entries(cat.markers)) {
+        marker.singlePoint = true;
+        marker.singleDateLabel = singleDateLabel;
+        const fullKey = `${catKey}.${markerKey}`;
+        if (singleDate && entryLookup[singleDate] && entryLookup[singleDate][fullKey] !== undefined) {
+          marker.values = [entryLookup[singleDate][fullKey]];
+        } else {
+          marker.values = [];
         }
-        if (origIdx !== -1 && origIdx < marker.values.length) return marker.values[origIdx];
-        return null;
-      });
+      }
+    } else {
+      for (const [markerKey, marker] of Object.entries(cat.markers)) {
+        const fullKey = `${catKey}.${markerKey}`;
+        marker.values = sortedDates.map(date => {
+          if (entryLookup[date] && entryLookup[date][fullKey] !== undefined) {
+            return entryLookup[date][fullKey];
+          }
+          return null;
+        });
+      }
     }
   }
-  data.dates = allDates;
+
+  if (unitSystem === 'US') applyUnitConversion(data);
+  return data;
 }
 
 function applyUnitConversion(data) {
@@ -480,7 +522,12 @@ document.addEventListener("DOMContentLoaded", () => {
   showDashboard();
   updateHeaderDates();
   document.getElementById("pdf-input").addEventListener("change", async e => {
-    if (e.target.files.length > 0) { await handlePDFFile(e.target.files[0]); e.target.value = ''; }
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.name.endsWith('.json')) importDataJSON(file);
+      else await handlePDFFile(file);
+      e.target.value = '';
+    }
   });
 });
 
@@ -517,13 +564,18 @@ function navigate(category) {
 function showDashboard() {
   const data = getActiveData();
   const main = document.getElementById("main-content");
-  let html = `<div class="category-header"><h2>Dashboard Overview</h2>
-    <p>Summary of all blood work results across ${data.dates.length} collection dates</p></div>`;
+  const hasData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singlePoint && c.singleDate);
+
+  let html = `<div class="category-header"><h2>Dashboard Overview</h2>`;
+  if (hasData) {
+    html += `<p>Summary of all blood work results across ${data.dates.length} collection date${data.dates.length !== 1 ? 's' : ''}</p>`;
+  }
+  html += `</div>`;
 
   html += `<div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop SPADIA PDF here to import</div>
-    <div class="drop-zone-hint">or click to browse</div></div>`;
+    <div class="drop-zone-text">Drop PDF or JSON file here to import</div>
+    <div class="drop-zone-hint">Supports SPADIA PDF reports and LabCharts JSON exports</div></div>`;
 
   if (importedData.entries && importedData.entries.length > 0) {
     html += `<div class="imported-entries">`;
@@ -531,10 +583,27 @@ function showDashboard() {
       const d = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const cnt = Object.keys(entry.markers).length;
       html += `<div class="imported-entry">
-        <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers imported</span></span>
+        <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
         <button class="ie-remove" onclick="removeImportedEntry('${entry.date}')">\u2715 Remove</button></div>`;
     }
+    html += `<div style="display:flex;gap:8px;margin-top:8px">
+      <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+      <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
     html += `</div>`;
+  }
+
+  if (!hasData) {
+    html += `<div class="empty-state">
+      <div class="empty-state-icon">\uD83D\uDCCA</div>
+      <h3>Welcome to LabCharts</h3>
+      <p>Import your blood work results to get started.</p>
+      <ul>
+        <li>Drop a SPADIA PDF lab report above, or click to browse</li>
+        <li>Import a previously exported LabCharts JSON file</li>
+      </ul></div>`;
+    main.innerHTML = html;
+    setupDropZone();
+    return;
   }
 
   const allFlags = getAllFlaggedMarkers(data);
@@ -606,8 +675,13 @@ function showCategory(categoryKey) {
     <button class="view-btn active" onclick="switchView('charts','${categoryKey}',this)">Charts</button>
     <button class="view-btn" onclick="switchView('table','${categoryKey}',this)">Table</button></div>`;
 
+  const hasValues = Object.values(cat.markers).some(m => m.values && m.values.length > 0 && m.values.some(v => v !== null));
+
   html += `<div id="view-content">`;
-  if (cat.singleDate) {
+  if (!hasValues) {
+    html += `<div class="empty-state"><div class="empty-state-icon">${cat.icon}</div>
+      <h3>No Data Available</h3><p>Import lab results containing ${cat.label.toLowerCase()} markers to see data here.</p></div>`;
+  } else if (cat.singleDate) {
     html += renderFattyAcidsView(cat);
   } else {
     html += `<div class="charts-grid">`;
@@ -619,7 +693,8 @@ function showCategory(categoryKey) {
   html += `</div>`;
   main.innerHTML = html;
 
-  if (cat.singleDate) { renderFattyAcidsCharts(cat); }
+  if (!hasValues) { /* no charts to render */ }
+  else if (cat.singleDate) { renderFattyAcidsCharts(cat); }
   else {
     for (const [key, marker] of Object.entries(cat.markers)) {
       createLineChart(categoryKey + "_" + key, marker, data.dateLabels);
@@ -668,7 +743,7 @@ function renderChartCard(id, marker, dateLabels) {
       <span class="chart-card-status status-${status}">${statusLabel}</span></div>
     <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
     <div class="chart-values">`;
-  const labels = marker.singlePoint ? ["Jul 2024"] : (dateLabels || LAB_DATA.dateLabels);
+  const labels = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
     const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
@@ -680,7 +755,7 @@ function renderChartCard(id, marker, dateLabels) {
 }
 
 function renderTableView(cat, dateLabels) {
-  const labels = cat.singleDate ? ["Jul 2024"] : (dateLabels || LAB_DATA.dateLabels);
+  const labels = cat.singleDate ? [cat.singleDateLabel || "N/A"] : dateLabels;
   let html = `<div class="data-table-wrapper"><table class="data-table"><thead><tr>
     <th>Biomarker</th><th>Unit</th><th>Reference</th>`;
   for (const d of labels) html += `<th>${d}</th>`;
@@ -711,7 +786,7 @@ function renderTableView(cat, dateLabels) {
 
 function renderFattyAcidsView(cat) {
   let html = `<div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;border:1px solid var(--border)">
-    <h3 style="margin-bottom:16px;font-size:16px">Fatty Acid Profile \u2014 July 4, 2024</h3>
+    <h3 style="margin-bottom:16px;font-size:16px">Fatty Acid Profile${cat.singleDate ? ' \u2014 ' + new Date(cat.singleDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</h3>
     <div style="height:400px"><canvas id="chart-fa-bar"></canvas></div></div>`;
   html += `<div class="fatty-acids-grid">`;
   for (const [key, marker] of Object.entries(cat.markers)) {
@@ -776,7 +851,7 @@ const refBandPlugin = {
 function createLineChart(id, marker, dateLabels) {
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
-  const dates = marker.singlePoint ? ["Jul 2024"] : (dateLabels || getActiveData().dateLabels);
+  const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   const values = marker.values;
   const valid = values.filter(v => v !== null);
   if (valid.length === 0) return;
@@ -813,7 +888,7 @@ function showDetailModal(id) {
   const data = getActiveData();
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const dates = marker.singlePoint ? ["Jul 2024"] : data.dateLabels;
+  const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : data.dateLabels;
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${marker.name}</h3>
     <div class="modal-unit">${marker.unit} &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}</div>
@@ -922,7 +997,14 @@ function switchUnitSystem(system) {
 function updateHeaderDates() {
   const data = getActiveData();
   const el = document.getElementById("header-dates");
-  if (el) el.innerHTML = `<span class="label">Dates:</span> ${data.dateLabels.join(' \u00b7 ')}`;
+  if (el) {
+    if (data.dateLabels.length > 0) {
+      el.innerHTML = `<span class="label">Dates:</span> ${data.dateLabels.join(' \u00b7 ')}`;
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1334,9 +1416,16 @@ function setupDropZone() {
   dropZone.addEventListener("dragleave", e => { e.preventDefault(); dropZone.classList.remove("drag-over"); });
   dropZone.addEventListener("drop", async e => {
     e.preventDefault(); dropZone.classList.remove("drag-over");
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf" || f.name.endsWith(".pdf"));
-    if (files.length === 0) { showNotification("Please drop a PDF file", "error"); return; }
-    await handlePDFFile(files[0]);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+    const file = files[0];
+    if (file.name.endsWith('.json') || file.type === 'application/json') {
+      importDataJSON(file);
+    } else if (file.name.endsWith('.pdf') || file.type === 'application/pdf') {
+      await handlePDFFile(file);
+    } else {
+      showNotification("Unsupported file type. Use PDF or JSON.", "error");
+    }
   });
 }
 
@@ -1351,4 +1440,63 @@ async function handlePDFFile(file) {
     console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error");
   }
+}
+
+// ═══════════════════════════════════════════════
+// JSON EXPORT / IMPORT
+// ═══════════════════════════════════════════════
+function exportDataJSON() {
+  const entries = (importedData && importedData.entries) ? importedData.entries : [];
+  if (entries.length === 0) { showNotification("No data to export", "error"); return; }
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries };
+  const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `labcharts-export-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showNotification('Data exported successfully', 'success');
+}
+
+function importDataJSON(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const json = JSON.parse(e.target.result);
+      if (!json.entries || !Array.isArray(json.entries)) {
+        showNotification('Invalid JSON format: missing entries array', 'error');
+        return;
+      }
+      let count = 0;
+      for (const entry of json.entries) {
+        if (!entry.date || !entry.markers) continue;
+        if (!importedData.entries) importedData.entries = [];
+        importedData.entries = importedData.entries.filter(ex => ex.date !== entry.date);
+        importedData.entries.push(entry);
+        count++;
+      }
+      if (count === 0) { showNotification('No valid entries found in JSON', 'error'); return; }
+      localStorage.setItem('labcharts-imported', JSON.stringify(importedData));
+      buildSidebar();
+      updateHeaderDates();
+      navigate('dashboard');
+      showNotification(`Imported ${count} date entr${count === 1 ? 'y' : 'ies'} from JSON`, 'success');
+    } catch (err) {
+      showNotification('Error parsing JSON: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
+  importedData = { entries: [] };
+  localStorage.removeItem('labcharts-imported');
+  buildSidebar();
+  updateHeaderDates();
+  navigate('dashboard');
+  showNotification('All data cleared', 'info');
 }

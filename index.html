@@ -14,9 +14,7 @@
   <header class="header">
     <h1>Lab<span>Charts</span></h1>
     <div class="header-info">
-      <div><span class="label">Lab:</span> SPADIA LAB, Ostrava</div>
-      <div><span class="label">Sex:</span> Male</div>
-      <div id="header-dates"><span class="label">Dates:</span> Jul 2024 &middot; Jul 2025 &middot; Jan 2026</div>
+      <div id="header-dates"><span class="label">Dates:</span></div>
       <div class="unit-toggle">
         <button class="unit-toggle-btn active" data-unit="EU" onclick="switchUnitSystem('EU')">EU (SI)</button>
         <button class="unit-toggle-btn" data-unit="US" onclick="switchUnitSystem('US')">US</button>
@@ -37,7 +35,7 @@
     <div class="modal" id="import-modal"></div>
   </div>
 
-  <input type="file" id="pdf-input" accept=".pdf" style="display:none">
+  <input type="file" id="pdf-input" accept=".pdf,.json" style="display:none">
   <div class="notification-container" id="notification-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
