@@ -227,9 +227,9 @@ const SPADIA_NAME_MAP = {
   // ── Biochemistry ──
   "Gluk\u00f3za":"biochemistry.glucose", "Glukosa":"biochemistry.glucose", "Glyk\u00e9mie":"biochemistry.glucose",
   "Gluk\u00f3za (plazma)":"biochemistry.glucose", "Gluk\u00f3za v s\u00e9ru":"biochemistry.glucose",
-  "Urea":"biochemistry.urea", "Mo\u010dovina":"biochemistry.urea", "Mo\u010d":"biochemistry.urea",
+  "Urea":"biochemistry.urea", "Mo\u010dovina":"biochemistry.urea",
   "Kreatinin":"biochemistry.creatinine", "Kreatinin enzymaticky":"biochemistry.creatinine", "Kreatinin v s\u00e9ru":"biochemistry.creatinine",
-  "eGFR dle CKD-EPI":"biochemistry.egfr", "eGFR CKD-EPI":"biochemistry.egfr", "eGFR":"biochemistry.egfr",
+  "eGFR dle CKD-EPI":"biochemistry.egfr", "eGFR CKD-EPI":"biochemistry.egfr", "eGFR":"biochemistry.egfr", "eGF (CKD-EPI)":"biochemistry.egfr",
   "V\u00fdpo\u010det glomerul\u00e1rn\u00ed filtrace dle rovnice CKD-EPI":"biochemistry.egfr",
   "Kyselina mo\u010dov\u00e1":"biochemistry.uricAcid", "Kyselina \u00fari\u010dov\u00e1":"biochemistry.uricAcid",
   "Bilirubin":"biochemistry.bilirubinTotal", "Bilirubin celkov\u00fd":"biochemistry.bilirubinTotal", "Bilirubin celk.":"biochemistry.bilirubinTotal",
@@ -248,7 +248,7 @@ const SPADIA_NAME_MAP = {
   "SHBG":"hormones.shbg", "Sexu\u00e1ln\u00ed hormony v\u00e1zaj\u00edc\u00ed globulin":"hormones.shbg",
   "DHEA-S":"hormones.dheaS", "DHEA S":"hormones.dheaS", "DHEA-sulf\u00e1t":"hormones.dheaS",
   "Dehydroepiandrosteronsulf\u00e1t":"hormones.dheaS",
-  "FAI":"hormones.fai", "Voln\u00fd androgenn\u00ed index":"hormones.fai",
+  "FAI":"hormones.fai", "Voln\u00fd androgenn\u00ed index":"hormones.fai", "v\u00fdpo\u010det FAI":"hormones.fai",
   "Estradiol":"hormones.estradiol",
   "Progesteron":"hormones.progesterone",
   "Kalcitonin":"hormones.calcitonin",
@@ -262,7 +262,9 @@ const SPADIA_NAME_MAP = {
   "V\u00e1pn\u00edk":"electrolytes.calciumTotal", "V\u00e1pn\u00edk (Kalcium)":"electrolytes.calciumTotal",
   "V\u00e1pn\u00edk celkov\u00fd":"electrolytes.calciumTotal", "Kalcium celkov\u00e9":"electrolytes.calciumTotal",
   "Kalcium":"electrolytes.calciumTotal", "Ca celk.":"electrolytes.calciumTotal", "Ca":"electrolytes.calciumTotal",
+  "Ca celkov\u00fd":"electrolytes.calciumTotal",
   "Fosfor anorganick\u00fd":"electrolytes.phosphorus", "Fosfor":"electrolytes.phosphorus", "Fosf\u00e1t":"electrolytes.phosphorus",
+  "P anorganick\u00fd":"electrolytes.phosphorus",
   "Ho\u0159\u010d\u00edk":"electrolytes.magnesium", "Mg":"electrolytes.magnesium", "Magnezium":"electrolytes.magnesium",
   "Ho\u0159\u010d\u00edk v erytrocytech":"electrolytes.magnesiumRBC", "Mg v ery.":"electrolytes.magnesiumRBC", "Magnezium v erytrocytech":"electrolytes.magnesiumRBC",
   "Zinek":"electrolytes.zinc", "Zn":"electrolytes.zinc",
@@ -285,24 +287,25 @@ const SPADIA_NAME_MAP = {
   "Ferritin":"iron.ferritin", "Feritin":"iron.ferritin",
   "Transferin":"iron.transferrin", "Transferrin":"iron.transferrin",
   "TIBC":"iron.tibc", "Celkov\u00e1 vazebn\u00e1 kapacita \u017eeleza":"iron.tibc", "Vazebn\u00e1 kap.Fe":"iron.tibc",
+  "Celk.VK Fe":"iron.tibc", "Celk. VK Fe":"iron.tibc",
   "Saturace transferinu":"iron.transferrinSat", "Sat.transferinu":"iron.transferrinSat",
+  "Saturace Trf":"iron.transferrinSat", "Saturace Trf.":"iron.transferrinSat",
   // ── Proteins & Inflammation ──
   "hs-CRP":"proteins.hsCRP", "hs CRP":"proteins.hsCRP", "hsCRP":"proteins.hsCRP",
-  "CRP ultrasenzit.":"proteins.hsCRP", "CRP ultrasenzitivn\u00ed":"proteins.hsCRP", "CRP":"proteins.hsCRP",
+  "CRP ultrasenzit.":"proteins.hsCRP", "CRP ultrasenzitivn\u00ed":"proteins.hsCRP",
   "Celk.b\u00edlkovina":"proteins.totalProtein", "Celkov\u00e1 b\u00edlkovina":"proteins.totalProtein",
   "Celkov\u00e1 b\u00edl.":"proteins.totalProtein", "Celk. b\u00edlkovina":"proteins.totalProtein",
   "Albumin":"proteins.albumin",
-  "Ceruloplazmin":"proteins.ceruloplasmin",
+  "Ceruloplazmin":"proteins.ceruloplasmin", "Ceruloplasmin":"proteins.ceruloplasmin",
   // ── Thyroid ──
   "TSH":"thyroid.tsh", "Thyreotropin":"thyroid.tsh",
-  "FT4":"thyroid.ft4", "fT4":"thyroid.ft4", "Voln\u00fd thyroxin":"thyroid.ft4", "Voln\u00fd T4":"thyroid.ft4",
-  "FT3":"thyroid.ft3", "fT3":"thyroid.ft3", "Voln\u00fd trijodthyronin":"thyroid.ft3", "Voln\u00fd T3":"thyroid.ft3",
+  "FT4":"thyroid.ft4", "fT4":"thyroid.ft4", "Voln\u00fd thyroxin":"thyroid.ft4", "Voln\u00fd T4":"thyroid.ft4", "T4 voln\u00fd":"thyroid.ft4",
+  "FT3":"thyroid.ft3", "fT3":"thyroid.ft3", "Voln\u00fd trijodthyronin":"thyroid.ft3", "Voln\u00fd T3":"thyroid.ft3", "T3 voln\u00fd":"thyroid.ft3",
   "T4 celkov\u00fd":"thyroid.t4total", "Thyroxin":"thyroid.t4total", "T4":"thyroid.t4total",
   "T3 celkov\u00fd":"thyroid.t3total", "Trijodthyronin":"thyroid.t3total", "T3":"thyroid.t3total",
   // ── Vitamins ──
   "Vitamin D celk.":"vitamins.vitaminD", "Vitamin D celkov\u00fd":"vitamins.vitaminD", "Vitamin D":"vitamins.vitaminD",
   "25-OH vitamin D":"vitamins.vitaminD", "25OH vitamin D celk.":"vitamins.vitaminD", "25OH Vitamin D":"vitamins.vitaminD",
-  "Vitamin D celkov\u00fd":"vitamins.vitaminD",
   "Vitamin D3":"vitamins.vitaminD3", "25-OH Vitamin D3":"vitamins.vitaminD3", "25-OH vitamin D3":"vitamins.vitaminD3",
   "Vitamin A":"vitamins.vitaminA", "Vitam\u00edn A":"vitamins.vitaminA", "Retinol":"vitamins.vitaminA",
   // ── Diabetes ──
@@ -330,8 +333,6 @@ const SPADIA_NAME_MAP = {
   "Bazofily abs.":"differential.basophils", "Bazofily #":"differential.basophils",
   "Basofily abs.":"differential.basophils", "Basofily #":"differential.basophils",
   "Neutrofily":"differential.neutrophilsPct", "Lymfocyty":"differential.lymphocytesPct", "Monocyty":"differential.monocytesPct",
-  "Eozinofily":"differential.eosinophils", "Eosinofily":"differential.eosinophils",
-  "Bazofily":"differential.basophils", "Basofily":"differential.basophils",
   // ── Bone Metabolism ──
   "Osteokalcin":"boneMetabolism.osteocalcin",
   // ── Fatty Acids ──
@@ -869,7 +870,7 @@ function createLineChart(id, marker, dateLabels) {
     data: { labels: dates, datasets: [{
       data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
       borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
-      pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: false
+      pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true
     }]},
     options: { responsive:true, maintainAspectRatio:false,
       plugins: { legend:{display:false},
@@ -1132,7 +1133,7 @@ function renderCorrelationChart() {
       label: marker.name, data: normalizedValues,
       borderColor: color, backgroundColor: color + '20',
       borderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
-      pointBackgroundColor: color, tension: 0.3, fill: false, spanGaps: false,
+      pointBackgroundColor: color, tension: 0.3, fill: false, spanGaps: true,
       _realValues: marker.values, _unit: marker.unit, _refMin: marker.refMin, _refMax: marker.refMax
     });
   });
@@ -1215,14 +1216,17 @@ function extractDateFromPDFText(items) {
 }
 
 function extractMarkersFromPDFText(items) {
+  // Sort by page first, then by y (descending = top-to-bottom), then by x
   const sorted = [...items].sort((a, b) => {
+    if (a.page !== b.page) return a.page - b.page;
     const dy = b.y - a.y;
     return Math.abs(dy) > 3 ? dy : a.x - b.x;
   });
   const rows = [];
   let currentRow = [sorted[0]];
   for (let i = 1; i < sorted.length; i++) {
-    if (Math.abs(sorted[i].y - currentRow[0].y) < 3) {
+    // Only group items on the same page with similar y-coordinates
+    if (sorted[i].page === currentRow[0].page && Math.abs(sorted[i].y - currentRow[0].y) < 3) {
       currentRow.push(sorted[i]);
     } else {
       rows.push(currentRow.sort((a, b) => a.x - b.x));
@@ -1240,23 +1244,26 @@ function extractMarkersFromPDFText(items) {
 
 const SPADIA_SECTION_HEADERS = ['biochemie','lipidy','hematologie','hormony','elektrolyty','miner\u00e1ly',
   'imunologie','koagulace','s\u00e9rologie','n\u00e1dorov\u00e9','thyreoidea','metabolismus','speci\u00e1ln\u00ed',
-  'krevn\u00ed','diferenci\u00e1l','mast','vitaminy','proteiny'];
+  'krevn\u00ed','diferenci\u00e1l','mast','vitaminy','proteiny','ionty','diabetes',
+  'v\u00fdsledkov\u00e1','strana','odbornost'];
 
 function parseDataRow(row) {
   let texts = row.map(r => r.text).filter(t => t.trim());
   if (texts.length < 2) return null;
   const fullText = texts.join(' ');
-  if (/^(Vy\u0161et\u0159en\u00ed|V\u00fdsledek|Jednotky|Referen\u010dn\u00ed|Laborato|Strana|Datum|Pacient|Rod\.|Poji\u0161t|SPADIA|Zpracoval|Telefon|www\.|Identif|Materi\u00e1l)/i.test(fullText)) return null;
+  if (/^(Vy\u0161et\u0159en\u00ed|V\u00fdsledek|Jednotky|Referen\u010dn\u00ed|Laborato|Strana|Datum|Pacient|Rod\.|Poji\u0161t|SPADIA|Zpracoval|Telefon|www\.|Identif|Materi\u00e1l|P\u0159\u00edjem|Tisk|Diagn|Samop|Pohlav|Odbor|I\u010cP|Uvolnil|Vysv\u011btl|Prim\u00e1rn|ZP:)/i.test(fullText)) return null;
   // Skip urine tests (material code U anywhere in row)
   if (texts.some(t => t.trim() === 'U')) return null;
   // Remove standalone material codes (S=serum, B=blood, P=plasma), flag codes, and section headers
   texts = texts.filter(t => {
     const s = t.trim();
-    if (/^[SBP]$/.test(s)) return false;
+    if (/^[SBPU]$/.test(s) || s === 'xxx') return false; // Material codes (S=serum, B=blood, P=plasma, U=urine, xxx=calc)
     if (/^[SBP]\//.test(s)) return false; // S/xxx, B/xxx
     if (/^[01]$/.test(s)) return false; // Standalone 0/1 are pathological flags, not values
     if (/^\*+$/.test(s) || s === '!' || s === 'H' || s === 'L') return false; // Flag indicators
     if (/^\d{7,}$/.test(s)) return false; // Patient IDs, barcodes (7+ digit numbers)
+    if (/^\|.*\|$/.test(s)) return false; // Assessment bar patterns like |   |*|   |
+    if (s === '$') return false; // Accreditation marker
     if (SPADIA_SECTION_HEADERS.some(h => s.toLowerCase() === h || s.toLowerCase().startsWith(h))) return false;
     return true;
   });
@@ -1268,8 +1275,6 @@ function parseDataRow(row) {
   }
   if (valueIdx < 1) return null;
   let name = texts.slice(0, valueIdx).join(' ').trim();
-  // Strip any remaining material code prefixes from the name
-  name = name.replace(/^[SBP]\s+/, '').trim();
   if (!name || name.length < 2) return null;
   let value = parseFloat(valueStr.replace(',', '.').replace(/^[<>]\s*/, ''));
   if (isNaN(value)) return null;
