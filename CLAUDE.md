@@ -25,6 +25,9 @@ No build system, no bundler, no package manager. Three source files:
   - UI rendering (sidebar, dashboard with empty state, category views, chart/table toggle, detail modals, flagged marker alerts)
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
+  - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
+  - Diagnoses & diet profile context (`openDiagnosesEditor`, `saveDiagnoses`, `openDietEditor`, `saveDiet`)
+  - Chart annotation plugin (`noteAnnotationPlugin` — vertical dashed lines at note dates)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
   - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
   - Per-marker AI (`askAIAboutMarker` — opens chat with pre-filled marker-specific prompt)
@@ -33,7 +36,7 @@ No build system, no bundler, no package manager. Three source files:
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → applies unit conversion if US mode
-2. All data lives in `importedData.entries` in `localStorage` under key `labcharts-{profileId}-imported`; unit preference under `labcharts-{profileId}-units`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet }`; unit preference under `labcharts-{profileId}-units`
 3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` at category level in the schema; `getActiveData()` sets `singleDate`, `singleDateLabel` on the category and `singlePoint`, `singleDateLabel` on each marker
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -49,10 +52,30 @@ The PDF parser uses Claude API to extract markers from any lab PDF (any language
 4. **Import confirmation**: Shows preview modal with matched/unmatched markers; user confirms before saving
 5. **Insulin dual-mapping**: When `hormones.insulin` is imported, it's also set as `diabetes.insulin_d` and HOMA-IR is recalculated
 
+### Standalone Notes
+
+Notes are independent of lab entries — they support any date and are stored in `importedData.notes` as `[{ date, text }]`:
+
+- Dashboard shows notes interleaved chronologically with lab entries, distinguished by a yellow left border
+- `openNoteEditor(date?, existingIdx?)` opens a modal with date picker + textarea; defaults to today for new notes
+- `noteAnnotationPlugin` (Chart.js plugin) draws vertical dashed yellow lines at note dates on all trend charts and the correlation chart; interpolates position for notes falling between data points
+- Notes appear in the detail modal as a memo icon on date cards that match a note's date
+- `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
+
+### Diagnoses & Diet
+
+Free-text profile context stored in `importedData.diagnoses` (string) and `importedData.diet` (string):
+
+- Dashboard renders two side-by-side cards (`.profile-context-cards` grid) between the drop zone and the entries list
+- Each card shows current text or a placeholder prompt; clicking opens a modal editor
+- `buildLabContext()` prepends `## Medical Conditions / Diagnoses` and `## Diet` sections to the AI context
+- `CHAT_SYSTEM_PROMPT` instructs the AI to factor diagnoses and diet into lab interpretation
+- Both fields are included in JSON export/import
+
 ### AI Chat Panel
 
 - Slide-out panel on the right side with streaming responses
-- `buildLabContext()` serializes full profile data for the system prompt
+- `buildLabContext()` serializes full profile data for the system prompt, including diagnoses, diet, lab values, flagged results, and notes
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
@@ -68,8 +91,9 @@ The PDF parser uses Claude API to extract markers from any lab PDF (any language
 
 ### JSON Export/Import
 
-- Export format: `{ version: 1, exportedAt, entries: [{ date, markers: { "category.key": value } }] }`
-- Import merges entries by date; drop zone accepts both PDF and JSON files
+- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "..." }`
+- Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet if present
+- Drop zone accepts both PDF and JSON files
 
 ### External Dependencies (CDN)
 - **Chart.js 4.4.7** — all chart rendering
@@ -93,7 +117,7 @@ There are no tests, linters, or build steps. An Anthropic API key is required fo
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout
 - **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
-- **Custom Chart.js plugin**: `refBandPlugin` draws reference range bands on charts
+- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `noteAnnotationPlugin` draws vertical dashed lines at note dates
 - **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales
 - **Fatty acids category** has `singlePoint: true` at category level in `MARKER_SCHEMA` — single-date results rendered differently (grid cards instead of trend charts)
 - **Empty state**: When no data is loaded, dashboard shows welcome message with import instructions; category views show "No data available"
