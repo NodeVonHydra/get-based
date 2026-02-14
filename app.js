@@ -542,9 +542,10 @@ function buildSidebar() {
   for (const [key, cat] of Object.entries(data.categories)) {
     const markers = Object.values(cat.markers);
     const flagged = countFlagged(markers);
+    const withData = markers.filter(m => m.values && m.values.some(v => v !== null)).length;
     const flagHtml = flagged > 0
       ? `<span class="flag-count">${flagged}</span>`
-      : `<span class="count">${markers.length}</span>`;
+      : `<span class="count">${withData}</span>`;
     html += `<div class="nav-item" data-category="${key}" onclick="navigate('${key}')">
       <span class="icon">${cat.icon}</span> ${cat.label} ${flagHtml}</div>`;
   }
@@ -1248,11 +1249,14 @@ function parseDataRow(row) {
   if (/^(Vy\u0161et\u0159en\u00ed|V\u00fdsledek|Jednotky|Referen\u010dn\u00ed|Laborato|Strana|Datum|Pacient|Rod\.|Poji\u0161t|SPADIA|Zpracoval|Telefon|www\.|Identif|Materi\u00e1l)/i.test(fullText)) return null;
   // Skip urine tests (material code U anywhere in row)
   if (texts.some(t => t.trim() === 'U')) return null;
-  // Remove standalone material codes (S=serum, B=blood, P=plasma) and section headers
+  // Remove standalone material codes (S=serum, B=blood, P=plasma), flag codes, and section headers
   texts = texts.filter(t => {
     const s = t.trim();
     if (/^[SBP]$/.test(s)) return false;
     if (/^[SBP]\//.test(s)) return false; // S/xxx, B/xxx
+    if (/^[01]$/.test(s)) return false; // Standalone 0/1 are pathological flags, not values
+    if (/^\*+$/.test(s) || s === '!' || s === 'H' || s === 'L') return false; // Flag indicators
+    if (/^\d{7,}$/.test(s)) return false; // Patient IDs, barcodes (7+ digit numbers)
     if (SPADIA_SECTION_HEADERS.some(h => s.toLowerCase() === h || s.toLowerCase().startsWith(h))) return false;
     return true;
   });
@@ -1276,7 +1280,7 @@ function parseDataRow(row) {
     refMin = parseFloat(refMatch[1].replace(',', '.'));
     refMax = parseFloat(refMatch[2].replace(',', '.'));
   }
-  // Name lookup: try exact, then case-insensitive, then fuzzy
+  // Name lookup: try exact, then case-insensitive, then fuzzy (best match)
   let mappedKey = SPADIA_NAME_MAP[name];
   if (!mappedKey) {
     // Try case-insensitive exact match
@@ -1286,25 +1290,44 @@ function parseDataRow(row) {
     }
   }
   if (!mappedKey) {
-    // Try prefix/suffix match
+    // Try prefix/suffix match — require min 3 chars on both sides, prefer longest match
     const nameLower = name.toLowerCase();
+    let bestMatch = null, bestLen = 0;
     for (const [mapName, mapKey] of Object.entries(SPADIA_NAME_MAP)) {
       const ml = mapName.toLowerCase();
-      if (nameLower.startsWith(ml) || ml.startsWith(nameLower) ||
-          nameLower.endsWith(ml) || ml.endsWith(nameLower)) {
-        mappedKey = mapKey; break;
+      if (ml.length < 3 || nameLower.length < 3) continue;
+      if ((nameLower.startsWith(ml) || ml.startsWith(nameLower) ||
+           nameLower.endsWith(ml) || ml.endsWith(nameLower)) &&
+          mapName.length > bestLen) {
+        bestMatch = mapKey;
+        bestLen = mapName.length;
       }
     }
+    if (bestMatch) mappedKey = bestMatch;
   }
   if (!mappedKey) {
     // Try stripping common prefixes/suffixes and re-match
     const cleaned = name.replace(/^(S|B|P|celk\.|celkov[ýá])\s*/i, '').replace(/\s*(celk\.|celkov[ýá]|abs\.)$/i, '').trim();
-    if (cleaned !== name) {
+    if (cleaned !== name && cleaned.length >= 2) {
       mappedKey = SPADIA_NAME_MAP[cleaned];
       if (!mappedKey) {
         for (const [mapName, mapKey] of Object.entries(SPADIA_NAME_MAP)) {
           if (cleaned.toLowerCase() === mapName.toLowerCase()) { mappedKey = mapKey; break; }
         }
+      }
+    }
+  }
+  // Cross-validate: if we matched and have both extracted and schema ref ranges, reject gross mismatches
+  if (mappedKey && refMin !== null && refMax !== null) {
+    const [catKey, markerKey] = mappedKey.split('.');
+    const schema = MARKER_SCHEMA[catKey] && MARKER_SCHEMA[catKey].markers[markerKey];
+    if (schema && schema.refMin !== undefined && schema.refMax !== undefined) {
+      const schemaMid = (schema.refMin + schema.refMax) / 2;
+      const extractedMid = (refMin + refMax) / 2;
+      const schemaSpan = schema.refMax - schema.refMin;
+      // If midpoints differ by more than 10x the schema span, it's likely a wrong match
+      if (schemaSpan > 0 && Math.abs(schemaMid - extractedMid) > schemaSpan * 10) {
+        mappedKey = null;
       }
     }
   }
