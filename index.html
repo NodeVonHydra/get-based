@@ -16,10 +16,16 @@
     <div class="header-info">
       <div id="profile-selector"></div>
       <div id="header-dates"><span class="label">Dates:</span></div>
+      <div class="sex-toggle">
+        <button class="sex-toggle-btn" data-sex="male" onclick="switchSex('male')">&male;</button>
+        <button class="sex-toggle-btn" data-sex="female" onclick="switchSex('female')">&female;</button>
+      </div>
       <div class="unit-toggle">
         <button class="unit-toggle-btn active" data-unit="EU" onclick="switchUnitSystem('EU')">EU (SI)</button>
         <button class="unit-toggle-btn" data-unit="US" onclick="switchUnitSystem('US')">US</button>
       </div>
+      <button class="settings-btn" onclick="openSettingsModal()" title="Settings">&#9881;</button>
+      <button class="chat-toggle-btn" onclick="toggleChatPanel()">Ask AI</button>
     </div>
   </header>
 
@@ -34,6 +40,26 @@
 
   <div class="modal-overlay" id="import-modal-overlay">
     <div class="modal" id="import-modal"></div>
+  </div>
+
+  <div class="modal-overlay" id="settings-modal-overlay">
+    <div class="modal" id="settings-modal"></div>
+  </div>
+
+  <div class="chat-backdrop" id="chat-backdrop" onclick="closeChatPanel()"></div>
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-header">
+      <span class="chat-header-title">AI Lab Analyst</span>
+      <div class="chat-header-actions">
+        <button class="chat-clear-btn" onclick="clearChatHistory()" title="Clear history">Clear</button>
+        <button class="chat-close-btn" onclick="closeChatPanel()">&times;</button>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." rows="2" onkeydown="handleChatKeydown(event)"></textarea>
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">Send</button>
+    </div>
   </div>
 
   <input type="file" id="pdf-input" accept=".pdf,.json" style="display:none">

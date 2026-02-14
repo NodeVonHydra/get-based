@@ -7,16 +7,16 @@ const MARKER_SCHEMA = {
     markers: {
       glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60 },
       urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3 },
-      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106 },
+      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106, refMin_f: 44, refMax_f: 80 },
       egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30 },
-      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417 },
+      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417, refMin_f: 143, refMax_f: 339 },
       bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0 },
       ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85 },
       alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83 },
       alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15 },
       ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19 },
       ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75 },
-      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14 },
+      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14, refMin_f: 0.42, refMax_f: 3.08 },
       cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95 },
       gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63 }
     }
@@ -24,15 +24,15 @@ const MARKER_SCHEMA = {
   hormones: {
     label: "Hormones", icon: "\u26A1",
     markers: {
-      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00 },
-      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70 },
-      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1 },
-      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60 },
-      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0 },
-      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0 },
-      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474 },
-      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8 },
-      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40 },
+      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, refMin_f: 0.29, refMax_f: 1.67 },
+      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, refMin_f: 0.30, refMax_f: 10.40 },
+      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1, refMin_f: 26.1, refMax_f: 110.0 },
+      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60, refMin_f: 1.77, refMax_f: 9.22 },
+      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0, refMin_f: 0.5, refMax_f: 6.9 },
+      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0, refMin_f: 45.4, refMax_f: 854.0 },
+      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474, refMin_f: 0.181, refMax_f: 27.0 },
+      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, refMin_f: 1.0, refMax_f: 4.6 },
+      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, refMin_f: 0.12, refMax_f: 0.86 },
       igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8 },
       insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 }
     }
@@ -67,8 +67,8 @@ const MARKER_SCHEMA = {
   iron: {
     label: "Iron Metabolism", icon: "\uD83D\uDD34",
     markers: {
-      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5 },
-      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400 },
+      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5, refMin_f: 6.6, refMax_f: 26.0 },
+      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400, refMin_f: 13, refMax_f: 150 },
       transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6 },
       tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7 },
       transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0 }
@@ -118,16 +118,16 @@ const MARKER_SCHEMA = {
   coagulation: {
     label: "Coagulation", icon: "\uD83E\uDE78",
     markers: {
-      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0 }
+      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0, refMin_f: 3.7, refMax_f: 10.4 }
     }
   },
   hematology: {
     label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
     markers: {
       wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00 },
-      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80 },
-      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175 },
-      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500 },
+      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20 },
+      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, refMin_f: 120, refMax_f: 160 },
+      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, refMin_f: 0.350, refMax_f: 0.450 },
       mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0 },
       mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0 },
       mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360 },
@@ -220,138 +220,7 @@ const UNIT_CONVERSIONS = {
   'diabetes.hba1c': { type: 'hba1c' }
 };
 
-// ═══════════════════════════════════════════════
-// SPADIA PDF NAME MAP — from virtuallab.spadia.cz/Verejne/LaboratorniPrirucka
-// ═══════════════════════════════════════════════
-const SPADIA_NAME_MAP = {
-  // ── Biochemistry ──
-  "Gluk\u00f3za":"biochemistry.glucose", "Glukosa":"biochemistry.glucose", "Glyk\u00e9mie":"biochemistry.glucose",
-  "Gluk\u00f3za (plazma)":"biochemistry.glucose", "Gluk\u00f3za v s\u00e9ru":"biochemistry.glucose",
-  "Urea":"biochemistry.urea", "Mo\u010dovina":"biochemistry.urea",
-  "Kreatinin":"biochemistry.creatinine", "Kreatinin enzymaticky":"biochemistry.creatinine", "Kreatinin v s\u00e9ru":"biochemistry.creatinine",
-  "eGFR dle CKD-EPI":"biochemistry.egfr", "eGFR CKD-EPI":"biochemistry.egfr", "eGFR":"biochemistry.egfr", "eGF (CKD-EPI)":"biochemistry.egfr",
-  "V\u00fdpo\u010det glomerul\u00e1rn\u00ed filtrace dle rovnice CKD-EPI":"biochemistry.egfr",
-  "Kyselina mo\u010dov\u00e1":"biochemistry.uricAcid", "Kyselina \u00fari\u010dov\u00e1":"biochemistry.uricAcid",
-  "Bilirubin":"biochemistry.bilirubinTotal", "Bilirubin celkov\u00fd":"biochemistry.bilirubinTotal", "Bilirubin celk.":"biochemistry.bilirubinTotal",
-  "AST":"biochemistry.ast", "Aspart\u00e1taminotransfer\u00e1za":"biochemistry.ast",
-  "ALT":"biochemistry.alt", "Alaninaminotransfer\u00e1za":"biochemistry.alt",
-  "ALP":"biochemistry.alp", "Alkalick\u00e1 fosfat\u00e1za":"biochemistry.alp",
-  "GGT":"biochemistry.ggt", "y-glutamyltransfer\u00e1za":"biochemistry.ggt", "\u03b3-glutamyltransfer\u00e1za":"biochemistry.ggt", "GMT":"biochemistry.ggt",
-  "LD":"biochemistry.ldh", "LDH":"biochemistry.ldh", "Lakt\u00e1tdehydrogen\u00e1za":"biochemistry.ldh",
-  "CK":"biochemistry.creatineKinase", "Kreatinkin\u00e1za":"biochemistry.creatineKinase",
-  "Kreatin kin\u00e1za":"biochemistry.creatineKinase", "Kreatin-kin\u00e1za":"biochemistry.creatineKinase",
-  "Cystatin C":"biochemistry.cystatinC",
-  "GFR dle Cyst C":"biochemistry.gfrCystatin", "GF Cystatin":"biochemistry.gfrCystatin",
-  // ── Hormones ──
-  "Testosteron":"hormones.testosterone", "Testosteron celk.":"hormones.testosterone", "Testosteron celkov\u00fd":"hormones.testosterone",
-  "Testosteron voln\u00fd":"hormones.freeTestosterone",
-  "SHBG":"hormones.shbg", "Sexu\u00e1ln\u00ed hormony v\u00e1zaj\u00edc\u00ed globulin":"hormones.shbg",
-  "DHEA-S":"hormones.dheaS", "DHEA S":"hormones.dheaS", "DHEA-sulf\u00e1t":"hormones.dheaS",
-  "Dehydroepiandrosteronsulf\u00e1t":"hormones.dheaS",
-  "FAI":"hormones.fai", "Voln\u00fd androgenn\u00ed index":"hormones.fai", "v\u00fdpo\u010det FAI":"hormones.fai",
-  "Estradiol":"hormones.estradiol",
-  "Progesteron":"hormones.progesterone",
-  "Kalcitonin":"hormones.calcitonin",
-  "DHT":"hormones.dht", "Dihydrotestosteron":"hormones.dht",
-  "IGF-1":"hormones.igf1", "Inzulinu podobn\u00fd r\u016fstov\u00fd faktor 1":"hormones.igf1",
-  "Inzul\u00edn":"hormones.insulin", "Insulin":"hormones.insulin", "Inzulin":"hormones.insulin",
-  // ── Electrolytes & Minerals ──
-  "Sod\u00edk":"electrolytes.sodium", "Natrium":"electrolytes.sodium", "Na":"electrolytes.sodium",
-  "Drasl\u00edk":"electrolytes.potassium", "Kalium":"electrolytes.potassium", "K":"electrolytes.potassium",
-  "Chloridy":"electrolytes.chloride", "Cl":"electrolytes.chloride",
-  "V\u00e1pn\u00edk":"electrolytes.calciumTotal", "V\u00e1pn\u00edk (Kalcium)":"electrolytes.calciumTotal",
-  "V\u00e1pn\u00edk celkov\u00fd":"electrolytes.calciumTotal", "Kalcium celkov\u00e9":"electrolytes.calciumTotal",
-  "Kalcium":"electrolytes.calciumTotal", "Ca celk.":"electrolytes.calciumTotal", "Ca":"electrolytes.calciumTotal",
-  "Ca celkov\u00fd":"electrolytes.calciumTotal",
-  "Fosfor anorganick\u00fd":"electrolytes.phosphorus", "Fosfor":"electrolytes.phosphorus", "Fosf\u00e1t":"electrolytes.phosphorus",
-  "P anorganick\u00fd":"electrolytes.phosphorus",
-  "Ho\u0159\u010d\u00edk":"electrolytes.magnesium", "Mg":"electrolytes.magnesium", "Magnezium":"electrolytes.magnesium",
-  "Ho\u0159\u010d\u00edk v erytrocytech":"electrolytes.magnesiumRBC", "Mg v ery.":"electrolytes.magnesiumRBC", "Magnezium v erytrocytech":"electrolytes.magnesiumRBC",
-  "Zinek":"electrolytes.zinc", "Zn":"electrolytes.zinc",
-  "M\u011b\u010f":"electrolytes.copper", "Cu":"electrolytes.copper",
-  // ── Lipids ──
-  "Cholesterol":"lipids.cholesterol", "Cholesterol celkov\u00fd":"lipids.cholesterol", "Cholesterol celk.":"lipids.cholesterol",
-  "Triacylglyceroly":"lipids.triglycerides", "Triacylglyceridy":"lipids.triglycerides", "Triglyceridy":"lipids.triglycerides", "TAG":"lipids.triglycerides",
-  "HDL-Cholesterol":"lipids.hdl", "HDL-cholesterol":"lipids.hdl", "HDL cholesterol":"lipids.hdl",
-  "HDL-chol":"lipids.hdl", "HDL-chol.":"lipids.hdl", "HDL chol.":"lipids.hdl",
-  "LDL-Cholesterol":"lipids.ldl", "LDL-cholesterol":"lipids.ldl", "LDL cholesterol":"lipids.ldl",
-  "LDL-chol":"lipids.ldl", "LDL-chol.":"lipids.ldl", "LDL chol.":"lipids.ldl",
-  "Non-HDL cholesterol":"lipids.nonHdl", "Non-HDL chol.":"lipids.nonHdl",
-  "V\u00fdpo\u010det non-HDL":"lipids.nonHdl", "V\u00fdpo\u010det non HDL":"lipids.nonHdl", "non-HDL":"lipids.nonHdl",
-  "Chol/HDL":"lipids.cholHdlRatio", "Chol/HDL pom\u011br":"lipids.cholHdlRatio", "V\u00fdpo\u010det Chol/HDL":"lipids.cholHdlRatio",
-  "ApoA-I":"lipids.apoAI", "ApoA-1":"lipids.apoAI", "Apo AI":"lipids.apoAI", "Apo A1":"lipids.apoAI",
-  "Apo A-I":"lipids.apoAI", "Apolipoprotein A1":"lipids.apoAI",
-  "ApoB":"lipids.apoB", "Apo B":"lipids.apoB", "Apolipoprotein B":"lipids.apoB",
-  // ── Iron Metabolism ──
-  "\u017dele\u017eo":"iron.iron", "Fe":"iron.iron",
-  "Ferritin":"iron.ferritin", "Feritin":"iron.ferritin",
-  "Transferin":"iron.transferrin", "Transferrin":"iron.transferrin",
-  "TIBC":"iron.tibc", "Celkov\u00e1 vazebn\u00e1 kapacita \u017eeleza":"iron.tibc", "Vazebn\u00e1 kap.Fe":"iron.tibc",
-  "Celk.VK Fe":"iron.tibc", "Celk. VK Fe":"iron.tibc",
-  "Saturace transferinu":"iron.transferrinSat", "Sat.transferinu":"iron.transferrinSat",
-  "Saturace Trf":"iron.transferrinSat", "Saturace Trf.":"iron.transferrinSat",
-  // ── Proteins & Inflammation ──
-  "hs-CRP":"proteins.hsCRP", "hs CRP":"proteins.hsCRP", "hsCRP":"proteins.hsCRP",
-  "CRP ultrasenzit.":"proteins.hsCRP", "CRP ultrasenzitivn\u00ed":"proteins.hsCRP",
-  "Celk.b\u00edlkovina":"proteins.totalProtein", "Celkov\u00e1 b\u00edlkovina":"proteins.totalProtein",
-  "Celkov\u00e1 b\u00edl.":"proteins.totalProtein", "Celk. b\u00edlkovina":"proteins.totalProtein",
-  "Albumin":"proteins.albumin",
-  "Ceruloplazmin":"proteins.ceruloplasmin", "Ceruloplasmin":"proteins.ceruloplasmin",
-  // ── Thyroid ──
-  "TSH":"thyroid.tsh", "Thyreotropin":"thyroid.tsh",
-  "FT4":"thyroid.ft4", "fT4":"thyroid.ft4", "Voln\u00fd thyroxin":"thyroid.ft4", "Voln\u00fd T4":"thyroid.ft4", "T4 voln\u00fd":"thyroid.ft4",
-  "FT3":"thyroid.ft3", "fT3":"thyroid.ft3", "Voln\u00fd trijodthyronin":"thyroid.ft3", "Voln\u00fd T3":"thyroid.ft3", "T3 voln\u00fd":"thyroid.ft3",
-  "T4 celkov\u00fd":"thyroid.t4total", "Thyroxin":"thyroid.t4total", "T4":"thyroid.t4total",
-  "T3 celkov\u00fd":"thyroid.t3total", "Trijodthyronin":"thyroid.t3total", "T3":"thyroid.t3total",
-  // ── Vitamins ──
-  "Vitamin D celk.":"vitamins.vitaminD", "Vitamin D celkov\u00fd":"vitamins.vitaminD", "Vitamin D":"vitamins.vitaminD",
-  "25-OH vitamin D":"vitamins.vitaminD", "25OH vitamin D celk.":"vitamins.vitaminD", "25OH Vitamin D":"vitamins.vitaminD",
-  "Vitamin D3":"vitamins.vitaminD3", "25-OH Vitamin D3":"vitamins.vitaminD3", "25-OH vitamin D3":"vitamins.vitaminD3",
-  "Vitamin A":"vitamins.vitaminA", "Vitam\u00edn A":"vitamins.vitaminA", "Retinol":"vitamins.vitaminA",
-  // ── Diabetes ──
-  "HbA1c":"diabetes.hba1c", "Glyk.hemoglobin":"diabetes.hba1c", "Glykovan\u00fd hemoglobin":"diabetes.hba1c",
-  "HOMA-IR":"diabetes.homaIR", "HOMA IR":"diabetes.homaIR", "HOMA-IR (calc)":"diabetes.homaIR",
-  // ── Tumor Markers ──
-  "PSA":"tumorMarkers.psa", "PSA celkov\u00fd":"tumorMarkers.psa", "PSA celk.":"tumorMarkers.psa",
-  // ── Coagulation ──
-  "Homocystein":"coagulation.homocysteine",
-  // ── Hematology ──
-  "Leukocyty":"hematology.wbc", "WBC":"hematology.wbc",
-  "Erytrocyty":"hematology.rbc", "RBC":"hematology.rbc",
-  "Hemoglobin":"hematology.hemoglobin", "HGB":"hematology.hemoglobin", "Hb":"hematology.hemoglobin",
-  "Hematokrit":"hematology.hematocrit", "HCT":"hematology.hematocrit",
-  "MCV":"hematology.mcv", "MCH":"hematology.mch", "MCHC":"hematology.mchc",
-  "RDW-CV":"hematology.rdwcv", "RDW":"hematology.rdwcv",
-  "Trombocyty":"hematology.platelets", "PLT":"hematology.platelets",
-  "MPV":"hematology.mpv", "PDW":"hematology.pdw",
-  // ── WBC Differential ──
-  "Neutrofily abs.":"differential.neutrophils", "Neutrofily #":"differential.neutrophils",
-  "Lymfocyty abs.":"differential.lymphocytes", "Lymfocyty #":"differential.lymphocytes",
-  "Monocyty abs.":"differential.monocytes", "Monocyty #":"differential.monocytes",
-  "Eozinofily abs.":"differential.eosinophils", "Eozinofily #":"differential.eosinophils",
-  "Eosinofily abs.":"differential.eosinophils", "Eosinofily #":"differential.eosinophils",
-  "Bazofily abs.":"differential.basophils", "Bazofily #":"differential.basophils",
-  "Basofily abs.":"differential.basophils", "Basofily #":"differential.basophils",
-  "Neutrofily":"differential.neutrophilsPct", "Lymfocyty":"differential.lymphocytesPct", "Monocyty":"differential.monocytesPct",
-  // ── Bone Metabolism ──
-  "Osteokalcin":"boneMetabolism.osteocalcin",
-  // ── Fatty Acids ──
-  "Kyselina palmitov\u00e1 C16:0":"fattyAcids.palmiticC16", "Kyselina pamitov\u00e1 C16:0":"fattyAcids.palmiticC16",
-  "Kyselina stearov\u00e1 C18:0":"fattyAcids.stearicC18",
-  "Kyselina olejov\u00e1 C18:1":"fattyAcids.oleicC18_1",
-  "Kyselina linolov\u00e1 C18:2":"fattyAcids.linoleicC18_2",
-  "Kyselina gama-linolenovÃ\u00a1 C18:3":"fattyAcids.glaC18_3", "Kyselina gama-linolenov\u00e1 C18:3":"fattyAcids.glaC18_3",
-  "Kyselina arachidonov\u00e1 C20:4":"fattyAcids.arachidonicC20_4",
-  "Kyselina dihomo-gama-linolenov\u00e1 C20:3":"fattyAcids.dglaC20_3",
-  "Kyselina alfa-linolenov\u00e1 C18:3":"fattyAcids.alaC18_3",
-  "Kyselina eikosapentaenov\u00e1 C20:5":"fattyAcids.epaC20_5",
-  "Kyselina dokosapentaenov\u00e1 C22:5":"fattyAcids.dpaC22_5",
-  "Kyselina dokosahexaenov\u00e1 C22:6":"fattyAcids.dhaC22_6",
-  "Omega-3 index":"fattyAcids.omega3Index",
-  "Pom\u011br Omega-6/Omega-3":"fattyAcids.omega6to3Ratio",
-  "Fluidita bun\u011b\u010dn\u00e9 membr\u00e1ny":"fattyAcids.membraneFluidity",
-  "Index du\u0161evn\u00ed odolnosti":"fattyAcids.mentalResilience"
-};
+// (SPADIA_NAME_MAP removed — AI handles name matching)
 
 // ═══════════════════════════════════════════════
 // CORRELATION PRESETS
@@ -388,6 +257,156 @@ let importedData = { entries: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
+let profileSex = null;
+let chatHistory = [];
+
+// ═══════════════════════════════════════════════
+// API KEY MANAGEMENT (global, not per-profile)
+// ═══════════════════════════════════════════════
+function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
+function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
+function hasApiKey() { return !!getApiKey(); }
+
+async function validateApiKey(key) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 16,
+        messages: [{ role: 'user', content: 'Reply with "ok"' }]
+      })
+    });
+    if (res.ok) return { valid: true };
+    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
+    if (res.status === 429) return { valid: true }; // Rate limited but key works
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach API: ' + e.message };
+  }
+}
+
+async function callClaudeAPI({ system, messages, maxTokens, onStream }) {
+  const key = getApiKey();
+  if (!key) throw new Error('No API key configured');
+  const body = {
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: maxTokens || 4096,
+    messages
+  };
+  if (system) body.system = system;
+  if (onStream) body.stream = true;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Invalid API key. Check your settings.');
+    if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
+    throw new Error(`API error (${res.status})`);
+  }
+
+  if (onStream) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const event = JSON.parse(data);
+          if (event.type === 'content_block_delta' && event.delta?.text) {
+            fullText += event.delta.text;
+            onStream(fullText);
+          }
+        } catch {}
+      }
+    }
+    return fullText;
+  } else {
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SETTINGS MODAL
+// ═══════════════════════════════════════════════
+function openSettingsModal() {
+  const overlay = document.getElementById('settings-modal-overlay');
+  const modal = document.getElementById('settings-modal');
+  const currentKey = getApiKey();
+  const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+    <h3>Settings</h3>
+    <div style="margin-top:20px">
+      <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px">Anthropic API Key</label>
+      <div class="api-key-status" id="api-key-status">
+        ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
+      </div>
+      <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-..." value="${currentKey}">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="import-btn import-btn-primary" id="save-api-key-btn" onclick="handleSaveApiKey()">Save & Validate</button>
+        ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
+      </div>
+      <div class="privacy-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
+    </div>`;
+  overlay.classList.add('show');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settings-modal-overlay').classList.remove('show');
+}
+
+async function handleSaveApiKey() {
+  const input = document.getElementById('api-key-input');
+  const btn = document.getElementById('save-api-key-btn');
+  const status = document.getElementById('api-key-status');
+  const key = input.value.trim();
+  if (!key) { status.innerHTML = '<span style="color:var(--red)">Please enter an API key</span>'; return; }
+  btn.disabled = true; btn.textContent = 'Validating...';
+  const result = await validateApiKey(key);
+  if (result.valid) {
+    saveApiKey(key);
+    status.innerHTML = '<span style="color:var(--green)">Connected successfully</span>';
+    showNotification('API key saved', 'success');
+    setTimeout(() => closeSettingsModal(), 1000);
+  } else {
+    status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
+  }
+  btn.disabled = false; btn.textContent = 'Save & Validate';
+}
+
+function handleRemoveApiKey() {
+  localStorage.removeItem('labcharts-api-key');
+  showNotification('API key removed', 'info');
+  openSettingsModal();
+}
 
 // ═══════════════════════════════════════════════
 // PROFILE MANAGEMENT
@@ -420,10 +439,15 @@ function loadProfile(profileId) {
   importedData = savedImported ? (function() { try { return JSON.parse(savedImported); } catch(e) { return { entries: [] }; } })() : { entries: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
+  profileSex = getProfileSex(profileId);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
   });
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === profileSex);
+  });
   selectedCorrelationMarkers = [];
+  chatHistory = [];
   destroyAllCharts();
   buildSidebar();
   showDashboard();
@@ -453,6 +477,7 @@ function deleteProfile(profileId) {
   saveProfiles(updated);
   localStorage.removeItem(profileStorageKey(profileId, 'imported'));
   localStorage.removeItem(profileStorageKey(profileId, 'units'));
+  localStorage.removeItem(`labcharts-${profileId}-chat`);
   if (currentProfile === profileId) {
     loadProfile(updated[0].id);
   } else {
@@ -469,6 +494,31 @@ function switchProfile(profileId) {
   showNotification(`Switched to ${p ? p.name : 'profile'}`, 'info');
 }
 
+function getProfileSex(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  return (p && p.sex) || null;
+}
+
+function setProfileSex(profileId, sex) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.sex = sex; saveProfiles(profiles); }
+}
+
+function switchSex(sex) {
+  profileSex = sex;
+  setProfileSex(currentProfile, sex);
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === sex);
+  });
+  buildSidebar();
+  updateHeaderDates();
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  navigate(activeCat);
+}
+
 // ═══════════════════════════════════════════════
 // DATA PIPELINE
 // ═══════════════════════════════════════════════
@@ -478,6 +528,15 @@ function getActiveData() {
     dateLabels: [],
     categories: JSON.parse(JSON.stringify(MARKER_SCHEMA))
   };
+
+  // Apply sex-specific reference ranges
+  if (profileSex === 'female') {
+    for (const cat of Object.values(data.categories)) {
+      for (const marker of Object.values(cat.markers)) {
+        if (marker.refMin_f !== undefined) { marker.refMin = marker.refMin_f; marker.refMax = marker.refMax_f; }
+      }
+    }
+  }
 
   const entries = (importedData && importedData.entries) ? importedData.entries : [];
   const hasEntries = entries.length > 0;
@@ -612,11 +671,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedImported) { try { importedData = JSON.parse(savedImported); } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
+  profileSex = getProfileSex(currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   }
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
+  });
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
   buildSidebar();
   showDashboard();
@@ -630,6 +693,9 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.value = '';
     }
   });
+  // Prevent browser from opening dropped files outside drop zone
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => e.preventDefault());
 });
 
 function buildSidebar() {
@@ -674,10 +740,10 @@ function showDashboard() {
   }
   html += `</div>`;
 
-  html += `<div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
+  html += `<div class="drop-zone" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop PDF or JSON file here to import</div>
-    <div class="drop-zone-hint">Supports SPADIA PDF reports and LabCharts JSON exports</div></div>`;
+    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
   if (importedData.entries && importedData.entries.length > 0) {
     html += `<div class="imported-entries">`;
@@ -700,8 +766,9 @@ function showDashboard() {
       <h3>Welcome to LabCharts</h3>
       <p>Import your blood work results to get started.</p>
       <ul>
-        <li>Drop a SPADIA PDF lab report above, or click to browse</li>
+        <li>Drop any lab PDF report above — AI extracts your results automatically</li>
         <li>Import a previously exported LabCharts JSON file</li>
+        <li>Use "Ask AI" to get insights about your biomarker trends</li>
       </ul></div>`;
     main.innerHTML = html;
     setupDropZone();
@@ -1012,6 +1079,7 @@ function showDetailModal(id) {
     const dir = ch > 0 ? "increased" : ch < 0 ? "decreased" : "unchanged";
     html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${marker.unit} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
   }
+  html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
@@ -1026,11 +1094,19 @@ function closeModal() {
 document.addEventListener("click", e => {
   if (e.target.id === "modal-overlay") closeModal();
   if (e.target.id === "import-modal-overlay") closeImportModal();
+  if (e.target.id === "settings-modal-overlay") closeSettingsModal();
   const dd = document.getElementById("corr-options");
   const si = document.getElementById("corr-search");
   if (dd && si && !dd.contains(e.target) && e.target !== si) dd.classList.remove("show");
 });
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    const chatPanel = document.getElementById("chat-panel");
+    if (chatPanel && chatPanel.classList.contains("open")) { closeChatPanel(); return; }
+    closeSettingsModal();
+    closeModal();
+  }
+});
 
 function destroyAllCharts() {
   for (const c of Object.values(chartInstances)) c.destroy();
@@ -1271,9 +1347,19 @@ function renderCorrelationChart() {
 }
 
 // ═══════════════════════════════════════════════
-// PDF IMPORT
+// AI-POWERED PDF IMPORT
 // ═══════════════════════════════════════════════
-async function parseSpadiaPDF(file) {
+function buildMarkerReference() {
+  const ref = {};
+  for (const [catKey, cat] of Object.entries(MARKER_SCHEMA)) {
+    for (const [markerKey, marker] of Object.entries(cat.markers)) {
+      ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: marker.refMin, refMax: marker.refMax };
+    }
+  }
+  return ref;
+}
+
+async function extractPDFText(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   let allItems = [];
@@ -1286,157 +1372,88 @@ async function parseSpadiaPDF(file) {
       }
     }
   }
-  const date = extractDateFromPDFText(allItems);
-  const markers = extractMarkersFromPDFText(allItems);
-  return { date, markers, fileName: file.name };
-}
-
-function extractDateFromPDFText(items) {
-  for (const item of items) {
-    if (/od(?:b|\u011b)r|datum/i.test(item.text)) {
-      const match = item.text.match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
-      if (match) return `${match[3]}-${match[2].padStart(2,'0')}-${match[1].padStart(2,'0')}`;
-    }
-  }
-  for (let i = 0; i < items.length; i++) {
-    if (/od(?:b|\u011b)r|datum/i.test(items[i].text)) {
-      for (let j = i+1; j < Math.min(i+8, items.length); j++) {
-        const match = items[j].text.match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
-        if (match) return `${match[3]}-${match[2].padStart(2,'0')}-${match[1].padStart(2,'0')}`;
-      }
-    }
-  }
-  for (const item of items) {
-    const match = item.text.match(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/);
-    if (match && parseInt(match[3]) >= 2020 && parseInt(match[3]) <= 2030) {
-      return `${match[3]}-${match[2].padStart(2,'0')}-${match[1].padStart(2,'0')}`;
-    }
-  }
-  return null;
-}
-
-function extractMarkersFromPDFText(items) {
-  // Sort by page first, then by y (descending = top-to-bottom), then by x
-  const sorted = [...items].sort((a, b) => {
+  // Page-aware row grouping (same logic as old parser — robust geometric approach)
+  const sorted = [...allItems].sort((a, b) => {
     if (a.page !== b.page) return a.page - b.page;
     const dy = b.y - a.y;
     return Math.abs(dy) > 3 ? dy : a.x - b.x;
   });
-  const rows = [];
+  if (sorted.length === 0) return '';
+  let text = '';
+  let currentPage = sorted[0].page;
+  text += `=== Page ${currentPage} ===\n`;
   let currentRow = [sorted[0]];
   for (let i = 1; i < sorted.length; i++) {
-    // Only group items on the same page with similar y-coordinates
-    if (sorted[i].page === currentRow[0].page && Math.abs(sorted[i].y - currentRow[0].y) < 3) {
+    if (sorted[i].page !== currentPage) {
+      text += currentRow.sort((a, b) => a.x - b.x).map(r => r.text).join('  ') + '\n';
+      currentPage = sorted[i].page;
+      text += `\n=== Page ${currentPage} ===\n`;
+      currentRow = [sorted[i]];
+    } else if (Math.abs(sorted[i].y - currentRow[0].y) < 3) {
       currentRow.push(sorted[i]);
     } else {
-      rows.push(currentRow.sort((a, b) => a.x - b.x));
+      text += currentRow.sort((a, b) => a.x - b.x).map(r => r.text).join('  ') + '\n';
       currentRow = [sorted[i]];
     }
   }
-  if (currentRow.length > 0) rows.push(currentRow.sort((a, b) => a.x - b.x));
-  const markers = [];
-  for (const row of rows) {
-    const parsed = parseDataRow(row);
-    if (parsed) markers.push(parsed);
+  if (currentRow.length > 0) {
+    text += currentRow.sort((a, b) => a.x - b.x).map(r => r.text).join('  ') + '\n';
   }
-  return markers;
+  return text;
 }
 
-const SPADIA_SECTION_HEADERS = ['biochemie','lipidy','hematologie','hormony','elektrolyty','miner\u00e1ly',
-  'imunologie','koagulace','s\u00e9rologie','n\u00e1dorov\u00e9','thyreoidea','metabolismus','speci\u00e1ln\u00ed',
-  'krevn\u00ed','diferenci\u00e1l','mast','vitaminy','proteiny','ionty','diabetes',
-  'v\u00fdsledkov\u00e1','strana','odbornost'];
+async function parseLabPDFWithAI(pdfText, fileName) {
+  const markerRef = buildMarkerReference();
+  const system = `You are a lab report data extraction assistant. You extract biomarker results from lab report text and map them to a known set of marker keys.
 
-function parseDataRow(row) {
-  let texts = row.map(r => r.text).filter(t => t.trim());
-  if (texts.length < 2) return null;
-  const fullText = texts.join(' ');
-  if (/^(Vy\u0161et\u0159en\u00ed|V\u00fdsledek|Jednotky|Referen\u010dn\u00ed|Laborato|Strana|Datum|Pacient|Rod\.|Poji\u0161t|SPADIA|Zpracoval|Telefon|www\.|Identif|Materi\u00e1l|P\u0159\u00edjem|Tisk|Diagn|Samop|Pohlav|Odbor|I\u010cP|Uvolnil|Vysv\u011btl|Prim\u00e1rn|ZP:)/i.test(fullText)) return null;
-  // Skip urine tests (material code U anywhere in row)
-  if (texts.some(t => t.trim() === 'U')) return null;
-  // Remove standalone material codes (S=serum, B=blood, P=plasma), flag codes, and section headers
-  texts = texts.filter(t => {
-    const s = t.trim();
-    if (/^[SBPU]$/.test(s) || s === 'xxx') return false; // Material codes (S=serum, B=blood, P=plasma, U=urine, xxx=calc)
-    if (/^[SBP]\//.test(s)) return false; // S/xxx, B/xxx
-    if (/^[01]$/.test(s)) return false; // Standalone 0/1 are pathological flags, not values
-    if (/^\*+$/.test(s) || s === '!' || s === 'H' || s === 'L') return false; // Flag indicators
-    if (/^\d{7,}$/.test(s)) return false; // Patient IDs, barcodes (7+ digit numbers)
-    if (/^\|.*\|$/.test(s)) return false; // Assessment bar patterns like |   |*|   |
-    if (s === '$') return false; // Accreditation marker
-    if (SPADIA_SECTION_HEADERS.some(h => s.toLowerCase() === h || s.toLowerCase().startsWith(h))) return false;
-    return true;
+Here is the complete list of known markers with their keys, expected units, and reference ranges:
+${JSON.stringify(markerRef, null, 1)}
+
+Your task:
+1. Find the sample collection date in the text. Return it as YYYY-MM-DD. Look for dates near keywords like "collection", "collected", "date", "odběr", "datum", or similar in any language.
+2. For each biomarker result found in the text, extract:
+   - rawName: the test name exactly as it appears in the PDF
+   - value: the numeric result (parse comma as decimal point, strip < > prefixes)
+   - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
+3. Match based on medical/biochemical equivalence, not just string similarity. For example:
+   - "Glukóza" → "biochemistry.glucose" (Czech for glucose)
+   - "Triacylglyceroly" → "lipids.triglycerides"
+   - Use the units and reference ranges to help disambiguate
+4. Only map to a marker if you're confident it's the correct match
+5. Skip non-numeric results (text-only findings, interpretive notes)
+6. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
+
+Return ONLY valid JSON in this exact format, no other text:
+{
+  "date": "YYYY-MM-DD",
+  "markers": [
+    {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker"},
+    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null}
+  ]
+}`;
+
+  const response = await callClaudeAPI({
+    system,
+    messages: [{ role: 'user', content: `Extract all biomarker results from this lab report:\n\n${pdfText}` }],
+    maxTokens: 4096
   });
-  if (texts.length < 2) return null;
-  let valueIdx = -1, valueStr = '';
-  for (let i = 0; i < texts.length; i++) {
-    const cleaned = texts[i].replace(',', '.').replace(/^[<>]\s*/, '').trim();
-    if (/^\d+\.?\d*$/.test(cleaned) && i > 0) { valueIdx = i; valueStr = texts[i]; break; }
-  }
-  if (valueIdx < 1) return null;
-  let name = texts.slice(0, valueIdx).join(' ').trim();
-  if (!name || name.length < 2) return null;
-  let value = parseFloat(valueStr.replace(',', '.').replace(/^[<>]\s*/, ''));
-  if (isNaN(value)) return null;
-  const restText = texts.slice(valueIdx + 1).join(' ');
-  const refMatch = restText.match(/(\d+[.,]?\d*)\s*-\s*(\d+[.,]?\d*)/);
-  let refMin = null, refMax = null;
-  if (refMatch) {
-    refMin = parseFloat(refMatch[1].replace(',', '.'));
-    refMax = parseFloat(refMatch[2].replace(',', '.'));
-  }
-  // Name lookup: try exact, then case-insensitive, then fuzzy (best match)
-  let mappedKey = SPADIA_NAME_MAP[name];
-  if (!mappedKey) {
-    // Try case-insensitive exact match
-    const nameLower = name.toLowerCase();
-    for (const [mapName, mapKey] of Object.entries(SPADIA_NAME_MAP)) {
-      if (nameLower === mapName.toLowerCase()) { mappedKey = mapKey; break; }
-    }
-  }
-  if (!mappedKey) {
-    // Try prefix/suffix match — require min 3 chars on both sides, prefer longest match
-    const nameLower = name.toLowerCase();
-    let bestMatch = null, bestLen = 0;
-    for (const [mapName, mapKey] of Object.entries(SPADIA_NAME_MAP)) {
-      const ml = mapName.toLowerCase();
-      if (ml.length < 3 || nameLower.length < 3) continue;
-      if ((nameLower.startsWith(ml) || ml.startsWith(nameLower) ||
-           nameLower.endsWith(ml) || ml.endsWith(nameLower)) &&
-          mapName.length > bestLen) {
-        bestMatch = mapKey;
-        bestLen = mapName.length;
-      }
-    }
-    if (bestMatch) mappedKey = bestMatch;
-  }
-  if (!mappedKey) {
-    // Try stripping common prefixes/suffixes and re-match
-    const cleaned = name.replace(/^(S|B|P|celk\.|celkov[ýá])\s*/i, '').replace(/\s*(celk\.|celkov[ýá]|abs\.)$/i, '').trim();
-    if (cleaned !== name && cleaned.length >= 2) {
-      mappedKey = SPADIA_NAME_MAP[cleaned];
-      if (!mappedKey) {
-        for (const [mapName, mapKey] of Object.entries(SPADIA_NAME_MAP)) {
-          if (cleaned.toLowerCase() === mapName.toLowerCase()) { mappedKey = mapKey; break; }
-        }
-      }
-    }
-  }
-  // Cross-validate: if we matched and have both extracted and schema ref ranges, reject gross mismatches
-  if (mappedKey && refMin !== null && refMax !== null) {
-    const [catKey, markerKey] = mappedKey.split('.');
-    const schema = MARKER_SCHEMA[catKey] && MARKER_SCHEMA[catKey].markers[markerKey];
-    if (schema && schema.refMin !== undefined && schema.refMax !== undefined) {
-      const schemaMid = (schema.refMin + schema.refMax) / 2;
-      const extractedMid = (refMin + refMax) / 2;
-      const schemaSpan = schema.refMax - schema.refMin;
-      // If midpoints differ by more than 10x the schema span, it's likely a wrong match
-      if (schemaSpan > 0 && Math.abs(schemaMid - extractedMid) > schemaSpan * 10) {
-        mappedKey = null;
-      }
-    }
-  }
-  return { rawName: name, value, refMin, refMax, mappedKey, matched: !!mappedKey };
+
+  // Parse JSON from response (handle markdown code blocks)
+  let jsonStr = response.trim();
+  const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+  const parsed = JSON.parse(jsonStr);
+
+  return {
+    date: parsed.date || null,
+    markers: (parsed.markers || []).map(m => ({
+      rawName: m.rawName,
+      value: typeof m.value === 'number' ? m.value : parseFloat(String(m.value).replace(',', '.')),
+      mappedKey: m.mappedKey || null,
+      matched: !!m.mappedKey
+    })),
+    fileName
+  };
 }
 
 // ═══════════════════════════════════════════════
@@ -1490,12 +1507,14 @@ function confirmImport() {
   if (!result || !result.date) return;
   const matched = result.markers.filter(m => m.matched);
   if (matched.length === 0) { showNotification("No matched markers to import", "error"); closeImportModal(); return; }
-  const entry = { date: result.date, markers: {} };
+  if (!importedData.entries) importedData.entries = [];
+  let entry = importedData.entries.find(e => e.date === result.date);
+  if (!entry) {
+    entry = { date: result.date, markers: {} };
+    importedData.entries.push(entry);
+  }
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
-  if (!importedData.entries) importedData.entries = [];
-  importedData.entries = importedData.entries.filter(e => e.date !== result.date);
-  importedData.entries.push(entry);
   recalculateHOMAIR(entry);
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeImportModal();
@@ -1540,6 +1559,7 @@ function showNotification(message, type) {
 function setupDropZone() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
+  dropZone.addEventListener("click", () => { document.getElementById('pdf-input').click(); });
   dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
   dropZone.addEventListener("dragleave", e => { e.preventDefault(); dropZone.classList.remove("drag-over"); });
   dropZone.addEventListener("drop", async e => {
@@ -1557,14 +1577,61 @@ function setupDropZone() {
   });
 }
 
+const IMPORT_STEPS = [
+  "Extracting text from PDF",
+  "AI analyzing lab report",
+  "Preparing preview"
+];
+
+async function showImportProgress(step, fileName) {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  let html = '<div class="import-progress">';
+  for (let i = 0; i < IMPORT_STEPS.length; i++) {
+    const isDone = i < step;
+    const isActive = i === step;
+    const cls = isDone ? "done" : isActive ? "active" : "";
+    const icon = isDone
+      ? '<span class="step-icon">\u2713</span>'
+      : isActive
+        ? '<span class="step-icon"><span class="progress-spinner"></span></span>'
+        : '<span class="step-icon">\u25CB</span>';
+    html += `<div class="progress-step ${cls}">${icon}<span>${IMPORT_STEPS[i]}${isActive ? "..." : ""}</span></div>`;
+  }
+  if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
+  html += '</div>';
+  dropZone.innerHTML = html;
+  // Yield to browser so it actually paints the progress before heavy work continues
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+function hideImportProgress() {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
+    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or LabCharts JSON export</div>`;
+}
+
 async function handlePDFFile(file) {
+  if (!hasApiKey()) {
+    showNotification("API key required for PDF import. Opening settings...", "info");
+    setTimeout(() => openSettingsModal(), 500);
+    return;
+  }
   try {
-    showNotification("Parsing PDF...", "info");
-    const result = await parseSpadiaPDF(file);
-    if (!result.date) { showNotification("Could not find collection date in PDF", "error"); return; }
-    if (result.markers.length === 0) { showNotification("No biomarkers found in PDF", "error"); return; }
+    await showImportProgress(0, file.name);
+    const pdfText = await extractPDFText(file);
+    if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
+    await showImportProgress(1, file.name);
+    const result = await parseLabPDFWithAI(pdfText, file.name);
+    if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
+    if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
+    await showImportProgress(2, file.name);
     showImportPreview(result);
+    hideImportProgress();
   } catch (err) {
+    hideImportProgress();
     console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error");
   }
@@ -1703,3 +1770,229 @@ document.addEventListener('click', (e) => {
     if (btn) btn.classList.remove('open');
   }
 });
+
+// ═══════════════════════════════════════════════
+// AI CHAT PANEL
+// ═══════════════════════════════════════════════
+const CHAT_SYSTEM_PROMPT = `You are an AI lab analyst assistant integrated into a blood work dashboard application called LabCharts. You help users understand their lab results.
+
+Important guidelines:
+- You are NOT a doctor. Always recommend consulting a physician for medical decisions.
+- Explain biomarkers, trends, and correlations in accessible language.
+- Reference specific values and dates from the user's data when relevant.
+- Point out noteworthy patterns: values trending up/down, values outside reference ranges, combinations that may be clinically relevant.
+- Keep responses concise but informative. Use plain language.
+- If asked about a topic outside lab results, politely redirect to your area of expertise.
+- Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
+
+function buildLabContext() {
+  const data = getActiveData();
+  if (!data.dates.length && !Object.values(data.categories).some(c => c.singleDate)) {
+    return 'No lab data is currently loaded for this profile.';
+  }
+  const sexLabel = profileSex === 'female' ? 'female' : profileSex === 'male' ? 'male' : 'not specified';
+  let ctx = `Lab data for current profile (sex: ${sexLabel}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
+    if (markersWithData.length === 0) continue;
+    ctx += `## ${cat.label}\n`;
+    for (const [key, m] of markersWithData) {
+      const vals = m.singlePoint
+        ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
+        : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
+      const latestIdx = getLatestValueIndex(m.values);
+      const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], m.refMin, m.refMax) : 'no data';
+      ctx += `- ${m.name}: ${vals} ${m.unit} (ref: ${m.refMin}–${m.refMax}, status: ${status})\n`;
+    }
+    ctx += '\n';
+  }
+  const flags = getAllFlaggedMarkers(data);
+  if (flags.length > 0) {
+    ctx += `## Flagged Results (Latest)\n`;
+    for (const f of flags) {
+      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, ref: ${f.refMin}–${f.refMax})\n`;
+    }
+  }
+  return ctx;
+}
+
+function getChatStorageKey() {
+  return `labcharts-${currentProfile}-chat`;
+}
+
+function loadChatHistory() {
+  try {
+    const stored = localStorage.getItem(getChatStorageKey());
+    chatHistory = stored ? JSON.parse(stored) : [];
+  } catch { chatHistory = []; }
+  renderChatMessages();
+}
+
+function saveChatHistory() {
+  // Keep last 20 messages
+  if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  localStorage.setItem(getChatStorageKey(), JSON.stringify(chatHistory));
+}
+
+function clearChatHistory() {
+  chatHistory = [];
+  localStorage.removeItem(getChatStorageKey());
+  renderChatMessages();
+  showNotification('Chat history cleared', 'info');
+}
+
+function renderChatMessages() {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  if (chatHistory.length === 0) {
+    container.innerHTML = `<div class="chat-empty">
+      <div class="chat-empty-icon">&#129302;</div>
+      <div>Ask me about your lab results, trends, or what specific biomarkers mean.</div>
+    </div>`;
+    return;
+  }
+  let html = '';
+  for (const msg of chatHistory) {
+    const cls = msg.role === 'user' ? 'chat-user' : 'chat-ai';
+    html += `<div class="chat-msg ${cls}">${renderMarkdown(msg.content)}</div>`;
+  }
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderMarkdown(text) {
+  // Basic markdown: bold, inline code, line breaks
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function toggleChatPanel() {
+  const panel = document.getElementById('chat-panel');
+  const backdrop = document.getElementById('chat-backdrop');
+  if (panel.classList.contains('open')) {
+    closeChatPanel();
+  } else {
+    openChatPanel();
+  }
+}
+
+function openChatPanel(prefillMessage) {
+  if (!hasApiKey()) {
+    showNotification("API key required. Opening settings...", "info");
+    setTimeout(() => openSettingsModal(), 500);
+    return;
+  }
+  const panel = document.getElementById('chat-panel');
+  const backdrop = document.getElementById('chat-backdrop');
+  panel.classList.add('open');
+  backdrop.classList.add('open');
+  loadChatHistory();
+  if (prefillMessage) {
+    const input = document.getElementById('chat-input');
+    if (input) { input.value = prefillMessage; input.focus(); }
+  } else {
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+  }
+}
+
+function closeChatPanel() {
+  document.getElementById('chat-panel').classList.remove('open');
+  document.getElementById('chat-backdrop').classList.remove('open');
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const container = document.getElementById('chat-messages');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Add user message
+  chatHistory.push({ role: 'user', content: text });
+  input.value = '';
+  input.style.height = '';
+  renderChatMessages();
+
+  // Show typing indicator
+  const typingEl = document.createElement('div');
+  typingEl.className = 'typing-indicator';
+  typingEl.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(typingEl);
+  container.scrollTop = container.scrollHeight;
+
+  sendBtn.disabled = true;
+  sendBtn.textContent = '...';
+
+  try {
+    const labContext = buildLabContext();
+    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext;
+
+    // Send last 10 messages for context
+    const apiMessages = chatHistory.slice(-10).map(m => ({ role: m.role, content: m.content }));
+
+    // Create AI message placeholder
+    const aiMsgEl = document.createElement('div');
+    aiMsgEl.className = 'chat-msg chat-ai';
+    aiMsgEl.innerHTML = '';
+
+    const fullText = await callClaudeAPI({
+      system: systemPrompt,
+      messages: apiMessages,
+      maxTokens: 2048,
+      onStream: (text) => {
+        // Remove typing indicator on first chunk
+        if (typingEl.parentNode) typingEl.remove();
+        if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
+        aiMsgEl.innerHTML = renderMarkdown(text);
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+
+    // Ensure typing indicator removed
+    if (typingEl.parentNode) typingEl.remove();
+    if (!aiMsgEl.parentNode) {
+      // Non-streaming fallback
+      container.appendChild(aiMsgEl);
+      aiMsgEl.innerHTML = renderMarkdown(fullText);
+    }
+
+    chatHistory.push({ role: 'assistant', content: fullText });
+    saveChatHistory();
+  } catch (err) {
+    if (typingEl.parentNode) typingEl.remove();
+    const errEl = document.createElement('div');
+    errEl.className = 'chat-msg chat-ai';
+    errEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    container.appendChild(errEl);
+  }
+
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'Send';
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleChatKeydown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function askAIAboutMarker(markerId) {
+  const marker = markerRegistry[markerId];
+  if (!marker) return;
+  const data = getActiveData();
+  const dates = marker.singlePoint ? [marker.singleDateLabel || 'N/A'] : data.dateLabels;
+  const valuesText = marker.values
+    .map((v, i) => v !== null ? `${dates[i]}: ${formatValue(v)} ${marker.unit}` : null)
+    .filter(Boolean).join(', ');
+  const latestIdx = getLatestValueIndex(marker.values);
+  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], marker.refMin, marker.refMax) : 'no data';
+  const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}–${marker.refMax} ${marker.unit}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
+  closeModal();
+  openChatPanel(prompt);
+}
