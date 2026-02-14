@@ -291,6 +291,16 @@ body {
 }
 .sex-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 .sex-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
+/* DOB Input */
+.dob-input { display: flex; align-items: center; gap: 6px; }
+.dob-input label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.dob-input input[type="date"] {
+  padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.dob-input input[type="date"]:focus { outline: none; border-color: var(--accent); color: var(--text-primary); }
+.dob-input input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
 /* Unit Toggle */
 .unit-toggle { display: flex; align-items: center; gap: 4px; }
 .unit-toggle-btn {
@@ -470,9 +480,12 @@ body {
   display: inline; font-size: 12px; margin-left: 4px;
   cursor: help;
 }
-/* Profile Context Cards (diagnoses, diet) */
+/* Profile Context Cards (diagnoses, diet, circadian, exercise) */
 .profile-context-cards {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;
+}
+@media (max-width: 1200px) {
+  .profile-context-cards { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 768px) {
   .profile-context-cards { grid-template-columns: 1fr; }

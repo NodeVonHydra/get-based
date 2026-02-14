@@ -175,6 +175,19 @@ const MARKER_SCHEMA = {
     markers: {
       osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0 }
     }
+  },
+  calculatedRatios: {
+    label: "Calculated Ratios", icon: "\uD83D\uDCD0", calculated: true,
+    markers: {
+      tgHdlRatio: { name: "TG/HDL Ratio", unit: "", refMin: 0, refMax: 1.75 },
+      ldlHdlRatio: { name: "LDL/HDL Ratio", unit: "", refMin: 0, refMax: 2.5, refMax_f: 2.0 },
+      apoBapoAIRatio: { name: "ApoB/ApoA-I Ratio", unit: "", refMin: 0, refMax: 0.9, refMax_f: 0.8 },
+      nlr: { name: "Neutrophil-Lymphocyte Ratio (NLR)", unit: "", refMin: 1.0, refMax: 3.0 },
+      plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150 },
+      deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2 },
+      copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0 },
+      phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null }
+    }
   }
 };
 
@@ -217,7 +230,8 @@ const UNIT_CONVERSIONS = {
   'proteins.totalProtein': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'proteins.albumin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'thyroid.t4total': { factor: 0.07769, usUnit: '\u00b5g/dl', type: 'multiply' },
-  'diabetes.hba1c': { type: 'hba1c' }
+  'diabetes.hba1c': { type: 'hba1c' },
+  'calculatedRatios.tgHdlRatio': { factor: 2.29, usUnit: '', type: 'multiply' }
 };
 
 // (SPADIA_NAME_MAP removed — AI handles name matching)
@@ -245,6 +259,7 @@ function escapeHTML(str) {
 
 function getStatus(value, refMin, refMax) {
   if (value === null || value === undefined) return "missing";
+  if (refMin == null || refMax == null) return "normal";
   if (value < refMin) return "low";
   if (value > refMax) return "high";
   return "normal";
@@ -264,6 +279,7 @@ let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
 let profileSex = null;
+let profileDob = null;
 let chatHistory = [];
 
 // ═══════════════════════════════════════════════
@@ -446,12 +462,15 @@ function loadProfile(profileId) {
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   profileSex = getProfileSex(profileId);
+  profileDob = getProfileDob(profileId);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
   });
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
+  const dobInput = document.getElementById('dob-input');
+  if (dobInput) dobInput.value = profileDob || '';
   selectedCorrelationMarkers = [];
   chatHistory = [];
   destroyAllCharts();
@@ -518,6 +537,28 @@ function switchSex(sex) {
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === sex);
   });
+  buildSidebar();
+  updateHeaderDates();
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  navigate(activeCat);
+}
+
+function getProfileDob(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  return (p && p.dob) || null;
+}
+
+function setProfileDob(profileId, dob) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.dob = dob || null; saveProfiles(profiles); }
+}
+
+function switchDob(dob) {
+  profileDob = dob || null;
+  setProfileDob(currentProfile, profileDob);
   buildSidebar();
   updateHeaderDates();
   const activeNav = document.querySelector('.nav-item.active');
@@ -619,6 +660,75 @@ function getActiveData() {
     }
   }
 
+  // Calculate ratios from component markers
+  const ratios = data.categories.calculatedRatios;
+  if (ratios) {
+    const getVals = (catKey, markerKey) => {
+      const cat = data.categories[catKey];
+      return cat && cat.markers[markerKey] ? cat.markers[markerKey].values : null;
+    };
+    const divide = (numVals, denVals) => {
+      if (!numVals || !denVals) return sortedDates.map(() => null);
+      return sortedDates.map((_, i) => {
+        const n = numVals[i], d = denVals[i];
+        return (n != null && d != null && d !== 0) ? Math.round((n / d) * 1000) / 1000 : null;
+      });
+    };
+    ratios.markers.tgHdlRatio.values = divide(getVals('lipids', 'triglycerides'), getVals('lipids', 'hdl'));
+    ratios.markers.ldlHdlRatio.values = divide(getVals('lipids', 'ldl'), getVals('lipids', 'hdl'));
+    ratios.markers.apoBapoAIRatio.values = divide(getVals('lipids', 'apoB'), getVals('lipids', 'apoAI'));
+    ratios.markers.nlr.values = divide(getVals('differential', 'neutrophils'), getVals('differential', 'lymphocytes'));
+    ratios.markers.plr.values = divide(getVals('hematology', 'platelets'), getVals('differential', 'lymphocytes'));
+    ratios.markers.deRitisRatio.values = divide(getVals('biochemistry', 'ast'), getVals('biochemistry', 'alt'));
+    ratios.markers.copperZincRatio.values = divide(getVals('electrolytes', 'copper'), getVals('electrolytes', 'zinc'));
+
+    // PhenoAge (Levine 2018) — biological age from 9 biomarkers + chronological age
+    ratios.markers.phenoAge.values = sortedDates.map((dateStr, i) => {
+      if (!profileDob) return null;
+      const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/l
+      const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/l
+      const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/l
+      const crp          = getVals('proteins', 'hsCRP')?.[i];          // mg/l (same)
+      const lymphPct_si  = getVals('differential', 'lymphocytesPct')?.[i]; // fraction 0–1
+      const mcv          = getVals('hematology', 'mcv')?.[i];          // fL (same)
+      const rdw          = getVals('hematology', 'rdwcv')?.[i];        // % (same)
+      const alp_si       = getVals('biochemistry', 'alp')?.[i];        // µkat/l
+      const wbc          = getVals('hematology', 'wbc')?.[i];          // 10^9/l (same)
+      if ([albumin_si, creatinine_si, glucose_si, crp, lymphPct_si, mcv, rdw, alp_si, wbc].some(v => v == null)) return null;
+      if (crp <= 0) return null; // ln(CRP) undefined for non-positive
+
+      // Convert SI → US conventional where needed
+      const albumin_us    = albumin_si / 10;         // g/l → g/dL
+      const creatinine_us = creatinine_si * 0.01131; // µmol/l → mg/dL
+      const glucose_us    = glucose_si * 18.018;     // mmol/l → mg/dL
+      const lymphPct_us   = lymphPct_si * 100;       // fraction → %
+      const alp_us        = alp_si * 60;             // µkat/l → U/L
+
+      // Chronological age at blood draw date
+      const dob = new Date(profileDob + 'T00:00:00');
+      const drawDate = new Date(dateStr + 'T00:00:00');
+      let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      if (age <= 0) return null;
+
+      const xb = -19.907
+        - 0.0336  * albumin_us
+        + 0.0095  * creatinine_us
+        + 0.1953  * glucose_us
+        + 0.0954  * Math.log(crp)
+        - 0.0120  * lymphPct_us
+        + 0.0268  * mcv
+        + 0.3306  * rdw
+        + 0.00188 * alp_us
+        + 0.0554  * wbc
+        + 0.0804  * age;
+
+      const mortalityScore = 1 - Math.exp(-Math.exp(xb) * (Math.exp(120 * 0.0076927) - 1) / 0.0076927);
+      if (mortalityScore <= 0 || mortalityScore >= 1) return null;
+      const phenoAge = 141.50225 + Math.log(-0.00553 * Math.log(1 - mortalityScore)) / 0.090165;
+      return Math.round(phenoAge * 10) / 10;
+    });
+  }
+
   if (unitSystem === 'US') applyUnitConversion(data);
   return data;
 }
@@ -678,6 +788,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
   profileSex = getProfileSex(currentProfile);
+  profileDob = getProfileDob(currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   }
@@ -687,6 +798,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
+  const dobInputInit = document.getElementById('dob-input');
+  if (dobInputInit) dobInputInit.value = profileDob || '';
   buildSidebar();
   showDashboard();
   updateHeaderDates();
@@ -751,7 +864,7 @@ function showDashboard() {
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
-  // Profile context cards (diagnoses + diet)
+  // Profile context cards (diagnoses + diet + circadian)
   html += `<div class="profile-context-cards">`;
   const diagText = importedData.diagnoses || '';
   html += `<div class="diagnoses-card" onclick="openDiagnosesEditor()">
@@ -772,6 +885,26 @@ function showDashboard() {
     ${dietText
       ? `<div class="diagnoses-text">${escapeHTML(dietText.length > 200 ? dietText.slice(0, 200) + '...' : dietText)}</div>`
       : `<div class="diagnoses-placeholder">Describe your diet so AI can factor it into lab interpretation</div>`}
+  </div>`;
+  const circadianText = importedData.circadian || '';
+  html += `<div class="diagnoses-card" onclick="openCircadianEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDF19 Circadian Habits</span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openCircadianEditor()">${circadianText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${circadianText
+      ? `<div class="diagnoses-text">${escapeHTML(circadianText.length > 200 ? circadianText.slice(0, 200) + '...' : circadianText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your sleep and circadian habits for AI context</div>`}
+  </div>`;
+  const exerciseText = importedData.exercise || '';
+  html += `<div class="diagnoses-card" onclick="openExerciseEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDFCB\uFE0F Exercise & Movement</span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openExerciseEditor()">${exerciseText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${exerciseText
+      ? `<div class="diagnoses-text">${escapeHTML(exerciseText.length > 200 ? exerciseText.slice(0, 200) + '...' : exerciseText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your exercise routine for AI context</div>`}
   </div>`;
   html += `</div>`;
 
@@ -980,7 +1113,7 @@ function renderChartCard(id, marker, dateLabels) {
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
-  html += `</div><div class="chart-ref-range">Reference: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} ${marker.unit}</div></div>`;
+  html += `</div>${marker.refMin != null && marker.refMax != null ? `<div class="chart-ref-range">Reference: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} ${marker.unit}</div>` : ''}</div>`;
   return html;
 }
 
@@ -993,7 +1126,7 @@ function renderTableView(cat, dateLabels) {
   for (const [key, marker] of Object.entries(cat.markers)) {
     html += `<tr><td class="marker-name">${marker.name}</td>
       <td class="unit-col">${marker.unit}</td>
-      <td class="ref-col">${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}</td>`;
+      <td class="ref-col">${marker.refMin != null && marker.refMax != null ? `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}` : '\u2014'}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
       const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
@@ -1002,7 +1135,7 @@ function renderTableView(cat, dateLabels) {
     const trend = getTrend(marker.values);
     html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     const li = getLatestValueIndex(marker.values);
-    if (li !== -1) {
+    if (li !== -1 && marker.refMin != null && marker.refMax != null) {
       const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], marker.refMin, marker.refMax)));
       const s = getStatus(marker.values[li], marker.refMin, marker.refMax);
       html += `<td><div class="range-bar"><div class="range-bar-fill" style="left:0;width:100%"></div>
@@ -1062,7 +1195,7 @@ const refBandPlugin = {
   id: "refBand",
   beforeDraw(chart) {
     const opts = chart.options.plugins.refBand;
-    if (!opts || !chart.chartArea) return;
+    if (!opts || !chart.chartArea || opts.refMin == null || opts.refMax == null) return;
     const { ctx, chartArea: { left, right }, scales: { y } } = chart;
     if (!y) return;
     const yMin = y.getPixelForValue(opts.refMin);
@@ -1169,7 +1302,7 @@ function createLineChart(id, marker, dateLabels, chartDates) {
     options: { responsive:true, maintainAspectRatio:false,
       plugins: { legend:{display:false},
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
-          callbacks:{ label:(c)=>`${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:()=>`Ref: ${marker.refMin} \u2013 ${marker.refMax}` }},
+          callbacks:{ label:(c)=>`${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:()=> marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
         refBand:{ refMin:marker.refMin, refMax:marker.refMax },
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false},
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
@@ -1188,7 +1321,7 @@ function showDetailModal(id) {
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : data.dateLabels;
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${marker.name}</h3>
-    <div class="modal-unit">${marker.unit} &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}</div>
+    <div class="modal-unit">${marker.unit}${marker.refMin != null && marker.refMax != null ? ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}` : ''}</div>
     <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
@@ -1484,6 +1617,7 @@ function renderCorrelationChart() {
 function buildMarkerReference() {
   const ref = {};
   for (const [catKey, cat] of Object.entries(MARKER_SCHEMA)) {
+    if (cat.calculated) continue;
     for (const [markerKey, marker] of Object.entries(cat.markers)) {
       ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: marker.refMin, refMax: marker.refMax };
     }
@@ -1815,6 +1949,86 @@ function clearDiet() {
   showNotification('Diet cleared', 'info');
 }
 
+function openCircadianEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.circadian || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Circadian Habits</h3>
+    <div class="modal-unit">Describe your typical sleep schedule, light exposure, shift work, or other circadian-related habits. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="circadian-textarea" placeholder="e.g. Sleep 11 PM – 7 AM, morning sunlight 20 min, night shift 2x/week, blue-light glasses after sunset...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveCircadian()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearCircadian()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('circadian-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveCircadian() {
+  const ta = document.getElementById('circadian-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.circadian = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Circadian habits saved' : 'Circadian habits cleared', 'success');
+}
+
+function clearCircadian() {
+  importedData.circadian = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Circadian habits cleared', 'info');
+}
+
+function openExerciseEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.exercise || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Exercise & Movement</h3>
+    <div class="modal-unit">Describe your typical exercise routine, training frequency, and daily movement level. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="exercise-textarea" placeholder="e.g. Strength training 4x/week, zone 2 cardio 3x/week, 10k steps daily, sedentary desk job...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveExercise()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearExercise()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('exercise-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveExercise() {
+  const ta = document.getElementById('exercise-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.exercise = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Exercise habits saved' : 'Exercise habits cleared', 'success');
+}
+
+function clearExercise() {
+  importedData.exercise = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Exercise habits cleared', 'info');
+}
+
 // ═══════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════
@@ -1925,7 +2139,9 @@ function exportDataJSON() {
   if (entries.length === 0 && notes.length === 0) { showNotification("No data to export", "error"); return; }
   const diagnoses = importedData.diagnoses || '';
   const diet = importedData.diet || '';
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet };
+  const circadian = importedData.circadian || '';
+  const exercise = importedData.exercise || '';
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1965,6 +2181,12 @@ function importDataJSON(file) {
       if (json.diet && typeof json.diet === 'string' && json.diet.trim()) {
         importedData.diet = json.diet.trim();
       }
+      if (json.circadian && typeof json.circadian === 'string' && json.circadian.trim()) {
+        importedData.circadian = json.circadian.trim();
+      }
+      if (json.exercise && typeof json.exercise === 'string' && json.exercise.trim()) {
+        importedData.exercise = json.exercise.trim();
+      }
       // Import notes
       if (json.notes && Array.isArray(json.notes)) {
         if (!importedData.notes) importedData.notes = [];
@@ -1989,7 +2211,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [], notes: [], diagnoses: '', diet: '' };
+  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '' };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
@@ -2085,6 +2307,8 @@ Important guidelines:
 - If the user has added notes for specific dates, consider them when interpreting results (e.g. medication changes, supplement starts, fasting status, symptoms).
 - If the user has listed medical conditions or diagnoses, always consider them when interpreting lab results. Explain how specific conditions may affect certain biomarkers, and flag results that are particularly relevant to their diagnoses.
 - If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
+- If the user has described their circadian habits, consider how sleep patterns, shift work, and light exposure may influence lab results (e.g. poor sleep can raise cortisol/hs-CRP/insulin resistance, shift work disrupts hormone rhythms, melatonin timing affects thyroid markers).
+- If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -2102,6 +2326,14 @@ function buildLabContext() {
   if (diet.trim()) {
     ctx += `## Diet\n${diet.trim()}\n\n`;
   }
+  const circadian = importedData.circadian || '';
+  if (circadian.trim()) {
+    ctx += `## Circadian Habits\n${circadian.trim()}\n\n`;
+  }
+  const exercise = importedData.exercise || '';
+  if (exercise.trim()) {
+    ctx += `## Exercise & Movement\n${exercise.trim()}\n\n`;
+  }
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;
@@ -2112,7 +2344,8 @@ function buildLabContext() {
         : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
       const latestIdx = getLatestValueIndex(m.values);
       const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], m.refMin, m.refMax) : 'no data';
-      ctx += `- ${m.name}: ${vals} ${m.unit} (ref: ${m.refMin}–${m.refMax}, status: ${status})\n`;
+      const refStr = m.refMin != null && m.refMax != null ? `ref: ${m.refMin}–${m.refMax}, ` : '';
+      ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
     }
     ctx += '\n';
   }
