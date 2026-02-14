@@ -1282,8 +1282,23 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   const values = marker.values;
   const valid = values.filter(v => v !== null);
   if (valid.length === 0) return;
-  const minV = Math.min(...valid, marker.refMin);
-  const maxV = Math.max(...valid, marker.refMax);
+
+  // PhenoAge: add chronological age line for comparison
+  const isPhenoAge = marker.name && marker.name.startsWith('PhenoAge');
+  let chronoAgeValues = null;
+  if (isPhenoAge && profileDob && chartDates && chartDates.length) {
+    const dobDate = new Date(profileDob + 'T00:00:00');
+    chronoAgeValues = chartDates.map(d => {
+      const draw = new Date(d + 'T00:00:00');
+      const age = (draw - dobDate) / (365.25 * 24 * 60 * 60 * 1000);
+      return age > 0 ? Math.round(age * 10) / 10 : null;
+    });
+  }
+  const allValid = chronoAgeValues ? [...valid, ...chronoAgeValues.filter(v => v !== null)] : valid;
+  const refMinSafe = marker.refMin != null ? marker.refMin : Infinity;
+  const refMaxSafe = marker.refMax != null ? marker.refMax : -Infinity;
+  const minV = Math.min(...allValid, refMinSafe);
+  const maxV = Math.max(...allValid, refMaxSafe);
   const pad = (maxV - minV) * 0.15 || 1;
   const ptColors = values.map(v => {
     if (v === null) return "transparent";
@@ -1292,17 +1307,26 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   });
   const rawDates = chartDates || [];
   const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
+  const datasets = [{
+    data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
+    borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
+    pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
+    label: isPhenoAge ? 'Biological Age' : ''
+  }];
+  if (chronoAgeValues) {
+    datasets.push({
+      data: chronoAgeValues, borderColor: "#5a5f73", backgroundColor: "transparent",
+      borderWidth: 2, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 4,
+      tension: 0.3, fill: false, spanGaps: true, label: 'Chronological Age'
+    });
+  }
   chartInstances[id] = new Chart(canvas, {
     type: "line",
-    data: { labels: dates, datasets: [{
-      data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
-      borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
-      pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true
-    }]},
+    data: { labels: dates, datasets },
     options: { responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false},
+      plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: '#8b90a0', font: { size: 11 }, boxWidth: 20, padding: 10 } },
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
-          callbacks:{ label:(c)=>`${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:()=> marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> c.datasetIndex === 0 && marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
         refBand:{ refMin:marker.refMin, refMax:marker.refMax },
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false},
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
