@@ -237,6 +237,12 @@ const CORRELATION_PRESETS = [
 ];
 const CHIP_COLORS = ['#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa','#f472b6','#38bdf8','#fb923c'];
 
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function getStatus(value, refMin, refMax) {
   if (value === null || value === undefined) return "missing";
   if (value < refMin) return "low";
@@ -253,7 +259,7 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [] };
+let importedData = { entries: [], notes: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
@@ -436,7 +442,7 @@ function loadProfile(profileId) {
   currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
-  importedData = savedImported ? (function() { try { return JSON.parse(savedImported); } catch(e) { return { entries: [] }; } })() : { entries: [] };
+  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; return d; } catch(e) { return { entries: [], notes: [] }; } })() : { entries: [], notes: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   profileSex = getProfileSex(profileId);
@@ -668,7 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load active profile
   currentProfile = getActiveProfileId();
   const savedImported = localStorage.getItem(profileStorageKey(currentProfile, 'imported'));
-  if (savedImported) { try { importedData = JSON.parse(savedImported); } catch(e) {} }
+  if (savedImported) { try { importedData = JSON.parse(savedImported); if (!importedData.notes) importedData.notes = []; } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
   profileSex = getProfileSex(currentProfile);
@@ -745,14 +751,69 @@ function showDashboard() {
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
-  if (importedData.entries && importedData.entries.length > 0) {
+  // Profile context cards (diagnoses + diet)
+  html += `<div class="profile-context-cards">`;
+  const diagText = importedData.diagnoses || '';
+  html += `<div class="diagnoses-card" onclick="openDiagnosesEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDFE5 Medical Conditions</span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDiagnosesEditor()">${diagText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${diagText
+      ? `<div class="diagnoses-text">${escapeHTML(diagText.length > 200 ? diagText.slice(0, 200) + '...' : diagText)}</div>`
+      : `<div class="diagnoses-placeholder">Add any medical conditions so AI can consider them</div>`}
+  </div>`;
+  const dietText = importedData.diet || '';
+  html += `<div class="diagnoses-card" onclick="openDietEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83E\uDD57 Diet</span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDietEditor()">${dietText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${dietText
+      ? `<div class="diagnoses-text">${escapeHTML(dietText.length > 200 ? dietText.slice(0, 200) + '...' : dietText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your diet so AI can factor it into lab interpretation</div>`}
+  </div>`;
+  html += `</div>`;
+
+  const hasEntries = importedData.entries && importedData.entries.length > 0;
+  const hasNotes = importedData.notes && importedData.notes.length > 0;
+  if (hasEntries || hasNotes) {
     html += `<div class="imported-entries">`;
-    for (const entry of importedData.entries.sort((a,b) => a.date.localeCompare(b.date))) {
-      const d = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const cnt = Object.keys(entry.markers).length;
-      html += `<div class="imported-entry">
-        <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
-        <button class="ie-remove" onclick="removeImportedEntry('${entry.date}')">\u2715 Remove</button></div>`;
+    html += `<button class="add-note-btn" onclick="openNoteEditor()">+ Add Note</button>`;
+    // Merge entries and notes into one sorted-by-date list
+    const items = [];
+    if (hasEntries) {
+      for (const entry of importedData.entries) {
+        items.push({ type: 'entry', date: entry.date, entry });
+      }
+    }
+    if (hasNotes) {
+      for (let i = 0; i < importedData.notes.length; i++) {
+        items.push({ type: 'note', date: importedData.notes[i].date, noteIdx: i, note: importedData.notes[i] });
+      }
+    }
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    for (const item of items) {
+      const d = new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (item.type === 'entry') {
+        const cnt = Object.keys(item.entry.markers).length;
+        html += `<div class="imported-entry">
+          <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
+          <div class="ie-actions">
+            <button class="ie-remove" onclick="removeImportedEntry('${item.entry.date}')">\u2715 Remove</button>
+          </div>
+        </div>`;
+      } else {
+        const preview = escapeHTML(item.note.text.length > 80 ? item.note.text.slice(0, 80) + '...' : item.note.text);
+        html += `<div class="note-row" onclick="openNoteEditor(null, ${item.noteIdx})">
+          <span class="note-row-icon">\uD83D\uDCDD</span>
+          <span class="note-row-date">${d}</span>
+          <span class="note-row-text">${preview}</span>
+          <div class="note-row-actions">
+            <button class="ie-remove" onclick="event.stopPropagation();deleteNote(${item.noteIdx})">\u2715</button>
+          </div>
+        </div>`;
+      }
     }
     html += `<div style="display:flex;gap:8px;margin-top:8px">
       <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
@@ -828,7 +889,7 @@ function showDashboard() {
 
   for (const km of keyMarkers) {
     const marker = data.categories[km.cat].markers[km.key];
-    createLineChart(km.cat + "_" + km.key, marker, data.dateLabels);
+    createLineChart(km.cat + "_" + km.key, marker, data.dateLabels, data.dates);
   }
   setupDropZone();
 }
@@ -866,7 +927,7 @@ function showCategory(categoryKey) {
   else if (cat.singleDate) { renderFattyAcidsCharts(cat); }
   else {
     for (const [key, marker] of Object.entries(cat.markers)) {
-      createLineChart(categoryKey + "_" + key, marker, data.dateLabels);
+      createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
     }
   }
 }
@@ -892,7 +953,7 @@ function switchView(view, categoryKey, btn) {
       html += `</div>`;
       container.innerHTML = html;
       for (const [key, marker] of Object.entries(cat.markers)) {
-        createLineChart(categoryKey + "_" + key, marker, data.dateLabels);
+        createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
       }
     }
   }
@@ -1017,7 +1078,71 @@ const refBandPlugin = {
   }
 };
 
-function createLineChart(id, marker, dateLabels) {
+// Chart.js plugin for note annotation vertical lines
+const noteAnnotationPlugin = {
+  id: "noteAnnotations",
+  beforeDraw(chart) {
+    const opts = chart.options.plugins.noteAnnotations;
+    if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return;
+    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+    if (!x) return;
+    const chartLabels = chart.data.labels || [];
+    ctx.save();
+    for (const note of opts.notes) {
+      // Find the x position: check if note date matches a chart label index
+      let pixelX = null;
+      const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const idx = chartLabels.indexOf(noteDateLabel);
+      if (idx !== -1) {
+        pixelX = x.getPixelForValue(idx);
+      } else {
+        // Interpolate between chart dates
+        const chartDates = opts.chartDates || [];
+        if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
+          for (let i = 0; i < chartDates.length - 1; i++) {
+            if (note.date >= chartDates[i] && note.date <= chartDates[i + 1]) {
+              const d0 = new Date(chartDates[i]).getTime();
+              const d1 = new Date(chartDates[i + 1]).getTime();
+              const dn = new Date(note.date).getTime();
+              const frac = (dn - d0) / (d1 - d0);
+              const px0 = x.getPixelForValue(i);
+              const px1 = x.getPixelForValue(i + 1);
+              pixelX = px0 + frac * (px1 - px0);
+              break;
+            }
+          }
+        }
+      }
+      if (pixelX === null) continue;
+      // Draw vertical dashed line
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.5)";
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pixelX, top);
+      ctx.lineTo(pixelX, bottom);
+      ctx.stroke();
+      // Draw small label at top
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(251, 191, 36, 0.8)";
+      ctx.font = "10px Inter, sans-serif";
+      ctx.textAlign = "center";
+      const label = note.text.length > 20 ? note.text.slice(0, 20) + '...' : note.text;
+      ctx.fillText(label, pixelX, top - 4);
+    }
+    ctx.restore();
+  }
+};
+
+function getNotesForChart(chartDates) {
+  const notes = (importedData.notes || []);
+  if (!notes.length || !chartDates.length) return [];
+  const minDate = chartDates[0];
+  const maxDate = chartDates[chartDates.length - 1];
+  return notes.filter(n => n.date >= minDate && n.date <= maxDate);
+}
+
+function createLineChart(id, marker, dateLabels, chartDates) {
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
@@ -1032,6 +1157,8 @@ function createLineChart(id, marker, dateLabels) {
     const s = getStatus(v, marker.refMin, marker.refMax);
     return s==="normal"?"#34d399":s==="high"?"#f87171":"#fbbf24";
   });
+  const rawDates = chartDates || [];
+  const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
   chartInstances[id] = new Chart(canvas, {
     type: "line",
     data: { labels: dates, datasets: [{
@@ -1043,11 +1170,12 @@ function createLineChart(id, marker, dateLabels) {
       plugins: { legend:{display:false},
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
           callbacks:{ label:(c)=>`${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:()=>`Ref: ${marker.refMin} \u2013 ${marker.refMax}` }},
-        refBand:{ refMin:marker.refMin, refMax:marker.refMax }},
+        refBand:{ refMin:marker.refMin, refMax:marker.refMax },
+        noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false},
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
         y:{min:minV-pad, max:maxV+pad, ticks:{color:"#5a5f73",font:{size:10}}, grid:{color:"rgba(46,51,72,0.5)"}}}
     },
-    plugins: [refBandPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin]
   });
 }
 
@@ -1067,7 +1195,10 @@ function showDetailModal(id) {
     const v = marker.values[i];
     const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
     const sl = s==="normal"?"In Range":s==="high"?"Above Range":s==="low"?"Below Range":"N/A";
-    html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}</div>
+    const rawDate = marker.singlePoint ? null : data.dates[i];
+    const matchingNote = rawDate && importedData.notes ? importedData.notes.find(n => n.date === rawDate) : null;
+    const noteIcon = matchingNote ? `<div class="mv-note" title="${escapeHTML(matchingNote.text)}">&#128221;</div>` : '';
+    html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}${noteIcon}</div>
       <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
       <div class="mv-status val-${s}">${sl}</div></div>`;
   }
@@ -1083,7 +1214,7 @@ function showDetailModal(id) {
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
-    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels);
+    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates);
   }, 50);
 }
 
@@ -1335,14 +1466,15 @@ function renderCorrelationChart() {
             }
           }
         },
-        refBand: { refMin: 0, refMax: 100 }
+        refBand: { refMin: 0, refMax: 100 },
+        noteAnnotations: (function() { const n = getNotesForChart(data.dates); return n.length ? { notes: n, chartDates: data.dates } : false; })()
       },
       scales: {
         x: { ticks: { color: "#5a5f73", font: { size: 11 } }, grid: { display: false } },
         y: { min: minY, max: maxY, ticks: { color: "#5a5f73", font: { size: 10 }, callback: v => v + '%' }, grid: { color: "rgba(46,51,72,0.5)" } }
       }
     },
-    plugins: [refBandPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin]
   });
 }
 
@@ -1537,6 +1669,153 @@ function removeImportedEntry(date) {
 }
 
 // ═══════════════════════════════════════════════
+// STANDALONE NOTES
+// ═══════════════════════════════════════════════
+function openNoteEditor(date, existingIdx) {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const isEditing = existingIdx !== undefined && existingIdx !== null;
+  const existing = isEditing ? (importedData.notes || [])[existingIdx] : null;
+  const defaultDate = existing ? existing.date : (date || new Date().toISOString().slice(0, 10));
+  const currentText = existing ? existing.text : '';
+  const title = isEditing ? 'Edit Note' : 'Add Note';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>${title}</h3>
+    <div class="modal-unit">Add context: medication changes, supplements, symptoms, lifestyle changes</div>
+    <div style="margin:16px 0">
+      <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px">Date</label>
+      <input type="date" id="note-date-input" value="${defaultDate}" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-family:inherit">
+    </div>
+    <textarea class="note-editor" id="note-textarea" placeholder="e.g. Started creatine supplement, switched to low-carb diet...">${escapeHTML(currentText)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveNote(${isEditing ? existingIdx : 'null'})">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${isEditing ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="deleteNote(${existingIdx})">Delete</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('note-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveNote(idx) {
+  const dateInput = document.getElementById('note-date-input');
+  const ta = document.getElementById('note-textarea');
+  const date = dateInput ? dateInput.value : '';
+  const text = ta ? ta.value.trim() : '';
+  if (!date) { showNotification('Please select a date', 'error'); return; }
+  if (!text) { showNotification('Please enter note text', 'error'); return; }
+  if (!importedData.notes) importedData.notes = [];
+  if (idx !== null && idx !== undefined) {
+    importedData.notes[idx] = { date, text };
+  } else {
+    importedData.notes.push({ date, text });
+  }
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Note saved', 'success');
+}
+
+function deleteNote(idx) {
+  if (!importedData.notes) return;
+  importedData.notes.splice(idx, 1);
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Note deleted', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// DIAGNOSES / MEDICAL CONDITIONS
+// ═══════════════════════════════════════════════
+function openDiagnosesEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.diagnoses || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Medical Conditions</h3>
+    <div class="modal-unit">List any diagnosed conditions, chronic illnesses, or relevant medical history. The AI will consider these when interpreting your lab results.</div>
+    <textarea class="note-editor" id="diagnoses-textarea" placeholder="e.g. Type 2 diabetes, hypothyroidism, iron deficiency anemia...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveDiagnoses()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearDiagnoses()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('diagnoses-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveDiagnoses() {
+  const ta = document.getElementById('diagnoses-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.diagnoses = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Medical conditions saved' : 'Medical conditions cleared', 'success');
+}
+
+function clearDiagnoses() {
+  importedData.diagnoses = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Medical conditions cleared', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// DIET
+// ═══════════════════════════════════════════════
+function openDietEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.diet || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Diet</h3>
+    <div class="modal-unit">Describe your typical diet, eating patterns, or any specific dietary approach. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="diet-textarea" placeholder="e.g. Low-carb / keto, intermittent fasting 16:8, vegetarian, high protein...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveDiet()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearDiet()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('diet-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveDiet() {
+  const ta = document.getElementById('diet-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.diet = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Diet saved' : 'Diet cleared', 'success');
+}
+
+function clearDiet() {
+  importedData.diet = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Diet cleared', 'info');
+}
+
+// ═══════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════
 function showNotification(message, type) {
@@ -1642,8 +1921,11 @@ async function handlePDFFile(file) {
 // ═══════════════════════════════════════════════
 function exportDataJSON() {
   const entries = (importedData && importedData.entries) ? importedData.entries : [];
-  if (entries.length === 0) { showNotification("No data to export", "error"); return; }
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries };
+  const notes = (importedData && importedData.notes) ? importedData.notes : [];
+  if (entries.length === 0 && notes.length === 0) { showNotification("No data to export", "error"); return; }
+  const diagnoses = importedData.diagnoses || '';
+  const diet = importedData.diet || '';
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1675,7 +1957,24 @@ function importDataJSON(file) {
         importedData.entries.push(entry);
         count++;
       }
-      if (count === 0) { showNotification('No valid entries found in JSON', 'error'); return; }
+      if (count === 0 && (!json.notes || json.notes.length === 0)) { showNotification('No valid entries found in JSON', 'error'); return; }
+      // Import diagnoses and diet
+      if (json.diagnoses && typeof json.diagnoses === 'string' && json.diagnoses.trim()) {
+        importedData.diagnoses = json.diagnoses.trim();
+      }
+      if (json.diet && typeof json.diet === 'string' && json.diet.trim()) {
+        importedData.diet = json.diet.trim();
+      }
+      // Import notes
+      if (json.notes && Array.isArray(json.notes)) {
+        if (!importedData.notes) importedData.notes = [];
+        for (const note of json.notes) {
+          if (!note.date || !note.text) continue;
+          // Avoid duplicates (same date + same text)
+          const exists = importedData.notes.some(n => n.date === note.date && n.text === note.text);
+          if (!exists) importedData.notes.push({ date: note.date, text: note.text });
+        }
+      }
       localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
       buildSidebar();
       updateHeaderDates();
@@ -1690,7 +1989,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [] };
+  importedData = { entries: [], notes: [], diagnoses: '', diet: '' };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
@@ -1783,6 +2082,9 @@ Important guidelines:
 - Point out noteworthy patterns: values trending up/down, values outside reference ranges, combinations that may be clinically relevant.
 - Keep responses concise but informative. Use plain language.
 - If asked about a topic outside lab results, politely redirect to your area of expertise.
+- If the user has added notes for specific dates, consider them when interpreting results (e.g. medication changes, supplement starts, fasting status, symptoms).
+- If the user has listed medical conditions or diagnoses, always consider them when interpreting lab results. Explain how specific conditions may affect certain biomarkers, and flag results that are particularly relevant to their diagnoses.
+- If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -1792,6 +2094,14 @@ function buildLabContext() {
   }
   const sexLabel = profileSex === 'female' ? 'female' : profileSex === 'male' ? 'male' : 'not specified';
   let ctx = `Lab data for current profile (sex: ${sexLabel}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+  const diagnoses = importedData.diagnoses || '';
+  if (diagnoses.trim()) {
+    ctx += `## Medical Conditions / Diagnoses\n${diagnoses.trim()}\n\n`;
+  }
+  const diet = importedData.diet || '';
+  if (diet.trim()) {
+    ctx += `## Diet\n${diet.trim()}\n\n`;
+  }
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;
@@ -1811,6 +2121,15 @@ function buildLabContext() {
     ctx += `## Flagged Results (Latest)\n`;
     for (const f of flags) {
       ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, ref: ${f.refMin}–${f.refMax})\n`;
+    }
+    ctx += '\n';
+  }
+  const notes = (importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  if (notes.length > 0) {
+    ctx += `## User Notes\n`;
+    for (const n of notes) {
+      const d = new Date(n.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      ctx += `- ${d}: ${n.text}\n`;
     }
   }
   return ctx;

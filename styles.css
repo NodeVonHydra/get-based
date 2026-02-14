@@ -425,11 +425,81 @@ body {
 .imported-entry .ie-info { color: var(--text-secondary); }
 .imported-entry .ie-date { color: var(--text-primary); font-weight: 500; }
 .imported-entry .ie-count { color: var(--text-muted); margin-left: 8px; }
+.imported-entry .ie-actions { display: flex; align-items: center; gap: 4px; }
 .imported-entry .ie-remove {
   background: none; border: none; color: var(--text-muted); cursor: pointer;
   font-size: 12px; padding: 4px 10px; border-radius: 4px; transition: all 0.15s; font-family: inherit;
 }
 .imported-entry .ie-remove:hover { color: var(--red); background: var(--red-bg); }
+/* Standalone note row */
+.note-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border);
+  border-left: 3px solid var(--yellow); border-radius: var(--radius-sm);
+  margin-bottom: 6px; font-size: 13px; cursor: pointer; transition: all 0.15s;
+}
+.note-row:hover { border-color: var(--accent); border-left-color: var(--yellow); background: var(--bg-hover); }
+.note-row-icon { font-size: 14px; flex-shrink: 0; }
+.note-row-date { color: var(--text-primary); font-weight: 500; white-space: nowrap; }
+.note-row-text { color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+.note-row-actions { flex-shrink: 0; }
+.note-row-actions .ie-remove {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 12px; padding: 4px 10px; border-radius: 4px; transition: all 0.15s; font-family: inherit;
+}
+.note-row-actions .ie-remove:hover { color: var(--red); background: var(--red-bg); }
+/* Add Note button */
+.add-note-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 14px; border-radius: 6px; border: 1px dashed var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 13px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; margin-bottom: 10px;
+}
+.add-note-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,140,255,0.05); }
+/* Note Editor */
+.note-editor {
+  width: 100%; min-height: 120px; padding: 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 13px; font-family: inherit;
+  resize: vertical; line-height: 1.5; margin: 16px 0;
+}
+.note-editor:focus { outline: none; border-color: var(--accent); }
+.note-editor-actions { display: flex; gap: 8px; align-items: center; }
+/* Note icon in detail modal */
+.mv-note {
+  display: inline; font-size: 12px; margin-left: 4px;
+  cursor: help;
+}
+/* Profile Context Cards (diagnoses, diet) */
+.profile-context-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+@media (max-width: 768px) {
+  .profile-context-cards { grid-template-columns: 1fr; }
+}
+.diagnoses-card {
+  background: var(--bg-card); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); padding: 14px 18px;
+  margin-bottom: 16px; cursor: pointer; transition: all 0.15s;
+}
+.diagnoses-card:hover { border-color: var(--accent); }
+.diagnoses-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+}
+.diagnoses-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.diagnoses-edit-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  font-size: 12px; padding: 2px 10px; border-radius: 4px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.diagnoses-edit-btn:hover { color: var(--accent); border-color: var(--accent); }
+.diagnoses-text {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+  white-space: pre-line;
+}
+.diagnoses-placeholder {
+  font-size: 12px; color: var(--text-muted); font-style: italic;
+}
 /* Empty State */
 .empty-state {
   background: var(--bg-card); border-radius: var(--radius);
