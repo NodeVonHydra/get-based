@@ -26,7 +26,8 @@ No build system, no bundler, no package manager. Three source files:
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
-  - Diagnoses & diet profile context (`openDiagnosesEditor`, `saveDiagnoses`, `openDietEditor`, `saveDiet`)
+  - Diagnoses, diet, circadian & exercise profile context (`openDiagnosesEditor`, `openDietEditor`, `openCircadianEditor`, `openExerciseEditor`)
+  - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
   - Chart annotation plugin (`noteAnnotationPlugin` — vertical dashed lines at note dates)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
   - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
@@ -35,8 +36,8 @@ No build system, no bundler, no package manager. Three source files:
 
 ### Data Flow
 
-1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet }`; unit preference under `labcharts-{profileId}-units`
+1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, circadian, exercise }`; unit preference under `labcharts-{profileId}-units`
 3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` at category level in the schema; `getActiveData()` sets `singleDate`, `singleDateLabel` on the category and `singlePoint`, `singleDateLabel` on each marker
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -62,20 +63,32 @@ Notes are independent of lab entries — they support any date and are stored in
 - Notes appear in the detail modal as a memo icon on date cards that match a note's date
 - `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
 
-### Diagnoses & Diet
+### Diagnoses, Diet, Circadian & Exercise
 
-Free-text profile context stored in `importedData.diagnoses` (string) and `importedData.diet` (string):
+Free-text profile context stored in `importedData.diagnoses`, `importedData.diet`, `importedData.circadian`, and `importedData.exercise` (all strings):
 
-- Dashboard renders two side-by-side cards (`.profile-context-cards` grid) between the drop zone and the entries list
+- Dashboard renders four cards in a `.profile-context-cards` grid (2×2 on medium screens, 4×1 on wide) between the drop zone and the entries list
 - Each card shows current text or a placeholder prompt; clicking opens a modal editor
-- `buildLabContext()` prepends `## Medical Conditions / Diagnoses` and `## Diet` sections to the AI context
-- `CHAT_SYSTEM_PROMPT` instructs the AI to factor diagnoses and diet into lab interpretation
-- Both fields are included in JSON export/import
+- `buildLabContext()` prepends `## Medical Conditions / Diagnoses`, `## Diet`, `## Circadian Habits`, and `## Exercise & Movement` sections to the AI context
+- `CHAT_SYSTEM_PROMPT` instructs the AI to factor all four into lab interpretation
+- All fields are included in JSON export/import
+
+### PhenoAge (Biological Age)
+
+PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that estimates biological age from 9 blood biomarkers + chronological age:
+
+- **Required biomarkers**: Albumin (`proteins.albumin`), Creatinine (`biochemistry.creatinine`), Glucose (`biochemistry.glucose`), hs-CRP (`proteins.hsCRP`), Lymphocytes % (`differential.lymphocytesPct`), MCV (`hematology.mcv`), RDW-CV (`hematology.rdwcv`), ALP (`biochemistry.alp`), WBC (`hematology.wbc`)
+- **Date of Birth**: Required for chronological age; stored per-profile via `getProfileDob`/`setProfileDob`, set via header date input
+- **Calculation**: Performed in `getActiveData()` after ratio calculations. All 9 biomarkers are read in SI units and converted inline to US conventional units for the formula (coefficients use US units). Formula: `xb → mortality_score → PhenoAge`
+- **Null handling**: Returns `null` if any of the 9 biomarkers is missing for a date, DOB is not set, CRP ≤ 0, or age ≤ 0
+- **No reference range**: `refMin: null, refMax: null` — PhenoAge is meaningful relative to chronological age, not absolute bounds. `getStatus()` returns `"normal"` for null refs; `refBandPlugin` skips drawing; chart/table/modal UI omit ref range text
+- **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
+- **Unit system**: PhenoAge outputs years regardless of EU/US setting — no `UNIT_CONVERSIONS` entry needed
 
 ### AI Chat Panel
 
 - Slide-out panel on the right side with streaming responses
-- `buildLabContext()` serializes full profile data for the system prompt, including diagnoses, diet, lab values, flagged results, and notes
+- `buildLabContext()` serializes full profile data for the system prompt, including diagnoses, diet, circadian, exercise, lab values, flagged results, and notes
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
@@ -91,8 +104,8 @@ Free-text profile context stored in `importedData.diagnoses` (string) and `impor
 
 ### JSON Export/Import
 
-- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "..." }`
-- Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet if present
+- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "...", circadian: "...", exercise: "..." }`
+- Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet/circadian/exercise if present
 - Drop zone accepts both PDF and JSON files
 
 ### External Dependencies (CDN)
@@ -115,7 +128,7 @@ There are no tests, linters, or build steps. An Anthropic API key is required fo
 
 ## Key Patterns
 
-- **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout
+- **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
 - **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
 - **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `noteAnnotationPlugin` draws vertical dashed lines at note dates
 - **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales
