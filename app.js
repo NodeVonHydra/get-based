@@ -387,6 +387,87 @@ const markerRegistry = {};
 let importedData = { entries: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
+let currentProfile = 'default';
+
+// ═══════════════════════════════════════════════
+// PROFILE MANAGEMENT
+// ═══════════════════════════════════════════════
+function getProfiles() {
+  try { return JSON.parse(localStorage.getItem('labcharts-profiles')) || []; }
+  catch(e) { return []; }
+}
+
+function saveProfiles(profiles) {
+  localStorage.setItem('labcharts-profiles', JSON.stringify(profiles));
+}
+
+function getActiveProfileId() {
+  return localStorage.getItem('labcharts-active-profile') || 'default';
+}
+
+function setActiveProfileId(id) {
+  localStorage.setItem('labcharts-active-profile', id);
+}
+
+function profileStorageKey(profileId, suffix) {
+  return `labcharts-${profileId}-${suffix}`;
+}
+
+function loadProfile(profileId) {
+  currentProfile = profileId;
+  setActiveProfileId(profileId);
+  const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
+  importedData = savedImported ? (function() { try { return JSON.parse(savedImported); } catch(e) { return { entries: [] }; } })() : { entries: [] };
+  const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
+  unitSystem = savedUnits === 'US' ? 'US' : 'EU';
+  document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.unit === unitSystem);
+  });
+  selectedCorrelationMarkers = [];
+  destroyAllCharts();
+  buildSidebar();
+  showDashboard();
+  updateHeaderDates();
+  renderProfileDropdown();
+}
+
+function createProfile(name) {
+  const profiles = getProfiles();
+  const id = Date.now().toString(36);
+  profiles.push({ id, name });
+  saveProfiles(profiles);
+  return id;
+}
+
+function renameProfile(profileId, newName) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.name = newName; saveProfiles(profiles); }
+}
+
+function deleteProfile(profileId) {
+  const profiles = getProfiles();
+  if (profiles.length <= 1) { showNotification("Cannot delete the last profile", "error"); return; }
+  if (!confirm('Delete this profile and all its data? This cannot be undone.')) return;
+  const updated = profiles.filter(p => p.id !== profileId);
+  saveProfiles(updated);
+  localStorage.removeItem(profileStorageKey(profileId, 'imported'));
+  localStorage.removeItem(profileStorageKey(profileId, 'units'));
+  if (currentProfile === profileId) {
+    loadProfile(updated[0].id);
+  } else {
+    renderProfileDropdown();
+  }
+  showNotification('Profile deleted', 'info');
+}
+
+function switchProfile(profileId) {
+  if (profileId === currentProfile) return;
+  loadProfile(profileId);
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  showNotification(`Switched to ${p ? p.name : 'profile'}`, 'info');
+}
 
 // ═══════════════════════════════════════════════
 // DATA PIPELINE
@@ -509,9 +590,27 @@ function recalculateHOMAIR(entry) {
 // INIT
 // ═══════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", () => {
-  const savedImported = localStorage.getItem('labcharts-imported');
+  // Migrate legacy data to profile system on first load
+  if (!localStorage.getItem('labcharts-profiles')) {
+    const profiles = [{ id: 'default', name: 'Default' }];
+    saveProfiles(profiles);
+    setActiveProfileId('default');
+    const oldImported = localStorage.getItem('labcharts-imported');
+    if (oldImported) {
+      localStorage.setItem(profileStorageKey('default', 'imported'), oldImported);
+      localStorage.removeItem('labcharts-imported');
+    }
+    const oldUnits = localStorage.getItem('labcharts-units');
+    if (oldUnits) {
+      localStorage.setItem(profileStorageKey('default', 'units'), oldUnits);
+      localStorage.removeItem('labcharts-units');
+    }
+  }
+  // Load active profile
+  currentProfile = getActiveProfileId();
+  const savedImported = localStorage.getItem(profileStorageKey(currentProfile, 'imported'));
   if (savedImported) { try { importedData = JSON.parse(savedImported); } catch(e) {} }
-  const savedUnits = localStorage.getItem('labcharts-units');
+  const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
@@ -522,6 +621,7 @@ document.addEventListener("DOMContentLoaded", () => {
   buildSidebar();
   showDashboard();
   updateHeaderDates();
+  renderProfileDropdown();
   document.getElementById("pdf-input").addEventListener("change", async e => {
     if (e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -985,7 +1085,7 @@ function formatValue(v) {
 // ═══════════════════════════════════════════════
 function switchUnitSystem(system) {
   unitSystem = system;
-  localStorage.setItem('labcharts-units', system);
+  localStorage.setItem(profileStorageKey(currentProfile, 'units'), system);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === system);
   });
@@ -1397,7 +1497,7 @@ function confirmImport() {
   importedData.entries = importedData.entries.filter(e => e.date !== result.date);
   importedData.entries.push(entry);
   recalculateHOMAIR(entry);
-  localStorage.setItem('labcharts-imported', JSON.stringify(importedData));
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeImportModal();
   buildSidebar();
   updateHeaderDates();
@@ -1409,7 +1509,7 @@ function confirmImport() {
 function removeImportedEntry(date) {
   if (!importedData.entries) return;
   importedData.entries = importedData.entries.filter(e => e.date !== date);
-  localStorage.setItem('labcharts-imported', JSON.stringify(importedData));
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   buildSidebar();
   updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
@@ -1481,7 +1581,9 @@ function exportDataJSON() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `labcharts-export-${new Date().toISOString().slice(0, 10)}.json`;
+  const profiles = getProfiles();
+  const profileName = (profiles.find(p => p.id === currentProfile) || { name: 'export' }).name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  a.download = `labcharts-${profileName}-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1507,7 +1609,7 @@ function importDataJSON(file) {
         count++;
       }
       if (count === 0) { showNotification('No valid entries found in JSON', 'error'); return; }
-      localStorage.setItem('labcharts-imported', JSON.stringify(importedData));
+      localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
       buildSidebar();
       updateHeaderDates();
       navigate('dashboard');
@@ -1522,9 +1624,82 @@ function importDataJSON(file) {
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
   importedData = { entries: [] };
-  localStorage.removeItem('labcharts-imported');
+  localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
   navigate('dashboard');
   showNotification('All data cleared', 'info');
 }
+
+// ═══════════════════════════════════════════════
+// PROFILE DROPDOWN UI
+// ═══════════════════════════════════════════════
+function renderProfileDropdown() {
+  const container = document.getElementById('profile-selector');
+  if (!container) return;
+  const profiles = getProfiles();
+  const active = profiles.find(p => p.id === currentProfile) || profiles[0];
+  if (!active) return;
+
+  let html = `<div class="profile-dropdown">
+    <button class="profile-dropdown-btn" onclick="toggleProfileMenu()">
+      <span class="profile-label">${active.name}</span>
+      <span class="profile-arrow">\u25BC</span>
+    </button>
+    <div class="profile-menu" id="profile-menu">`;
+
+  for (const p of profiles) {
+    const isActive = p.id === currentProfile;
+    html += `<div class="profile-menu-item${isActive ? ' active' : ''}" onclick="switchProfile('${p.id}')">
+      <span class="profile-name">${p.name}</span>
+      <span class="profile-menu-actions">
+        <button class="profile-menu-action" onclick="event.stopPropagation();promptRenameProfile('${p.id}')" title="Rename">Rename</button>
+        <button class="profile-menu-action delete" onclick="event.stopPropagation();deleteProfile('${p.id}')" title="Delete">\u2715</button>
+      </span>
+    </div>`;
+  }
+
+  html += `<div class="profile-menu-divider"></div>
+    <div class="profile-menu-new" onclick="promptCreateProfile()">+ New Profile</div>
+    </div></div>`;
+  container.innerHTML = html;
+}
+
+function toggleProfileMenu() {
+  const menu = document.getElementById('profile-menu');
+  const btn = document.querySelector('.profile-dropdown-btn');
+  if (!menu) return;
+  const show = !menu.classList.contains('show');
+  menu.classList.toggle('show', show);
+  if (btn) btn.classList.toggle('open', show);
+}
+
+function promptCreateProfile() {
+  const name = prompt('Enter profile name:');
+  if (!name || !name.trim()) return;
+  const id = createProfile(name.trim());
+  toggleProfileMenu();
+  switchProfile(id);
+}
+
+function promptRenameProfile(id) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === id);
+  if (!p) return;
+  const name = prompt('Rename profile:', p.name);
+  if (!name || !name.trim() || name.trim() === p.name) return;
+  renameProfile(id, name.trim());
+  renderProfileDropdown();
+  showNotification(`Profile renamed to "${name.trim()}"`, 'info');
+}
+
+// Close profile menu on click outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.querySelector('.profile-dropdown');
+  if (dropdown && !dropdown.contains(e.target)) {
+    const menu = document.getElementById('profile-menu');
+    const btn = document.querySelector('.profile-dropdown-btn');
+    if (menu) menu.classList.remove('show');
+    if (btn) btn.classList.remove('open');
+  }
+});
