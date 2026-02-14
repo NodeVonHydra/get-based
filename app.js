@@ -7,16 +7,16 @@ const MARKER_SCHEMA = {
     markers: {
       glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60 },
       urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3 },
-      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106 },
+      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106, refMin_f: 44, refMax_f: 80 },
       egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30 },
-      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417 },
+      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417, refMin_f: 143, refMax_f: 339 },
       bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0 },
       ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85 },
       alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83 },
       alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15 },
       ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19 },
       ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75 },
-      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14 },
+      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14, refMin_f: 0.42, refMax_f: 3.08 },
       cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95 },
       gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63 }
     }
@@ -24,15 +24,15 @@ const MARKER_SCHEMA = {
   hormones: {
     label: "Hormones", icon: "\u26A1",
     markers: {
-      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00 },
-      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70 },
-      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1 },
-      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60 },
-      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0 },
-      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0 },
-      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474 },
-      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8 },
-      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40 },
+      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, refMin_f: 0.29, refMax_f: 1.67 },
+      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, refMin_f: 0.30, refMax_f: 10.40 },
+      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1, refMin_f: 26.1, refMax_f: 110.0 },
+      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60, refMin_f: 1.77, refMax_f: 9.22 },
+      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0, refMin_f: 0.5, refMax_f: 6.9 },
+      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0, refMin_f: 45.4, refMax_f: 854.0 },
+      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474, refMin_f: 0.181, refMax_f: 27.0 },
+      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, refMin_f: 1.0, refMax_f: 4.6 },
+      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, refMin_f: 0.12, refMax_f: 0.86 },
       igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8 },
       insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 }
     }
@@ -67,8 +67,8 @@ const MARKER_SCHEMA = {
   iron: {
     label: "Iron Metabolism", icon: "\uD83D\uDD34",
     markers: {
-      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5 },
-      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400 },
+      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5, refMin_f: 6.6, refMax_f: 26.0 },
+      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400, refMin_f: 13, refMax_f: 150 },
       transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6 },
       tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7 },
       transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0 }
@@ -118,16 +118,16 @@ const MARKER_SCHEMA = {
   coagulation: {
     label: "Coagulation", icon: "\uD83E\uDE78",
     markers: {
-      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0 }
+      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0, refMin_f: 3.7, refMax_f: 10.4 }
     }
   },
   hematology: {
     label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
     markers: {
       wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00 },
-      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80 },
-      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175 },
-      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500 },
+      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20 },
+      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, refMin_f: 120, refMax_f: 160 },
+      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, refMin_f: 0.350, refMax_f: 0.450 },
       mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0 },
       mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0 },
       mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360 },
@@ -257,6 +257,7 @@ let importedData = { entries: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
+let profileSex = null;
 let chatHistory = [];
 
 // ═══════════════════════════════════════════════
@@ -285,9 +286,11 @@ async function validateApiKey(key) {
     if (res.ok) return { valid: true };
     if (res.status === 401) return { valid: false, error: 'Invalid API key' };
     if (res.status === 429) return { valid: true }; // Rate limited but key works
-    return { valid: false, error: `API error (${res.status})` };
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
   } catch (e) {
-    return { valid: false, error: 'Cannot reach API' };
+    return { valid: false, error: 'Cannot reach API: ' + e.message };
   }
 }
 
@@ -436,8 +439,12 @@ function loadProfile(profileId) {
   importedData = savedImported ? (function() { try { return JSON.parse(savedImported); } catch(e) { return { entries: [] }; } })() : { entries: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
+  profileSex = getProfileSex(profileId);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
+  });
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
   selectedCorrelationMarkers = [];
   chatHistory = [];
@@ -487,6 +494,31 @@ function switchProfile(profileId) {
   showNotification(`Switched to ${p ? p.name : 'profile'}`, 'info');
 }
 
+function getProfileSex(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  return (p && p.sex) || null;
+}
+
+function setProfileSex(profileId, sex) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.sex = sex; saveProfiles(profiles); }
+}
+
+function switchSex(sex) {
+  profileSex = sex;
+  setProfileSex(currentProfile, sex);
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === sex);
+  });
+  buildSidebar();
+  updateHeaderDates();
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  navigate(activeCat);
+}
+
 // ═══════════════════════════════════════════════
 // DATA PIPELINE
 // ═══════════════════════════════════════════════
@@ -496,6 +528,15 @@ function getActiveData() {
     dateLabels: [],
     categories: JSON.parse(JSON.stringify(MARKER_SCHEMA))
   };
+
+  // Apply sex-specific reference ranges
+  if (profileSex === 'female') {
+    for (const cat of Object.values(data.categories)) {
+      for (const marker of Object.values(cat.markers)) {
+        if (marker.refMin_f !== undefined) { marker.refMin = marker.refMin_f; marker.refMax = marker.refMax_f; }
+      }
+    }
+  }
 
   const entries = (importedData && importedData.entries) ? importedData.entries : [];
   const hasEntries = entries.length > 0;
@@ -630,11 +671,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedImported) { try { importedData = JSON.parse(savedImported); } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
+  profileSex = getProfileSex(currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   }
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
+  });
+  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
   buildSidebar();
   showDashboard();
@@ -648,6 +693,9 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.value = '';
     }
   });
+  // Prevent browser from opening dropped files outside drop zone
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => e.preventDefault());
 });
 
 function buildSidebar() {
@@ -692,9 +740,9 @@ function showDashboard() {
   }
   html += `</div>`;
 
-  html += `<div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
+  html += `<div class="drop-zone" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop PDF or JSON file here to import</div>
+    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
   if (importedData.entries && importedData.entries.length > 0) {
@@ -1459,12 +1507,14 @@ function confirmImport() {
   if (!result || !result.date) return;
   const matched = result.markers.filter(m => m.matched);
   if (matched.length === 0) { showNotification("No matched markers to import", "error"); closeImportModal(); return; }
-  const entry = { date: result.date, markers: {} };
+  if (!importedData.entries) importedData.entries = [];
+  let entry = importedData.entries.find(e => e.date === result.date);
+  if (!entry) {
+    entry = { date: result.date, markers: {} };
+    importedData.entries.push(entry);
+  }
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
-  if (!importedData.entries) importedData.entries = [];
-  importedData.entries = importedData.entries.filter(e => e.date !== result.date);
-  importedData.entries.push(entry);
   recalculateHOMAIR(entry);
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeImportModal();
@@ -1509,6 +1559,7 @@ function showNotification(message, type) {
 function setupDropZone() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
+  dropZone.addEventListener("click", () => { document.getElementById('pdf-input').click(); });
   dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
   dropZone.addEventListener("dragleave", e => { e.preventDefault(); dropZone.classList.remove("drag-over"); });
   dropZone.addEventListener("drop", async e => {
@@ -1526,6 +1577,42 @@ function setupDropZone() {
   });
 }
 
+const IMPORT_STEPS = [
+  "Extracting text from PDF",
+  "AI analyzing lab report",
+  "Preparing preview"
+];
+
+async function showImportProgress(step, fileName) {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  let html = '<div class="import-progress">';
+  for (let i = 0; i < IMPORT_STEPS.length; i++) {
+    const isDone = i < step;
+    const isActive = i === step;
+    const cls = isDone ? "done" : isActive ? "active" : "";
+    const icon = isDone
+      ? '<span class="step-icon">\u2713</span>'
+      : isActive
+        ? '<span class="step-icon"><span class="progress-spinner"></span></span>'
+        : '<span class="step-icon">\u25CB</span>';
+    html += `<div class="progress-step ${cls}">${icon}<span>${IMPORT_STEPS[i]}${isActive ? "..." : ""}</span></div>`;
+  }
+  if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
+  html += '</div>';
+  dropZone.innerHTML = html;
+  // Yield to browser so it actually paints the progress before heavy work continues
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+function hideImportProgress() {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
+    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or LabCharts JSON export</div>`;
+}
+
 async function handlePDFFile(file) {
   if (!hasApiKey()) {
     showNotification("API key required for PDF import. Opening settings...", "info");
@@ -1533,15 +1620,18 @@ async function handlePDFFile(file) {
     return;
   }
   try {
-    showNotification("Extracting text from PDF...", "info");
+    await showImportProgress(0, file.name);
     const pdfText = await extractPDFText(file);
-    if (!pdfText.trim()) { showNotification("PDF appears empty — no text extracted", "error"); return; }
-    showNotification("AI analyzing lab report...", "info");
+    if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
+    await showImportProgress(1, file.name);
     const result = await parseLabPDFWithAI(pdfText, file.name);
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
-    if (result.markers.length === 0) { showNotification("No biomarkers found in PDF", "error"); return; }
+    if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
+    await showImportProgress(2, file.name);
     showImportPreview(result);
+    hideImportProgress();
   } catch (err) {
+    hideImportProgress();
     console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error");
   }
@@ -1700,7 +1790,8 @@ function buildLabContext() {
   if (!data.dates.length && !Object.values(data.categories).some(c => c.singleDate)) {
     return 'No lab data is currently loaded for this profile.';
   }
-  let ctx = `Lab data for current profile (dates: ${data.dateLabels.join(', ')}):\n\n`;
+  const sexLabel = profileSex === 'female' ? 'female' : profileSex === 'male' ? 'male' : 'not specified';
+  let ctx = `Lab data for current profile (sex: ${sexLabel}, dates: ${data.dateLabels.join(', ')}):\n\n`;
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;

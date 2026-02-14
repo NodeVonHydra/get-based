@@ -281,6 +281,16 @@ body {
   .header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
   .modal-values-grid { grid-template-columns: 1fr; }
 }
+/* Sex Toggle */
+.sex-toggle { display: flex; align-items: center; gap: 4px; }
+.sex-toggle-btn {
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 14px;
+  cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit;
+  line-height: 1;
+}
+.sex-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.sex-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
 /* Unit Toggle */
 .unit-toggle { display: flex; align-items: center; gap: 4px; }
 .unit-toggle-btn {
@@ -300,6 +310,29 @@ body {
 .drop-zone-icon { font-size: 28px; margin-bottom: 6px; }
 .drop-zone-text { font-size: 14px; color: var(--text-secondary); }
 .drop-zone-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+/* Import Progress */
+.import-progress { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; margin: 0 auto; width: fit-content; }
+.progress-step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--text-muted); transition: color 0.2s;
+}
+.progress-step .step-icon {
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.progress-step.active { color: var(--text-primary); font-weight: 500; }
+.progress-step.done { color: var(--green); }
+.progress-step.done .step-icon { color: var(--green); }
+.progress-spinner {
+  display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: progressSpin 0.8s linear infinite;
+}
+@keyframes progressSpin { to { transform: rotate(360deg); } }
+.import-progress-filename {
+  font-size: 12px; color: var(--text-muted); margin-top: 4px;
+  align-self: center;
+}
 /* Notification Toast */
 .notification-container {
   position: fixed; top: 72px; right: 24px; z-index: 300;
