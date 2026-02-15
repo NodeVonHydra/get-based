@@ -233,17 +233,31 @@ body {
 }
 .modal-overlay.show { display: flex; }
 .modal {
+  position: relative;
   background: var(--bg-secondary); border-radius: var(--radius);
   border: 1px solid var(--border); width: 90%; max-width: 700px;
   max-height: 85vh; overflow-y: auto; padding: 32px;
 }
 .modal-close {
-  float: right; background: none; border: none; color: var(--text-muted);
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; color: var(--text-muted);
   font-size: 24px; cursor: pointer; padding: 0 4px;
 }
 .modal-close:hover { color: var(--text-primary); }
 .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.modal .modal-unit { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+.modal .modal-unit { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; }
+.marker-description {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.4;
+  margin-bottom: 16px; display: none;
+}
+.marker-description.loaded { display: block; }
+.marker-description.loading {
+  display: block; height: 16px; width: 60%;
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-hover) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%; border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .modal .modal-chart { height: 250px; margin-bottom: 24px; }
 .modal-values-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;
@@ -479,8 +493,16 @@ body {
 /* Note icon in detail modal */
 .mv-note {
   display: inline; font-size: 12px; margin-left: 4px;
-  cursor: help;
+  cursor: pointer;
 }
+.mv-note:hover { opacity: 0.7; }
+.mv-note-text {
+  display: none; font-size: 11px; color: var(--yellow);
+  margin-top: 6px; padding: 6px 8px; line-height: 1.4;
+  background: rgba(251, 191, 36, 0.08); border-radius: 4px;
+  text-align: left; word-break: break-word;
+}
+.mv-note-text.show { display: block; }
 /* Profile Context Cards */
 .context-section-title {
   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
