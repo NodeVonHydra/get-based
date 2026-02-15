@@ -115,6 +115,37 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 - **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
 - **Unit system**: PhenoAge outputs years regardless of EU/US setting — no `UNIT_CONVERSIONS` entry needed
 
+### Trend Alerts on Dashboard
+
+Detects markers with monotonically rising/falling values approaching or exceeding reference boundaries:
+
+- **`detectTrendAlerts(data)`**: Iterates all markers with 3+ non-null values; checks last 3-5 values for strict monotonic change (>2% per step); classifies as `past_high`, `past_low`, `approaching_high`, or `approaching_low` (within 15% of boundary)
+- **Dashboard rendering**: Collapsible "Trending Concerns (N)" section after supplements, before entries. Cards show arrow icon, marker name/category, description, and spark values. Red border for `past_*`, yellow for `approaching_*`
+- **Click-through**: Cards open `showDetailModal(id)` for the trending marker
+- **Respects date range filter**: Uses `filterDatesByRange(data)` before detection
+
+### Marker Glossary
+
+Searchable modal listing all markers grouped by category:
+
+- **Header button**: Book icon (&#128214;) between settings and Ask AI buttons
+- **`openGlossary()`**: Renders full marker inventory from `getActiveData()` with collapsible category headers, marker cards showing name, latest value (color-coded), unit, ref range, optimal range, and AI description
+- **`filterGlossary()`**: Real-time search by marker name, hides empty categories
+- **`lazyLoadGlossaryDescriptions(data)`**: Sequential async loop calling `fetchMarkerDescription()` for uncached markers, updating DOM as descriptions arrive
+- **Click-through**: Clicking a marker closes glossary and opens `showDetailModal(id)`
+- **CSS**: `.glossary-modal` (max-width 800px, max-height 85vh), collapsible categories, hover-highlighted marker cards
+
+### Batch PDF Import
+
+Process multiple PDF files sequentially with individual confirm/skip for each:
+
+- **File input**: `multiple` attribute on `#pdf-input`; drop zone and file picker both handle multiple files
+- **`handleBatchPDFs(pdfFiles)`**: Sequential loop — extract, parse, preview each PDF. Shows summary notification at end with imported/skipped/failed counts
+- **`showBatchImportProgress(step, fileName, current, total)`**: Enhanced progress display with "Processing file X of Y" counter
+- **`showImportPreviewAsync(result, fileName, current, total)`**: Promise wrapper for import preview; resolves when user confirms (→ 'import') or skips (→ 'skip')
+- **Batch context**: `window._batchImportContext` stores `{ current, total }`; `showImportPreview` shows "File X of Y" counter and changes Cancel to "Skip" during batch mode
+- **`confirmImport()`**: Resolves batch promise with 'import' before closing modal; `closeImportModal()` resolves with 'skip'
+
 ### AI Chat Panel
 
 - Slide-out panel on the right side with streaming responses
@@ -170,7 +201,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v3` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v4` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
@@ -179,7 +210,7 @@ The app is installable and works offline via a service worker:
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
 - **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
-- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `noteAnnotationPlugin` draws yellow dots at note dates with hover tooltips
+- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `optimalBandPlugin` draws green dashed optimal range bands; `noteAnnotationPlugin` draws yellow dots at note dates with hover tooltips; `supplementBarPlugin` draws supplement/medication timeline bars
 - **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales
 - **Fatty acids category** has `singlePoint: true` at category level in `MARKER_SCHEMA` — single-date results rendered differently (grid cards instead of trend charts)
 - **Empty state**: When no data is loaded, dashboard shows welcome message with import instructions; category views show "No data available"

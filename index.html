@@ -40,6 +40,7 @@
         <button class="range-toggle-btn" data-range="both" onclick="switchRangeMode('both')">Both</button>
       </div>
       <button class="settings-btn" onclick="openSettingsModal()" title="Settings">&#9881;</button>
+      <button class="glossary-btn" onclick="openGlossary()" title="Marker Glossary">&#128214;</button>
       <button class="chat-toggle-btn" onclick="toggleChatPanel()">Ask AI</button>
     </div>
   </header>
@@ -59,6 +60,10 @@
 
   <div class="modal-overlay" id="settings-modal-overlay">
     <div class="modal" id="settings-modal"></div>
+  </div>
+
+  <div class="modal-overlay" id="glossary-modal-overlay">
+    <div class="modal glossary-modal" id="glossary-modal"></div>
   </div>
 
   <div class="chat-backdrop" id="chat-backdrop" onclick="closeChatPanel()"></div>
@@ -138,7 +143,7 @@
     </div>
   </div>
 
-  <input type="file" id="pdf-input" accept=".pdf,.json" style="display:none">
+  <input type="file" id="pdf-input" accept=".pdf,.json" style="display:none" multiple>
   <div class="notification-container" id="notification-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
