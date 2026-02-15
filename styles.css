@@ -556,6 +556,96 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .context-info-icon:hover .context-tooltip { display: block; }
+/* Supplements & Medications Timeline */
+.supp-timeline-section { margin-bottom: 16px; }
+.supp-timeline-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.supp-timeline-header .context-section-title { margin-bottom: 0; }
+.supp-add-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 12px; border-radius: 6px; border: 1px dashed var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.supp-add-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,140,255,0.05); }
+.supp-timeline {
+  background: var(--bg-card); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); padding: 14px 18px;
+}
+.supp-timeline-axis {
+  display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--text-muted); margin-bottom: 10px; padding: 0 2px;
+}
+.supp-bar-row {
+  display: flex; align-items: center; gap: 10px; padding: 5px 0;
+  cursor: pointer; transition: background 0.1s; border-radius: 4px;
+}
+.supp-bar-row:hover { background: var(--bg-hover); }
+.supp-bar-label {
+  width: 140px; flex-shrink: 0; font-size: 13px; font-weight: 500;
+  color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.supp-bar-dosage {
+  font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 2px;
+}
+.supp-bar-track {
+  flex: 1; height: 14px; background: var(--bg-primary);
+  border-radius: 7px; position: relative; overflow: hidden;
+}
+.supp-bar {
+  position: absolute; height: 100%; border-radius: 7px; min-width: 4px;
+}
+.supp-bar-supplement { background: rgba(56, 189, 248, 0.6); }
+.supp-bar-medication { background: rgba(167, 139, 250, 0.7); }
+.supp-bar-ongoing {
+  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
+  mask-image: linear-gradient(to right, black 70%, transparent 100%);
+}
+.supp-empty {
+  font-size: 12px; color: var(--text-muted); font-style: italic; text-align: center;
+  padding: 8px 0;
+}
+/* Supplement Editor */
+.supp-list { margin-bottom: 16px; }
+.supp-list-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 6px; font-size: 13px;
+}
+.supp-list-icon { font-size: 14px; flex-shrink: 0; }
+.supp-list-info { flex: 1; min-width: 0; }
+.supp-list-name { font-weight: 500; color: var(--text-primary); }
+.supp-list-meta { font-size: 11px; color: var(--text-muted); }
+.supp-list-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.supp-list-actions button {
+  background: none; border: 1px solid var(--border); color: var(--text-muted);
+  font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.supp-list-actions button:hover { color: var(--accent); border-color: var(--accent); }
+.supp-list-actions button.delete:hover { color: var(--red); border-color: var(--red); }
+.supp-form { border-top: 1px solid var(--border); padding-top: 16px; }
+.supp-form-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.supp-form-row { display: flex; gap: 12px; margin-bottom: 10px; }
+.supp-form-field { flex: 1; min-width: 0; }
+.supp-form-field label {
+  display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;
+}
+.supp-form-field input,
+.supp-form-field select {
+  width: 100%; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 13px; font-family: inherit;
+}
+.supp-form-field input:focus,
+.supp-form-field select:focus { outline: none; border-color: var(--accent); }
+.supp-form-field select { cursor: pointer; }
+.supp-form-field select option { background: var(--bg-secondary); }
+@media (max-width: 768px) {
+  .supp-bar-label { width: 100px; font-size: 12px; }
+  .supp-form-row { flex-direction: column; gap: 8px; }
+}
 /* Empty State */
 .empty-state {
   background: var(--bg-card); border-radius: var(--radius);

@@ -275,7 +275,7 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [], notes: [] };
+let importedData = { entries: [], notes: [], supplements: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
@@ -459,7 +459,7 @@ function loadProfile(profileId) {
   currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
-  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; return d; } catch(e) { return { entries: [], notes: [] }; } })() : { entries: [], notes: [] };
+  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return d; } catch(e) { return { entries: [], notes: [], supplements: [] }; } })() : { entries: [], notes: [], supplements: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   profileSex = getProfileSex(profileId);
@@ -966,6 +966,56 @@ function showDashboard() {
   </div>`;
   html += `</div>`;
 
+  // Supplements & Medications Timeline
+  const supps = importedData.supplements || [];
+  html += `<div class="supp-timeline-section">
+    <div class="supp-timeline-header">
+      <span class="context-section-title">Supplements & Medications</span>
+      <button class="supp-add-btn" onclick="openSupplementsEditor()">+ Add</button>
+    </div>`;
+  if (supps.length > 0) {
+    // Compute date range for timeline axis
+    const today = new Date().toISOString().slice(0, 10);
+    let allDates = [];
+    for (const s of supps) {
+      allDates.push(s.startDate);
+      allDates.push(s.endDate || today);
+    }
+    if (importedData.entries) {
+      for (const e of importedData.entries) allDates.push(e.date);
+    }
+    allDates.sort();
+    const minDate = allDates[0];
+    const maxDate = allDates[allDates.length - 1];
+    const minT = new Date(minDate + 'T00:00:00').getTime();
+    const maxT = new Date(maxDate + 'T00:00:00').getTime();
+    const range = maxT - minT || 1;
+    const fmtAxis = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const midDate = new Date((minT + maxT) / 2).toISOString().slice(0, 10);
+    html += `<div class="supp-timeline">
+      <div class="supp-timeline-axis">
+        <span>${fmtAxis(minDate)}</span><span>${fmtAxis(midDate)}</span><span>${fmtAxis(maxDate)}</span>
+      </div>`;
+    for (let i = 0; i < supps.length; i++) {
+      const s = supps[i];
+      const isMed = s.type === 'medication';
+      const sT = new Date(s.startDate + 'T00:00:00').getTime();
+      const eT = new Date((s.endDate || today) + 'T00:00:00').getTime();
+      const leftPct = ((sT - minT) / range * 100).toFixed(2);
+      const widthPct = (((eT - sT) / range) * 100).toFixed(2);
+      const ongoingCls = !s.endDate ? ' supp-bar-ongoing' : '';
+      const typeCls = isMed ? 'supp-bar-medication' : 'supp-bar-supplement';
+      html += `<div class="supp-bar-row" onclick="openSupplementsEditor(${i})">
+        <span class="supp-bar-label">${escapeHTML(s.name)}${s.dosage ? `<span class="supp-bar-dosage"> ${escapeHTML(s.dosage)}</span>` : ''}</span>
+        <div class="supp-bar-track"><div class="supp-bar ${typeCls}${ongoingCls}" style="left:${leftPct}%;width:${Math.max(parseFloat(widthPct), 0.5)}%"></div></div>
+      </div>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div class="supp-timeline"><div class="supp-empty">No supplements or medications tracked yet</div></div>`;
+  }
+  html += `</div>`;
+
   const hasEntries = importedData.entries && importedData.entries.length > 0;
   const hasNotes = importedData.notes && importedData.notes.length > 0;
   if (hasEntries || hasNotes) {
@@ -1390,6 +1440,153 @@ function getNotesForChart(chartDates) {
   return notes.filter(n => n.date >= minDate && n.date <= maxDate);
 }
 
+function getSupplementsForChart(chartDates) {
+  const supps = (importedData.supplements || []);
+  if (!supps.length || !chartDates.length) return [];
+  const minDate = chartDates[0];
+  const maxDate = chartDates[chartDates.length - 1];
+  const today = new Date().toISOString().slice(0, 10);
+  return supps.filter(s => {
+    const end = s.endDate || today;
+    return s.startDate <= maxDate && end >= minDate;
+  });
+}
+
+const supplementBarPlugin = {
+  id: 'supplementBars',
+  _dateToPixelX(dateStr, chart) {
+    const x = chart.scales.x;
+    const labels = chart.data.labels;
+    const chartDates = chart.options.plugins.supplementBars?.chartDates || [];
+    // Exact label match
+    const idx = chartDates.indexOf(dateStr);
+    if (idx !== -1) return x.getPixelForValue(idx);
+    // Interpolate between dates
+    for (let i = 0; i < chartDates.length - 1; i++) {
+      if (dateStr > chartDates[i] && dateStr < chartDates[i + 1]) {
+        const d0 = new Date(chartDates[i] + 'T00:00:00').getTime();
+        const d1 = new Date(chartDates[i + 1] + 'T00:00:00').getTime();
+        const dt = new Date(dateStr + 'T00:00:00').getTime();
+        const frac = (dt - d0) / (d1 - d0);
+        const px0 = x.getPixelForValue(i);
+        const px1 = x.getPixelForValue(i + 1);
+        return px0 + frac * (px1 - px0);
+      }
+    }
+    // Before first date or after last date — clamp
+    if (dateStr <= chartDates[0]) return x.getPixelForValue(0);
+    return x.getPixelForValue(chartDates.length - 1);
+  },
+  _getBarRects(chart) {
+    const cfg = chart.options.plugins.supplementBars;
+    if (!cfg || !cfg.supplements || !cfg.supplements.length) return [];
+    const { left, right, top } = chart.chartArea;
+    const BAR_H = 12, GAP = 2, TOP_PAD = 4;
+    const today = new Date().toISOString().slice(0, 10);
+    const rects = [];
+    cfg.supplements.forEach((s, i) => {
+      const startX = this._dateToPixelX(s.startDate, chart);
+      const endDate = s.endDate || today;
+      const endX = this._dateToPixelX(endDate, chart);
+      const clampedLeft = Math.max(startX, left);
+      const clampedRight = Math.min(endX, right);
+      if (clampedRight <= clampedLeft) return;
+      const y = top + TOP_PAD + i * (BAR_H + GAP);
+      rects.push({
+        x: clampedLeft, y, w: clampedRight - clampedLeft, h: BAR_H,
+        supplement: s, ongoing: !s.endDate
+      });
+    });
+    return rects;
+  },
+  afterDatasetsDraw(chart) {
+    const rects = this._getBarRects(chart);
+    if (!rects.length) return;
+    const { ctx } = chart;
+    ctx.save();
+    for (const r of rects) {
+      const isMed = r.supplement.type === 'medication';
+      ctx.fillStyle = isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)';
+      if (r.ongoing) {
+        // Gradient fade for ongoing
+        const grad = ctx.createLinearGradient(r.x, 0, r.x + r.w, 0);
+        grad.addColorStop(0, isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)');
+        grad.addColorStop(0.7, isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)');
+        grad.addColorStop(1, isMed ? 'rgba(167, 139, 250, 0)' : 'rgba(56, 189, 248, 0)');
+        ctx.fillStyle = grad;
+      }
+      ctx.beginPath();
+      ctx.roundRect(r.x, r.y, r.w, r.h, 3);
+      ctx.fill();
+      // Label inside bar if wide enough
+      const label = r.supplement.name;
+      ctx.font = '10px Inter, sans-serif';
+      const textW = ctx.measureText(label).width;
+      if (r.w > textW + 8) {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, r.x + 4, r.y + r.h / 2);
+      }
+    }
+    // Draw tooltip for hovered bar
+    if (chart._hoveredSuppBar) {
+      const r = chart._hoveredSuppBar;
+      const s = r.supplement;
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const line1 = `${s.name}${s.dosage ? ' — ' + s.dosage : ''}`;
+      const line2 = `${fmtDate(s.startDate)} → ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      ctx.font = '12px Inter, sans-serif';
+      const w1 = ctx.measureText(line1).width;
+      const w2 = ctx.measureText(line2).width;
+      const boxW = Math.max(w1, w2) + 16;
+      const boxH = 38;
+      let tx = r.x + r.w / 2 - boxW / 2;
+      let ty = r.y + r.h + 6;
+      const { left, right } = chart.chartArea;
+      if (tx < left) tx = left;
+      if (tx + boxW > right) tx = right - boxW;
+      const isMed = s.type === 'medication';
+      ctx.fillStyle = 'rgba(30, 34, 46, 0.95)';
+      ctx.strokeStyle = isMed ? 'rgba(167, 139, 250, 0.6)' : 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tx, ty, boxW, boxH, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = isMed ? 'rgba(167, 139, 250, 1)' : 'rgba(56, 189, 248, 1)';
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(line1, tx + 8, ty + 6);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(line2, tx + 8, ty + 22);
+    }
+    ctx.restore();
+  },
+  afterEvent(chart, args) {
+    const { event } = args;
+    if (event.type !== 'mousemove') return;
+    const rects = this._getBarRects(chart);
+    let hovered = null;
+    for (const r of rects) {
+      if (event.x >= r.x && event.x <= r.x + r.w && event.y >= r.y && event.y <= r.y + r.h) {
+        hovered = r;
+        break;
+      }
+    }
+    const prev = chart._hoveredSuppBar;
+    chart._hoveredSuppBar = hovered;
+    if (prev !== hovered) {
+      if (!chart._hoveredNoteDot) {
+        chart.canvas.style.cursor = hovered ? 'pointer' : '';
+      }
+      args.changed = true;
+    }
+  }
+};
+
 function createLineChart(id, marker, dateLabels, chartDates) {
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
@@ -1422,6 +1619,7 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   });
   const rawDates = chartDates || [];
   const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
+  const chartSupps = marker.singlePoint ? [] : getSupplementsForChart(rawDates);
   const datasets = [{
     data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
     borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
@@ -1443,11 +1641,13 @@ function createLineChart(id, marker, dateLabels, chartDates) {
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
           callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> c.datasetIndex === 0 && marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
         refBand:{ refMin:marker.refMin, refMax:marker.refMax },
-        noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false},
+        noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,
+        supplementBars: chartSupps.length ? { supplements: chartSupps, chartDates: rawDates } : false},
+      layout: { padding: { top: chartSupps.length ? chartSupps.length * 14 + 6 : 0 } },
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
         y:{min:minV-pad, max:maxV+pad, ticks:{color:"#5a5f73",font:{size:10}}, grid:{color:"rgba(46,51,72,0.5)"}}}
     },
-    plugins: [refBandPlugin, noteAnnotationPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
   });
 }
 
@@ -1781,14 +1981,16 @@ function renderCorrelationChart() {
           }
         },
         refBand: { refMin: 0, refMax: 100 },
-        noteAnnotations: (function() { const n = getNotesForChart(data.dates); return n.length ? { notes: n, chartDates: data.dates } : false; })()
+        noteAnnotations: (function() { const n = getNotesForChart(data.dates); return n.length ? { notes: n, chartDates: data.dates } : false; })(),
+        supplementBars: (function() { const s = getSupplementsForChart(data.dates); return s.length ? { supplements: s, chartDates: data.dates } : false; })()
       },
+      layout: { padding: { top: (function() { const s = getSupplementsForChart(data.dates); return s.length ? s.length * 14 + 6 : 0; })() } },
       scales: {
         x: { ticks: { color: "#5a5f73", font: { size: 11 } }, grid: { display: false } },
         y: { min: minY, max: maxY, ticks: { color: "#5a5f73", font: { size: 10 }, callback: v => v + '%' }, grid: { color: "rgba(46,51,72,0.5)" } }
       }
     },
-    plugins: [refBandPlugin, noteAnnotationPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
   });
 }
 
@@ -2338,6 +2540,110 @@ function clearFieldExperts() {
 }
 
 // ═══════════════════════════════════════════════
+// SUPPLEMENTS & MEDICATIONS
+// ═══════════════════════════════════════════════
+function openSupplementsEditor(editIdx) {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const supps = importedData.supplements || [];
+  const editing = typeof editIdx === 'number' && supps[editIdx];
+  let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Supplements & Medications</h3>
+    <div class="modal-unit">Track what you're taking and when. This helps the AI correlate interventions with biomarker changes.</div>`;
+  if (supps.length > 0) {
+    html += `<div class="supp-list">`;
+    for (let i = 0; i < supps.length; i++) {
+      const s = supps[i];
+      const isMed = s.type === 'medication';
+      const icon = isMed ? '\uD83D\uDC8A' : '\uD83D\uDCA7';
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      html += `<div class="supp-list-item${editing && editIdx === i ? ' style="border-color:var(--accent)"' : ''}">
+        <span class="supp-list-icon">${icon}</span>
+        <div class="supp-list-info">
+          <div class="supp-list-name">${escapeHTML(s.name)}${s.dosage ? ` <span class="supp-list-meta">${escapeHTML(s.dosage)}</span>` : ''}</div>
+          <div class="supp-list-meta">${dateRange}</div>
+        </div>
+        <div class="supp-list-actions">
+          <button onclick="openSupplementsEditor(${i})">Edit</button>
+          <button class="delete" onclick="deleteSupplement(${i})">\u2715</button>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="supp-form">
+    <div class="supp-form-title">${editing ? 'Edit' : 'Add New'}</div>
+    <div class="supp-form-row">
+      <div class="supp-form-field"><label>Name</label>
+        <input type="text" id="supp-name" placeholder="e.g. Creatine, Metformin" value="${editing ? escapeHTML(editing.name) : ''}">
+      </div>
+      <div class="supp-form-field"><label>Dosage</label>
+        <input type="text" id="supp-dosage" placeholder="e.g. 5g/day, 500mg 2x/day" value="${editing ? escapeHTML(editing.dosage || '') : ''}">
+      </div>
+    </div>
+    <div class="supp-form-row">
+      <div class="supp-form-field"><label>Type</label>
+        <select id="supp-type">
+          <option value="supplement"${editing && editing.type === 'medication' ? '' : ' selected'}>Supplement</option>
+          <option value="medication"${editing && editing.type === 'medication' ? ' selected' : ''}>Medication</option>
+        </select>
+      </div>
+      <div class="supp-form-field"><label>Start Date</label>
+        <input type="date" id="supp-start" value="${editing ? editing.startDate : new Date().toISOString().slice(0, 10)}">
+      </div>
+      <div class="supp-form-field"><label>End Date (blank = ongoing)</label>
+        <input type="date" id="supp-end" value="${editing && editing.endDate ? editing.endDate : ''}">
+      </div>
+    </div>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveSupplement(${editing ? editIdx : -1})">${editing ? 'Update' : 'Add'}</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>`;
+  modal.innerHTML = html;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const nameInput = document.getElementById('supp-name');
+    if (nameInput) nameInput.focus();
+  }, 50);
+}
+
+function saveSupplement(idx) {
+  const name = document.getElementById('supp-name').value.trim();
+  const dosage = document.getElementById('supp-dosage').value.trim();
+  const type = document.getElementById('supp-type').value;
+  const startDate = document.getElementById('supp-start').value;
+  const endDate = document.getElementById('supp-end').value || null;
+  if (!name) { showNotification('Name is required', 'error'); return; }
+  if (!startDate) { showNotification('Start date is required', 'error'); return; }
+  if (endDate && endDate < startDate) { showNotification('End date must be after start date', 'error'); return; }
+  if (!importedData.supplements) importedData.supplements = [];
+  const entry = { name, dosage, startDate, endDate, type };
+  if (idx >= 0) {
+    importedData.supplements[idx] = entry;
+  } else {
+    importedData.supplements.push(entry);
+  }
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(idx >= 0 ? 'Supplement updated' : 'Supplement added', 'success');
+}
+
+function deleteSupplement(idx) {
+  if (!importedData.supplements || !importedData.supplements[idx]) return;
+  const name = importedData.supplements[idx].name;
+  importedData.supplements.splice(idx, 1);
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(`"${name}" removed`, 'info');
+}
+
+// ═══════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════
 function showNotification(message, type) {
@@ -2452,7 +2758,8 @@ function exportDataJSON() {
   const sleep = importedData.sleep || '';
   const fieldExperts = importedData.fieldExperts || '';
   const customMarkers = importedData.customMarkers || {};
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts, customMarkers };
+  const supplements = importedData.supplements || [];
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, circadian, exercise, sleep, fieldExperts, customMarkers };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2513,6 +2820,15 @@ function importDataJSON(file) {
           }
         }
       }
+      // Import supplements
+      if (json.supplements && Array.isArray(json.supplements)) {
+        if (!importedData.supplements) importedData.supplements = [];
+        for (const s of json.supplements) {
+          if (!s.name || !s.startDate) continue;
+          const exists = importedData.supplements.some(x => x.name === s.name && x.startDate === s.startDate);
+          if (!exists) importedData.supplements.push({ name: s.name, dosage: s.dosage || '', startDate: s.startDate, endDate: s.endDate || null, type: s.type || 'supplement' });
+        }
+      }
       // Import notes
       if (json.notes && Array.isArray(json.notes)) {
         if (!importedData.notes) importedData.notes = [];
@@ -2537,7 +2853,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
+  importedData = { entries: [], notes: [], supplements: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
@@ -2637,6 +2953,7 @@ Important guidelines:
 - If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
 - If the user has described their sleep habits, consider how sleep quality, duration, and disorders affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; chronic sleep debt impairs immune markers).
 - If the user has listed field experts, consider those experts' published research, frameworks, and clinical perspectives when interpreting results. Reference their specific work where relevant.
+- If the user has logged supplements or medications with date ranges, correlate their start/stop dates with biomarker changes. Note when a marker shift coincides with beginning or ending a supplement/medication, and explain known effects of that substance on relevant biomarkers.
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -2669,6 +2986,16 @@ function buildLabContext() {
   const fieldExperts = importedData.fieldExperts || '';
   if (fieldExperts.trim()) {
     ctx += `## Field Experts\n${fieldExperts.trim()}\n\n`;
+  }
+  const supps = importedData.supplements || [];
+  if (supps.length > 0) {
+    ctx += `## Supplements & Medications\n`;
+    const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    for (const s of supps) {
+      const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}\n`;
+    }
+    ctx += '\n';
   }
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
