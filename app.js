@@ -357,6 +357,7 @@ let currentProfile = 'default';
 let profileSex = null;
 let profileDob = null;
 let chatHistory = [];
+let currentChatPersonality = 'default';
 let dateRangeFilter = 'all';
 let rangeMode = 'optimal';
 let compareDate1 = null, compareDate2 = null;
@@ -557,6 +558,7 @@ function loadProfile(profileId) {
   if (dobInput) dobInput.value = profileDob || '';
   selectedCorrelationMarkers = [];
   chatHistory = [];
+  loadChatPersonality();
   destroyAllCharts();
   buildSidebar();
   showDashboard();
@@ -3677,6 +3679,84 @@ document.addEventListener('click', (e) => {
 // ═══════════════════════════════════════════════
 // AI CHAT PANEL
 // ═══════════════════════════════════════════════
+
+const CHAT_PERSONALITIES = [
+  {
+    id: 'default',
+    name: 'AI Lab Analyst',
+    icon: '🔬',
+    description: 'Neutral, professional analysis',
+    greeting: 'Ask me about your lab results, trends, or what specific biomarkers mean.',
+    promptAddition: null
+  },
+  {
+    id: 'house',
+    name: 'Dr. Gregory House',
+    icon: '🦯',
+    description: 'Sarcastic, brilliant, blunt',
+    greeting: "Fine. Show me your labs. And try to make it interesting.",
+    promptAddition: `Communication style: You are channeling the personality of Dr. Gregory House from the TV show "House M.D." Be sarcastic, brilliantly blunt, and cut straight to what matters with dry wit. Use biting humor. Be dismissive of obvious things and focus on what's actually interesting or concerning. Occasionally make references to the character's mannerisms. Keep it entertaining but always deliver genuine insight beneath the snark.
+
+IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
+  },
+  {
+    id: 'murphy',
+    name: 'Dr. Sean Murphy',
+    icon: '🩺',
+    description: 'Literal, precise, methodical',
+    greeting: 'I can analyze your lab results. I will examine each biomarker systematically.',
+    promptAddition: `Communication style: You are channeling the personality of Dr. Shaun Murphy from the TV show "The Good Doctor." Be extremely literal and direct. Enumerate your observations methodically (1, 2, 3...). Avoid metaphors, idioms, and figurative language — say exactly what you mean. State facts plainly. When uncertain, say so directly. Focus intensely on the data and patterns. Your precision and attention to detail is your strength.
+
+IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
+  },
+  {
+    id: 'robby',
+    name: 'Dr. Robby',
+    icon: '😎',
+    description: 'Warm, reassuring, encouraging',
+    greeting: "Hey! I'm here to help you understand your labs. No question too small!",
+    promptAddition: `Communication style: You are Dr. Robby — warm, reassuring, and genuinely encouraging. Use simple analogies to explain complex concepts. Celebrate wins (normal results, improving trends). Frame concerns gently and constructively — never alarming. Use a conversational, friendly tone like a supportive friend who happens to be a doctor. Make the user feel empowered about their health journey, not anxious.
+
+IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
+  },
+  {
+    id: 'kruse',
+    name: 'Dr. Jack Kruse',
+    icon: '☀️',
+    description: 'Mitochondria, light, water, magnetism',
+    greeting: "Time to decode your labs through the lens of quantum biology. Let's see what your mitochondria are telling us.",
+    promptAddition: `You are representing the clinical perspective of Dr. Jack Kruse, a real neurosurgeon with decades of experience. Unlike the fictional characters in this app, you must faithfully represent his ACTUAL documented positions and clinical framework — not generic medicine with a quirky tone.
+
+Dr. Kruse's core framework — "the three-legged stool": light, water, magnetism. All lab interpretation flows through these.
+
+KEY POSITIONS you MUST follow (these are his actual clinical stances):
+- NEVER recommend vitamin D supplementation. Kruse holds that vitamin D is a solar hormone, not a supplement. Low vitamin D means inadequate UV-B exposure, not a pill deficiency. The fix is morning sunlight and appropriate UV exposure, not D3 capsules.
+- NEVER recommend skipping breakfast. Kruse's Leptin Rx protocol REQUIRES a high-protein, high-fat BAB (Big Ass Breakfast) within 30 minutes of waking — 50g+ protein. This is non-negotiable in his framework for resetting leptin sensitivity.
+- Cold thermogenesis (CT) is a primary therapeutic tool — cold showers, ice baths, cold water immersion. He prescribes this for metabolic markers, inflammation, and mitochondrial uncoupling.
+- Blue light after sunset is toxic. nnEMF (non-native electromagnetic fields) from screens, WiFi, and artificial lighting disrupt mitochondrial function and show up in labs as inflammation, hormone disruption, poor redox.
+- DHA from wild-caught seafood (especially oysters, wild salmon, sardines) is essential for cell membrane function and brain health. He prioritizes seafood over any other protein source.
+- Deuterium depletion matters — metabolic water production, fat burning, and mitochondrial efficiency relate to deuterium levels in the body.
+- Grounding/earthing (barefoot on earth) connects to the Schumann resonance and affects redox potential.
+- Morning sunlight (AM UV/IR) is medicine — it sets circadian rhythms, drives hormone cascades (cortisol, melatonin, dopamine), and affects every marker on a blood panel.
+- Elevated hs-CRP, poor thyroid markers, insulin resistance, low HDL — he traces these back to circadian mismatch, blue light toxicity, and nnEMF exposure before looking at dietary factors.
+- He is skeptical of most supplementation — the body should get what it needs from light, water, seafood, and environment. Supplements are band-aids for a broken environment.
+- Leptin and melanocortin pathways are central to his metabolic interpretation.
+- He connects latitude, seasonal light cycles, and population genetics to optimal lab ranges.
+
+TONE: Bold, direct, professorial, contrarian. He challenges mainstream medical dogma with confidence. He connects dots others don't see. He's a neurosurgeon who thinks in quantum biology — electron chain transport, redox potential, the photoelectric effect. Passionate, unapologetic, intellectually intense.
+
+IMPORTANT: You are representing a real practitioner's documented framework. Stay faithful to his published positions, blog posts (jackkruse.com), and clinical teachings. When his views diverge from mainstream consensus, present them as his framework — do not water them down with mainstream hedging.`
+  },
+  {
+    id: 'custom',
+    name: 'Custom Personality',
+    icon: '✏️',
+    description: 'Define your own style',
+    greeting: 'Ask me about your lab results, trends, or what specific biomarkers mean.',
+    promptAddition: null
+  }
+];
+
 const CHAT_SYSTEM_PROMPT = `You are an AI lab analyst assistant integrated into a blood work dashboard application called LabCharts. You help users understand their lab results.
 
 Important guidelines:
@@ -3776,6 +3856,84 @@ function getChatStorageKey() {
   return `labcharts-${currentProfile}-chat`;
 }
 
+function getActivePersonality() {
+  return CHAT_PERSONALITIES.find(p => p.id === currentChatPersonality) || CHAT_PERSONALITIES[0];
+}
+
+function getCustomPersonalityText() {
+  return localStorage.getItem(`labcharts-${currentProfile}-chatPersonalityCustom`) || '';
+}
+
+function setChatPersonality(id) {
+  const prev = currentChatPersonality;
+  if (prev === id) {
+    // Collapse bar if same personality clicked
+    const bar = document.querySelector('.chat-personality-bar');
+    if (bar) bar.classList.remove('open');
+    return;
+  }
+  currentChatPersonality = id;
+  localStorage.setItem(`labcharts-${currentProfile}-chatPersonality`, id);
+  updateChatHeaderTitle();
+  updatePersonalityBar();
+  const personality = getActivePersonality();
+  showNotification(`Switched to ${personality.name}`, 'info');
+  renderChatMessages();
+  const bar = document.querySelector('.chat-personality-bar');
+  if (bar) bar.classList.remove('open');
+}
+
+function loadChatPersonality() {
+  const saved = localStorage.getItem(`labcharts-${currentProfile}-chatPersonality`);
+  currentChatPersonality = saved && CHAT_PERSONALITIES.some(p => p.id === saved) ? saved : 'default';
+}
+
+function updateChatHeaderTitle() {
+  const el = document.querySelector('.chat-header-title');
+  if (el) {
+    const p = getActivePersonality();
+    el.textContent = p.name;
+  }
+}
+
+function updatePersonalityBar() {
+  const currentEl = document.querySelector('.chat-personality-current');
+  if (currentEl) {
+    const p = getActivePersonality();
+    currentEl.querySelector('.chat-personality-current-icon').textContent = p.icon;
+    currentEl.querySelector('.chat-personality-current-name').textContent = p.name;
+  }
+  // Update active states
+  document.querySelectorAll('.chat-personality-opt').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.personality === currentChatPersonality);
+  });
+  // Show/hide custom area
+  const customArea = document.querySelector('.chat-personality-custom-area');
+  if (customArea) {
+    customArea.style.display = currentChatPersonality === 'custom' ? 'block' : 'none';
+    if (currentChatPersonality === 'custom') {
+      const textarea = customArea.querySelector('textarea');
+      if (textarea) textarea.value = getCustomPersonalityText();
+    }
+  }
+}
+
+function togglePersonalityBar() {
+  const options = document.querySelector('.chat-personality-options');
+  const bar = document.querySelector('.chat-personality-bar');
+  if (options && bar) {
+    bar.classList.toggle('open');
+  }
+}
+
+function saveCustomPersonality() {
+  const textarea = document.querySelector('.chat-personality-custom-textarea');
+  if (textarea) {
+    localStorage.setItem(`labcharts-${currentProfile}-chatPersonalityCustom`, textarea.value.trim());
+    showNotification('Custom personality saved', 'success');
+  }
+}
+
 function loadChatHistory() {
   try {
     const stored = localStorage.getItem(getChatStorageKey());
@@ -3801,9 +3959,10 @@ function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
   if (chatHistory.length === 0) {
+    const personality = getActivePersonality();
     container.innerHTML = `<div class="chat-empty">
-      <div class="chat-empty-icon">&#129302;</div>
-      <div>Ask me about your lab results, trends, or what specific biomarkers mean.</div>
+      <div class="chat-empty-icon">${personality.icon}</div>
+      <div>${escapeHTML(personality.greeting)}</div>
       <div class="chat-prompts">
         <button class="chat-prompt-btn" onclick="useChatPrompt('What are my most concerning results?')">What are my most concerning results?</button>
         <button class="chat-prompt-btn" onclick="useChatPrompt('How has my bloodwork changed over time?')">How has my bloodwork changed over time?</button>
@@ -3828,13 +3987,98 @@ function useChatPrompt(text) {
   if (input) { input.value = text; sendChatMessage(); }
 }
 
-function renderMarkdown(text) {
-  // Basic markdown: bold, inline code, line breaks
+function applyInlineMarkdown(text) {
   return text
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+function renderMarkdown(text) {
+  const lines = text.split('\n');
+  const blocks = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    if (line.trimStart().startsWith('```')) {
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trimStart().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing ```
+      const escaped = codeLines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      blocks.push(`<pre class="chat-code-block"><code>${escaped}</code></pre>`);
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^(\s*[-*_]\s*){3,}$/.test(line)) {
+      blocks.push('<hr class="chat-hr">');
+      i++;
+      continue;
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,3})\s+(.+)/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      blocks.push(`<div class="chat-h${level}">${applyInlineMarkdown(headingMatch[2])}</div>`);
+      i++;
+      continue;
+    }
+
+    // Unordered list
+    if (/^\s*[-*+]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+        items.push(applyInlineMarkdown(lines[i].replace(/^\s*[-*+]\s+/, '')));
+        i++;
+      }
+      blocks.push(`<ul class="chat-list">${items.map(it => `<li>${it}</li>`).join('')}</ul>`);
+      continue;
+    }
+
+    // Ordered list
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) {
+        items.push(applyInlineMarkdown(lines[i].replace(/^\s*\d+[.)]\s+/, '')));
+        i++;
+      }
+      blocks.push(`<ol class="chat-list">${items.map(it => `<li>${it}</li>`).join('')}</ol>`);
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Paragraph — collect consecutive non-empty, non-special lines
+    const paraLines = [];
+    while (i < lines.length && lines[i].trim() !== '' &&
+      !lines[i].trimStart().startsWith('```') &&
+      !/^(#{1,3})\s+/.test(lines[i]) &&
+      !/^\s*[-*+]\s+/.test(lines[i]) &&
+      !/^\s*\d+[.)]\s+/.test(lines[i]) &&
+      !/^(\s*[-*_]\s*){3,}$/.test(lines[i])) {
+      paraLines.push(lines[i]);
+      i++;
+    }
+    if (paraLines.length > 0) {
+      blocks.push(`<div class="chat-para">${applyInlineMarkdown(paraLines.join(' '))}</div>`);
+    }
+  }
+
+  return blocks.join('');
 }
 
 function toggleChatPanel() {
@@ -3857,6 +4101,9 @@ function openChatPanel(prefillMessage) {
   const backdrop = document.getElementById('chat-backdrop');
   panel.classList.add('open');
   backdrop.classList.add('open');
+  loadChatPersonality();
+  updateChatHeaderTitle();
+  updatePersonalityBar();
   loadChatHistory();
   if (prefillMessage) {
     const input = document.getElementById('chat-input');
@@ -3897,7 +4144,17 @@ async function sendChatMessage() {
 
   try {
     const labContext = buildLabContext();
-    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext;
+    const personality = getActivePersonality();
+    let personalityPrompt = '';
+    if (personality.id === 'custom') {
+      const customText = getCustomPersonalityText();
+      if (customText) {
+        personalityPrompt = `\n\nCommunication style: ${customText}\n\nIMPORTANT: This affects ONLY tone. All medical facts must remain evidence-based.`;
+      }
+    } else if (personality.promptAddition) {
+      personalityPrompt = '\n\n' + personality.promptAddition;
+    }
+    const systemPrompt = CHAT_SYSTEM_PROMPT + personalityPrompt + '\n\nCurrent lab data:\n' + labContext;
 
     // Send last 10 messages for context
     const apiMessages = chatHistory.slice(-10).map(m => ({ role: m.role, content: m.content }));
