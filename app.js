@@ -1269,25 +1269,25 @@ const refBandPlugin = {
   }
 };
 
-// Chart.js plugin for note annotation vertical lines
+// Chart.js plugin for note annotation dots with hover tooltip
 const noteAnnotationPlugin = {
   id: "noteAnnotations",
-  beforeDraw(chart) {
+  _getNoteDots(chart) {
     const opts = chart.options.plugins.noteAnnotations;
-    if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return;
-    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
-    if (!x) return;
+    if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return [];
+    const { chartArea: { top }, scales: { x } } = chart;
+    if (!x) return [];
     const chartLabels = chart.data.labels || [];
-    ctx.save();
+    const dots = [];
+    const DOT_RADIUS = 5;
+    const DOT_Y = top + DOT_RADIUS + 2;
     for (const note of opts.notes) {
-      // Find the x position: check if note date matches a chart label index
       let pixelX = null;
       const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       const idx = chartLabels.indexOf(noteDateLabel);
       if (idx !== -1) {
         pixelX = x.getPixelForValue(idx);
       } else {
-        // Interpolate between chart dates
         const chartDates = opts.chartDates || [];
         if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
           for (let i = 0; i < chartDates.length - 1; i++) {
@@ -1305,23 +1305,80 @@ const noteAnnotationPlugin = {
         }
       }
       if (pixelX === null) continue;
-      // Draw vertical dashed line
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.5)";
-      ctx.setLineDash([4, 4]);
-      ctx.lineWidth = 1.5;
+      dots.push({ x: pixelX, y: DOT_Y, radius: DOT_RADIUS, note });
+    }
+    return dots;
+  },
+  afterDatasetsDraw(chart) {
+    const dots = this._getNoteDots(chart);
+    if (!dots.length) return;
+    const { ctx } = chart;
+    ctx.save();
+    for (const dot of dots) {
+      ctx.fillStyle = dot === chart._hoveredNoteDot
+        ? "rgba(251, 191, 36, 1)"
+        : "rgba(251, 191, 36, 0.7)";
       ctx.beginPath();
-      ctx.moveTo(pixelX, top);
-      ctx.lineTo(pixelX, bottom);
+      ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Draw tooltip for hovered dot
+    if (chart._hoveredNoteDot) {
+      const dot = chart._hoveredNoteDot;
+      const dateStr = new Date(dot.note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const text = dot.note.text.length > 60 ? dot.note.text.slice(0, 60) + '...' : dot.note.text;
+      ctx.font = "12px Inter, sans-serif";
+      const dateWidth = ctx.measureText(dateStr).width;
+      const textWidth = ctx.measureText(text).width;
+      const boxWidth = Math.max(dateWidth, textWidth) + 16;
+      const boxHeight = 42;
+      const boxPad = 8;
+      // Position tooltip below the dot
+      let tooltipX = dot.x - boxWidth / 2;
+      let tooltipY = dot.y + dot.radius + 6;
+      // Clamp to chart area
+      const { left, right } = chart.chartArea;
+      if (tooltipX < left) tooltipX = left;
+      if (tooltipX + boxWidth > right) tooltipX = right - boxWidth;
+      // Background
+      ctx.fillStyle = "rgba(30, 34, 46, 0.95)";
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tooltipX, tooltipY, boxWidth, boxHeight, 6);
+      ctx.fill();
       ctx.stroke();
-      // Draw small label at top
-      ctx.setLineDash([]);
-      ctx.fillStyle = "rgba(251, 191, 36, 0.8)";
-      ctx.font = "10px Inter, sans-serif";
-      ctx.textAlign = "center";
-      const label = note.text.length > 20 ? note.text.slice(0, 20) + '...' : note.text;
-      ctx.fillText(label, pixelX, top - 4);
+      // Date label (bold)
+      ctx.fillStyle = "rgba(251, 191, 36, 1)";
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(dateStr, tooltipX + boxPad, tooltipY + 15);
+      // Note text
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.font = "11px Inter, sans-serif";
+      ctx.fillText(text, tooltipX + boxPad, tooltipY + 31);
     }
     ctx.restore();
+  },
+  afterEvent(chart, args) {
+    const { event } = args;
+    if (event.type !== 'mousemove') return;
+    const dots = this._getNoteDots(chart);
+    let hovered = null;
+    for (const dot of dots) {
+      const dx = event.x - dot.x;
+      const dy = event.y - dot.y;
+      if (dx * dx + dy * dy <= (dot.radius + 3) * (dot.radius + 3)) {
+        hovered = dot;
+        break;
+      }
+    }
+    const prev = chart._hoveredNoteDot;
+    chart._hoveredNoteDot = hovered;
+    if (prev !== hovered) {
+      chart.canvas.style.cursor = hovered ? 'pointer' : '';
+      args.changed = true;
+    }
   }
 };
 
@@ -1394,6 +1451,26 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   });
 }
 
+async function fetchMarkerDescription(markerId, markerName, unit) {
+  const cacheKey = 'labcharts-marker-desc';
+  const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+  if (cache[markerId]) return cache[markerId];
+  if (!hasApiKey()) return null;
+  try {
+    const resp = await callClaudeAPI({
+      system: 'You are a concise medical reference. Reply with exactly one sentence (max 30 words) explaining what this blood biomarker measures and why it matters clinically. No preamble.',
+      messages: [{ role: 'user', content: `${markerName} (${unit})` }],
+      maxTokens: 100
+    });
+    const text = typeof resp === 'string' ? resp.trim() : (resp.content?.[0]?.text?.trim() || '');
+    if (text) {
+      cache[markerId] = text;
+      localStorage.setItem(cacheKey, JSON.stringify(cache));
+    }
+    return text || null;
+  } catch { return null; }
+}
+
 function showDetailModal(id) {
   const marker = markerRegistry[id];
   if (!marker) return;
@@ -1404,6 +1481,7 @@ function showDetailModal(id) {
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${marker.name}</h3>
     <div class="modal-unit">${marker.unit}${marker.refMin != null && marker.refMax != null ? ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}` : ''}</div>
+    <div class="marker-description" id="marker-desc"></div>
     <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
@@ -1412,7 +1490,7 @@ function showDetailModal(id) {
     const sl = s==="normal"?"In Range":s==="high"?"Above Range":s==="low"?"Below Range":"N/A";
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && importedData.notes ? importedData.notes.find(n => n.date === rawDate) : null;
-    const noteIcon = matchingNote ? `<div class="mv-note" title="${escapeHTML(matchingNote.text)}">&#128221;</div>` : '';
+    const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
     html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}${noteIcon}</div>
       <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
       <div class="mv-status val-${s}">${sl}</div></div>`;
@@ -1431,6 +1509,27 @@ function showDetailModal(id) {
   setTimeout(() => {
     if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates);
   }, 50);
+  // Fetch and display AI marker description
+  const descEl = document.getElementById('marker-desc');
+  if (descEl) {
+    const cached = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}')[id];
+    if (cached) {
+      descEl.textContent = cached;
+      descEl.classList.add('loaded');
+    } else if (hasApiKey()) {
+      descEl.classList.add('loading');
+      fetchMarkerDescription(id, marker.name, marker.unit).then(text => {
+        const el = document.getElementById('marker-desc');
+        if (text && el) {
+          el.textContent = text;
+          el.classList.remove('loading');
+          el.classList.add('loaded');
+        } else if (el) {
+          el.remove();
+        }
+      });
+    }
+  }
 }
 
 function closeModal() {
