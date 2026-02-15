@@ -175,6 +175,20 @@ const MARKER_SCHEMA = {
     markers: {
       osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0 }
     }
+  },
+  calculatedRatios: {
+    label: "Calculated Ratios", icon: "\uD83D\uDCD0", calculated: true,
+    markers: {
+      tgHdlRatio: { name: "TG/HDL Ratio", unit: "", refMin: 0, refMax: 1.75 },
+      ldlHdlRatio: { name: "LDL/HDL Ratio", unit: "", refMin: 0, refMax: 2.5, refMax_f: 2.0 },
+      apoBapoAIRatio: { name: "ApoB/ApoA-I Ratio", unit: "", refMin: 0, refMax: 0.9, refMax_f: 0.8 },
+      nlr: { name: "Neutrophil-Lymphocyte Ratio (NLR)", unit: "", refMin: 1.0, refMax: 3.0 },
+      plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150 },
+      deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2 },
+      copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0 },
+      freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5 },
+      phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null }
+    }
   }
 };
 
@@ -217,7 +231,8 @@ const UNIT_CONVERSIONS = {
   'proteins.totalProtein': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'proteins.albumin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'thyroid.t4total': { factor: 0.07769, usUnit: '\u00b5g/dl', type: 'multiply' },
-  'diabetes.hba1c': { type: 'hba1c' }
+  'diabetes.hba1c': { type: 'hba1c' },
+  'calculatedRatios.tgHdlRatio': { factor: 2.29, usUnit: '', type: 'multiply' }
 };
 
 // (SPADIA_NAME_MAP removed — AI handles name matching)
@@ -237,8 +252,15 @@ const CORRELATION_PRESETS = [
 ];
 const CHIP_COLORS = ['#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa','#f472b6','#38bdf8','#fb923c'];
 
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function getStatus(value, refMin, refMax) {
   if (value === null || value === undefined) return "missing";
+  if (refMin == null || refMax == null) return "normal";
   if (value < refMin) return "low";
   if (value > refMax) return "high";
   return "normal";
@@ -253,11 +275,12 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [] };
+let importedData = { entries: [], notes: [] };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
 let profileSex = null;
+let profileDob = null;
 let chatHistory = [];
 
 // ═══════════════════════════════════════════════
@@ -436,16 +459,19 @@ function loadProfile(profileId) {
   currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
-  importedData = savedImported ? (function() { try { return JSON.parse(savedImported); } catch(e) { return { entries: [] }; } })() : { entries: [] };
+  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; return d; } catch(e) { return { entries: [], notes: [] }; } })() : { entries: [], notes: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   profileSex = getProfileSex(profileId);
+  profileDob = getProfileDob(profileId);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === unitSystem);
   });
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
+  const dobInput = document.getElementById('dob-input');
+  if (dobInput) dobInput.value = profileDob || '';
   selectedCorrelationMarkers = [];
   chatHistory = [];
   destroyAllCharts();
@@ -519,6 +545,28 @@ function switchSex(sex) {
   navigate(activeCat);
 }
 
+function getProfileDob(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  return (p && p.dob) || null;
+}
+
+function setProfileDob(profileId, dob) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.dob = dob || null; saveProfiles(profiles); }
+}
+
+function switchDob(dob) {
+  profileDob = dob || null;
+  setProfileDob(currentProfile, profileDob);
+  buildSidebar();
+  updateHeaderDates();
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  navigate(activeCat);
+}
+
 // ═══════════════════════════════════════════════
 // DATA PIPELINE
 // ═══════════════════════════════════════════════
@@ -528,6 +576,31 @@ function getActiveData() {
     dateLabels: [],
     categories: JSON.parse(JSON.stringify(MARKER_SCHEMA))
   };
+
+  // Merge custom markers into categories
+  const custom = (importedData && importedData.customMarkers) ? importedData.customMarkers : {};
+  for (const [fullKey, def] of Object.entries(custom)) {
+    const [catKey, markerKey] = fullKey.split('.');
+    if (!markerKey) continue;
+    if (!data.categories[catKey]) {
+      // Create new category
+      data.categories[catKey] = {
+        label: def.categoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1),
+        icon: '\uD83D\uDD16',
+        markers: {}
+      };
+    }
+    // Add marker if not already in schema
+    if (!data.categories[catKey].markers[markerKey]) {
+      data.categories[catKey].markers[markerKey] = {
+        name: def.name,
+        unit: def.unit || '',
+        refMin: def.refMin,
+        refMax: def.refMax,
+        custom: true
+      };
+    }
+  }
 
   // Apply sex-specific reference ranges
   if (profileSex === 'female') {
@@ -613,6 +686,80 @@ function getActiveData() {
     }
   }
 
+  // Calculate ratios from component markers
+  const ratios = data.categories.calculatedRatios;
+  if (ratios) {
+    const getVals = (catKey, markerKey) => {
+      const cat = data.categories[catKey];
+      return cat && cat.markers[markerKey] ? cat.markers[markerKey].values : null;
+    };
+    const divide = (numVals, denVals) => {
+      if (!numVals || !denVals) return sortedDates.map(() => null);
+      return sortedDates.map((_, i) => {
+        const n = numVals[i], d = denVals[i];
+        return (n != null && d != null && d !== 0) ? Math.round((n / d) * 1000) / 1000 : null;
+      });
+    };
+    ratios.markers.tgHdlRatio.values = divide(getVals('lipids', 'triglycerides'), getVals('lipids', 'hdl'));
+    ratios.markers.ldlHdlRatio.values = divide(getVals('lipids', 'ldl'), getVals('lipids', 'hdl'));
+    ratios.markers.apoBapoAIRatio.values = divide(getVals('lipids', 'apoB'), getVals('lipids', 'apoAI'));
+    ratios.markers.nlr.values = divide(getVals('differential', 'neutrophils'), getVals('differential', 'lymphocytes'));
+    ratios.markers.plr.values = divide(getVals('hematology', 'platelets'), getVals('differential', 'lymphocytes'));
+    ratios.markers.deRitisRatio.values = divide(getVals('biochemistry', 'ast'), getVals('biochemistry', 'alt'));
+    ratios.markers.copperZincRatio.values = divide(getVals('electrolytes', 'copper'), getVals('electrolytes', 'zinc'));
+
+    // Free Water Deficit — TBW × (Na/140 − 1), assumes 70kg body weight
+    const sodiumVals = getVals('electrolytes', 'sodium');
+    ratios.markers.freeWaterDeficit.values = sortedDates.map((_, i) => {
+      const na = sodiumVals ? sodiumVals[i] : null;
+      if (na == null || na <= 0) return null;
+      const tbwFactor = profileSex === 'female' ? 0.5 : 0.6;
+      const tbw = 70 * tbwFactor;
+      const fwd = tbw * (na / 140 - 1);
+      return Math.round(fwd * 100) / 100;
+    });
+
+    // PhenoAge (Levine 2018) — biological age from 9 biomarkers + chronological age
+    ratios.markers.phenoAge.values = sortedDates.map((dateStr, i) => {
+      if (!profileDob) return null;
+      const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/l
+      const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/l
+      const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/l
+      const crp          = getVals('proteins', 'hsCRP')?.[i];          // mg/l (same)
+      const lymphPct_si  = getVals('differential', 'lymphocytesPct')?.[i]; // fraction 0–1
+      const mcv          = getVals('hematology', 'mcv')?.[i];          // fL (same)
+      const rdw          = getVals('hematology', 'rdwcv')?.[i];        // % (same)
+      const alp_si       = getVals('biochemistry', 'alp')?.[i];        // µkat/l
+      const wbc          = getVals('hematology', 'wbc')?.[i];          // 10^9/l (same)
+      if ([albumin_si, creatinine_si, glucose_si, crp, lymphPct_si, mcv, rdw, alp_si, wbc].some(v => v == null)) return null;
+      if (crp <= 0) return null; // ln(CRP) undefined for non-positive
+
+      // Chronological age at blood draw date
+      const dob = new Date(profileDob + 'T00:00:00');
+      const drawDate = new Date(dateStr + 'T00:00:00');
+      let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      if (age <= 0) return null;
+
+      // Levine 2018 coefficients expect SI units directly (g/L, µmol/L, mmol/L, etc.)
+      const xb = -19.907
+        - 0.0336  * albumin_si
+        + 0.0095  * creatinine_si
+        + 0.1953  * glucose_si
+        + 0.0954  * Math.log(crp)
+        - 0.0120  * lymphPct_si
+        + 0.0268  * mcv
+        + 0.3306  * rdw
+        + 0.00188 * alp_si
+        + 0.0554  * wbc
+        + 0.0804  * age;
+
+      const mortalityScore = 1 - Math.exp(-Math.exp(xb) * (Math.exp(120 * 0.0076927) - 1) / 0.0076927);
+      if (mortalityScore <= 0 || mortalityScore >= 1) return null;
+      const phenoAge = 141.50225 + Math.log(-0.00553 * Math.log(1 - mortalityScore)) / 0.090165;
+      return Math.round(phenoAge * 10) / 10;
+    });
+  }
+
   if (unitSystem === 'US') applyUnitConversion(data);
   return data;
 }
@@ -668,10 +815,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load active profile
   currentProfile = getActiveProfileId();
   const savedImported = localStorage.getItem(profileStorageKey(currentProfile, 'imported'));
-  if (savedImported) { try { importedData = JSON.parse(savedImported); } catch(e) {} }
+  if (savedImported) { try { importedData = JSON.parse(savedImported); if (!importedData.notes) importedData.notes = []; } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
   profileSex = getProfileSex(currentProfile);
+  profileDob = getProfileDob(currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   }
@@ -681,6 +829,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
   });
+  const dobInputInit = document.getElementById('dob-input');
+  if (dobInputInit) dobInputInit.value = profileDob || '';
   buildSidebar();
   showDashboard();
   updateHeaderDates();
@@ -745,14 +895,116 @@ function showDashboard() {
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
-  if (importedData.entries && importedData.entries.length > 0) {
+  // Profile context cards
+  html += `<div class="context-section-title">What your GP won't ask you</div>`;
+  html += `<div class="profile-context-cards">`;
+  const diagText = importedData.diagnoses || '';
+  html += `<div class="diagnoses-card" onclick="openDiagnosesEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDFE5 Medical Conditions</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Diagnoses directly affect how lab markers should be interpreted — what's abnormal for most may be expected for you.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDiagnosesEditor()">${diagText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${diagText
+      ? `<div class="diagnoses-text">${escapeHTML(diagText.length > 200 ? diagText.slice(0, 200) + '...' : diagText)}</div>`
+      : `<div class="diagnoses-placeholder">Add any medical conditions so AI can consider them</div>`}
+  </div>`;
+  const dietText = importedData.diet || '';
+  html += `<div class="diagnoses-card" onclick="openDietEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83E\uDD57 Diet</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Nutrition has a major impact on blood markers — keto raises LDL, vegetarian diets affect B12 and iron, fasting changes glucose.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDietEditor()">${dietText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${dietText
+      ? `<div class="diagnoses-text">${escapeHTML(dietText.length > 200 ? dietText.slice(0, 200) + '...' : dietText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your diet so AI can factor it into lab interpretation</div>`}
+  </div>`;
+  const circadianText = importedData.circadian || '';
+  html += `<div class="diagnoses-card" onclick="openCircadianEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDF19 Circadian Habits</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Light exposure, meal timing, and shift work affect hormone rhythms, cortisol, and metabolic markers.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openCircadianEditor()">${circadianText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${circadianText
+      ? `<div class="diagnoses-text">${escapeHTML(circadianText.length > 200 ? circadianText.slice(0, 200) + '...' : circadianText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your circadian habits for AI context</div>`}
+  </div>`;
+  const sleepText = importedData.sleep || '';
+  html += `<div class="diagnoses-card" onclick="openSleepEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83D\uDE34 Sleep</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Sleep quality and duration directly influence inflammation markers, insulin sensitivity, cortisol, and immune function.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openSleepEditor()">${sleepText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${sleepText
+      ? `<div class="diagnoses-text">${escapeHTML(sleepText.length > 200 ? sleepText.slice(0, 200) + '...' : sleepText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your sleep habits for AI context</div>`}
+  </div>`;
+  const exerciseText = importedData.exercise || '';
+  html += `<div class="diagnoses-card" onclick="openExerciseEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDFCB\uFE0F Exercise & Movement</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Training type and intensity affect CK, liver enzymes, cholesterol, and inflammatory markers.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openExerciseEditor()">${exerciseText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${exerciseText
+      ? `<div class="diagnoses-text">${escapeHTML(exerciseText.length > 200 ? exerciseText.slice(0, 200) + '...' : exerciseText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your exercise routine for AI context</div>`}
+  </div>`;
+  const fieldExpertsText = importedData.fieldExperts || '';
+  html += `<div class="diagnoses-card" onclick="openFieldExpertsEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83E\uDDEC Field Experts</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Name researchers or clinicians whose frameworks you follow — AI will consider their published work when interpreting your results.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openFieldExpertsEditor()">${fieldExpertsText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${fieldExpertsText
+      ? `<div class="diagnoses-text">${escapeHTML(fieldExpertsText.length > 200 ? fieldExpertsText.slice(0, 200) + '...' : fieldExpertsText)}</div>`
+      : `<div class="diagnoses-placeholder">List experts whose frameworks AI should consider</div>`}
+  </div>`;
+  html += `</div>`;
+
+  const hasEntries = importedData.entries && importedData.entries.length > 0;
+  const hasNotes = importedData.notes && importedData.notes.length > 0;
+  if (hasEntries || hasNotes) {
     html += `<div class="imported-entries">`;
-    for (const entry of importedData.entries.sort((a,b) => a.date.localeCompare(b.date))) {
-      const d = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const cnt = Object.keys(entry.markers).length;
-      html += `<div class="imported-entry">
-        <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
-        <button class="ie-remove" onclick="removeImportedEntry('${entry.date}')">\u2715 Remove</button></div>`;
+    html += `<button class="add-note-btn" onclick="openNoteEditor()">+ Add Note</button>`;
+    // Merge entries and notes into one sorted-by-date list
+    const items = [];
+    if (hasEntries) {
+      for (const entry of importedData.entries) {
+        items.push({ type: 'entry', date: entry.date, entry });
+      }
+    }
+    if (hasNotes) {
+      for (let i = 0; i < importedData.notes.length; i++) {
+        items.push({ type: 'note', date: importedData.notes[i].date, noteIdx: i, note: importedData.notes[i] });
+      }
+    }
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    for (const item of items) {
+      const d = new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (item.type === 'entry') {
+        const cnt = Object.keys(item.entry.markers).length;
+        html += `<div class="imported-entry">
+          <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
+          <div class="ie-actions">
+            <button class="ie-remove" onclick="removeImportedEntry('${item.entry.date}')">\u2715 Remove</button>
+          </div>
+        </div>`;
+      } else {
+        const preview = escapeHTML(item.note.text.length > 80 ? item.note.text.slice(0, 80) + '...' : item.note.text);
+        html += `<div class="note-row" onclick="openNoteEditor(null, ${item.noteIdx})">
+          <span class="note-row-icon">\uD83D\uDCDD</span>
+          <span class="note-row-date">${d}</span>
+          <span class="note-row-text">${preview}</span>
+          <div class="note-row-actions">
+            <button class="ie-remove" onclick="event.stopPropagation();deleteNote(${item.noteIdx})">\u2715</button>
+          </div>
+        </div>`;
+      }
     }
     html += `<div style="display:flex;gap:8px;margin-top:8px">
       <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
@@ -828,7 +1080,7 @@ function showDashboard() {
 
   for (const km of keyMarkers) {
     const marker = data.categories[km.cat].markers[km.key];
-    createLineChart(km.cat + "_" + km.key, marker, data.dateLabels);
+    createLineChart(km.cat + "_" + km.key, marker, data.dateLabels, data.dates);
   }
   setupDropZone();
 }
@@ -866,7 +1118,7 @@ function showCategory(categoryKey) {
   else if (cat.singleDate) { renderFattyAcidsCharts(cat); }
   else {
     for (const [key, marker] of Object.entries(cat.markers)) {
-      createLineChart(categoryKey + "_" + key, marker, data.dateLabels);
+      createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
     }
   }
 }
@@ -892,7 +1144,7 @@ function switchView(view, categoryKey, btn) {
       html += `</div>`;
       container.innerHTML = html;
       for (const [key, marker] of Object.entries(cat.markers)) {
-        createLineChart(categoryKey + "_" + key, marker, data.dateLabels);
+        createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
       }
     }
   }
@@ -919,7 +1171,7 @@ function renderChartCard(id, marker, dateLabels) {
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
-  html += `</div><div class="chart-ref-range">Reference: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} ${marker.unit}</div></div>`;
+  html += `</div>${marker.refMin != null && marker.refMax != null ? `<div class="chart-ref-range">Reference: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} ${marker.unit}</div>` : ''}</div>`;
   return html;
 }
 
@@ -932,7 +1184,7 @@ function renderTableView(cat, dateLabels) {
   for (const [key, marker] of Object.entries(cat.markers)) {
     html += `<tr><td class="marker-name">${marker.name}</td>
       <td class="unit-col">${marker.unit}</td>
-      <td class="ref-col">${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}</td>`;
+      <td class="ref-col">${marker.refMin != null && marker.refMax != null ? `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}` : '\u2014'}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
       const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
@@ -941,7 +1193,7 @@ function renderTableView(cat, dateLabels) {
     const trend = getTrend(marker.values);
     html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     const li = getLatestValueIndex(marker.values);
-    if (li !== -1) {
+    if (li !== -1 && marker.refMin != null && marker.refMax != null) {
       const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], marker.refMin, marker.refMax)));
       const s = getStatus(marker.values[li], marker.refMin, marker.refMax);
       html += `<td><div class="range-bar"><div class="range-bar-fill" style="left:0;width:100%"></div>
@@ -1001,7 +1253,7 @@ const refBandPlugin = {
   id: "refBand",
   beforeDraw(chart) {
     const opts = chart.options.plugins.refBand;
-    if (!opts || !chart.chartArea) return;
+    if (!opts || !chart.chartArea || opts.refMin == null || opts.refMax == null) return;
     const { ctx, chartArea: { left, right }, scales: { y } } = chart;
     if (!y) return;
     const yMin = y.getPixelForValue(opts.refMin);
@@ -1017,37 +1269,128 @@ const refBandPlugin = {
   }
 };
 
-function createLineChart(id, marker, dateLabels) {
+// Chart.js plugin for note annotation vertical lines
+const noteAnnotationPlugin = {
+  id: "noteAnnotations",
+  beforeDraw(chart) {
+    const opts = chart.options.plugins.noteAnnotations;
+    if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return;
+    const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+    if (!x) return;
+    const chartLabels = chart.data.labels || [];
+    ctx.save();
+    for (const note of opts.notes) {
+      // Find the x position: check if note date matches a chart label index
+      let pixelX = null;
+      const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const idx = chartLabels.indexOf(noteDateLabel);
+      if (idx !== -1) {
+        pixelX = x.getPixelForValue(idx);
+      } else {
+        // Interpolate between chart dates
+        const chartDates = opts.chartDates || [];
+        if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
+          for (let i = 0; i < chartDates.length - 1; i++) {
+            if (note.date >= chartDates[i] && note.date <= chartDates[i + 1]) {
+              const d0 = new Date(chartDates[i]).getTime();
+              const d1 = new Date(chartDates[i + 1]).getTime();
+              const dn = new Date(note.date).getTime();
+              const frac = (dn - d0) / (d1 - d0);
+              const px0 = x.getPixelForValue(i);
+              const px1 = x.getPixelForValue(i + 1);
+              pixelX = px0 + frac * (px1 - px0);
+              break;
+            }
+          }
+        }
+      }
+      if (pixelX === null) continue;
+      // Draw vertical dashed line
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.5)";
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pixelX, top);
+      ctx.lineTo(pixelX, bottom);
+      ctx.stroke();
+      // Draw small label at top
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(251, 191, 36, 0.8)";
+      ctx.font = "10px Inter, sans-serif";
+      ctx.textAlign = "center";
+      const label = note.text.length > 20 ? note.text.slice(0, 20) + '...' : note.text;
+      ctx.fillText(label, pixelX, top - 4);
+    }
+    ctx.restore();
+  }
+};
+
+function getNotesForChart(chartDates) {
+  const notes = (importedData.notes || []);
+  if (!notes.length || !chartDates.length) return [];
+  const minDate = chartDates[0];
+  const maxDate = chartDates[chartDates.length - 1];
+  return notes.filter(n => n.date >= minDate && n.date <= maxDate);
+}
+
+function createLineChart(id, marker, dateLabels, chartDates) {
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   const values = marker.values;
   const valid = values.filter(v => v !== null);
   if (valid.length === 0) return;
-  const minV = Math.min(...valid, marker.refMin);
-  const maxV = Math.max(...valid, marker.refMax);
+
+  // PhenoAge: add chronological age line for comparison
+  const isPhenoAge = marker.name && marker.name.startsWith('PhenoAge');
+  let chronoAgeValues = null;
+  if (isPhenoAge && profileDob && chartDates && chartDates.length) {
+    const dobDate = new Date(profileDob + 'T00:00:00');
+    chronoAgeValues = chartDates.map(d => {
+      const draw = new Date(d + 'T00:00:00');
+      const age = (draw - dobDate) / (365.25 * 24 * 60 * 60 * 1000);
+      return age > 0 ? Math.round(age * 10) / 10 : null;
+    });
+  }
+  const allValid = chronoAgeValues ? [...valid, ...chronoAgeValues.filter(v => v !== null)] : valid;
+  const refMinSafe = marker.refMin != null ? marker.refMin : Infinity;
+  const refMaxSafe = marker.refMax != null ? marker.refMax : -Infinity;
+  const minV = Math.min(...allValid, refMinSafe);
+  const maxV = Math.max(...allValid, refMaxSafe);
   const pad = (maxV - minV) * 0.15 || 1;
   const ptColors = values.map(v => {
     if (v === null) return "transparent";
     const s = getStatus(v, marker.refMin, marker.refMax);
     return s==="normal"?"#34d399":s==="high"?"#f87171":"#fbbf24";
   });
+  const rawDates = chartDates || [];
+  const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
+  const datasets = [{
+    data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
+    borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
+    pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
+    label: isPhenoAge ? 'Biological Age' : ''
+  }];
+  if (chronoAgeValues) {
+    datasets.push({
+      data: chronoAgeValues, borderColor: "#5a5f73", backgroundColor: "transparent",
+      borderWidth: 2, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 4,
+      tension: 0.3, fill: false, spanGaps: true, label: 'Chronological Age'
+    });
+  }
   chartInstances[id] = new Chart(canvas, {
     type: "line",
-    data: { labels: dates, datasets: [{
-      data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
-      borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
-      pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true
-    }]},
+    data: { labels: dates, datasets },
     options: { responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false},
+      plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: '#8b90a0', font: { size: 11 }, boxWidth: 20, padding: 10 } },
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
-          callbacks:{ label:(c)=>`${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:()=>`Ref: ${marker.refMin} \u2013 ${marker.refMax}` }},
-        refBand:{ refMin:marker.refMin, refMax:marker.refMax }},
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> c.datasetIndex === 0 && marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
+        refBand:{ refMin:marker.refMin, refMax:marker.refMax },
+        noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false},
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
         y:{min:minV-pad, max:maxV+pad, ticks:{color:"#5a5f73",font:{size:10}}, grid:{color:"rgba(46,51,72,0.5)"}}}
     },
-    plugins: [refBandPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin]
   });
 }
 
@@ -1060,14 +1403,17 @@ function showDetailModal(id) {
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : data.dateLabels;
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${marker.name}</h3>
-    <div class="modal-unit">${marker.unit} &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}</div>
+    <div class="modal-unit">${marker.unit}${marker.refMin != null && marker.refMax != null ? ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}` : ''}</div>
     <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
     const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
     const sl = s==="normal"?"In Range":s==="high"?"Above Range":s==="low"?"Below Range":"N/A";
-    html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}</div>
+    const rawDate = marker.singlePoint ? null : data.dates[i];
+    const matchingNote = rawDate && importedData.notes ? importedData.notes.find(n => n.date === rawDate) : null;
+    const noteIcon = matchingNote ? `<div class="mv-note" title="${escapeHTML(matchingNote.text)}">&#128221;</div>` : '';
+    html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}${noteIcon}</div>
       <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
       <div class="mv-status val-${s}">${sl}</div></div>`;
   }
@@ -1083,7 +1429,7 @@ function showDetailModal(id) {
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
-    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels);
+    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates);
   }, 50);
 }
 
@@ -1335,14 +1681,15 @@ function renderCorrelationChart() {
             }
           }
         },
-        refBand: { refMin: 0, refMax: 100 }
+        refBand: { refMin: 0, refMax: 100 },
+        noteAnnotations: (function() { const n = getNotesForChart(data.dates); return n.length ? { notes: n, chartDates: data.dates } : false; })()
       },
       scales: {
         x: { ticks: { color: "#5a5f73", font: { size: 11 } }, grid: { display: false } },
         y: { min: minY, max: maxY, ticks: { color: "#5a5f73", font: { size: 10 }, callback: v => v + '%' }, grid: { color: "rgba(46,51,72,0.5)" } }
       }
     },
-    plugins: [refBandPlugin]
+    plugins: [refBandPlugin, noteAnnotationPlugin]
   });
 }
 
@@ -1352,8 +1699,16 @@ function renderCorrelationChart() {
 function buildMarkerReference() {
   const ref = {};
   for (const [catKey, cat] of Object.entries(MARKER_SCHEMA)) {
+    if (cat.calculated) continue;
     for (const [markerKey, marker] of Object.entries(cat.markers)) {
       ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: marker.refMin, refMax: marker.refMax };
+    }
+  }
+  // Include custom markers from previous imports
+  const custom = (importedData && importedData.customMarkers) ? importedData.customMarkers : {};
+  for (const [fullKey, def] of Object.entries(custom)) {
+    if (!ref[fullKey]) {
+      ref[fullKey] = { name: def.name, unit: def.unit, refMin: def.refMin, refMax: def.refMax };
     }
   }
   return ref;
@@ -1422,13 +1777,19 @@ Your task:
 4. Only map to a marker if you're confident it's the correct match
 5. Skip non-numeric results (text-only findings, interpretive notes)
 6. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
+7. For markers that do NOT match any known key (mappedKey is null), also return:
+   - suggestedKey: a "category.camelCaseKey" string. Use an existing category from the reference if the marker fits (e.g. "biochemistry", "hormones", "vitamins"), otherwise use "custom". The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
+   - suggestedName: a clean English display name for the marker
+   - unit: the unit as shown in the PDF
+   - refMin: the lower reference range bound from the PDF (number or null)
+   - refMax: the upper reference range bound from the PDF (number or null)
 
 Return ONLY valid JSON in this exact format, no other text:
 {
   "date": "YYYY-MM-DD",
   "markers": [
     {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker"},
-    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null}
+    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "biochemistry.someMarker", "suggestedName": "Some Marker", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
   ]
 }`;
 
@@ -1450,7 +1811,12 @@ Return ONLY valid JSON in this exact format, no other text:
       rawName: m.rawName,
       value: typeof m.value === 'number' ? m.value : parseFloat(String(m.value).replace(',', '.')),
       mappedKey: m.mappedKey || null,
-      matched: !!m.mappedKey
+      matched: !!m.mappedKey,
+      suggestedKey: m.suggestedKey || null,
+      suggestedName: m.suggestedName || null,
+      unit: m.unit || null,
+      refMin: m.refMin != null ? m.refMin : null,
+      refMax: m.refMax != null ? m.refMax : null
     })),
     fileName
   };
@@ -1465,12 +1831,15 @@ function showImportPreview(parseResult) {
   const overlay = document.getElementById("import-modal-overlay");
   const dateFormatted = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown';
   const matched = markers.filter(m => m.matched);
-  const unmatched = markers.filter(m => !m.matched);
+  const newMarkers = markers.filter(m => !m.matched && m.suggestedKey);
+  const unmatched = markers.filter(m => !m.matched && !m.suggestedKey);
+  const importCount = matched.length + newMarkers.length;
   let html = `<button class="modal-close" onclick="closeImportModal()">&times;</button>
     <h3>Import Preview</h3>
     <p style="color:var(--text-secondary);margin-bottom:16px">
       File: ${fileName}<br>Collection Date: <strong>${dateFormatted}</strong><br>
       Matched: <span style="color:var(--green)">${matched.length}</span> \u00b7
+      New: <span style="color:var(--accent)">${newMarkers.length}</span> \u00b7
       Unmatched: <span style="color:var(--yellow)">${unmatched.length}</span></p>`;
   if (!date) {
     html += `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--red)">
@@ -1484,6 +1853,11 @@ function showImportPreview(parseResult) {
     html += `<tr><td class="matched">\u2713 Matched</td><td>${m.rawName}</td>
       <td>${m.value}</td><td>${m.mappedKey}</td></tr>`;
   }
+  for (const m of newMarkers) {
+    const refInfo = (m.refMin != null || m.refMax != null) ? ` (${m.refMin ?? '?'}\u2013${m.refMax ?? '?'} ${m.unit || ''})` : '';
+    html += `<tr><td class="new-marker">\u271A New</td><td>${m.rawName}</td>
+      <td>${m.value}</td><td>${m.suggestedKey}${refInfo}</td></tr>`;
+  }
   for (const m of unmatched) {
     html += `<tr><td class="unmatched">? Unmatched</td><td>${m.rawName}</td>
       <td>${m.value}</td><td>\u2014</td></tr>`;
@@ -1491,7 +1865,7 @@ function showImportPreview(parseResult) {
   html += `</tbody></table>`;
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">Cancel</button>
-    <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${matched.length} Markers</button></div>`;
+    <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${importCount} Markers</button></div>`;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
@@ -1506,7 +1880,9 @@ function confirmImport() {
   const result = window._pendingImport;
   if (!result || !result.date) return;
   const matched = result.markers.filter(m => m.matched);
-  if (matched.length === 0) { showNotification("No matched markers to import", "error"); closeImportModal(); return; }
+  const newMarkers = result.markers.filter(m => !m.matched && m.suggestedKey);
+  const importCount = matched.length + newMarkers.length;
+  if (importCount === 0) { showNotification("No markers to import", "error"); closeImportModal(); return; }
   if (!importedData.entries) importedData.entries = [];
   let entry = importedData.entries.find(e => e.date === result.date);
   if (!entry) {
@@ -1514,6 +1890,25 @@ function confirmImport() {
     importedData.entries.push(entry);
   }
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
+  // Save new (custom) marker values and definitions
+  if (!importedData.customMarkers) importedData.customMarkers = {};
+  for (const m of newMarkers) {
+    entry.markers[m.suggestedKey] = m.value;
+    // Save definition only if not already defined
+    if (!importedData.customMarkers[m.suggestedKey]) {
+      const [catKey] = m.suggestedKey.split('.');
+      // Determine category label: use schema label if category exists, else title-case the key
+      const schemaCategory = MARKER_SCHEMA[catKey];
+      const categoryLabel = schemaCategory ? schemaCategory.label : catKey.charAt(0).toUpperCase() + catKey.slice(1);
+      importedData.customMarkers[m.suggestedKey] = {
+        name: m.suggestedName || m.rawName,
+        unit: m.unit || '',
+        refMin: m.refMin,
+        refMax: m.refMax,
+        categoryLabel
+      };
+    }
+  }
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
@@ -1522,7 +1917,7 @@ function confirmImport() {
   updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification(`Imported ${matched.length} markers from ${result.date}`, "success");
+  showNotification(`Imported ${importCount} markers from ${result.date}`, "success");
 }
 
 function removeImportedEntry(date) {
@@ -1534,6 +1929,313 @@ function removeImportedEntry(date) {
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showNotification(`Removed imported data from ${date}`, "info");
+}
+
+// ═══════════════════════════════════════════════
+// STANDALONE NOTES
+// ═══════════════════════════════════════════════
+function openNoteEditor(date, existingIdx) {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const isEditing = existingIdx !== undefined && existingIdx !== null;
+  const existing = isEditing ? (importedData.notes || [])[existingIdx] : null;
+  const defaultDate = existing ? existing.date : (date || new Date().toISOString().slice(0, 10));
+  const currentText = existing ? existing.text : '';
+  const title = isEditing ? 'Edit Note' : 'Add Note';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>${title}</h3>
+    <div class="modal-unit">Add context: medication changes, supplements, symptoms, lifestyle changes</div>
+    <div style="margin:16px 0">
+      <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:4px">Date</label>
+      <input type="date" id="note-date-input" value="${defaultDate}" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:13px;font-family:inherit">
+    </div>
+    <textarea class="note-editor" id="note-textarea" placeholder="e.g. Started creatine supplement, switched to low-carb diet...">${escapeHTML(currentText)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveNote(${isEditing ? existingIdx : 'null'})">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${isEditing ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="deleteNote(${existingIdx})">Delete</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('note-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveNote(idx) {
+  const dateInput = document.getElementById('note-date-input');
+  const ta = document.getElementById('note-textarea');
+  const date = dateInput ? dateInput.value : '';
+  const text = ta ? ta.value.trim() : '';
+  if (!date) { showNotification('Please select a date', 'error'); return; }
+  if (!text) { showNotification('Please enter note text', 'error'); return; }
+  if (!importedData.notes) importedData.notes = [];
+  if (idx !== null && idx !== undefined) {
+    importedData.notes[idx] = { date, text };
+  } else {
+    importedData.notes.push({ date, text });
+  }
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Note saved', 'success');
+}
+
+function deleteNote(idx) {
+  if (!importedData.notes) return;
+  importedData.notes.splice(idx, 1);
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Note deleted', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// DIAGNOSES / MEDICAL CONDITIONS
+// ═══════════════════════════════════════════════
+function openDiagnosesEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.diagnoses || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Medical Conditions</h3>
+    <div class="modal-unit">List any diagnosed conditions, chronic illnesses, or relevant medical history. The AI will consider these when interpreting your lab results.</div>
+    <textarea class="note-editor" id="diagnoses-textarea" placeholder="e.g. Type 2 diabetes, hypothyroidism, iron deficiency anemia...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveDiagnoses()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearDiagnoses()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('diagnoses-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveDiagnoses() {
+  const ta = document.getElementById('diagnoses-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.diagnoses = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Medical conditions saved' : 'Medical conditions cleared', 'success');
+}
+
+function clearDiagnoses() {
+  importedData.diagnoses = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Medical conditions cleared', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// DIET
+// ═══════════════════════════════════════════════
+function openDietEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.diet || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Diet</h3>
+    <div class="modal-unit">Describe your typical diet, eating patterns, or any specific dietary approach. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="diet-textarea" placeholder="e.g. Low-carb / keto, intermittent fasting 16:8, vegetarian, high protein...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveDiet()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearDiet()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('diet-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveDiet() {
+  const ta = document.getElementById('diet-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.diet = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Diet saved' : 'Diet cleared', 'success');
+}
+
+function clearDiet() {
+  importedData.diet = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Diet cleared', 'info');
+}
+
+function openCircadianEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.circadian || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Circadian Habits</h3>
+    <div class="modal-unit">Describe your typical sleep schedule, light exposure, shift work, or other circadian-related habits. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="circadian-textarea" placeholder="e.g. Sleep 11 PM – 7 AM, morning sunlight 20 min, night shift 2x/week, blue-light glasses after sunset...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveCircadian()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearCircadian()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('circadian-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveCircadian() {
+  const ta = document.getElementById('circadian-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.circadian = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Circadian habits saved' : 'Circadian habits cleared', 'success');
+}
+
+function clearCircadian() {
+  importedData.circadian = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Circadian habits cleared', 'info');
+}
+
+function openExerciseEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.exercise || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Exercise & Movement</h3>
+    <div class="modal-unit">Describe your typical exercise routine, training frequency, and daily movement level. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="exercise-textarea" placeholder="e.g. Strength training 4x/week, zone 2 cardio 3x/week, 10k steps daily, sedentary desk job...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveExercise()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearExercise()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('exercise-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveExercise() {
+  const ta = document.getElementById('exercise-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.exercise = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Exercise habits saved' : 'Exercise habits cleared', 'success');
+}
+
+function clearExercise() {
+  importedData.exercise = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Exercise habits cleared', 'info');
+}
+
+function openSleepEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.sleep || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Sleep</h3>
+    <div class="modal-unit">Describe your typical sleep patterns, quality, and any sleep-related conditions. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="sleep-textarea" placeholder="e.g. 7-8 hours/night, frequent waking, sleep apnea, use CPAP, melatonin supplement...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveSleep()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearSleep()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('sleep-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveSleep() {
+  const ta = document.getElementById('sleep-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.sleep = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Sleep habits saved' : 'Sleep habits cleared', 'success');
+}
+
+function clearSleep() {
+  importedData.sleep = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Sleep habits cleared', 'info');
+}
+
+function openFieldExpertsEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.fieldExperts || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Field Experts</h3>
+    <div class="modal-unit">List researchers or clinicians whose frameworks you follow. The AI will consider their published work and perspectives when interpreting your results.</div>
+    <textarea class="note-editor" id="field-experts-textarea" placeholder="e.g. Peter Attia (longevity medicine), Thomas Dayspring (lipidology), Robert Lustig (metabolic health)...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveFieldExperts()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearFieldExperts()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('field-experts-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveFieldExperts() {
+  const ta = document.getElementById('field-experts-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.fieldExperts = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Field experts saved' : 'Field experts cleared', 'success');
+}
+
+function clearFieldExperts() {
+  importedData.fieldExperts = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Field experts cleared', 'info');
 }
 
 // ═══════════════════════════════════════════════
@@ -1642,8 +2344,16 @@ async function handlePDFFile(file) {
 // ═══════════════════════════════════════════════
 function exportDataJSON() {
   const entries = (importedData && importedData.entries) ? importedData.entries : [];
-  if (entries.length === 0) { showNotification("No data to export", "error"); return; }
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries };
+  const notes = (importedData && importedData.notes) ? importedData.notes : [];
+  if (entries.length === 0 && notes.length === 0) { showNotification("No data to export", "error"); return; }
+  const diagnoses = importedData.diagnoses || '';
+  const diet = importedData.diet || '';
+  const circadian = importedData.circadian || '';
+  const exercise = importedData.exercise || '';
+  const sleep = importedData.sleep || '';
+  const fieldExperts = importedData.fieldExperts || '';
+  const customMarkers = importedData.customMarkers || {};
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts, customMarkers };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1675,7 +2385,45 @@ function importDataJSON(file) {
         importedData.entries.push(entry);
         count++;
       }
-      if (count === 0) { showNotification('No valid entries found in JSON', 'error'); return; }
+      if (count === 0 && (!json.notes || json.notes.length === 0)) { showNotification('No valid entries found in JSON', 'error'); return; }
+      // Import diagnoses and diet
+      if (json.diagnoses && typeof json.diagnoses === 'string' && json.diagnoses.trim()) {
+        importedData.diagnoses = json.diagnoses.trim();
+      }
+      if (json.diet && typeof json.diet === 'string' && json.diet.trim()) {
+        importedData.diet = json.diet.trim();
+      }
+      if (json.circadian && typeof json.circadian === 'string' && json.circadian.trim()) {
+        importedData.circadian = json.circadian.trim();
+      }
+      if (json.exercise && typeof json.exercise === 'string' && json.exercise.trim()) {
+        importedData.exercise = json.exercise.trim();
+      }
+      if (json.sleep && typeof json.sleep === 'string' && json.sleep.trim()) {
+        importedData.sleep = json.sleep.trim();
+      }
+      if (json.fieldExperts && typeof json.fieldExperts === 'string' && json.fieldExperts.trim()) {
+        importedData.fieldExperts = json.fieldExperts.trim();
+      }
+      // Import custom markers (merge, don't overwrite existing definitions)
+      if (json.customMarkers && typeof json.customMarkers === 'object') {
+        if (!importedData.customMarkers) importedData.customMarkers = {};
+        for (const [key, def] of Object.entries(json.customMarkers)) {
+          if (!importedData.customMarkers[key]) {
+            importedData.customMarkers[key] = def;
+          }
+        }
+      }
+      // Import notes
+      if (json.notes && Array.isArray(json.notes)) {
+        if (!importedData.notes) importedData.notes = [];
+        for (const note of json.notes) {
+          if (!note.date || !note.text) continue;
+          // Avoid duplicates (same date + same text)
+          const exists = importedData.notes.some(n => n.date === note.date && n.text === note.text);
+          if (!exists) importedData.notes.push({ date: note.date, text: note.text });
+        }
+      }
       localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
       buildSidebar();
       updateHeaderDates();
@@ -1690,7 +2438,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [] };
+  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
@@ -1783,6 +2531,13 @@ Important guidelines:
 - Point out noteworthy patterns: values trending up/down, values outside reference ranges, combinations that may be clinically relevant.
 - Keep responses concise but informative. Use plain language.
 - If asked about a topic outside lab results, politely redirect to your area of expertise.
+- If the user has added notes for specific dates, consider them when interpreting results (e.g. medication changes, supplement starts, fasting status, symptoms).
+- If the user has listed medical conditions or diagnoses, always consider them when interpreting lab results. Explain how specific conditions may affect certain biomarkers, and flag results that are particularly relevant to their diagnoses.
+- If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
+- If the user has described their circadian habits, consider how sleep patterns, shift work, and light exposure may influence lab results (e.g. poor sleep can raise cortisol/hs-CRP/insulin resistance, shift work disrupts hormone rhythms, melatonin timing affects thyroid markers).
+- If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
+- If the user has described their sleep habits, consider how sleep quality, duration, and disorders affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; chronic sleep debt impairs immune markers).
+- If the user has listed field experts, consider those experts' published research, frameworks, and clinical perspectives when interpreting results. Reference their specific work where relevant.
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -1792,6 +2547,30 @@ function buildLabContext() {
   }
   const sexLabel = profileSex === 'female' ? 'female' : profileSex === 'male' ? 'male' : 'not specified';
   let ctx = `Lab data for current profile (sex: ${sexLabel}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+  const diagnoses = importedData.diagnoses || '';
+  if (diagnoses.trim()) {
+    ctx += `## Medical Conditions / Diagnoses\n${diagnoses.trim()}\n\n`;
+  }
+  const diet = importedData.diet || '';
+  if (diet.trim()) {
+    ctx += `## Diet\n${diet.trim()}\n\n`;
+  }
+  const circadian = importedData.circadian || '';
+  if (circadian.trim()) {
+    ctx += `## Circadian Habits\n${circadian.trim()}\n\n`;
+  }
+  const exercise = importedData.exercise || '';
+  if (exercise.trim()) {
+    ctx += `## Exercise & Movement\n${exercise.trim()}\n\n`;
+  }
+  const sleep = importedData.sleep || '';
+  if (sleep.trim()) {
+    ctx += `## Sleep\n${sleep.trim()}\n\n`;
+  }
+  const fieldExperts = importedData.fieldExperts || '';
+  if (fieldExperts.trim()) {
+    ctx += `## Field Experts\n${fieldExperts.trim()}\n\n`;
+  }
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;
@@ -1802,7 +2581,8 @@ function buildLabContext() {
         : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
       const latestIdx = getLatestValueIndex(m.values);
       const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], m.refMin, m.refMax) : 'no data';
-      ctx += `- ${m.name}: ${vals} ${m.unit} (ref: ${m.refMin}–${m.refMax}, status: ${status})\n`;
+      const refStr = m.refMin != null && m.refMax != null ? `ref: ${m.refMin}–${m.refMax}, ` : '';
+      ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
     }
     ctx += '\n';
   }
@@ -1811,6 +2591,15 @@ function buildLabContext() {
     ctx += `## Flagged Results (Latest)\n`;
     for (const f of flags) {
       ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, ref: ${f.refMin}–${f.refMax})\n`;
+    }
+    ctx += '\n';
+  }
+  const notes = (importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  if (notes.length > 0) {
+    ctx += `## User Notes\n`;
+    for (const n of notes) {
+      const d = new Date(n.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      ctx += `- ${d}: ${n.text}\n`;
     }
   }
   return ctx;
