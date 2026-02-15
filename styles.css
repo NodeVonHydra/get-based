@@ -368,6 +368,7 @@ body {
 .import-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
 .import-table .matched { color: var(--green); }
 .import-table .unmatched { color: var(--yellow); }
+.import-table .new-marker { color: var(--accent); font-weight: 500; }
 .import-table .skipped { color: var(--text-muted); }
 .import-btn {
   padding: 8px 24px; border-radius: 6px; border: none;

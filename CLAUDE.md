@@ -52,6 +52,20 @@ The PDF parser uses Claude API to extract markers from any lab PDF (any language
 3. **AI analysis** (`parseLabPDFWithAI`): Sends extracted text to Claude with a system prompt containing `buildMarkerReference()` output (compact JSON of all known markers with keys, units, ref ranges). Claude maps lab results to marker keys using medical knowledge.
 4. **Import confirmation**: Shows preview modal with matched/unmatched markers; user confirms before saving
 5. **Insulin dual-mapping**: When `hormones.insulin` is imported, it's also set as `diabetes.insulin_d` and HOMA-IR is recalculated
+6. **Custom markers**: Markers not in `MARKER_SCHEMA` are auto-handled — AI suggests `category.camelCaseKey`, name, unit, and reference ranges. Definitions are stored in `importedData.customMarkers` and merged into the data pipeline at runtime (see below).
+
+### Custom Markers
+
+When a PDF contains markers not in the hardcoded `MARKER_SCHEMA`, the AI extracts their metadata and imports them automatically:
+
+- **Storage**: `importedData.customMarkers` — object keyed by `category.markerKey`, each value: `{ name, unit, refMin, refMax, categoryLabel }`
+- **Merge in `getActiveData()`**: Before sex-specific ref adjustments, custom marker definitions are injected into `data.categories`. If the category exists in schema, the marker is added to it; if not, a new category is created with a 🔖 icon
+- **AI reference**: `buildMarkerReference()` includes custom markers so subsequent PDF imports match to them instead of creating duplicates
+- **Import preview**: Three groups — green "✓ Matched" (known), blue "✚ New" (custom with suggested key), yellow "? Unmatched" (truly unknown)
+- **No overwrite**: Once a custom marker definition is saved, it won't be overwritten by later imports
+- **JSON export/import**: `customMarkers` is included in export and merged on import (existing definitions preserved)
+- **Clear**: `clearAllData()` resets `customMarkers` to `{}`
+- **Rendering**: No special rendering code needed — all UI iterates `data.categories` dynamically
 
 ### Standalone Notes
 

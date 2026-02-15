@@ -577,6 +577,31 @@ function getActiveData() {
     categories: JSON.parse(JSON.stringify(MARKER_SCHEMA))
   };
 
+  // Merge custom markers into categories
+  const custom = (importedData && importedData.customMarkers) ? importedData.customMarkers : {};
+  for (const [fullKey, def] of Object.entries(custom)) {
+    const [catKey, markerKey] = fullKey.split('.');
+    if (!markerKey) continue;
+    if (!data.categories[catKey]) {
+      // Create new category
+      data.categories[catKey] = {
+        label: def.categoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1),
+        icon: '\uD83D\uDD16',
+        markers: {}
+      };
+    }
+    // Add marker if not already in schema
+    if (!data.categories[catKey].markers[markerKey]) {
+      data.categories[catKey].markers[markerKey] = {
+        name: def.name,
+        unit: def.unit || '',
+        refMin: def.refMin,
+        refMax: def.refMax,
+        custom: true
+      };
+    }
+  }
+
   // Apply sex-specific reference ranges
   if (profileSex === 'female') {
     for (const cat of Object.values(data.categories)) {
@@ -1685,6 +1710,13 @@ function buildMarkerReference() {
       ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: marker.refMin, refMax: marker.refMax };
     }
   }
+  // Include custom markers from previous imports
+  const custom = (importedData && importedData.customMarkers) ? importedData.customMarkers : {};
+  for (const [fullKey, def] of Object.entries(custom)) {
+    if (!ref[fullKey]) {
+      ref[fullKey] = { name: def.name, unit: def.unit, refMin: def.refMin, refMax: def.refMax };
+    }
+  }
   return ref;
 }
 
@@ -1751,13 +1783,19 @@ Your task:
 4. Only map to a marker if you're confident it's the correct match
 5. Skip non-numeric results (text-only findings, interpretive notes)
 6. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
+7. For markers that do NOT match any known key (mappedKey is null), also return:
+   - suggestedKey: a "category.camelCaseKey" string. Use an existing category from the reference if the marker fits (e.g. "biochemistry", "hormones", "vitamins"), otherwise use "custom". The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
+   - suggestedName: a clean English display name for the marker
+   - unit: the unit as shown in the PDF
+   - refMin: the lower reference range bound from the PDF (number or null)
+   - refMax: the upper reference range bound from the PDF (number or null)
 
 Return ONLY valid JSON in this exact format, no other text:
 {
   "date": "YYYY-MM-DD",
   "markers": [
     {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker"},
-    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null}
+    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "biochemistry.someMarker", "suggestedName": "Some Marker", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
   ]
 }`;
 
@@ -1779,7 +1817,12 @@ Return ONLY valid JSON in this exact format, no other text:
       rawName: m.rawName,
       value: typeof m.value === 'number' ? m.value : parseFloat(String(m.value).replace(',', '.')),
       mappedKey: m.mappedKey || null,
-      matched: !!m.mappedKey
+      matched: !!m.mappedKey,
+      suggestedKey: m.suggestedKey || null,
+      suggestedName: m.suggestedName || null,
+      unit: m.unit || null,
+      refMin: m.refMin != null ? m.refMin : null,
+      refMax: m.refMax != null ? m.refMax : null
     })),
     fileName
   };
@@ -1794,12 +1837,15 @@ function showImportPreview(parseResult) {
   const overlay = document.getElementById("import-modal-overlay");
   const dateFormatted = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown';
   const matched = markers.filter(m => m.matched);
-  const unmatched = markers.filter(m => !m.matched);
+  const newMarkers = markers.filter(m => !m.matched && m.suggestedKey);
+  const unmatched = markers.filter(m => !m.matched && !m.suggestedKey);
+  const importCount = matched.length + newMarkers.length;
   let html = `<button class="modal-close" onclick="closeImportModal()">&times;</button>
     <h3>Import Preview</h3>
     <p style="color:var(--text-secondary);margin-bottom:16px">
       File: ${fileName}<br>Collection Date: <strong>${dateFormatted}</strong><br>
       Matched: <span style="color:var(--green)">${matched.length}</span> \u00b7
+      New: <span style="color:var(--accent)">${newMarkers.length}</span> \u00b7
       Unmatched: <span style="color:var(--yellow)">${unmatched.length}</span></p>`;
   if (!date) {
     html += `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--red)">
@@ -1813,6 +1859,11 @@ function showImportPreview(parseResult) {
     html += `<tr><td class="matched">\u2713 Matched</td><td>${m.rawName}</td>
       <td>${m.value}</td><td>${m.mappedKey}</td></tr>`;
   }
+  for (const m of newMarkers) {
+    const refInfo = (m.refMin != null || m.refMax != null) ? ` (${m.refMin ?? '?'}\u2013${m.refMax ?? '?'} ${m.unit || ''})` : '';
+    html += `<tr><td class="new-marker">\u271A New</td><td>${m.rawName}</td>
+      <td>${m.value}</td><td>${m.suggestedKey}${refInfo}</td></tr>`;
+  }
   for (const m of unmatched) {
     html += `<tr><td class="unmatched">? Unmatched</td><td>${m.rawName}</td>
       <td>${m.value}</td><td>\u2014</td></tr>`;
@@ -1820,7 +1871,7 @@ function showImportPreview(parseResult) {
   html += `</tbody></table>`;
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">Cancel</button>
-    <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${matched.length} Markers</button></div>`;
+    <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${importCount} Markers</button></div>`;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
@@ -1835,7 +1886,9 @@ function confirmImport() {
   const result = window._pendingImport;
   if (!result || !result.date) return;
   const matched = result.markers.filter(m => m.matched);
-  if (matched.length === 0) { showNotification("No matched markers to import", "error"); closeImportModal(); return; }
+  const newMarkers = result.markers.filter(m => !m.matched && m.suggestedKey);
+  const importCount = matched.length + newMarkers.length;
+  if (importCount === 0) { showNotification("No markers to import", "error"); closeImportModal(); return; }
   if (!importedData.entries) importedData.entries = [];
   let entry = importedData.entries.find(e => e.date === result.date);
   if (!entry) {
@@ -1843,6 +1896,25 @@ function confirmImport() {
     importedData.entries.push(entry);
   }
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
+  // Save new (custom) marker values and definitions
+  if (!importedData.customMarkers) importedData.customMarkers = {};
+  for (const m of newMarkers) {
+    entry.markers[m.suggestedKey] = m.value;
+    // Save definition only if not already defined
+    if (!importedData.customMarkers[m.suggestedKey]) {
+      const [catKey] = m.suggestedKey.split('.');
+      // Determine category label: use schema label if category exists, else title-case the key
+      const schemaCategory = MARKER_SCHEMA[catKey];
+      const categoryLabel = schemaCategory ? schemaCategory.label : catKey.charAt(0).toUpperCase() + catKey.slice(1);
+      importedData.customMarkers[m.suggestedKey] = {
+        name: m.suggestedName || m.rawName,
+        unit: m.unit || '',
+        refMin: m.refMin,
+        refMax: m.refMax,
+        categoryLabel
+      };
+    }
+  }
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
@@ -1851,7 +1923,7 @@ function confirmImport() {
   updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification(`Imported ${matched.length} markers from ${result.date}`, "success");
+  showNotification(`Imported ${importCount} markers from ${result.date}`, "success");
 }
 
 function removeImportedEntry(date) {
@@ -2286,7 +2358,8 @@ function exportDataJSON() {
   const exercise = importedData.exercise || '';
   const sleep = importedData.sleep || '';
   const fieldExperts = importedData.fieldExperts || '';
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts };
+  const customMarkers = importedData.customMarkers || {};
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts, customMarkers };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2338,6 +2411,15 @@ function importDataJSON(file) {
       if (json.fieldExperts && typeof json.fieldExperts === 'string' && json.fieldExperts.trim()) {
         importedData.fieldExperts = json.fieldExperts.trim();
       }
+      // Import custom markers (merge, don't overwrite existing definitions)
+      if (json.customMarkers && typeof json.customMarkers === 'object') {
+        if (!importedData.customMarkers) importedData.customMarkers = {};
+        for (const [key, def] of Object.entries(json.customMarkers)) {
+          if (!importedData.customMarkers[key]) {
+            importedData.customMarkers[key] = def;
+          }
+        }
+      }
       // Import notes
       if (json.notes && Array.isArray(json.notes)) {
         if (!importedData.notes) importedData.notes = [];
@@ -2362,7 +2444,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '' };
+  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
