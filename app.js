@@ -734,28 +734,22 @@ function getActiveData() {
       if ([albumin_si, creatinine_si, glucose_si, crp, lymphPct_si, mcv, rdw, alp_si, wbc].some(v => v == null)) return null;
       if (crp <= 0) return null; // ln(CRP) undefined for non-positive
 
-      // Convert SI → US conventional where needed
-      const albumin_us    = albumin_si / 10;         // g/l → g/dL
-      const creatinine_us = creatinine_si * 0.01131; // µmol/l → mg/dL
-      const glucose_us    = glucose_si * 18.018;     // mmol/l → mg/dL
-      const lymphPct_us   = lymphPct_si * 100;       // fraction → %
-      const alp_us        = alp_si * 60;             // µkat/l → U/L
-
       // Chronological age at blood draw date
       const dob = new Date(profileDob + 'T00:00:00');
       const drawDate = new Date(dateStr + 'T00:00:00');
       let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
       if (age <= 0) return null;
 
+      // Levine 2018 coefficients expect SI units directly (g/L, µmol/L, mmol/L, etc.)
       const xb = -19.907
-        - 0.0336  * albumin_us
-        + 0.0095  * creatinine_us
-        + 0.1953  * glucose_us
+        - 0.0336  * albumin_si
+        + 0.0095  * creatinine_si
+        + 0.1953  * glucose_si
         + 0.0954  * Math.log(crp)
-        - 0.0120  * lymphPct_us
+        - 0.0120  * lymphPct_si
         + 0.0268  * mcv
         + 0.3306  * rdw
-        + 0.00188 * alp_us
+        + 0.00188 * alp_si
         + 0.0554  * wbc
         + 0.0804  * age;
 

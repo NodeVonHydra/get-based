@@ -106,7 +106,7 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 
 - **Required biomarkers**: Albumin (`proteins.albumin`), Creatinine (`biochemistry.creatinine`), Glucose (`biochemistry.glucose`), hs-CRP (`proteins.hsCRP`), Lymphocytes % (`differential.lymphocytesPct`), MCV (`hematology.mcv`), RDW-CV (`hematology.rdwcv`), ALP (`biochemistry.alp`), WBC (`hematology.wbc`)
 - **Date of Birth**: Required for chronological age; stored per-profile via `getProfileDob`/`setProfileDob`, set via header date input
-- **Calculation**: Performed in `getActiveData()` after ratio calculations. All 9 biomarkers are read in SI units and converted inline to US conventional units for the formula (coefficients use US units). Formula: `xb → mortality_score → PhenoAge`
+- **Calculation**: Performed in `getActiveData()` after ratio calculations. All 9 biomarkers are used in their native SI units (g/L, µmol/L, mmol/L, etc.) — the Levine coefficients were fitted to SI-unit data. Formula: `xb → mortality_score → PhenoAge`
 - **Null handling**: Returns `null` if any of the 9 biomarkers is missing for a date, DOB is not set, CRP ≤ 0, or age ≤ 0
 - **No reference range**: `refMin: null, refMax: null` — PhenoAge is meaningful relative to chronological age, not absolute bounds. `getStatus()` returns `"normal"` for null refs; `refBandPlugin` skips drawing; chart/table/modal UI omit ref range text
 - **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
