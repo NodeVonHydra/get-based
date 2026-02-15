@@ -31,7 +31,9 @@ No build system, no bundler, no package manager. Three source files:
   - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
   - AI marker descriptions (`fetchMarkerDescription` — cached one-sentence explanations in detail modal)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
+  - Chat personalities (`CHAT_PERSONALITIES`, `setChatPersonality`, `getActivePersonality`, `loadChatPersonality`, `updatePersonalityBar`)
   - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
+  - Markdown rendering (`renderMarkdown` — block-aware parser, `applyInlineMarkdown` — inline formatting helper)
   - Per-marker AI (`askAIAboutMarker` — opens chat with pre-filled marker-specific prompt)
 - **`seed-data.json`** — baseline lab data in importable JSON format (4 entries across 4 dates)
 
@@ -116,6 +118,9 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 ### AI Chat Panel
 
 - Slide-out panel on the right side with streaming responses
+- **Responsive width**: Scales across 5 breakpoints — 560px default, 640px at 1400px+, 740px at 1600px+, 880px at 2000px+, 1060px at 3000px+. Font sizes, padding, gaps, and input area scale proportionally. Backdrop dims less on large screens (0.15 at 1400px+, 0.08 at 2000px+)
+- **Markdown rendering**: `renderMarkdown()` is a block-aware parser supporting headings (`#`/`##`/`###`), unordered/ordered lists, fenced code blocks, horizontal rules, and paragraphs. `applyInlineMarkdown()` handles bold, italic, inline code, and links. `.chat-msg` uses `white-space: normal` — HTML elements handle all spacing. Streaming-compatible (re-parses full accumulated text on each chunk)
+- **Personalities**: `CHAT_PERSONALITIES` array defines 6 presets (default, House, Murphy, Robby, Kruse, custom). Personality selector bar in panel header with collapsible options. Selected personality stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality text stored in `labcharts-{profileId}-chatPersonalityCustom`. Personality prompt is appended to `CHAT_SYSTEM_PROMPT` via `getActivePersonality()`. Switching personalities preserves chat history
 - `buildLabContext()` serializes full profile data for the system prompt, including diagnoses, diet, circadian, exercise, lab values, flagged results, and notes
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
