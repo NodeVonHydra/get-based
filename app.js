@@ -581,18 +581,19 @@ function renameProfile(profileId, newName) {
 function deleteProfile(profileId) {
   const profiles = getProfiles();
   if (profiles.length <= 1) { showNotification("Cannot delete the last profile", "error"); return; }
-  if (!confirm('Delete this profile and all its data? This cannot be undone.')) return;
-  const updated = profiles.filter(p => p.id !== profileId);
-  saveProfiles(updated);
-  localStorage.removeItem(profileStorageKey(profileId, 'imported'));
-  localStorage.removeItem(profileStorageKey(profileId, 'units'));
-  localStorage.removeItem(`labcharts-${profileId}-chat`);
-  if (currentProfile === profileId) {
-    loadProfile(updated[0].id);
-  } else {
-    renderProfileDropdown();
-  }
-  showNotification('Profile deleted', 'info');
+  showConfirmDialog('Delete this profile and all its data? This cannot be undone.', () => {
+    const updated = profiles.filter(p => p.id !== profileId);
+    saveProfiles(updated);
+    localStorage.removeItem(profileStorageKey(profileId, 'imported'));
+    localStorage.removeItem(profileStorageKey(profileId, 'units'));
+    localStorage.removeItem(`labcharts-${profileId}-chat`);
+    if (currentProfile === profileId) {
+      loadProfile(updated[0].id);
+    } else {
+      renderProfileDropdown();
+    }
+    showNotification('Profile deleted', 'info');
+  });
 }
 
 function switchProfile(profileId) {
@@ -1582,7 +1583,7 @@ const noteAnnotationPlugin = {
     if (!x) return [];
     const chartLabels = chart.data.labels || [];
     const dots = [];
-    const DOT_RADIUS = 5;
+    const DOT_RADIUS = window.innerWidth <= 768 ? 8 : 5;
     const DOT_Y = top + DOT_RADIUS + 2;
     for (const note of opts.notes) {
       let pixelX = null;
@@ -2093,6 +2094,27 @@ function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
   if (chartInstances["modal"]) { chartInstances["modal"].destroy(); delete chartInstances["modal"]; }
 }
+
+function showConfirmDialog(message, onConfirm) {
+  let overlay = document.getElementById("confirm-dialog-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "confirm-dialog-overlay";
+    overlay.className = "confirm-overlay";
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `<div class="confirm-dialog">
+    <p class="confirm-message">${escapeHTML(message)}</p>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-btn-cancel" id="confirm-cancel">Cancel</button>
+      <button class="confirm-btn confirm-btn-danger" id="confirm-ok">Confirm</button>
+    </div></div>`;
+  overlay.classList.add("show");
+  document.getElementById("confirm-ok").onclick = () => { overlay.classList.remove("show"); onConfirm(); };
+  document.getElementById("confirm-cancel").onclick = () => { overlay.classList.remove("show"); };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove("show"); };
+  document.getElementById("confirm-cancel").focus();
+}
 document.addEventListener("click", e => {
   if (e.target.id === "modal-overlay") closeModal();
   if (e.target.id === "import-modal-overlay") closeImportModal();
@@ -2103,11 +2125,24 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
+    const confirmOverlay = document.getElementById("confirm-dialog-overlay");
+    if (confirmOverlay && confirmOverlay.classList.contains("show")) { confirmOverlay.classList.remove("show"); return; }
     const chatPanel = document.getElementById("chat-panel");
     if (chatPanel && chatPanel.classList.contains("open")) { closeChatPanel(); return; }
-    closeSettingsModal();
-    closeModal();
+    const importOverlay = document.getElementById("import-modal-overlay");
+    if (importOverlay && importOverlay.classList.contains("show")) { closeImportModal(); return; }
+    const settingsOverlay = document.getElementById("settings-modal-overlay");
+    if (settingsOverlay && settingsOverlay.classList.contains("show")) { closeSettingsModal(); return; }
+    const modalOverlay = document.getElementById("modal-overlay");
+    if (modalOverlay && modalOverlay.classList.contains("show")) { closeModal(); return; }
+    return;
   }
+  // Skip shortcuts when typing in an input/textarea or when modifier keys are held
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = document.activeElement?.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+  if (e.key === "c" || e.key === "C") { e.preventDefault(); toggleChatPanel(); }
+  if (e.key === "/") { e.preventDefault(); const sb = document.getElementById("sidebar-search"); if (sb) { sb.focus(); sb.select(); } }
 });
 
 function destroyAllCharts() {
@@ -2342,7 +2377,9 @@ function showCorrelations() {
   }
   html += `</div></div>`;
   html += `<div class="corr-chart-container" id="corr-chart-container" style="display:none">
-    <h3>Normalized Comparison (% of Reference Range)</h3>
+    <h3>Normalized Comparison (% of Reference Range)
+      <button class="corr-ask-ai-btn" onclick="askAIAboutCorrelations()" title="Ask AI about these correlations">Ask AI</button>
+    </h3>
     <div class="corr-chart"><canvas id="chart-correlation"></canvas></div></div>`;
   main.innerHTML = html;
   populateCorrelationOptions(data);
@@ -3554,13 +3591,14 @@ function importDataJSON(file) {
 }
 
 function clearAllData() {
-  if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [], notes: [], supplements: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
-  localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
-  buildSidebar();
-  updateHeaderDates();
-  navigate('dashboard');
-  showNotification('All data cleared', 'info');
+  showConfirmDialog('Are you sure you want to clear all imported data? This cannot be undone.', () => {
+    importedData = { entries: [], notes: [], supplements: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
+    localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
+    buildSidebar();
+    updateHeaderDates();
+    navigate('dashboard');
+    showNotification('All data cleared', 'info');
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -3925,5 +3963,28 @@ function askAIAboutMarker(markerId) {
   const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
   const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}–${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}–${marker.optimalMax}` : ''}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
   closeModal();
+  openChatPanel(prompt);
+}
+
+function askAIAboutCorrelations() {
+  if (selectedCorrelationMarkers.length < 2) return;
+  const data = getActiveData();
+  const parts = selectedCorrelationMarkers.map(key => {
+    const [catKey, markerKey] = key.split('.');
+    const marker = data.categories[catKey]?.markers[markerKey];
+    if (!marker) return null;
+    const valuesText = marker.values
+      .map((v, i) => v !== null ? `${data.dateLabels[i]}: ${formatValue(v)} ${marker.unit}` : null)
+      .filter(Boolean).join(', ');
+    const mr = getEffectiveRange(marker);
+    const latestIdx = getLatestValueIndex(marker.values);
+    const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
+    return `- ${marker.name}: ${valuesText} (ref: ${marker.refMin}–${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `, optimal: ${marker.optimalMin}–${marker.optimalMax}` : ''}, status: ${status})`;
+  }).filter(Boolean);
+  const names = selectedCorrelationMarkers.map(key => {
+    const [catKey, markerKey] = key.split('.');
+    return data.categories[catKey]?.markers[markerKey]?.name || key;
+  });
+  const prompt = `Analyze the correlation between these biomarkers: ${names.join(', ')}.\n\nHere are my values:\n${parts.join('\n')}\n\nHow do these markers relate to each other? Are there any patterns, imbalances, or concerns based on their combined trends?`;
   openChatPanel(prompt);
 }
