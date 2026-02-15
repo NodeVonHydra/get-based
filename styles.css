@@ -332,6 +332,15 @@ body {
 }
 .unit-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 .unit-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
+/* Range Mode Toggle */
+.range-toggle { display: flex; align-items: center; gap: 4px; }
+.range-toggle-btn {
+  padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit;
+}
+.range-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.range-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
 /* Drop Zone */
 .drop-zone {
   border: 2px dashed var(--border); border-radius: var(--radius);
@@ -895,3 +904,84 @@ body {
   padding: 10px; background: var(--bg-card); border-radius: var(--radius-sm);
   border: 1px solid var(--border);
 }
+/* Date Range Filter */
+.date-range-filter {
+  display: flex; gap: 4px; background: var(--bg-secondary); padding: 3px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  width: fit-content;
+}
+.range-btn {
+  padding: 6px 12px; border-radius: 6px; border: none; background: transparent;
+  color: var(--text-secondary); font-size: 12px; cursor: pointer;
+  font-weight: 600; transition: all 0.15s; font-family: inherit;
+}
+.range-btn.active { background: var(--accent); color: white; }
+.range-btn:hover:not(.active) { background: var(--bg-hover); }
+/* Heatmap View */
+.heatmap-wrapper { overflow-x: auto; }
+.heatmap-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.heatmap-table th {
+  background: var(--bg-secondary); padding: 10px 12px; text-align: left;
+  font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); position: sticky; top: 0;
+  white-space: nowrap;
+}
+.heatmap-table td {
+  padding: 8px 12px; text-align: center; cursor: pointer;
+  font-weight: 600; font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border); transition: all 0.1s;
+  min-width: 70px;
+}
+.heatmap-table td:first-child {
+  text-align: left; font-weight: 500; cursor: default;
+  position: sticky; left: 0; background: var(--bg-secondary);
+  z-index: 1; min-width: 160px;
+}
+.heatmap-table td:hover:not(:first-child) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.heatmap-normal { background: rgba(52, 211, 153, 0.12); color: var(--green); }
+.heatmap-high { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+.heatmap-low { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+.heatmap-missing { background: transparent; color: var(--text-muted); font-weight: 400; }
+/* Compare View */
+.compare-controls {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 20px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.compare-controls label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.compare-controls select {
+  padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-primary); color: var(--text-primary); font-size: 13px;
+  font-family: inherit; cursor: pointer; min-width: 160px;
+}
+.compare-controls select:focus { outline: none; border-color: var(--accent); }
+.compare-controls select option { background: var(--bg-secondary); }
+.compare-swap-btn {
+  padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 16px;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.compare-swap-btn:hover { border-color: var(--accent); color: var(--accent); }
+.compare-table-wrapper { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th {
+  background: var(--bg-secondary); padding: 10px 14px; text-align: left;
+  font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.compare-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.compare-table .cat-row td {
+  background: var(--bg-secondary); font-weight: 600; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
+  padding: 8px 14px;
+}
+.compare-improved { color: var(--green); }
+.compare-worsened { color: var(--red); }
+.compare-neutral { color: var(--text-muted); }
