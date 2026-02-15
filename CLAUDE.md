@@ -13,7 +13,7 @@ Lab Charts is a blood work dashboard for tracking biomarker trends over time. It
 No build system, no bundler, no package manager. Three source files:
 
 - **`index.html`** — HTML structure only (header, sidebar, modals, chat panel, script/CSS includes)
-- **`styles.css`** — all CSS (dark theme, responsive layout, modals, notifications, correlation view, chat panel, empty state)
+- **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
 - **`app.js`** — all JavaScript, organized into sections:
   - `MARKER_SCHEMA` — biomarker definitions (categories, names, units, reference ranges) with no personal data
   - `UNIT_CONVERSIONS` — EU (SI) to US unit conversion factors
@@ -201,7 +201,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v4` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v5` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
@@ -209,6 +209,8 @@ The app is installable and works offline via a service worker:
 ## Key Patterns
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
+- **Theme system**: Dark (default) and light modes. `setTheme(theme)` sets `data-theme` attribute on `<html>`, updates toggle button icon (sun/moon), and meta theme-color. Theme stored in `labcharts-theme` localStorage key. CSS uses `[data-theme="light"]` selector to override `:root` variables. `getChartColors()` reads live CSS variable values for Chart.js configs. Canvas plugins read CSS variables directly via `getComputedStyle` for theme-aware rendering
+- **Performance**: UI rendering functions (`buildSidebar`, `navigate`, `showDashboard`, `showCategory`, `showCompare`, `showCorrelations`, `updateHeaderDates`) accept optional `data` parameter. Toggle functions (`switchDob`, `switchSex`, `switchUnitSystem`, `switchRangeMode`) compute `getActiveData()` once and pass it through, avoiding redundant pipeline calls
 - **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
 - **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `optimalBandPlugin` draws green dashed optimal range bands; `noteAnnotationPlugin` draws yellow dots at note dates with hover tooltips; `supplementBarPlugin` draws supplement/medication timeline bars
 - **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales

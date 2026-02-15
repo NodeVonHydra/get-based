@@ -39,6 +39,7 @@
         <button class="range-toggle-btn" data-range="reference" onclick="switchRangeMode('reference')">Reference</button>
         <button class="range-toggle-btn" data-range="both" onclick="switchRangeMode('both')">Both</button>
       </div>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark mode" id="theme-toggle-btn">&#9788;</button>
       <button class="settings-btn" onclick="openSettingsModal()" title="Settings">&#9881;</button>
       <button class="glossary-btn" onclick="openGlossary()" title="Marker Glossary">&#128214;</button>
       <button class="chat-toggle-btn" onclick="toggleChatPanel()">Ask AI</button>
@@ -90,6 +91,16 @@
           </div>
           <span class="chat-personality-opt-check">✓</span>
         </button>
+        <div class="chat-personality-divider">Real Practitioners</div>
+        <button class="chat-personality-opt" data-personality="kruse" onclick="setChatPersonality('kruse')">
+          <span class="chat-personality-opt-icon">☀️</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Dr. Jack Kruse</span>
+            <span class="chat-personality-opt-desc">Mitochondria, light, water, magnetism</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <div class="chat-personality-divider">Fictional Characters</div>
         <button class="chat-personality-opt" data-personality="house" onclick="setChatPersonality('house')">
           <span class="chat-personality-opt-icon">🦯</span>
           <div class="chat-personality-opt-info">
@@ -111,14 +122,6 @@
           <div class="chat-personality-opt-info">
             <span class="chat-personality-opt-name">Dr. Robby</span>
             <span class="chat-personality-opt-desc">Warm, reassuring, encouraging</span>
-          </div>
-          <span class="chat-personality-opt-check">✓</span>
-        </button>
-        <button class="chat-personality-opt" data-personality="kruse" onclick="setChatPersonality('kruse')">
-          <span class="chat-personality-opt-icon">☀️</span>
-          <div class="chat-personality-opt-info">
-            <span class="chat-personality-opt-name">Dr. Jack Kruse</span>
-            <span class="chat-personality-opt-desc">Mitochondria, light, water, magnetism</span>
           </div>
           <span class="chat-personality-opt-check">✓</span>
         </button>
