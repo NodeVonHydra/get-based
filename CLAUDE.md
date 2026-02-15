@@ -153,6 +153,21 @@ python3 -m http.server 8000
 
 There are no tests, linters, or build steps. An Anthropic API key is required for PDF import and chat features.
 
+### PWA (Progressive Web App)
+
+The app is installable and works offline via a service worker:
+
+- **`manifest.json`** — PWA manifest with app name, theme colors (`#1a1d27`/`#0f1117`), and icons
+- **`service-worker.js`** — caching with route-based strategies:
+  - **Anthropic API** (`api.anthropic.com`) → network-only (never cached)
+  - **Google Fonts** → stale-while-revalidate
+  - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
+  - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
+- **Cache name**: `labcharts-v1` — bump version to bust cache on deploy
+- **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
+- **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
+- **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
+
 ## Key Patterns
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
