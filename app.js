@@ -851,7 +851,8 @@ document.addEventListener("DOMContentLoaded", () => {
 function buildSidebar() {
   const data = getActiveData();
   const nav = document.getElementById("sidebar-nav");
-  let html = `<div class="nav-item active" data-category="dashboard" onclick="navigate('dashboard')">
+  let html = `<input type="text" class="sidebar-search" id="sidebar-search" placeholder="Search markers..." oninput="filterSidebar()">`;
+  html += `<div class="nav-item active" data-category="dashboard" onclick="navigate('dashboard')">
     <span class="icon">\uD83D\uDCCB</span> Dashboard</div>`;
   html += `<div class="nav-item" data-category="correlations" onclick="navigate('correlations')">
     <span class="icon">\uD83D\uDCC8</span> Correlations</div>`;
@@ -863,10 +864,30 @@ function buildSidebar() {
     const flagHtml = flagged > 0
       ? `<span class="flag-count">${flagged}</span>`
       : `<span class="count">${withData}</span>`;
-    html += `<div class="nav-item" data-category="${key}" onclick="navigate('${key}')">
+    const markerNames = markers.map(m => m.name).join('|');
+    html += `<div class="nav-item" data-category="${key}" data-markers="${escapeHTML(markerNames)}" onclick="navigate('${key}')">
       <span class="icon">${cat.icon}</span> ${cat.label} ${flagHtml}</div>`;
   }
   nav.innerHTML = html;
+}
+
+function filterSidebar() {
+  const query = (document.getElementById('sidebar-search')?.value || '').toLowerCase().trim();
+  const items = document.querySelectorAll('#sidebar-nav .nav-item');
+  const titles = document.querySelectorAll('#sidebar-nav .sidebar-title');
+  if (!query) {
+    items.forEach(el => el.style.display = '');
+    titles.forEach(el => el.style.display = '');
+    return;
+  }
+  items.forEach(el => {
+    const cat = el.dataset.category;
+    if (cat === 'dashboard' || cat === 'correlations') { el.style.display = ''; return; }
+    const label = el.textContent.toLowerCase();
+    const markers = (el.dataset.markers || '').toLowerCase();
+    el.style.display = (label.includes(query) || markers.includes(query)) ? '' : 'none';
+  });
+  titles.forEach(el => el.style.display = '');
 }
 
 function navigate(category) {
@@ -1082,7 +1103,7 @@ function showDashboard() {
     html += `<div class="alerts-section"><div class="alerts-title">Flagged Results (Latest Values)</div>`;
     for (const f of allFlags) {
       const cls = f.status === "high" ? "alert-high" : "alert-low";
-      const label = f.status === "high" ? "HIGH" : "LOW";
+      const label = f.status === "high" ? "\u25B2 HIGH" : "\u25BC LOW";
       html += `<div class="alert-card ${cls}" onclick="navigate('${f.categoryKey}')">
         <span class="alert-indicator">${label}</span>
         <span class="alert-name">${f.name}</span>
@@ -1206,12 +1227,16 @@ function renderChartCard(id, marker, dateLabels) {
   const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
   const status = latestVal !== null ? getStatus(latestVal, marker.refMin, marker.refMax) : "missing";
   const statusLabel = status === "normal" ? "Normal" : status === "high" ? "High" : status === "low" ? "Low" : "N/A";
+  const sIcon = statusIcon(status);
+
+  const trend = getTrend(marker.values);
+  const trendBadge = trend.cls !== 'trend-stable' || trend.arrow !== '\u2014' ? `<span class="chart-card-trend ${trend.cls}">${trend.arrow}</span>` : '';
 
   let html = `<div class="chart-card" onclick="showDetailModal('${id}')">
     <div class="chart-card-header"><div>
       <div class="chart-card-title">${marker.name}</div>
       <div class="chart-card-unit">${marker.unit}</div></div>
-      <span class="chart-card-status status-${status}">${statusLabel}</span></div>
+      <div><span class="chart-card-status status-${status}">${sIcon ? sIcon + ' ' : ''}${statusLabel}</span>${trendBadge}</div></div>
     <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
     <div class="chart-values">`;
   const labels = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
@@ -1687,11 +1712,14 @@ function showDetailModal(id) {
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
     const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
-    const sl = s==="normal"?"In Range":s==="high"?"Above Range":s==="low"?"Below Range":"N/A";
+    const sl = s==="normal"?"\u2713 In Range":s==="high"?"\u25B2 Above Range":s==="low"?"\u25BC Below Range":"N/A";
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && importedData.notes ? importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
-    html += `<div class="modal-value-card"><div class="mv-date">${dates[i]}${noteIcon}</div>
+    const dotKey = id.replace('_', '.');
+    const isManual = rawDate && importedData.manualValues && importedData.manualValues[dotKey + ':' + rawDate];
+    const deleteBtn = (v !== null && isManual) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
+    html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
       <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
       <div class="mv-status val-${s}">${sl}</div></div>`;
   }
@@ -1704,6 +1732,7 @@ function showDetailModal(id) {
     html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${marker.unit} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
+  html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
@@ -1730,6 +1759,92 @@ function showDetailModal(id) {
       });
     }
   }
+}
+
+function openManualEntryForm(id) {
+  const marker = markerRegistry[id];
+  if (!marker) return;
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const today = new Date().toISOString().slice(0, 10);
+  const refText = marker.refMin != null && marker.refMax != null
+    ? `Reference: ${marker.refMin} \u2013 ${marker.refMax} ${marker.unit}`
+    : '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Add Value \u2014 ${marker.name}</h3>
+    <div class="modal-unit">${marker.unit}${refText ? ' \u00b7 ' + refText : ''}</div>
+    <div class="manual-entry-form">
+      <div class="me-field">
+        <label>Date</label>
+        <input type="date" id="me-date" value="${today}">
+      </div>
+      <div class="me-field">
+        <label>Value (${marker.unit})</label>
+        <input type="number" id="me-value" step="any" placeholder="Enter value..." autofocus>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="import-btn import-btn-primary" onclick="saveManualEntry('${id}')">Save</button>
+        <button class="import-btn import-btn-secondary" onclick="showDetailModal('${id}')">Cancel</button>
+      </div>
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => { const el = document.getElementById('me-value'); if (el) el.focus(); }, 50);
+}
+
+function saveManualEntry(id) {
+  const dateInput = document.getElementById('me-date');
+  const valueInput = document.getElementById('me-value');
+  if (!dateInput || !valueInput) return;
+  const date = dateInput.value;
+  const value = parseFloat(valueInput.value);
+  if (!date) { showNotification('Please enter a date', 'error'); return; }
+  if (isNaN(value)) { showNotification('Please enter a valid number', 'error'); return; }
+  // Convert id format: "category_markerKey" → "category.markerKey"
+  const dotKey = id.replace('_', '.');
+  if (!importedData.entries) importedData.entries = [];
+  let entry = importedData.entries.find(e => e.date === date);
+  if (!entry) {
+    entry = { date: date, markers: {} };
+    importedData.entries.push(entry);
+  }
+  entry.markers[dotKey] = value;
+  // Track as manually added
+  if (!importedData.manualValues) importedData.manualValues = {};
+  importedData.manualValues[dotKey + ':' + date] = true;
+  // Insulin dual-mapping
+  if (dotKey === 'hormones.insulin') entry.markers['diabetes.insulin_d'] = value;
+  recalculateHOMAIR(entry);
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  buildSidebar();
+  updateHeaderDates();
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(`Added ${markerRegistry[id]?.name || id}: ${value} on ${date}`, 'success');
+}
+
+function deleteMarkerValue(id, date) {
+  const dotKey = id.replace('_', '.');
+  if (!importedData.entries) return;
+  const entry = importedData.entries.find(e => e.date === date);
+  if (!entry || entry.markers[dotKey] === undefined) return;
+  delete entry.markers[dotKey];
+  // Clean up manual tracking
+  if (importedData.manualValues) delete importedData.manualValues[dotKey + ':' + date];
+  // Clean up insulin dual-mapping
+  if (dotKey === 'hormones.insulin') { delete entry.markers['diabetes.insulin_d']; recalculateHOMAIR(entry); }
+  // Remove entry entirely if no markers left
+  if (Object.keys(entry.markers).length === 0) {
+    importedData.entries = importedData.entries.filter(e => e.date !== date);
+  }
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  buildSidebar();
+  updateHeaderDates();
+  // Re-open the detail modal to show updated values
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showDetailModal(id);
+  showNotification(`Removed value from ${date}`, 'info');
 }
 
 function closeModal() {
@@ -1783,6 +1898,12 @@ function getAllFlaggedMarkers(data) {
     }
   }
   return flags;
+}
+function statusIcon(s) {
+  if (s === 'normal') return '\u2713';
+  if (s === 'high') return '\u25B2';
+  if (s === 'low') return '\u25BC';
+  return '';
 }
 function getTrend(values) {
   const nn = values.filter(v=>v!==null);
@@ -3063,6 +3184,13 @@ function renderChatMessages() {
     container.innerHTML = `<div class="chat-empty">
       <div class="chat-empty-icon">&#129302;</div>
       <div>Ask me about your lab results, trends, or what specific biomarkers mean.</div>
+      <div class="chat-prompts">
+        <button class="chat-prompt-btn" onclick="useChatPrompt('What are my most concerning results?')">What are my most concerning results?</button>
+        <button class="chat-prompt-btn" onclick="useChatPrompt('How has my bloodwork changed over time?')">How has my bloodwork changed over time?</button>
+        <button class="chat-prompt-btn" onclick="useChatPrompt('Are there any patterns in my flagged markers?')">Are there any patterns in my flagged markers?</button>
+        <button class="chat-prompt-btn" onclick="useChatPrompt('Explain my thyroid panel')">Explain my thyroid panel</button>
+        <button class="chat-prompt-btn" onclick="useChatPrompt('What should I test next?')">What should I test next?</button>
+      </div>
     </div>`;
     return;
   }
@@ -3073,6 +3201,11 @@ function renderChatMessages() {
   }
   container.innerHTML = html;
   container.scrollTop = container.scrollHeight;
+}
+
+function useChatPrompt(text) {
+  const input = document.getElementById('chat-input');
+  if (input) { input.value = text; sendChatMessage(); }
 }
 
 function renderMarkdown(text) {
