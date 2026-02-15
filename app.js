@@ -2243,7 +2243,9 @@ function updateHeaderDates() {
   const el = document.getElementById("header-dates");
   if (el) {
     if (data.dateLabels.length > 0) {
-      el.innerHTML = `<span class="label">Dates:</span> ${data.dateLabels.join(' \u00b7 ')}`;
+      const labels = data.dateLabels;
+      const dateText = labels.length === 1 ? labels[0] : `${labels[0]} – ${labels[labels.length - 1]}`;
+      el.innerHTML = `<span class="label">Dates:</span> ${dateText}`;
       el.style.display = '';
     } else {
       el.style.display = 'none';
