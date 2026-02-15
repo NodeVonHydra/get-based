@@ -70,6 +70,67 @@
         <button class="chat-close-btn" onclick="closeChatPanel()">&times;</button>
       </div>
     </div>
+    <div class="chat-personality-bar">
+      <div class="chat-personality-current" onclick="togglePersonalityBar()">
+        <span class="chat-personality-current-icon">🔬</span>
+        <span class="chat-personality-current-name">AI Lab Analyst</span>
+        <span class="chat-personality-current-arrow">▾</span>
+      </div>
+      <div class="chat-personality-options">
+        <button class="chat-personality-opt active" data-personality="default" onclick="setChatPersonality('default')">
+          <span class="chat-personality-opt-icon">🔬</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">AI Lab Analyst</span>
+            <span class="chat-personality-opt-desc">Neutral, professional analysis</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <button class="chat-personality-opt" data-personality="house" onclick="setChatPersonality('house')">
+          <span class="chat-personality-opt-icon">🦯</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Dr. Gregory House</span>
+            <span class="chat-personality-opt-desc">Sarcastic, brilliant, blunt</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <button class="chat-personality-opt" data-personality="murphy" onclick="setChatPersonality('murphy')">
+          <span class="chat-personality-opt-icon">🩺</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Dr. Sean Murphy</span>
+            <span class="chat-personality-opt-desc">Literal, precise, methodical</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <button class="chat-personality-opt" data-personality="robby" onclick="setChatPersonality('robby')">
+          <span class="chat-personality-opt-icon">😎</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Dr. Robby</span>
+            <span class="chat-personality-opt-desc">Warm, reassuring, encouraging</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <button class="chat-personality-opt" data-personality="kruse" onclick="setChatPersonality('kruse')">
+          <span class="chat-personality-opt-icon">☀️</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Dr. Jack Kruse</span>
+            <span class="chat-personality-opt-desc">Mitochondria, light, water, magnetism</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <button class="chat-personality-opt" data-personality="custom" onclick="setChatPersonality('custom')">
+          <span class="chat-personality-opt-icon">✏️</span>
+          <div class="chat-personality-opt-info">
+            <span class="chat-personality-opt-name">Custom Personality</span>
+            <span class="chat-personality-opt-desc">Define your own style</span>
+          </div>
+          <span class="chat-personality-opt-check">✓</span>
+        </button>
+        <div class="chat-personality-custom-area" style="display:none">
+          <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate (e.g., 'Speak like a surfer dude who happens to be a doctor')..." rows="3"></textarea>
+          <button class="chat-personality-custom-save" onclick="saveCustomPersonality()">Save</button>
+        </div>
+      </div>
+    </div>
     <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-input-area">
       <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." rows="2" onkeydown="handleChatKeydown(event)"></textarea>
