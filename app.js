@@ -252,6 +252,81 @@ const CORRELATION_PRESETS = [
 ];
 const CHIP_COLORS = ['#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa','#f472b6','#38bdf8','#fb923c'];
 
+// Optimal ranges — evidence-based "ideal" bands from mortality meta-analyses,
+// longevity research (Attia, Patrick, Levine), and functional medicine (Weatherby/OptimalDX).
+// Sources: CKD Prognosis Consortium, ASH/Blood 2015, Harris & von Schacky 2004,
+// Lancet non-HDL pooled analysis, PMC8844108 (IGF-1), PMC10324141 (sodium),
+// PMC10866328 (thyroid/CVD), PMC11078084 (albumin), Gilbert syndrome studies.
+const OPTIMAL_RANGES = {
+  // Biochemistry
+  'biochemistry.glucose': { optimalMin: 4.0, optimalMax: 5.0 },
+  'biochemistry.urea': { optimalMin: 4.6, optimalMax: 6.4 },
+  'biochemistry.creatinine': { optimalMin: 75, optimalMax: 97, optimalMin_f: 57, optimalMax_f: 80 },
+  'biochemistry.egfr': { optimalMin: 1.50, optimalMax: 2.30 },
+  'biochemistry.bilirubinTotal': { optimalMin: 8.0, optimalMax: 17.0 },
+  'biochemistry.ast': { optimalMin: 0.17, optimalMax: 0.58 },
+  'biochemistry.alt': { optimalMin: 0.17, optimalMax: 0.42 },
+  'biochemistry.ggt': { optimalMin: 0.17, optimalMax: 0.42 },
+  'biochemistry.ldh': { optimalMin: 2.25, optimalMax: 3.00 },
+  'biochemistry.uricAcid': { optimalMin: 200, optimalMax: 350 },
+  'biochemistry.cystatinC': { optimalMin: 0.61, optimalMax: 0.82 },
+  // Hormones
+  'hormones.insulin': { optimalMin: 2.6, optimalMax: 10.0 },
+  'hormones.testosterone': { optimalMin: 15.0, optimalMax: 25.0, optimalMin_f: 0.5, optimalMax_f: 1.2 },
+  'hormones.freeTestosterone': { optimalMin: 70, optimalMax: 130 },
+  'hormones.shbg': { optimalMin: 20.0, optimalMax: 40.0 },
+  'hormones.dheaS': { optimalMin: 4.0, optimalMax: 9.0 },
+  'hormones.estradiol': { optimalMin: 70, optimalMax: 130 },
+  'hormones.igf1': { optimalMin: 120, optimalMax: 160 },
+  // Electrolytes & Minerals
+  'electrolytes.sodium': { optimalMin: 139, optimalMax: 142 },
+  'electrolytes.potassium': { optimalMin: 4.0, optimalMax: 4.5 },
+  'electrolytes.calciumTotal': { optimalMin: 2.20, optimalMax: 2.40 },
+  'electrolytes.magnesium': { optimalMin: 0.85, optimalMax: 0.95 },
+  // Iron
+  'iron.iron': { optimalMin: 12.0, optimalMax: 25.0 },
+  'iron.ferritin': { optimalMin: 40, optimalMax: 200 },
+  'iron.transferrinSat': { optimalMin: 25.0, optimalMax: 35.0 },
+  // Lipids
+  'lipids.cholesterol': { optimalMin: 3.9, optimalMax: 5.2 },
+  'lipids.triglycerides': { optimalMin: 0.45, optimalMax: 1.00 },
+  'lipids.hdl': { optimalMin: 1.50, optimalMax: 2.10 },
+  'lipids.ldl': { optimalMin: 1.20, optimalMax: 2.60 },
+  'lipids.nonHdl': { optimalMin: 1.80, optimalMax: 2.60 },
+  'lipids.apoB': { optimalMin: 0.40, optimalMax: 0.70 },
+  'lipids.apoAI': { optimalMin: 1.40, optimalMax: 1.80 },
+  // Proteins & Inflammation
+  'proteins.hsCRP': { optimalMin: 0.00, optimalMax: 1.00 },
+  'proteins.totalProtein': { optimalMin: 69.0, optimalMax: 74.0 },
+  'proteins.albumin': { optimalMin: 42.0, optimalMax: 50.0 },
+  'proteins.ceruloplasmin': { optimalMin: 0.20, optimalMax: 0.30 },
+  // Thyroid
+  'thyroid.tsh': { optimalMin: 1.0, optimalMax: 2.5 },
+  'thyroid.ft3': { optimalMin: 4.6, optimalMax: 6.0 },
+  'thyroid.ft4': { optimalMin: 14.0, optimalMax: 17.0 },
+  // Vitamins
+  'vitamins.vitaminD': { optimalMin: 100.0, optimalMax: 200.0 },
+  'vitamins.vitaminA': { optimalMin: 1.40, optimalMax: 2.10 },
+  // Diabetes
+  'diabetes.hba1c': { optimalMin: 20.0, optimalMax: 36.0 },
+  'diabetes.insulin_d': { optimalMin: 2.6, optimalMax: 10.0 },
+  'diabetes.homaIR': { optimalMin: 0, optimalMax: 1.5 },
+  // Hematology
+  'hematology.wbc': { optimalMin: 5.0, optimalMax: 7.0 },
+  'hematology.rbc': { optimalMin: 4.4, optimalMax: 5.0, optimalMin_f: 4.0, optimalMax_f: 4.5 },
+  'hematology.hemoglobin': { optimalMin: 140, optimalMax: 170, optimalMin_f: 125, optimalMax_f: 155 },
+  'hematology.mcv': { optimalMin: 85.0, optimalMax: 92.0 },
+  'hematology.rdwcv': { optimalMin: 11.5, optimalMax: 13.0 },
+  'hematology.platelets': { optimalMin: 200, optimalMax: 300 },
+  // WBC Differential
+  'differential.neutrophils': { optimalMin: 2.0, optimalMax: 4.0 },
+  'differential.lymphocytes': { optimalMin: 1.5, optimalMax: 3.0 },
+  // Coagulation
+  'coagulation.homocysteine': { optimalMin: 5.0, optimalMax: 8.0 },
+  // Fatty Acids
+  'fattyAcids.omega3Index': { optimalMin: 8.0, optimalMax: 12.0 }
+};
+
 function escapeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -282,6 +357,9 @@ let currentProfile = 'default';
 let profileSex = null;
 let profileDob = null;
 let chatHistory = [];
+let dateRangeFilter = 'all';
+let rangeMode = 'optimal';
+let compareDate1 = null, compareDate2 = null;
 
 // ═══════════════════════════════════════════════
 // API KEY MANAGEMENT (global, not per-profile)
@@ -462,6 +540,8 @@ function loadProfile(profileId) {
   importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return d; } catch(e) { return { entries: [], notes: [], supplements: [] }; } })() : { entries: [], notes: [], supplements: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
+  const savedRange = localStorage.getItem(profileStorageKey(profileId, 'rangeMode'));
+  rangeMode = savedRange === 'reference' ? 'reference' : savedRange === 'both' ? 'both' : 'optimal';
   profileSex = getProfileSex(profileId);
   profileDob = getProfileDob(profileId);
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
@@ -469,6 +549,9 @@ function loadProfile(profileId) {
   });
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
+  });
+  document.querySelectorAll('.range-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.range === rangeMode);
   });
   const dobInput = document.getElementById('dob-input');
   if (dobInput) dobInput.value = profileDob || '';
@@ -538,10 +621,10 @@ function switchSex(sex) {
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === sex);
   });
-  buildSidebar();
-  updateHeaderDates();
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  buildSidebar();
+  updateHeaderDates();
   navigate(activeCat);
 }
 
@@ -560,10 +643,10 @@ function setProfileDob(profileId, dob) {
 function switchDob(dob) {
   profileDob = dob || null;
   setProfileDob(currentProfile, profileDob);
-  buildSidebar();
-  updateHeaderDates();
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  buildSidebar();
+  updateHeaderDates();
   navigate(activeCat);
 }
 
@@ -607,6 +690,22 @@ function getActiveData() {
     for (const cat of Object.values(data.categories)) {
       for (const marker of Object.values(cat.markers)) {
         if (marker.refMin_f !== undefined) { marker.refMin = marker.refMin_f; marker.refMax = marker.refMax_f; }
+      }
+    }
+  }
+
+  // Merge optimal ranges into markers
+  for (const [fullKey, opt] of Object.entries(OPTIMAL_RANGES)) {
+    const [catKey, markerKey] = fullKey.split('.');
+    const cat = data.categories[catKey];
+    if (cat && cat.markers[markerKey]) {
+      const marker = cat.markers[markerKey];
+      if (profileSex === 'female' && opt.optimalMin_f !== undefined) {
+        marker.optimalMin = opt.optimalMin_f;
+        marker.optimalMax = opt.optimalMax_f;
+      } else {
+        marker.optimalMin = opt.optimalMin;
+        marker.optimalMax = opt.optimalMax;
       }
     }
   }
@@ -773,15 +872,71 @@ function applyUnitConversion(data) {
         marker.values = marker.values.map(v => v !== null ? parseFloat((v * conv.factor).toPrecision(4)) : null);
         marker.refMin = parseFloat((marker.refMin * conv.factor).toPrecision(4));
         marker.refMax = parseFloat((marker.refMax * conv.factor).toPrecision(4));
+        if (marker.optimalMin != null) marker.optimalMin = parseFloat((marker.optimalMin * conv.factor).toPrecision(4));
+        if (marker.optimalMax != null) marker.optimalMax = parseFloat((marker.optimalMax * conv.factor).toPrecision(4));
         marker.unit = conv.usUnit;
       } else if (conv.type === 'hba1c') {
         marker.values = marker.values.map(v => v !== null ? parseFloat(((v / 10.929) + 2.15).toFixed(1)) : null);
         marker.refMin = parseFloat(((marker.refMin / 10.929) + 2.15).toFixed(1));
         marker.refMax = parseFloat(((marker.refMax / 10.929) + 2.15).toFixed(1));
+        if (marker.optimalMin != null) marker.optimalMin = parseFloat(((marker.optimalMin / 10.929) + 2.15).toFixed(1));
+        if (marker.optimalMax != null) marker.optimalMax = parseFloat(((marker.optimalMax / 10.929) + 2.15).toFixed(1));
         marker.unit = '%';
       }
     }
   }
+}
+
+// ═══════════════════════════════════════════════
+// DATE RANGE FILTER
+// ═══════════════════════════════════════════════
+function filterDatesByRange(data) {
+  if (dateRangeFilter === 'all') return data;
+  const months = dateRangeFilter === '3m' ? 3 : dateRangeFilter === '6m' ? 6 : 12;
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - months);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const indices = [];
+  for (let i = 0; i < data.dates.length; i++) {
+    if (data.dates[i] >= cutoffStr) indices.push(i);
+  }
+  if (indices.length === 0) return data; // fallback: show all if no dates in range
+  const filtered = {
+    dates: indices.map(i => data.dates[i]),
+    dateLabels: indices.map(i => data.dateLabels[i]),
+    categories: {}
+  };
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    const filteredCat = { ...cat, markers: {} };
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      if (marker.singlePoint || cat.singlePoint) {
+        filteredCat.markers[mKey] = marker;
+      } else {
+        filteredCat.markers[mKey] = { ...marker, values: indices.map(i => marker.values[i]) };
+      }
+    }
+    filtered.categories[catKey] = filteredCat;
+  }
+  return filtered;
+}
+
+function renderDateRangeFilter() {
+  const ranges = [
+    { key: '3m', label: '3M' },
+    { key: '6m', label: '6M' },
+    { key: '1y', label: '1Y' },
+    { key: 'all', label: 'All' }
+  ];
+  return `<div class="date-range-filter">${ranges.map(r =>
+    `<button class="range-btn${dateRangeFilter === r.key ? ' active' : ''}" onclick="setDateRange('${r.key}')">${r.label}</button>`
+  ).join('')}</div>`;
+}
+
+function setDateRange(range) {
+  dateRangeFilter = range;
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  navigate(activeCat);
 }
 
 function recalculateHOMAIR(entry) {
@@ -818,6 +973,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedImported) { try { importedData = JSON.parse(savedImported); if (!importedData.notes) importedData.notes = []; } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
+  const savedRange = localStorage.getItem(profileStorageKey(currentProfile, 'rangeMode'));
+  rangeMode = savedRange === 'reference' ? 'reference' : savedRange === 'both' ? 'both' : 'optimal';
   profileSex = getProfileSex(currentProfile);
   profileDob = getProfileDob(currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
@@ -828,6 +985,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === profileSex);
+  });
+  document.querySelectorAll('.range-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.range === rangeMode);
   });
   const dobInputInit = document.getElementById('dob-input');
   if (dobInputInit) dobInputInit.value = profileDob || '';
@@ -856,6 +1016,8 @@ function buildSidebar() {
     <span class="icon">\uD83D\uDCCB</span> Dashboard</div>`;
   html += `<div class="nav-item" data-category="correlations" onclick="navigate('correlations')">
     <span class="icon">\uD83D\uDCC8</span> Correlations</div>`;
+  html += `<div class="nav-item" data-category="compare" onclick="navigate('compare')">
+    <span class="icon">\u2194</span> Compare Dates</div>`;
   html += `<div class="sidebar-title">Categories</div>`;
   for (const [key, cat] of Object.entries(data.categories)) {
     const markers = Object.values(cat.markers);
@@ -882,7 +1044,7 @@ function filterSidebar() {
   }
   items.forEach(el => {
     const cat = el.dataset.category;
-    if (cat === 'dashboard' || cat === 'correlations') { el.style.display = ''; return; }
+    if (cat === 'dashboard' || cat === 'correlations' || cat === 'compare') { el.style.display = ''; return; }
     const label = el.textContent.toLowerCase();
     const markers = (el.dataset.markers || '').toLowerCase();
     el.style.display = (label.includes(query) || markers.includes(query)) ? '' : 'none';
@@ -897,6 +1059,7 @@ function navigate(category) {
   destroyAllCharts();
   if (category === "dashboard") showDashboard();
   else if (category === "correlations") showCorrelations();
+  else if (category === "compare") showCompare();
   else showCategory(category);
 }
 
@@ -1077,8 +1240,9 @@ function showDashboard() {
         </div>`;
       }
     }
-    html += `<div style="display:flex;gap:8px;margin-top:8px">
+    html += `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
       <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+      <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
       <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
     html += `</div>`;
   }
@@ -1108,7 +1272,7 @@ function showDashboard() {
         <span class="alert-indicator">${label}</span>
         <span class="alert-name">${f.name}</span>
         <span class="alert-value">${f.value} ${f.unit}</span>
-        <span class="alert-ref">Ref: ${formatValue(f.refMin)} \u2013 ${formatValue(f.refMax)}</span></div>`;
+        <span class="alert-ref">${formatValue(f.effectiveMin)} \u2013 ${formatValue(f.effectiveMax)}</span></div>`;
     }
     html += `</div>`;
   }
@@ -1131,9 +1295,13 @@ function showDashboard() {
   }
   html += `</div>`;
 
-  html += `<div class="category-header" style="margin-top:16px"><h2>Key Trends</h2>
-    <p>Important biomarkers tracked over time</p></div>`;
+  html += `<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px">
+    <div class="category-header" style="margin:0"><h2>Key Trends</h2>
+    <p>Important biomarkers tracked over time</p></div>
+    ${renderDateRangeFilter()}
+  </div>`;
 
+  const filteredData = filterDatesByRange(data);
   const keyMarkers = [
     { cat: "diabetes", key: "hba1c" }, { cat: "diabetes", key: "homaIR" },
     { cat: "lipids", key: "ldl" }, { cat: "vitamins", key: "vitaminD" },
@@ -1143,29 +1311,34 @@ function showDashboard() {
 
   html += `<div class="charts-grid">`;
   for (const km of keyMarkers) {
-    const marker = data.categories[km.cat].markers[km.key];
-    html += renderChartCard(km.cat + "_" + km.key, marker, data.dateLabels);
+    const marker = filteredData.categories[km.cat].markers[km.key];
+    html += renderChartCard(km.cat + "_" + km.key, marker, filteredData.dateLabels);
   }
   html += `</div>`;
   main.innerHTML = html;
 
   for (const km of keyMarkers) {
-    const marker = data.categories[km.cat].markers[km.key];
-    createLineChart(km.cat + "_" + km.key, marker, data.dateLabels, data.dates);
+    const marker = filteredData.categories[km.cat].markers[km.key];
+    createLineChart(km.cat + "_" + km.key, marker, filteredData.dateLabels, filteredData.dates);
   }
   setupDropZone();
 }
 
 function showCategory(categoryKey) {
-  const data = getActiveData();
+  const rawData = getActiveData();
+  const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const main = document.getElementById("main-content");
   let html = `<div class="category-header"><h2>${cat.icon} ${cat.label}</h2>
     <p>${Object.keys(cat.markers).length} biomarkers tracked</p></div>`;
 
-  html += `<div class="view-toggle">
+  html += `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">`;
+  html += `<div class="view-toggle" style="margin-bottom:0">
     <button class="view-btn active" onclick="switchView('charts','${categoryKey}',this)">Charts</button>
-    <button class="view-btn" onclick="switchView('table','${categoryKey}',this)">Table</button></div>`;
+    <button class="view-btn" onclick="switchView('table','${categoryKey}',this)">Table</button>
+    <button class="view-btn" onclick="switchView('heatmap','${categoryKey}',this)">Heatmap</button></div>`;
+  html += renderDateRangeFilter();
+  html += `</div>`;
 
   const hasValues = Object.values(cat.markers).some(m => m.values && m.values.length > 0 && m.values.some(v => v !== null));
 
@@ -1198,11 +1371,14 @@ function switchView(view, categoryKey, btn) {
   document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   destroyAllCharts();
-  const data = getActiveData();
+  const rawData = getActiveData();
+  const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const container = document.getElementById("view-content");
   if (view === "table") {
     container.innerHTML = renderTableView(cat, data.dateLabels);
+  } else if (view === "heatmap") {
+    container.innerHTML = renderHeatmapView(cat, data.dateLabels, data.dates, categoryKey);
   } else {
     if (cat.singleDate) {
       container.innerHTML = renderFattyAcidsView(cat);
@@ -1225,7 +1401,8 @@ function renderChartCard(id, marker, dateLabels) {
   markerRegistry[id] = marker;
   const latestIdx = getLatestValueIndex(marker.values);
   const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
-  const status = latestVal !== null ? getStatus(latestVal, marker.refMin, marker.refMax) : "missing";
+  const r = getEffectiveRange(marker);
+  const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : "missing";
   const statusLabel = status === "normal" ? "Normal" : status === "high" ? "High" : status === "low" ? "Low" : "N/A";
   const sIcon = statusIcon(status);
 
@@ -1242,11 +1419,12 @@ function renderChartCard(id, marker, dateLabels) {
   const labels = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
-    const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
+    const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
-  html += `</div>${marker.refMin != null && marker.refMax != null ? `<div class="chart-ref-range">Reference: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} ${marker.unit}</div>` : ''}</div>`;
+  const rangeLabel = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
+  html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${marker.unit}</div>` : ''}</div>`;
   return html;
 }
 
@@ -1257,23 +1435,49 @@ function renderTableView(cat, dateLabels) {
   for (const d of labels) html += `<th>${d}</th>`;
   html += `<th>Trend</th><th>Range</th></tr></thead><tbody>`;
   for (const [key, marker] of Object.entries(cat.markers)) {
+    const r = getEffectiveRange(marker);
+    let refCell = r.min != null && r.max != null ? `${formatValue(r.min)} \u2013 ${formatValue(r.max)}` : '\u2014';
+    if (rangeMode === 'both') {
+      if (marker.optimalMin != null) refCell = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span style="color:var(--green);font-size:11px">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
+    }
     html += `<tr><td class="marker-name">${marker.name}</td>
       <td class="unit-col">${marker.unit}</td>
-      <td class="ref-col">${marker.refMin != null && marker.refMax != null ? `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}` : '\u2014'}</td>`;
+      <td class="ref-col">${refCell}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
-      const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
+      const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
       html += `<td class="value-cell val-${s}">${v !== null ? formatValue(v) : "\u2014"}</td>`;
     }
     const trend = getTrend(marker.values);
     html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     const li = getLatestValueIndex(marker.values);
-    if (li !== -1 && marker.refMin != null && marker.refMax != null) {
-      const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], marker.refMin, marker.refMax)));
-      const s = getStatus(marker.values[li], marker.refMin, marker.refMax);
+    if (li !== -1 && r.min != null && r.max != null) {
+      const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], r.min, r.max)));
+      const s = getStatus(marker.values[li], r.min, r.max);
       html += `<td><div class="range-bar"><div class="range-bar-fill" style="left:0;width:100%"></div>
         <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></td>`;
     } else html += `<td>\u2014</td>`;
+    html += `</tr>`;
+  }
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
+  const labels = cat.singleDate ? [cat.singleDateLabel || "N/A"] : dateLabels;
+  let html = `<div class="heatmap-wrapper"><table class="heatmap-table"><thead><tr><th>Biomarker</th>`;
+  for (const d of labels) html += `<th>${d}</th>`;
+  html += `</tr></thead><tbody>`;
+  for (const [key, marker] of Object.entries(cat.markers)) {
+    const id = categoryKey + "_" + key;
+    markerRegistry[id] = marker;
+    const r = getEffectiveRange(marker);
+    html += `<tr><td>${marker.name}</td>`;
+    for (let i = 0; i < marker.values.length; i++) {
+      const v = marker.values[i];
+      const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
+      html += `<td class="heatmap-${s}" onclick="showDetailModal('${id}')">${v !== null ? formatValue(v) : "\u2014"}</td>`;
+    }
     html += `</tr>`;
   }
   html += `</tbody></table></div>`;
@@ -1286,11 +1490,13 @@ function renderFattyAcidsView(cat) {
     <div style="height:400px"><canvas id="chart-fa-bar"></canvas></div></div>`;
   html += `<div class="fatty-acids-grid">`;
   for (const [key, marker] of Object.entries(cat.markers)) {
-    const v = marker.values[0], s = getStatus(v, marker.refMin, marker.refMax);
-    const pos = Math.max(0, Math.min(100, getRangePosition(v, marker.refMin, marker.refMax)));
+    const r = getEffectiveRange(marker);
+    const v = marker.values[0], s = getStatus(v, r.min, r.max);
+    const pos = Math.max(0, Math.min(100, getRangePosition(v, r.min, r.max)));
+    const rangeLabel = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
     html += `<div class="fa-card"><div class="fa-card-name">${marker.name}</div>
       <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + marker.unit : ""}</div>
-      <div class="fa-card-ref">Ref: ${marker.refMin} \u2013 ${marker.refMax}</div>
+      <div class="fa-card-ref">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}</div>
       <div class="range-bar" style="margin-top:8px;width:100%"><div class="range-bar-fill" style="left:0;width:100%"></div>
       <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></div>`;
   }
@@ -1301,9 +1507,10 @@ function renderFattyAcidsView(cat) {
 function renderFattyAcidsCharts(cat) {
   const names=[], vals=[], mins=[], maxs=[], bgC=[], brC=[];
   for (const m of Object.values(cat.markers)) {
+    const r = getEffectiveRange(m);
     names.push(m.name.replace(/\(.+\)/,"").trim());
-    vals.push(m.values[0]); mins.push(m.refMin); maxs.push(m.refMax);
-    const s = getStatus(m.values[0], m.refMin, m.refMax);
+    vals.push(m.values[0]); mins.push(r.min); maxs.push(r.max);
+    const s = getStatus(m.values[0], r.min, r.max);
     bgC.push(s==="normal"?"rgba(52,211,153,0.6)":s==="high"?"rgba(248,113,113,0.6)":"rgba(251,191,36,0.6)");
     brC.push(s==="normal"?"rgba(52,211,153,1)":s==="high"?"rgba(248,113,113,1)":"rgba(251,191,36,1)");
   }
@@ -1338,6 +1545,27 @@ const refBandPlugin = {
     ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
     ctx.strokeStyle = "rgba(79,140,255,0.2)";
     ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Chart.js plugin for optimal range band (green dashed, inside ref band)
+const optimalBandPlugin = {
+  id: "optimalBand",
+  beforeDraw(chart) {
+    const opts = chart.options.plugins.optimalBand;
+    if (!opts || !chart.chartArea || opts.optimalMin == null || opts.optimalMax == null) return;
+    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+    if (!y) return;
+    const yMin = y.getPixelForValue(opts.optimalMin);
+    const yMax = y.getPixelForValue(opts.optimalMax);
+    ctx.save();
+    ctx.fillStyle = "rgba(52, 211, 153, 0.06)";
+    ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
+    ctx.strokeStyle = "rgba(52, 211, 153, 0.3)";
+    ctx.setLineDash([3,3]); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
     ctx.restore();
@@ -1634,12 +1862,15 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   const allValid = chronoAgeValues ? [...valid, ...chronoAgeValues.filter(v => v !== null)] : valid;
   const refMinSafe = marker.refMin != null ? marker.refMin : Infinity;
   const refMaxSafe = marker.refMax != null ? marker.refMax : -Infinity;
-  const minV = Math.min(...allValid, refMinSafe);
-  const maxV = Math.max(...allValid, refMaxSafe);
+  const optMinSafe = marker.optimalMin != null ? marker.optimalMin : Infinity;
+  const optMaxSafe = marker.optimalMax != null ? marker.optimalMax : -Infinity;
+  const minV = Math.min(...allValid, refMinSafe, optMinSafe);
+  const maxV = Math.max(...allValid, refMaxSafe, optMaxSafe);
   const pad = (maxV - minV) * 0.15 || 1;
+  const chartRange = getEffectiveRange(marker);
   const ptColors = values.map(v => {
     if (v === null) return "transparent";
-    const s = getStatus(v, marker.refMin, marker.refMax);
+    const s = getStatus(v, chartRange.min, chartRange.max);
     return s==="normal"?"#34d399":s==="high"?"#f87171":"#fbbf24";
   });
   const rawDates = chartDates || [];
@@ -1664,15 +1895,16 @@ function createLineChart(id, marker, dateLabels, chartDates) {
     options: { responsive:true, maintainAspectRatio:false,
       plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: '#8b90a0', font: { size: 11 }, boxWidth: 20, padding: 10 } },
         tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
-          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> c.datasetIndex === 0 && marker.refMin != null && marker.refMax != null ? `Ref: ${marker.refMin} \u2013 ${marker.refMax}` : '' }},
-        refBand:{ refMin:marker.refMin, refMax:marker.refMax },
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const rl = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'; return chartRange.min != null && chartRange.max != null ? `${rl}: ${formatValue(chartRange.min)} \u2013 ${formatValue(chartRange.max)}` : ''; } }},
+        refBand: rangeMode === 'both' ? { refMin:marker.refMin, refMax:marker.refMax } : { refMin:chartRange.min, refMax:chartRange.max },
+        optimalBand: rangeMode === 'both' && marker.optimalMin != null ? { optimalMin: marker.optimalMin, optimalMax: marker.optimalMax } : false,
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,
         supplementBars: chartSupps.length ? { supplements: chartSupps, chartDates: rawDates } : false},
       layout: { padding: { top: chartSupps.length ? chartSupps.length * 14 + 6 : 0 } },
       scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
         y:{min:minV-pad, max:maxV+pad, ticks:{color:"#5a5f73",font:{size:10}}, grid:{color:"rgba(46,51,72,0.5)"}}}
     },
-    plugins: [refBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
+    plugins: [refBandPlugin, optimalBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
   });
 }
 
@@ -1703,15 +1935,25 @@ function showDetailModal(id) {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : data.dateLabels;
+  const r = getEffectiveRange(marker);
+  let rangeInfo = '';
+  if (rangeMode === 'both') {
+    if (marker.refMin != null && marker.refMax != null) rangeInfo += ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}`;
+    if (marker.optimalMin != null) rangeInfo += ` &middot; <span style="color:var(--green)">Optimal: ${marker.optimalMin} \u2013 ${marker.optimalMax}</span>`;
+  } else if (rangeMode === 'optimal' && marker.optimalMin != null) {
+    rangeInfo = ` &middot; <span style="color:var(--green)">Optimal: ${marker.optimalMin} \u2013 ${marker.optimalMax}</span>`;
+  } else if (marker.refMin != null && marker.refMax != null) {
+    rangeInfo = ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}`;
+  }
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${marker.name}</h3>
-    <div class="modal-unit">${marker.unit}${marker.refMin != null && marker.refMax != null ? ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}` : ''}</div>
+    <div class="modal-unit">${marker.unit}${rangeInfo}</div>
     <div class="marker-description" id="marker-desc"></div>
     <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
-    const s = v !== null ? getStatus(v, marker.refMin, marker.refMax) : "missing";
+    const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
     const sl = s==="normal"?"\u2713 In Range":s==="high"?"\u25B2 Above Range":s==="low"?"\u25BC Below Range":"N/A";
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && importedData.notes ? importedData.notes.find(n => n.date === rawDate) : null;
@@ -1874,7 +2116,7 @@ function destroyAllCharts() {
 }
 function countFlagged(markers) {
   let c = 0;
-  for (const m of markers) { const i = getLatestValueIndex(m.values); if (i!==-1 && getStatus(m.values[i],m.refMin,m.refMax)!=="normal") c++; }
+  for (const m of markers) { const i = getLatestValueIndex(m.values); if (i!==-1) { const r = getEffectiveRange(m); if (getStatus(m.values[i],r.min,r.max)!=="normal") c++; } }
   return c;
 }
 function countMissing(markers) {
@@ -1892,8 +2134,8 @@ function getAllFlaggedMarkers(data) {
   for (const [ck, cat] of Object.entries(data.categories)) {
     for (const [k, m] of Object.entries(cat.markers)) {
       const i = getLatestValueIndex(m.values);
-      if (i!==-1) { const v=m.values[i], s=getStatus(v,m.refMin,m.refMax);
-        if (s==="high"||s==="low") flags.push({categoryKey:ck,name:m.name,value:formatValue(v),unit:m.unit,refMin:m.refMin,refMax:m.refMax,status:s});
+      if (i!==-1) { const v=m.values[i], r=getEffectiveRange(m), s=getStatus(v,r.min,r.max);
+        if (s==="high"||s==="low") flags.push({categoryKey:ck,name:m.name,value:formatValue(v),rawValue:v,unit:m.unit,refMin:m.refMin,refMax:m.refMax,optimalMin:m.optimalMin,optimalMax:m.optimalMax,effectiveMin:r.min,effectiveMax:r.max,status:s});
       }
     }
   }
@@ -1931,10 +2173,31 @@ function switchUnitSystem(system) {
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === system);
   });
-  buildSidebar();
-  updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
   const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
+  buildSidebar();
+  updateHeaderDates();
+  navigate(currentCategory);
+}
+
+function getEffectiveRange(marker) {
+  if (rangeMode === 'optimal' || rangeMode === 'both') {
+    if (marker.optimalMin != null && marker.optimalMax != null) {
+      return { min: marker.optimalMin, max: marker.optimalMax };
+    }
+  }
+  return { min: marker.refMin, max: marker.refMax };
+}
+
+function switchRangeMode(mode) {
+  rangeMode = mode;
+  localStorage.setItem(profileStorageKey(currentProfile, 'rangeMode'), mode);
+  document.querySelectorAll('.range-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.range === mode);
+  });
+  const activeNav = document.querySelector(".nav-item.active");
+  const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
+  buildSidebar();
   navigate(currentCategory);
 }
 
@@ -1949,6 +2212,109 @@ function updateHeaderDates() {
       el.style.display = 'none';
     }
   }
+}
+
+// ═══════════════════════════════════════════════
+// COMPARE TWO DATES
+// ═══════════════════════════════════════════════
+function showCompare() {
+  const data = getActiveData();
+  const main = document.getElementById("main-content");
+  let html = `<div class="category-header"><h2>\u2194 Compare Dates</h2>
+    <p>Side-by-side comparison of biomarker values between two collection dates</p></div>`;
+  if (data.dates.length < 2) {
+    html += `<div class="empty-state"><div class="empty-state-icon">\u2194</div>
+      <h3>Not Enough Data</h3><p>Import at least 2 lab result dates to compare values side by side.</p></div>`;
+    main.innerHTML = html;
+    return;
+  }
+  if (!compareDate1 || !data.dates.includes(compareDate1)) compareDate1 = data.dates[0];
+  if (!compareDate2 || !data.dates.includes(compareDate2)) compareDate2 = data.dates[data.dates.length - 1];
+  const fmtOpt = d => {
+    const label = new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `<option value="${d}">${label}</option>`;
+  };
+  html += `<div class="compare-controls">
+    <label>Date 1:</label>
+    <select id="compare-select-1" onchange="compareDate1=this.value;updateCompare()">${data.dates.map(d => fmtOpt(d)).join('')}</select>
+    <button class="compare-swap-btn" onclick="swapCompareDates()" title="Swap dates">\u21C4</button>
+    <label>Date 2:</label>
+    <select id="compare-select-2" onchange="compareDate2=this.value;updateCompare()">${data.dates.map(d => fmtOpt(d)).join('')}</select>
+  </div>`;
+  html += `<div id="compare-results"></div>`;
+  main.innerHTML = html;
+  document.getElementById('compare-select-1').value = compareDate1;
+  document.getElementById('compare-select-2').value = compareDate2;
+  updateCompare();
+}
+
+function updateCompare() {
+  const data = getActiveData();
+  const container = document.getElementById('compare-results');
+  if (!container) return;
+  const idx1 = data.dates.indexOf(compareDate1);
+  const idx2 = data.dates.indexOf(compareDate2);
+  if (idx1 === -1 || idx2 === -1) { container.innerHTML = ''; return; }
+  container.innerHTML = renderCompareTable(data, idx1, idx2);
+}
+
+function swapCompareDates() {
+  const tmp = compareDate1;
+  compareDate1 = compareDate2;
+  compareDate2 = tmp;
+  const s1 = document.getElementById('compare-select-1');
+  const s2 = document.getElementById('compare-select-2');
+  if (s1) s1.value = compareDate1;
+  if (s2) s2.value = compareDate2;
+  updateCompare();
+}
+
+function renderCompareTable(data, idx1, idx2) {
+  const d1Label = data.dateLabels[idx1];
+  const d2Label = data.dateLabels[idx2];
+  let html = `<div class="compare-table-wrapper"><table class="compare-table"><thead><tr>
+    <th>Biomarker</th><th>Unit</th><th>Reference</th>
+    <th>${d1Label}</th><th>${d2Label}</th><th>Delta</th><th>% Change</th></tr></thead><tbody>`;
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    if (cat.singlePoint) continue;
+    const rows = [];
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      const v1 = marker.values[idx1];
+      const v2 = marker.values[idx2];
+      if (v1 === null && v2 === null) continue;
+      const mr = getEffectiveRange(marker);
+      const s1 = v1 !== null ? getStatus(v1, mr.min, mr.max) : 'missing';
+      const s2 = v2 !== null ? getStatus(v2, mr.min, mr.max) : 'missing';
+      let delta = null, pctChange = null, directionClass = 'compare-neutral';
+      if (v1 !== null && v2 !== null) {
+        delta = v2 - v1;
+        pctChange = v1 !== 0 ? (delta / v1) * 100 : null;
+        if (mr.min != null && mr.max != null) {
+          const mid = (mr.min + mr.max) / 2;
+          const dist1 = Math.abs(v1 - mid);
+          const dist2 = Math.abs(v2 - mid);
+          if (dist2 < dist1 - 0.001) directionClass = 'compare-improved';
+          else if (dist2 > dist1 + 0.001) directionClass = 'compare-worsened';
+        }
+      }
+      const refStr = marker.refMin != null && marker.refMax != null ? `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}` : '\u2014';
+      rows.push(`<tr>
+        <td class="marker-name">${marker.name}</td>
+        <td style="color:var(--text-muted);font-size:12px">${marker.unit}</td>
+        <td style="color:var(--text-secondary);font-size:12px">${refStr}</td>
+        <td class="value-cell val-${s1}" style="font-weight:600">${v1 !== null ? formatValue(v1) : '\u2014'}</td>
+        <td class="value-cell val-${s2}" style="font-weight:600">${v2 !== null ? formatValue(v2) : '\u2014'}</td>
+        <td class="${directionClass}" style="font-weight:600">${delta !== null ? (delta > 0 ? '+' : '') + formatValue(delta) : '\u2014'}</td>
+        <td class="${directionClass}" style="font-weight:600">${pctChange !== null ? (pctChange > 0 ? '+' : '') + pctChange.toFixed(1) + '%' : '\u2014'}</td>
+      </tr>`);
+    }
+    if (rows.length > 0) {
+      html += `<tr class="cat-row"><td colspan="7">${cat.icon} ${cat.label}</td></tr>`;
+      html += rows.join('');
+    }
+  }
+  html += `</tbody></table></div>`;
+  return html;
 }
 
 // ═══════════════════════════════════════════════
@@ -2866,6 +3232,221 @@ async function handlePDFFile(file) {
 }
 
 // ═══════════════════════════════════════════════
+// PDF REPORT EXPORT
+// ═══════════════════════════════════════════════
+function exportPDFReport() {
+  const rawData = getActiveData();
+  const data = filterDatesByRange(rawData);
+  const profiles = getProfiles();
+  const profileName = (profiles.find(p => p.id === currentProfile) || { name: 'Profile' }).name;
+  const sexLabel = profileSex === 'female' ? 'Female' : profileSex === 'male' ? 'Male' : 'Not specified';
+  const flags = getAllFlaggedMarkers(data);
+  const notes = (importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  const supps = importedData.supplements || [];
+  const contextSections = [];
+  if (importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: importedData.diagnoses });
+  if (importedData.diet) contextSections.push({ title: 'Diet', text: importedData.diet });
+  if (importedData.circadian) contextSections.push({ title: 'Circadian Habits', text: importedData.circadian });
+  if (importedData.sleep) contextSections.push({ title: 'Sleep', text: importedData.sleep });
+  if (importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: importedData.exercise });
+  if (importedData.fieldExperts) contextSections.push({ title: 'Field Experts', text: importedData.fieldExperts });
+
+  const html = buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections);
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 600);
+}
+
+function buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections) {
+  const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const dateRange = data.dateLabels.length > 0
+    ? `${data.dateLabels[0]} \u2013 ${data.dateLabels[data.dateLabels.length - 1]}`
+    : 'No dates';
+  const unitLabel = unitSystem === 'US' ? 'US (conventional)' : 'EU (SI)';
+  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  let body = '';
+
+  // Header
+  body += `<div class="report-header">
+    <h1>LabCharts Report</h1>
+    <div class="report-meta">
+      <span><strong>Profile:</strong> ${esc(profileName)}</span>
+      <span><strong>Sex:</strong> ${sexLabel}</span>
+      <span><strong>Units:</strong> ${unitLabel}</span>
+      <span><strong>Date range:</strong> ${dateRange}</span>
+      <span><strong>Generated:</strong> ${now}</span>
+    </div>
+  </div>`;
+
+  // Flagged Results
+  if (flags.length > 0) {
+    body += `<h2>Flagged Results</h2><table><thead><tr><th>Biomarker</th><th>Value</th><th>Range</th><th>Status</th></tr></thead><tbody>`;
+    for (const f of flags) {
+      const cls = f.status === 'high' ? 'val-high' : 'val-low';
+      const label = f.status === 'high' ? 'HIGH' : 'LOW';
+      body += `<tr><td>${esc(f.name)}</td><td class="${cls}">${f.value} ${esc(f.unit)}</td>
+        <td>${formatValue(f.effectiveMin)} \u2013 ${formatValue(f.effectiveMax)}</td><td class="${cls}">${label}</td></tr>`;
+    }
+    body += `</tbody></table>`;
+  }
+
+  // Category tables
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values && m.values.some(v => v !== null));
+    if (markersWithData.length === 0) continue;
+    const labels = cat.singleDate ? [cat.singleDateLabel || 'N/A'] : data.dateLabels;
+    body += `<h2>${cat.icon} ${esc(cat.label)}</h2><table><thead><tr><th>Biomarker</th><th>Unit</th><th>Reference</th>`;
+    if (cat.singleDate) {
+      body += `<th>${labels[0]}</th>`;
+    } else {
+      for (const l of labels) body += `<th>${l}</th>`;
+    }
+    body += `<th>Trend</th></tr></thead><tbody>`;
+    for (const [mKey, marker] of markersWithData) {
+      const trend = getTrend(marker.values);
+      const r = getEffectiveRange(marker);
+      let rangeStr = r.min != null && r.max != null ? `${formatValue(r.min)} \u2013 ${formatValue(r.max)}` : '\u2014';
+      if (rangeMode === 'both' && marker.optimalMin != null) {
+        rangeStr = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span class="optimal">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
+      }
+      body += `<tr><td>${esc(marker.name)}</td><td class="muted">${esc(marker.unit)}</td><td class="muted">${rangeStr}</td>`;
+      for (let i = 0; i < marker.values.length; i++) {
+        const v = marker.values[i];
+        const s = v !== null ? getStatus(v, r.min, r.max) : 'missing';
+        body += `<td class="val-${s}">${v !== null ? formatValue(v) : '\u2014'}</td>`;
+      }
+      body += `<td>${trend.arrow}</td></tr>`;
+    }
+    body += `</tbody></table>`;
+  }
+
+  // Supplements
+  if (supps.length > 0) {
+    body += `<h2>Supplements & Medications</h2><table><thead><tr><th>Name</th><th>Dosage</th><th>Type</th><th>Period</th></tr></thead><tbody>`;
+    for (const s of supps) {
+      body += `<tr><td>${esc(s.name)}</td><td>${esc(s.dosage || '\u2014')}</td><td>${s.type}</td>
+        <td>${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}</td></tr>`;
+    }
+    body += `</tbody></table>`;
+  }
+
+  // Notes
+  if (notes.length > 0) {
+    body += `<h2>Notes</h2>`;
+    for (const n of notes) {
+      body += `<div class="note-item"><strong>${fmtDate(n.date)}</strong>: ${esc(n.text)}</div>`;
+    }
+  }
+
+  // Context sections
+  if (contextSections.length > 0) {
+    body += `<h2>Profile Context</h2>`;
+    for (const s of contextSections) {
+      body += `<div class="context-item"><strong>${esc(s.title)}:</strong> ${esc(s.text)}</div>`;
+    }
+  }
+
+  // Summary for Healthcare Provider
+  body += `<h2>Summary for Healthcare Provider</h2>`;
+  body += `<p style="font-size:13px;color:#555;margin-bottom:12px">Generated from <strong>${data.dates.length}</strong> collection date${data.dates.length !== 1 ? 's' : ''}${data.dateLabels.length >= 2 ? ` spanning ${data.dateLabels[0]} \u2013 ${data.dateLabels[data.dateLabels.length - 1]}` : ''}.</p>`;
+
+  if (flags.length > 0) {
+    body += `<p style="font-size:14px;font-weight:700;margin:12px 0 6px">Out of Range (${flags.length}):</p><ul style="font-size:13px;margin:0 0 12px 20px">`;
+    for (const f of flags) {
+      const boundary = f.status === 'high' ? f.effectiveMax : f.effectiveMin;
+      const diff = f.status === 'high' ? f.rawValue - boundary : boundary - f.rawValue;
+      const pctBeyond = boundary !== 0 ? ((diff / boundary) * 100).toFixed(0) : '?';
+      body += `<li><strong>${esc(f.name)}</strong>: ${f.value} ${esc(f.unit)} \u2014 <span class="val-${f.status}">${f.status.toUpperCase()}</span> (${pctBeyond}% beyond ${f.status === 'high' ? 'upper' : 'lower'} limit; ref: ${formatValue(f.refMin)}\u2013${formatValue(f.refMax)}${f.optimalMin != null ? ', optimal: ' + formatValue(f.optimalMin) + '\u2013' + formatValue(f.optimalMax) : ''})</li>`;
+    }
+    body += `</ul>`;
+  } else {
+    body += `<p style="font-size:13px;color:#059669;margin-bottom:12px"><strong>No out-of-range results.</strong></p>`;
+  }
+
+  // Notable trends (>10% change between first and last value)
+  const trendItems = [];
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      const nonNull = marker.values.map((v,i) => ({v,i})).filter(x => x.v !== null);
+      if (nonNull.length < 2) continue;
+      const first = nonNull[0], last = nonNull[nonNull.length - 1];
+      if (first.v === 0) continue;
+      const pctChange = ((last.v - first.v) / first.v) * 100;
+      if (Math.abs(pctChange) > 10) {
+        const dir = pctChange > 0 ? 'increased' : 'decreased';
+        const firstDate = data.dateLabels[first.i] || '';
+        const lastDate = data.dateLabels[last.i] || '';
+        trendItems.push(`<li><strong>${esc(marker.name)}</strong> ${dir} ${Math.abs(pctChange).toFixed(0)}% (${formatValue(first.v)} \u2192 ${formatValue(last.v)} ${esc(marker.unit)}, ${firstDate} to ${lastDate})</li>`);
+      }
+    }
+  }
+  if (trendItems.length > 0) {
+    body += `<p style="font-size:14px;font-weight:700;margin:12px 0 6px">Notable Trends (&gt;10% change):</p><ul style="font-size:13px;margin:0 0 12px 20px">${trendItems.join('')}</ul>`;
+  }
+
+  // Summary counts
+  let totalWithData = 0, totalInRange = 0;
+  for (const cat of Object.values(data.categories)) {
+    for (const m of Object.values(cat.markers)) {
+      const li = getLatestValueIndex(m.values);
+      if (li !== -1) {
+        totalWithData++;
+        const r = getEffectiveRange(m);
+        if (getStatus(m.values[li], r.min, r.max) === 'normal') totalInRange++;
+      }
+    }
+  }
+  body += `<p style="font-size:13px;margin-bottom:8px"><strong>Within ${rangeMode === 'reference' ? 'Reference' : 'Optimal'} Range:</strong> ${totalInRange} of ${totalWithData} markers with data</p>`;
+
+  if (supps.length > 0) {
+    const suppList = supps.map(s => `${esc(s.name)}${s.dosage ? ' (' + esc(s.dosage) + ')' : ''}`).join(', ');
+    body += `<p style="font-size:13px;margin-bottom:8px"><strong>Supplements/Medications:</strong> ${suppList}</p>`;
+  }
+
+  body += `<p style="font-size:11px;color:#888;font-style:italic;margin-top:12px">This summary was auto-generated by LabCharts. Values should be interpreted in clinical context.</p>`;
+
+  // Footer
+  body += `<div class="report-footer">
+    <p>Generated by LabCharts &middot; ${now}</p>
+    <p class="disclaimer">This report is for informational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional for interpretation of lab results.</p>
+  </div>`;
+
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>LabCharts Report - ${esc(profileName)}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; line-height: 1.5; padding: 32px; max-width: 1000px; margin: 0 auto; }
+  .report-header { border-bottom: 2px solid #333; padding-bottom: 16px; margin-bottom: 24px; }
+  .report-header h1 { font-size: 28px; font-weight: 700; }
+  .report-meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: #555; margin-top: 8px; }
+  h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #ddd; page-break-after: avoid; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; }
+  th { background: #f5f5f5; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #ddd; }
+  td { padding: 6px 10px; border-bottom: 1px solid #eee; font-variant-numeric: tabular-nums; }
+  .val-normal { color: #059669; font-weight: 600; }
+  .val-high { color: #dc2626; font-weight: 600; }
+  .val-low { color: #d97706; font-weight: 600; }
+  .val-missing { color: #999; }
+  .muted { color: #777; font-size: 11px; }
+  .optimal { color: #059669; font-size: 10px; }
+  .note-item { padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  .context-item { padding: 6px 0; font-size: 13px; white-space: pre-line; }
+  .report-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #888; }
+  .disclaimer { margin-top: 8px; font-style: italic; }
+  @media print {
+    body { padding: 16px; }
+    h2 { page-break-after: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    .report-footer { position: fixed; bottom: 0; width: 100%; }
+  }
+</style></head><body>${body}</body></html>`;
+}
+
+// ═══════════════════════════════════════════════
 // JSON EXPORT / IMPORT
 // ═══════════════════════════════════════════════
 function exportDataJSON() {
@@ -3127,8 +3708,9 @@ function buildLabContext() {
         ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
         : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
       const latestIdx = getLatestValueIndex(m.values);
-      const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], m.refMin, m.refMax) : 'no data';
-      const refStr = m.refMin != null && m.refMax != null ? `ref: ${m.refMin}–${m.refMax}, ` : '';
+      const mr = getEffectiveRange(m);
+      const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
+      const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}–${mr.max}, ` : '';
       ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
     }
     ctx += '\n';
@@ -3137,7 +3719,7 @@ function buildLabContext() {
   if (flags.length > 0) {
     ctx += `## Flagged Results (Latest)\n`;
     for (const f of flags) {
-      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, ref: ${f.refMin}–${f.refMax})\n`;
+      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}–${f.effectiveMax})\n`;
     }
     ctx += '\n';
   }
@@ -3339,8 +3921,9 @@ function askAIAboutMarker(markerId) {
     .map((v, i) => v !== null ? `${dates[i]}: ${formatValue(v)} ${marker.unit}` : null)
     .filter(Boolean).join(', ');
   const latestIdx = getLatestValueIndex(marker.values);
-  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], marker.refMin, marker.refMax) : 'no data';
-  const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}–${marker.refMax} ${marker.unit}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
+  const mr = getEffectiveRange(marker);
+  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
+  const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}–${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}–${marker.optimalMax}` : ''}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
   closeModal();
   openChatPanel(prompt);
 }
