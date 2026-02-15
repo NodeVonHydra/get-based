@@ -456,7 +456,13 @@ body {
   background: var(--bg-card); border-radius: var(--radius);
   border: 1px solid var(--border); padding: 20px;
 }
-.corr-chart-container h3 { font-size: 16px; margin-bottom: 16px; }
+.corr-chart-container h3 { font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.corr-ask-ai-btn {
+  padding: 5px 14px; border-radius: 6px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.corr-ask-ai-btn:hover { background: var(--accent); color: #fff; }
 .corr-chart { height: 400px; }
 .imported-entries { margin-bottom: 20px; }
 .imported-entry {
@@ -985,3 +991,30 @@ body {
 .compare-improved { color: var(--green); }
 .compare-worsened { color: var(--red); }
 .compare-neutral { color: var(--text-muted); }
+/* Styled Confirmation Dialog */
+.confirm-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 300; display: none;
+  align-items: center; justify-content: center;
+}
+.confirm-overlay.show { display: flex; }
+.confirm-dialog {
+  background: var(--bg-secondary); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 28px 32px;
+  max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.confirm-message {
+  font-size: 15px; line-height: 1.6; color: var(--text-primary); margin-bottom: 24px;
+}
+.confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.confirm-btn {
+  padding: 8px 20px; border-radius: 6px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.confirm-btn-cancel {
+  background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border);
+}
+.confirm-btn-cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
+.confirm-btn-danger { background: var(--red); color: white; }
+.confirm-btn-danger:hover { background: #ef5350; }
