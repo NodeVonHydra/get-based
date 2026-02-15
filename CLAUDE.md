@@ -28,7 +28,8 @@ No build system, no bundler, no package manager. Three source files:
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
   - Diagnoses, diet, circadian, sleep, exercise & field experts profile context (`openDiagnosesEditor`, `openDietEditor`, `openCircadianEditor`, `openSleepEditor`, `openExerciseEditor`, `openFieldExpertsEditor`)
   - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
-  - Chart annotation plugin (`noteAnnotationPlugin` — vertical dashed lines at note dates)
+  - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
+  - AI marker descriptions (`fetchMarkerDescription` — cached one-sentence explanations in detail modal)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
   - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
   - Per-marker AI (`askAIAboutMarker` — opens chat with pre-filled marker-specific prompt)
@@ -73,8 +74,8 @@ Notes are independent of lab entries — they support any date and are stored in
 
 - Dashboard shows notes interleaved chronologically with lab entries, distinguished by a yellow left border
 - `openNoteEditor(date?, existingIdx?)` opens a modal with date picker + textarea; defaults to today for new notes
-- `noteAnnotationPlugin` (Chart.js plugin) draws vertical dashed yellow lines at note dates on all trend charts and the correlation chart; interpolates position for notes falling between data points
-- Notes appear in the detail modal as a memo icon on date cards that match a note's date
+- `noteAnnotationPlugin` (Chart.js plugin) draws small filled yellow dots at the top edge of charts at note dates; on hover, shows a tooltip with note date and truncated text. Uses `afterDatasetsDraw` for rendering and `afterEvent` for hover detection. Interpolates position for notes falling between data points
+- Notes appear in the detail modal as a clickable memo icon on date cards; clicking toggles an inline expanded note text panel (`.mv-note-text`) below the date
 - `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
 
 ### Diagnoses, Diet, Circadian, Sleep, Exercise & Field Experts
@@ -119,6 +120,7 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
+- AI marker descriptions: `fetchMarkerDescription()` calls Claude for a one-sentence explanation of each biomarker, cached globally in `localStorage` key `labcharts-marker-desc` (object keyed by marker ID). Displayed between the unit/reference line and the chart in the detail modal with a shimmer loading skeleton while fetching
 
 ### API Key Management
 
@@ -163,7 +165,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v1` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v2` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
@@ -172,7 +174,7 @@ The app is installable and works offline via a service worker:
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
 - **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
-- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `noteAnnotationPlugin` draws vertical dashed lines at note dates
+- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `noteAnnotationPlugin` draws yellow dots at note dates with hover tooltips
 - **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales
 - **Fatty acids category** has `singlePoint: true` at category level in `MARKER_SCHEMA` — single-date results rendered differently (grid cards instead of trend charts)
 - **Empty state**: When no data is loaded, dashboard shows welcome message with import instructions; category views show "No data available"
