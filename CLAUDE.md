@@ -26,7 +26,7 @@ No build system, no bundler, no package manager. Three source files:
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
-  - Diagnoses, diet, circadian & exercise profile context (`openDiagnosesEditor`, `openDietEditor`, `openCircadianEditor`, `openExerciseEditor`)
+  - Diagnoses, diet, circadian, sleep, exercise & field experts profile context (`openDiagnosesEditor`, `openDietEditor`, `openCircadianEditor`, `openSleepEditor`, `openExerciseEditor`, `openFieldExpertsEditor`)
   - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
   - Chart annotation plugin (`noteAnnotationPlugin` — vertical dashed lines at note dates)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
@@ -37,7 +37,7 @@ No build system, no bundler, no package manager. Three source files:
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, circadian, exercise }`; unit preference under `labcharts-{profileId}-units`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts }`; unit preference under `labcharts-{profileId}-units`
 3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` at category level in the schema; `getActiveData()` sets `singleDate`, `singleDateLabel` on the category and `singlePoint`, `singleDateLabel` on each marker
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -63,15 +63,28 @@ Notes are independent of lab entries — they support any date and are stored in
 - Notes appear in the detail modal as a memo icon on date cards that match a note's date
 - `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
 
-### Diagnoses, Diet, Circadian & Exercise
+### Diagnoses, Diet, Circadian, Sleep, Exercise & Field Experts
 
-Free-text profile context stored in `importedData.diagnoses`, `importedData.diet`, `importedData.circadian`, and `importedData.exercise` (all strings):
+Free-text profile context stored in `importedData.diagnoses`, `importedData.diet`, `importedData.circadian`, `importedData.sleep`, `importedData.exercise`, and `importedData.fieldExperts` (all strings):
 
-- Dashboard renders four cards in a `.profile-context-cards` grid (2×2 on medium screens, 4×1 on wide) between the drop zone and the entries list
+- Dashboard renders six cards in a `.profile-context-cards` grid (3×2 on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section heading
+- Each card has an info icon (i) with a hover tooltip explaining why that context matters for lab interpretation
 - Each card shows current text or a placeholder prompt; clicking opens a modal editor
-- `buildLabContext()` prepends `## Medical Conditions / Diagnoses`, `## Diet`, `## Circadian Habits`, and `## Exercise & Movement` sections to the AI context
-- `CHAT_SYSTEM_PROMPT` instructs the AI to factor all four into lab interpretation
+- `buildLabContext()` prepends `## Medical Conditions / Diagnoses`, `## Diet`, `## Circadian Habits`, `## Sleep`, `## Exercise & Movement`, and `## Field Experts` sections to the AI context
+- `CHAT_SYSTEM_PROMPT` instructs the AI to factor all six into lab interpretation
 - All fields are included in JSON export/import
+
+### Free Water Deficit
+
+Free Water Deficit is a calculated marker in `calculatedRatios` that estimates hydration status from serum sodium:
+
+- **Required biomarker**: Sodium (`electrolytes.sodium`) in mmol/L
+- **Formula**: `FWD = TBW × (Na / 140 − 1)`, where TBW = 70kg × TBW factor (0.6 for males, 0.5 for females)
+- **Sex-aware**: Uses `profileSex` to select TBW factor; defaults to 0.6 (male) when sex is not set
+- **Assumes 70kg body weight** — output is in liters (L)
+- **Interpretation**: Positive = water deficit (hypernatremia), negative = water excess (hyponatremia), ~0 = euhydrated
+- **Reference range**: -1.5 to 1.5 L (corresponds approximately to normal sodium 136–145 mmol/L)
+- **Null handling**: Returns `null` if sodium is missing or ≤ 0
 
 ### PhenoAge (Biological Age)
 
@@ -104,7 +117,7 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 
 ### JSON Export/Import
 
-- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "...", circadian: "...", exercise: "..." }`
+- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "...", circadian: "...", exercise: "...", sleep: "...", fieldExperts: "..." }`
 - Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet/circadian/exercise if present
 - Drop zone accepts both PDF and JSON files
 

@@ -186,6 +186,7 @@ const MARKER_SCHEMA = {
       plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150 },
       deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2 },
       copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0 },
+      freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5 },
       phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null }
     }
   }
@@ -682,6 +683,17 @@ function getActiveData() {
     ratios.markers.deRitisRatio.values = divide(getVals('biochemistry', 'ast'), getVals('biochemistry', 'alt'));
     ratios.markers.copperZincRatio.values = divide(getVals('electrolytes', 'copper'), getVals('electrolytes', 'zinc'));
 
+    // Free Water Deficit — TBW × (Na/140 − 1), assumes 70kg body weight
+    const sodiumVals = getVals('electrolytes', 'sodium');
+    ratios.markers.freeWaterDeficit.values = sortedDates.map((_, i) => {
+      const na = sodiumVals ? sodiumVals[i] : null;
+      if (na == null || na <= 0) return null;
+      const tbwFactor = profileSex === 'female' ? 0.5 : 0.6;
+      const tbw = 70 * tbwFactor;
+      const fwd = tbw * (na / 140 - 1);
+      return Math.round(fwd * 100) / 100;
+    });
+
     // PhenoAge (Levine 2018) — biological age from 9 biomarkers + chronological age
     ratios.markers.phenoAge.values = sortedDates.map((dateStr, i) => {
       if (!profileDob) return null;
@@ -864,12 +876,14 @@ function showDashboard() {
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
-  // Profile context cards (diagnoses + diet + circadian)
+  // Profile context cards
+  html += `<div class="context-section-title">What your GP won't ask you</div>`;
   html += `<div class="profile-context-cards">`;
   const diagText = importedData.diagnoses || '';
   html += `<div class="diagnoses-card" onclick="openDiagnosesEditor()">
     <div class="diagnoses-header">
       <span class="diagnoses-label">\uD83C\uDFE5 Medical Conditions</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Diagnoses directly affect how lab markers should be interpreted — what's abnormal for most may be expected for you.</span></span>
       <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDiagnosesEditor()">${diagText ? 'Edit' : '+ Add'}</button>
     </div>
     ${diagText
@@ -880,6 +894,7 @@ function showDashboard() {
   html += `<div class="diagnoses-card" onclick="openDietEditor()">
     <div class="diagnoses-header">
       <span class="diagnoses-label">\uD83E\uDD57 Diet</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Nutrition has a major impact on blood markers — keto raises LDL, vegetarian diets affect B12 and iron, fasting changes glucose.</span></span>
       <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openDietEditor()">${dietText ? 'Edit' : '+ Add'}</button>
     </div>
     ${dietText
@@ -890,21 +905,45 @@ function showDashboard() {
   html += `<div class="diagnoses-card" onclick="openCircadianEditor()">
     <div class="diagnoses-header">
       <span class="diagnoses-label">\uD83C\uDF19 Circadian Habits</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Light exposure, meal timing, and shift work affect hormone rhythms, cortisol, and metabolic markers.</span></span>
       <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openCircadianEditor()">${circadianText ? 'Edit' : '+ Add'}</button>
     </div>
     ${circadianText
       ? `<div class="diagnoses-text">${escapeHTML(circadianText.length > 200 ? circadianText.slice(0, 200) + '...' : circadianText)}</div>`
-      : `<div class="diagnoses-placeholder">Describe your sleep and circadian habits for AI context</div>`}
+      : `<div class="diagnoses-placeholder">Describe your circadian habits for AI context</div>`}
+  </div>`;
+  const sleepText = importedData.sleep || '';
+  html += `<div class="diagnoses-card" onclick="openSleepEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83D\uDE34 Sleep</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Sleep quality and duration directly influence inflammation markers, insulin sensitivity, cortisol, and immune function.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openSleepEditor()">${sleepText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${sleepText
+      ? `<div class="diagnoses-text">${escapeHTML(sleepText.length > 200 ? sleepText.slice(0, 200) + '...' : sleepText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your sleep habits for AI context</div>`}
   </div>`;
   const exerciseText = importedData.exercise || '';
   html += `<div class="diagnoses-card" onclick="openExerciseEditor()">
     <div class="diagnoses-header">
       <span class="diagnoses-label">\uD83C\uDFCB\uFE0F Exercise & Movement</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Training type and intensity affect CK, liver enzymes, cholesterol, and inflammatory markers.</span></span>
       <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openExerciseEditor()">${exerciseText ? 'Edit' : '+ Add'}</button>
     </div>
     ${exerciseText
       ? `<div class="diagnoses-text">${escapeHTML(exerciseText.length > 200 ? exerciseText.slice(0, 200) + '...' : exerciseText)}</div>`
       : `<div class="diagnoses-placeholder">Describe your exercise routine for AI context</div>`}
+  </div>`;
+  const fieldExpertsText = importedData.fieldExperts || '';
+  html += `<div class="diagnoses-card" onclick="openFieldExpertsEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83E\uDDEC Field Experts</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Name researchers or clinicians whose frameworks you follow — AI will consider their published work when interpreting your results.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openFieldExpertsEditor()">${fieldExpertsText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${fieldExpertsText
+      ? `<div class="diagnoses-text">${escapeHTML(fieldExpertsText.length > 200 ? fieldExpertsText.slice(0, 200) + '...' : fieldExpertsText)}</div>`
+      : `<div class="diagnoses-placeholder">List experts whose frameworks AI should consider</div>`}
   </div>`;
   html += `</div>`;
 
@@ -2053,6 +2092,86 @@ function clearExercise() {
   showNotification('Exercise habits cleared', 'info');
 }
 
+function openSleepEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.sleep || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Sleep</h3>
+    <div class="modal-unit">Describe your typical sleep patterns, quality, and any sleep-related conditions. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="sleep-textarea" placeholder="e.g. 7-8 hours/night, frequent waking, sleep apnea, use CPAP, melatonin supplement...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveSleep()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearSleep()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('sleep-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveSleep() {
+  const ta = document.getElementById('sleep-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.sleep = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Sleep habits saved' : 'Sleep habits cleared', 'success');
+}
+
+function clearSleep() {
+  importedData.sleep = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Sleep habits cleared', 'info');
+}
+
+function openFieldExpertsEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.fieldExperts || '';
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Field Experts</h3>
+    <div class="modal-unit">List researchers or clinicians whose frameworks you follow. The AI will consider their published work and perspectives when interpreting your results.</div>
+    <textarea class="note-editor" id="field-experts-textarea" placeholder="e.g. Peter Attia (longevity medicine), Thomas Dayspring (lipidology), Robert Lustig (metabolic health)...">${escapeHTML(current)}</textarea>
+    <div class="note-editor-actions">
+      <button class="import-btn import-btn-primary" onclick="saveFieldExperts()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearFieldExperts()">Clear</button>` : ''}
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => {
+    const ta = document.getElementById('field-experts-textarea');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function saveFieldExperts() {
+  const ta = document.getElementById('field-experts-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.fieldExperts = text || '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification(text ? 'Field experts saved' : 'Field experts cleared', 'success');
+}
+
+function clearFieldExperts() {
+  importedData.fieldExperts = '';
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Field experts cleared', 'info');
+}
+
 // ═══════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════
@@ -2165,7 +2284,9 @@ function exportDataJSON() {
   const diet = importedData.diet || '';
   const circadian = importedData.circadian || '';
   const exercise = importedData.exercise || '';
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise };
+  const sleep = importedData.sleep || '';
+  const fieldExperts = importedData.fieldExperts || '';
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2211,6 +2332,12 @@ function importDataJSON(file) {
       if (json.exercise && typeof json.exercise === 'string' && json.exercise.trim()) {
         importedData.exercise = json.exercise.trim();
       }
+      if (json.sleep && typeof json.sleep === 'string' && json.sleep.trim()) {
+        importedData.sleep = json.sleep.trim();
+      }
+      if (json.fieldExperts && typeof json.fieldExperts === 'string' && json.fieldExperts.trim()) {
+        importedData.fieldExperts = json.fieldExperts.trim();
+      }
       // Import notes
       if (json.notes && Array.isArray(json.notes)) {
         if (!importedData.notes) importedData.notes = [];
@@ -2235,7 +2362,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   if (!confirm('Are you sure you want to clear all imported data? This cannot be undone.')) return;
-  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '' };
+  importedData = { entries: [], notes: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '' };
   localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
   buildSidebar();
   updateHeaderDates();
@@ -2333,6 +2460,8 @@ Important guidelines:
 - If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
 - If the user has described their circadian habits, consider how sleep patterns, shift work, and light exposure may influence lab results (e.g. poor sleep can raise cortisol/hs-CRP/insulin resistance, shift work disrupts hormone rhythms, melatonin timing affects thyroid markers).
 - If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
+- If the user has described their sleep habits, consider how sleep quality, duration, and disorders affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; chronic sleep debt impairs immune markers).
+- If the user has listed field experts, consider those experts' published research, frameworks, and clinical perspectives when interpreting results. Reference their specific work where relevant.
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -2357,6 +2486,14 @@ function buildLabContext() {
   const exercise = importedData.exercise || '';
   if (exercise.trim()) {
     ctx += `## Exercise & Movement\n${exercise.trim()}\n\n`;
+  }
+  const sleep = importedData.sleep || '';
+  if (sleep.trim()) {
+    ctx += `## Sleep\n${sleep.trim()}\n\n`;
+  }
+  const fieldExperts = importedData.fieldExperts || '';
+  if (fieldExperts.trim()) {
+    ctx += `## Field Experts\n${fieldExperts.trim()}\n\n`;
   }
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
