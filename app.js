@@ -624,11 +624,12 @@ function switchSex(sex) {
   document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === sex);
   });
+  const data = getActiveData();
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
-  buildSidebar();
-  updateHeaderDates();
-  navigate(activeCat);
+  buildSidebar(data);
+  updateHeaderDates(data);
+  navigate(activeCat, data);
 }
 
 function getProfileDob(profileId) {
@@ -646,11 +647,12 @@ function setProfileDob(profileId, dob) {
 function switchDob(dob) {
   profileDob = dob || null;
   setProfileDob(currentProfile, profileDob);
+  const data = getActiveData();
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
-  buildSidebar();
-  updateHeaderDates();
-  navigate(activeCat);
+  buildSidebar(data);
+  updateHeaderDates(data);
+  navigate(activeCat, data);
 }
 
 // ═══════════════════════════════════════════════
@@ -994,6 +996,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const dobInputInit = document.getElementById('dob-input');
   if (dobInputInit) dobInputInit.value = profileDob || '';
+  setTheme(getTheme());
   buildSidebar();
   showDashboard();
   updateHeaderDates();
@@ -1014,8 +1017,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener('drop', e => e.preventDefault());
 });
 
-function buildSidebar() {
-  const data = getActiveData();
+function buildSidebar(data) {
+  if (!data) data = getActiveData();
   const nav = document.getElementById("sidebar-nav");
   let html = `<input type="text" class="sidebar-search" id="sidebar-search" placeholder="Search markers..." oninput="filterSidebar()">`;
   html += `<div class="nav-item active" data-category="dashboard" onclick="navigate('dashboard')">
@@ -1058,19 +1061,19 @@ function filterSidebar() {
   titles.forEach(el => el.style.display = '');
 }
 
-function navigate(category) {
+function navigate(category, data) {
   document.querySelectorAll(".nav-item").forEach(el => {
     el.classList.toggle("active", el.dataset.category === category);
   });
   destroyAllCharts();
-  if (category === "dashboard") showDashboard();
-  else if (category === "correlations") showCorrelations();
-  else if (category === "compare") showCompare();
-  else showCategory(category);
+  if (category === "dashboard") showDashboard(data);
+  else if (category === "correlations") showCorrelations(data);
+  else if (category === "compare") showCompare(data);
+  else showCategory(category, data);
 }
 
-function showDashboard() {
-  const data = getActiveData();
+function showDashboard(data) {
+  if (!data) data = getActiveData();
   const main = document.getElementById("main-content");
   const hasData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singlePoint && c.singleDate);
 
@@ -1362,8 +1365,8 @@ function showDashboard() {
   setupDropZone();
 }
 
-function showCategory(categoryKey) {
-  const rawData = getActiveData();
+function showCategory(categoryKey, preData) {
+  const rawData = preData || getActiveData();
   const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const main = document.getElementById("main-content");
@@ -1543,14 +1546,15 @@ function renderFattyAcidsView(cat) {
 }
 
 function renderFattyAcidsCharts(cat) {
+  const tc = getChartColors();
   const names=[], vals=[], mins=[], maxs=[], bgC=[], brC=[];
   for (const m of Object.values(cat.markers)) {
     const r = getEffectiveRange(m);
     names.push(m.name.replace(/\(.+\)/,"").trim());
     vals.push(m.values[0]); mins.push(r.min); maxs.push(r.max);
     const s = getStatus(m.values[0], r.min, r.max);
-    bgC.push(s==="normal"?"rgba(52,211,153,0.6)":s==="high"?"rgba(248,113,113,0.6)":"rgba(251,191,36,0.6)");
-    brC.push(s==="normal"?"rgba(52,211,153,1)":s==="high"?"rgba(248,113,113,1)":"rgba(251,191,36,1)");
+    bgC.push(s==="normal"?tc.green+"99":s==="high"?tc.red+"99":tc.yellow+"99");
+    brC.push(s==="normal"?tc.green:s==="high"?tc.red:tc.yellow);
   }
   const ctx = document.getElementById("chart-fa-bar");
   if (!ctx) return;
@@ -1558,12 +1562,12 @@ function renderFattyAcidsCharts(cat) {
     type: "bar",
     data: { labels: names, datasets: [
       { label:"Value", data:vals, backgroundColor:bgC, borderColor:brC, borderWidth:1, borderRadius:4 },
-      { label:"Ref Min", data:mins, type:"line", borderColor:"rgba(79,140,255,0.5)", borderDash:[4,4], pointRadius:0, fill:false, borderWidth:1.5 },
-      { label:"Ref Max", data:maxs, type:"line", borderColor:"rgba(79,140,255,0.5)", borderDash:[4,4], pointRadius:0, fill:false, borderWidth:1.5 }
+      { label:"Ref Min", data:mins, type:"line", borderColor:tc.lineColor+"80", borderDash:[4,4], pointRadius:0, fill:false, borderWidth:1.5 },
+      { label:"Ref Max", data:maxs, type:"line", borderColor:tc.lineColor+"80", borderDash:[4,4], pointRadius:0, fill:false, borderWidth:1.5 }
     ]},
     options: { responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false}, tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1 }},
-      scales: { x:{ticks:{color:"#5a5f73",font:{size:10},maxRotation:45},grid:{display:false}}, y:{ticks:{color:"#5a5f73"},grid:{color:"rgba(46,51,72,0.5)"}} }
+      plugins: { legend:{display:false}, tooltip:{ backgroundColor:tc.tooltipBg, titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, borderColor:tc.tooltipBorder, borderWidth:1 }},
+      scales: { x:{ticks:{color:tc.tickColor,font:{size:10},maxRotation:45},grid:{display:false}}, y:{ticks:{color:tc.tickColor},grid:{color:tc.gridColor}} }
     }
   });
 }
@@ -1578,10 +1582,11 @@ const refBandPlugin = {
     if (!y) return;
     const yMin = y.getPixelForValue(opts.refMin);
     const yMax = y.getPixelForValue(opts.refMax);
+    const cs = getComputedStyle(document.documentElement);
     ctx.save();
-    ctx.fillStyle = "rgba(79,140,255,0.06)";
+    ctx.fillStyle = cs.getPropertyValue('--ref-band').trim();
     ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
-    ctx.strokeStyle = "rgba(79,140,255,0.2)";
+    ctx.strokeStyle = cs.getPropertyValue('--ref-border').trim();
     ctx.setLineDash([4,4]); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
@@ -1682,7 +1687,8 @@ const noteAnnotationPlugin = {
       if (tooltipX < left) tooltipX = left;
       if (tooltipX + boxWidth > right) tooltipX = right - boxWidth;
       // Background
-      ctx.fillStyle = "rgba(30, 34, 46, 0.95)";
+      const cs = getComputedStyle(document.documentElement);
+      ctx.fillStyle = cs.getPropertyValue('--chart-tooltip-bg').trim();
       ctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -1695,7 +1701,7 @@ const noteAnnotationPlugin = {
       ctx.textAlign = "left";
       ctx.fillText(dateStr, tooltipX + boxPad, tooltipY + 15);
       // Note text
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.fillStyle = cs.getPropertyValue('--text-primary').trim();
       ctx.font = "11px Inter, sans-serif";
       ctx.fillText(text, tooltipX + boxPad, tooltipY + 31);
     }
@@ -1838,7 +1844,8 @@ const supplementBarPlugin = {
       if (tx < left) tx = left;
       if (tx + boxW > right) tx = right - boxW;
       const isMed = s.type === 'medication';
-      ctx.fillStyle = 'rgba(30, 34, 46, 0.95)';
+      const cs = getComputedStyle(document.documentElement);
+      ctx.fillStyle = cs.getPropertyValue('--chart-tooltip-bg').trim();
       ctx.strokeStyle = isMed ? 'rgba(167, 139, 250, 0.6)' : 'rgba(56, 189, 248, 0.6)';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -1850,7 +1857,7 @@ const supplementBarPlugin = {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(line1, tx + 8, ty + 6);
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillStyle = cs.getPropertyValue('--text-primary').trim();
       ctx.font = '11px Inter, sans-serif';
       ctx.fillText(line2, tx + 8, ty + 22);
     }
@@ -1881,6 +1888,7 @@ const supplementBarPlugin = {
 function createLineChart(id, marker, dateLabels, chartDates) {
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
+  const tc = getChartColors();
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   const values = marker.values;
   const valid = values.filter(v => v !== null);
@@ -1909,20 +1917,20 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   const ptColors = values.map(v => {
     if (v === null) return "transparent";
     const s = getStatus(v, chartRange.min, chartRange.max);
-    return s==="normal"?"#34d399":s==="high"?"#f87171":"#fbbf24";
+    return s==="normal"?tc.green:s==="high"?tc.red:tc.yellow;
   });
   const rawDates = chartDates || [];
   const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
   const chartSupps = marker.singlePoint ? [] : getSupplementsForChart(rawDates);
   const datasets = [{
-    data: values, borderColor: "#4f8cff", backgroundColor: "rgba(79,140,255,0.1)",
+    data: values, borderColor: tc.lineColor, backgroundColor: tc.lineFill,
     borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
     pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
     label: isPhenoAge ? 'Biological Age' : ''
   }];
   if (chronoAgeValues) {
     datasets.push({
-      data: chronoAgeValues, borderColor: "#5a5f73", backgroundColor: "transparent",
+      data: chronoAgeValues, borderColor: tc.chronoLineColor, backgroundColor: "transparent",
       borderWidth: 2, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 4,
       tension: 0.3, fill: false, spanGaps: true, label: 'Chronological Age'
     });
@@ -1931,16 +1939,16 @@ function createLineChart(id, marker, dateLabels, chartDates) {
     type: "line",
     data: { labels: dates, datasets },
     options: { responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: '#8b90a0', font: { size: 11 }, boxWidth: 20, padding: 10 } },
-        tooltip:{ backgroundColor:"#222635", titleColor:"#e8eaf0", bodyColor:"#8b90a0", borderColor:"#2e3348", borderWidth:1,
+      plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: tc.legendColor, font: { size: 11 }, boxWidth: 20, padding: 10 } },
+        tooltip:{ backgroundColor:tc.tooltipBg, titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, borderColor:tc.tooltipBorder, borderWidth:1,
           callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const rl = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'; return chartRange.min != null && chartRange.max != null ? `${rl}: ${formatValue(chartRange.min)} \u2013 ${formatValue(chartRange.max)}` : ''; } }},
         refBand: rangeMode === 'both' ? { refMin:marker.refMin, refMax:marker.refMax } : { refMin:chartRange.min, refMax:chartRange.max },
         optimalBand: rangeMode === 'both' && marker.optimalMin != null ? { optimalMin: marker.optimalMin, optimalMax: marker.optimalMax } : false,
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,
         supplementBars: chartSupps.length ? { supplements: chartSupps, chartDates: rawDates } : false},
       layout: { padding: { top: chartSupps.length ? chartSupps.length * 14 + 6 : 0 } },
-      scales: { x:{ticks:{color:"#5a5f73",font:{size:11}},grid:{display:false}},
-        y:{min:minV-pad, max:maxV+pad, ticks:{color:"#5a5f73",font:{size:10}}, grid:{color:"rgba(46,51,72,0.5)"}}}
+      scales: { x:{ticks:{color:tc.tickColor,font:{size:11}},grid:{display:false}},
+        y:{min:minV-pad, max:maxV+pad, ticks:{color:tc.tickColor,font:{size:10}}, grid:{color:tc.gridColor}}}
     },
     plugins: [refBandPlugin, optimalBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
   });
@@ -2185,6 +2193,44 @@ document.addEventListener("keydown", e => {
   if (e.key === "/") { e.preventDefault(); const sb = document.getElementById("sidebar-search"); if (sb) { sb.focus(); sb.select(); } }
 });
 
+// ═══════════════════════════════════════════════
+// THEME MANAGEMENT
+// ═══════════════════════════════════════════════
+function getTheme() { return localStorage.getItem('labcharts-theme') || 'dark'; }
+
+function setTheme(theme) {
+  localStorage.setItem('labcharts-theme', theme);
+  if (theme === 'light') document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.innerHTML = theme === 'light' ? '&#9790;' : '&#9788;';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = theme === 'light' ? '#ffffff' : '#1a1d27';
+}
+
+function toggleTheme() {
+  setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  destroyAllCharts();
+  navigate(activeCat);
+}
+
+function getChartColors() {
+  const s = getComputedStyle(document.documentElement);
+  const g = v => s.getPropertyValue(v).trim();
+  return {
+    tooltipBg: g('--bg-card'), tooltipTitle: g('--text-primary'),
+    tooltipBody: g('--text-secondary'), tooltipBorder: g('--border'),
+    tickColor: g('--text-muted'), gridColor: g('--chart-grid'),
+    legendColor: g('--text-secondary'), lineColor: g('--accent'),
+    lineFill: getTheme() === 'light' ? 'rgba(59,124,245,0.1)' : 'rgba(79,140,255,0.1)',
+    canvasTooltipBg: g('--chart-tooltip-bg'), canvasTooltipText: g('--text-primary'),
+    chronoLineColor: g('--text-muted'),
+    green: g('--green'), red: g('--red'), yellow: g('--yellow'),
+  };
+}
+
 function destroyAllCharts() {
   for (const c of Object.values(chartInstances)) c.destroy();
   chartInstances = {};
@@ -2289,11 +2335,12 @@ function switchUnitSystem(system) {
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === system);
   });
+  const data = getActiveData();
   const activeNav = document.querySelector(".nav-item.active");
   const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
-  buildSidebar();
-  updateHeaderDates();
-  navigate(currentCategory);
+  buildSidebar(data);
+  updateHeaderDates(data);
+  navigate(currentCategory, data);
 }
 
 function getEffectiveRange(marker) {
@@ -2311,14 +2358,15 @@ function switchRangeMode(mode) {
   document.querySelectorAll('.range-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.range === mode);
   });
+  const data = getActiveData();
   const activeNav = document.querySelector(".nav-item.active");
   const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
-  buildSidebar();
-  navigate(currentCategory);
+  buildSidebar(data);
+  navigate(currentCategory, data);
 }
 
-function updateHeaderDates() {
-  const data = getActiveData();
+function updateHeaderDates(data) {
+  if (!data) data = getActiveData();
   const el = document.getElementById("header-dates");
   if (el) {
     if (data.dateLabels.length > 0) {
@@ -2335,8 +2383,8 @@ function updateHeaderDates() {
 // ═══════════════════════════════════════════════
 // COMPARE TWO DATES
 // ═══════════════════════════════════════════════
-function showCompare() {
-  const data = getActiveData();
+function showCompare(data) {
+  if (!data) data = getActiveData();
   const main = document.getElementById("main-content");
   let html = `<div class="category-header"><h2>\u2194 Compare Dates</h2>
     <p>Side-by-side comparison of biomarker values between two collection dates</p></div>`;
@@ -2438,8 +2486,8 @@ function renderCompareTable(data, idx1, idx2) {
 // ═══════════════════════════════════════════════
 // CORRELATIONS
 // ═══════════════════════════════════════════════
-function showCorrelations() {
-  const data = getActiveData();
+function showCorrelations(data) {
+  if (!data) data = getActiveData();
   const main = document.getElementById("main-content");
   let html = `<div class="category-header"><h2>\uD83D\uDCC8 Correlations</h2>
     <p>Compare biomarkers across categories on a normalized scale</p></div>`;
@@ -2568,16 +2616,17 @@ function renderCorrelationChart() {
   const allVals = datasets.flatMap(ds => ds.data.filter(v => v !== null));
   const minY = Math.min(0, ...allVals) - 10;
   const maxY = Math.max(100, ...allVals) + 10;
+  const tc = getChartColors();
   chartInstances["correlation"] = new Chart(canvas, {
     type: "line",
     data: { labels: data.dateLabels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { color: "#8b90a0", font: { size: 12 }, usePointStyle: true, pointStyle: "circle" } },
+        legend: { display: true, labels: { color: tc.legendColor, font: { size: 12 }, usePointStyle: true, pointStyle: "circle" } },
         tooltip: {
-          backgroundColor: "#222635", titleColor: "#e8eaf0", bodyColor: "#8b90a0",
-          borderColor: "#2e3348", borderWidth: 1,
+          backgroundColor: tc.tooltipBg, titleColor: tc.tooltipTitle, bodyColor: tc.tooltipBody,
+          borderColor: tc.tooltipBorder, borderWidth: 1,
           callbacks: {
             label: (ctx) => {
               const ds = ctx.dataset;
@@ -2593,8 +2642,8 @@ function renderCorrelationChart() {
       },
       layout: { padding: { top: (function() { const s = getSupplementsForChart(data.dates); return s.length ? s.length * 14 + 6 : 0; })() } },
       scales: {
-        x: { ticks: { color: "#5a5f73", font: { size: 11 } }, grid: { display: false } },
-        y: { min: minY, max: maxY, ticks: { color: "#5a5f73", font: { size: 10 }, callback: v => v + '%' }, grid: { color: "rgba(46,51,72,0.5)" } }
+        x: { ticks: { color: tc.tickColor, font: { size: 11 } }, grid: { display: false } },
+        y: { min: minY, max: maxY, ticks: { color: tc.tickColor, font: { size: 10 }, callback: v => v + '%' }, grid: { color: tc.gridColor } }
       }
     },
     plugins: [refBandPlugin, noteAnnotationPlugin, supplementBarPlugin]

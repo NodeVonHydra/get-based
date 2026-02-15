@@ -18,10 +18,37 @@
   --yellow-bg: rgba(251, 191, 36, 0.1);
   --ref-band: rgba(79, 140, 255, 0.08);
   --ref-border: rgba(79, 140, 255, 0.25);
+  --chart-grid: rgba(46,51,72,0.5);
+  --chart-tooltip-bg: rgba(34, 38, 53, 0.95);
   --shadow: 0 2px 8px rgba(0,0,0,0.3);
   --radius: 12px;
   --radius-sm: 8px;
 }
+[data-theme="light"] {
+  --bg-primary: #f5f6fa;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f0f1f5;
+  --border: #e2e4ea;
+  --text-primary: #1a1d27;
+  --text-secondary: #5a5f73;
+  --text-muted: #8b90a0;
+  --accent: #3b7cf5;
+  --accent-light: #2b6ce5;
+  --green: #059669;
+  --green-bg: rgba(5,150,105,0.1);
+  --red: #dc2626;
+  --red-bg: rgba(220,38,38,0.1);
+  --yellow: #d97706;
+  --yellow-bg: rgba(217,119,6,0.1);
+  --ref-band: rgba(59,124,245,0.06);
+  --ref-border: rgba(59,124,245,0.2);
+  --chart-grid: rgba(0,0,0,0.08);
+  --chart-tooltip-bg: rgba(255,255,255,0.95);
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+[data-theme="light"] .dob-input input[type="date"] { color-scheme: light; }
+[data-theme="light"] .dob-input input[type="date"]::-webkit-calendar-picker-indicator { filter: none; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -320,6 +347,7 @@ body {
   padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
   background: transparent; color: var(--text-secondary); font-size: 12px;
   font-family: inherit; cursor: pointer; transition: all 0.15s;
+  color-scheme: dark;
 }
 .dob-input input[type="date"]:focus { outline: none; border-color: var(--accent); color: var(--text-primary); }
 .dob-input input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
@@ -572,7 +600,7 @@ body {
 .context-info-icon:hover { color: var(--accent); border-color: var(--accent); }
 .context-info-icon .context-tooltip {
   display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
-  transform: translateX(-50%); background: #1e1e2e; color: var(--text-secondary);
+  transform: translateX(-50%); background: var(--bg-card); color: var(--text-secondary);
   font-size: 12px; font-weight: 400; line-height: 1.5; padding: 10px 12px;
   border-radius: 6px; border: 1px solid var(--border); width: max-content;
   max-width: 260px; z-index: 100; pointer-events: none;
@@ -729,6 +757,13 @@ body {
 @media (max-width: 768px) {
   .profile-dropdown-btn .profile-label { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: none; border: 1px solid var(--border); color: var(--text-secondary);
+  font-size: 16px; cursor: pointer; padding: 4px 10px; border-radius: 6px;
+  transition: all 0.15s; font-family: inherit; line-height: 1;
+}
+.theme-toggle-btn:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--text-primary); }
 /* Settings Button */
 .settings-btn {
   background: none; border: 1px solid var(--border); color: var(--text-secondary);
@@ -797,7 +832,7 @@ body {
   display: flex; align-items: center; gap: 8px; padding: 8px 20px;
   cursor: pointer; transition: background 0.15s; user-select: none;
 }
-.chat-personality-current:hover { background: rgba(255,255,255,0.03); }
+.chat-personality-current:hover { background: var(--bg-hover); }
 .chat-personality-current-icon { font-size: 14px; }
 .chat-personality-current-name { font-size: 12px; color: var(--text-muted); flex: 1; }
 .chat-personality-current-arrow {
@@ -814,7 +849,7 @@ body {
   border-radius: 6px; transition: background 0.15s; text-align: left;
   font-family: inherit;
 }
-.chat-personality-opt:hover { background: rgba(255,255,255,0.05); }
+.chat-personality-opt:hover { background: var(--bg-hover); }
 .chat-personality-opt.active { background: rgba(99,102,241,0.12); }
 .chat-personality-opt-icon { font-size: 18px; flex-shrink: 0; width: 24px; text-align: center; }
 .chat-personality-opt-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
@@ -824,6 +859,11 @@ body {
   font-size: 13px; color: var(--accent); opacity: 0; flex-shrink: 0;
 }
 .chat-personality-opt.active .chat-personality-opt-check { opacity: 1; }
+.chat-personality-divider {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-muted); padding: 8px 12px 4px; font-weight: 600;
+  border-top: 1px solid var(--border); margin-top: 4px;
+}
 .chat-personality-custom-area {
   padding: 8px 10px 0;
 }
@@ -850,7 +890,7 @@ body {
   font-size: 14px; line-height: 1.7; word-wrap: break-word;
   white-space: normal;
 }
-.chat-msg code { background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.chat-msg code { background: var(--bg-hover); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 .chat-msg strong { font-weight: 600; }
 .chat-msg.chat-user {
   align-self: flex-end; background: var(--accent); color: white;
@@ -872,7 +912,7 @@ body {
 .chat-list li { margin-bottom: 4px; }
 .chat-list li::marker { color: var(--accent); }
 .chat-code-block {
-  background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 6px;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px;
   padding: 12px 14px; margin: 8px 0; overflow-x: auto;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 12px; line-height: 1.5; white-space: pre;
