@@ -1000,9 +1000,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProfileDropdown();
   document.getElementById("pdf-input").addEventListener("change", async e => {
     if (e.target.files.length > 0) {
-      const file = e.target.files[0];
-      if (file.name.endsWith('.json')) importDataJSON(file);
-      else await handlePDFFile(file);
+      const files = Array.from(e.target.files);
+      const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
+      const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+      for (const f of jsonFiles) importDataJSON(f);
+      if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
+      else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
       e.target.value = '';
     }
   });
@@ -1202,6 +1205,38 @@ function showDashboard() {
     html += `<div class="supp-timeline"><div class="supp-empty">No supplements or medications tracked yet</div></div>`;
   }
   html += `</div>`;
+
+  // Trend Alerts
+  if (hasData) {
+    const trendData = filterDatesByRange(data);
+    const trendAlerts = detectTrendAlerts(trendData);
+    if (trendAlerts.length > 0) {
+      html += `<div class="trend-alerts-section">
+        <div class="trend-alerts-header" onclick="this.parentElement.classList.toggle('collapsed')">
+          <span>Trending Concerns (${trendAlerts.length})</span>
+          <span class="trend-alerts-toggle">&#9660;</span>
+        </div>
+        <div class="trend-alerts-body">`;
+      for (const alert of trendAlerts) {
+        const isPast = alert.concern.startsWith('past_');
+        const cls = isPast ? 'trend-alert-danger' : 'trend-alert-warning';
+        const arrow = alert.direction === 'rising' ? '\u2197' : '\u2198';
+        const label = alert.concern === 'past_high' ? 'Above range & rising'
+          : alert.concern === 'past_low' ? 'Below range & falling'
+          : alert.concern === 'approaching_high' ? 'Approaching upper limit'
+          : 'Approaching lower limit';
+        html += `<div class="trend-alert-card ${cls}" onclick="showDetailModal('${alert.id}')">
+          <span class="trend-alert-arrow">${arrow}</span>
+          <div class="trend-alert-info">
+            <div class="trend-alert-name">${alert.name} <span class="trend-alert-cat">${alert.category}</span></div>
+            <div class="trend-alert-label">${label}</div>
+          </div>
+          <div class="trend-alert-spark">${alert.spark.join(' \u2192 ')}</div>
+        </div>`;
+      }
+      html += `</div></div>`;
+    }
+  }
 
   const hasEntries = importedData.entries && importedData.entries.length > 0;
   const hasNotes = importedData.notes && importedData.notes.length > 0;
@@ -2121,6 +2156,7 @@ document.addEventListener("click", e => {
   if (e.target.id === "modal-overlay") closeModal();
   if (e.target.id === "import-modal-overlay") closeImportModal();
   if (e.target.id === "settings-modal-overlay") closeSettingsModal();
+  if (e.target.id === "glossary-modal-overlay") closeGlossary();
   const dd = document.getElementById("corr-options");
   const si = document.getElementById("corr-search");
   if (dd && si && !dd.contains(e.target) && e.target !== si) dd.classList.remove("show");
@@ -2133,6 +2169,8 @@ document.addEventListener("keydown", e => {
     if (chatPanel && chatPanel.classList.contains("open")) { closeChatPanel(); return; }
     const importOverlay = document.getElementById("import-modal-overlay");
     if (importOverlay && importOverlay.classList.contains("show")) { closeImportModal(); return; }
+    const glossaryOverlay = document.getElementById("glossary-modal-overlay");
+    if (glossaryOverlay && glossaryOverlay.classList.contains("show")) { closeGlossary(); return; }
     const settingsOverlay = document.getElementById("settings-modal-overlay");
     if (settingsOverlay && settingsOverlay.classList.contains("show")) { closeSettingsModal(); return; }
     const modalOverlay = document.getElementById("modal-overlay");
@@ -2184,6 +2222,47 @@ function statusIcon(s) {
   if (s === 'low') return '\u25BC';
   return '';
 }
+function detectTrendAlerts(data) {
+  const alerts = [];
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    if (cat.singlePoint) continue;
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      if (marker.singlePoint) continue;
+      const nonNull = marker.values.map((v, i) => ({ v, i })).filter(x => x.v !== null);
+      if (nonNull.length < 3) continue;
+      const last = nonNull.slice(-Math.min(5, nonNull.length));
+      // Check monotonic rise
+      let rising = true, falling = true;
+      for (let i = 1; i < last.length; i++) {
+        const pct = ((last[i].v - last[i - 1].v) / Math.abs(last[i - 1].v || 1)) * 100;
+        if (pct <= 2) rising = false;
+        if (pct >= -2) falling = false;
+      }
+      if (!rising && !falling) continue;
+      const r = getEffectiveRange(marker);
+      if (r.min == null || r.max == null) continue;
+      const latestVal = last[last.length - 1].v;
+      const range = r.max - r.min;
+      let concern = null;
+      if (rising && latestVal > r.max) concern = 'past_high';
+      else if (falling && latestVal < r.min) concern = 'past_low';
+      else if (rising && latestVal >= r.max - range * 0.15) concern = 'approaching_high';
+      else if (falling && latestVal <= r.min + range * 0.15) concern = 'approaching_low';
+      if (!concern) continue;
+      const id = catKey + '_' + mKey;
+      const spark = last.map(x => formatValue(x.v));
+      alerts.push({ id, name: marker.name, category: cat.label, concern, spark, direction: rising ? 'rising' : 'falling' });
+    }
+  }
+  // Sort: past first, then approaching
+  alerts.sort((a, b) => {
+    const aPast = a.concern.startsWith('past_') ? 0 : 1;
+    const bPast = b.concern.startsWith('past_') ? 0 : 1;
+    return aPast - bPast;
+  });
+  return alerts;
+}
+
 function getTrend(values) {
   const nn = values.filter(v=>v!==null);
   if (nn.length<2) return {arrow:"\u2014",cls:"trend-stable"};
@@ -2663,8 +2742,10 @@ function showImportPreview(parseResult) {
   const newMarkers = markers.filter(m => !m.matched && m.suggestedKey);
   const unmatched = markers.filter(m => !m.matched && !m.suggestedKey);
   const importCount = matched.length + newMarkers.length;
+  const batchCtx = window._batchImportContext;
+  const batchLabel = batchCtx ? `<div class="batch-counter">File ${batchCtx.current} of ${batchCtx.total}</div>` : '';
   let html = `<button class="modal-close" onclick="closeImportModal()">&times;</button>
-    <h3>Import Preview</h3>
+    ${batchLabel}<h3>Import Preview</h3>
     <p style="color:var(--text-secondary);margin-bottom:16px">
       File: ${fileName}<br>Collection Date: <strong>${dateFormatted}</strong><br>
       Matched: <span style="color:var(--green)">${matched.length}</span> \u00b7
@@ -2692,8 +2773,9 @@ function showImportPreview(parseResult) {
       <td>${m.value}</td><td>\u2014</td></tr>`;
   }
   html += `</tbody></table>`;
+  const cancelLabel = batchCtx ? 'Skip' : 'Cancel';
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
-    <button class="import-btn import-btn-secondary" onclick="closeImportModal()">Cancel</button>
+    <button class="import-btn import-btn-secondary" onclick="closeImportModal()">${cancelLabel}</button>
     <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${importCount} Markers</button></div>`;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
@@ -2703,6 +2785,12 @@ function showImportPreview(parseResult) {
 function closeImportModal() {
   document.getElementById("import-modal-overlay").classList.remove("show");
   window._pendingImport = null;
+  if (window._batchImportResolve) {
+    const resolve = window._batchImportResolve;
+    window._batchImportResolve = null;
+    window._batchImportContext = null;
+    resolve('skip');
+  }
 }
 
 function confirmImport() {
@@ -2741,7 +2829,17 @@ function confirmImport() {
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
-  closeImportModal();
+  // Resolve batch promise before closeImportModal (which would resolve with 'skip')
+  if (window._batchImportResolve) {
+    const resolve = window._batchImportResolve;
+    window._batchImportResolve = null;
+    window._batchImportContext = null;
+    document.getElementById("import-modal-overlay").classList.remove("show");
+    window._pendingImport = null;
+    resolve('import');
+  } else {
+    closeImportModal();
+  }
   buildSidebar();
   updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
@@ -3201,14 +3299,16 @@ function setupDropZone() {
     e.preventDefault(); dropZone.classList.remove("drag-over");
     const files = Array.from(e.dataTransfer.files);
     if (files.length === 0) return;
-    const file = files[0];
-    if (file.name.endsWith('.json') || file.type === 'application/json') {
-      importDataJSON(file);
-    } else if (file.name.endsWith('.pdf') || file.type === 'application/pdf') {
-      await handlePDFFile(file);
-    } else {
+    const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
+    const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+    const unsupported = files.length - jsonFiles.length - pdfFiles.length;
+    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0) {
       showNotification("Unsupported file type. Use PDF or JSON.", "error");
+      return;
     }
+    for (const f of jsonFiles) importDataJSON(f);
+    if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
+    else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
 }
 
@@ -3270,6 +3370,72 @@ async function handlePDFFile(file) {
     console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error");
   }
+}
+
+// ═══════════════════════════════════════════════
+// BATCH PDF IMPORT
+// ═══════════════════════════════════════════════
+async function handleBatchPDFs(pdfFiles) {
+  if (!hasApiKey()) {
+    showNotification("API key required for PDF import. Opening settings...", "info");
+    setTimeout(() => openSettingsModal(), 500);
+    return;
+  }
+  let imported = 0, skipped = 0, failed = 0;
+  for (let i = 0; i < pdfFiles.length; i++) {
+    const file = pdfFiles[i];
+    try {
+      await showBatchImportProgress(0, file.name, i + 1, pdfFiles.length);
+      const pdfText = await extractPDFText(file);
+      if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); failed++; continue; }
+      await showBatchImportProgress(1, file.name, i + 1, pdfFiles.length);
+      const result = await parseLabPDFWithAI(pdfText, file.name);
+      if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
+      await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
+      const action = await showImportPreviewAsync(result, file.name, i + 1, pdfFiles.length);
+      if (action === 'skip') { skipped++; } else { imported++; }
+    } catch (err) {
+      console.error(`Batch import error (${file.name}):`, err);
+      showNotification(`Error: ${file.name} — ${err.message}`, 'error');
+      failed++;
+    }
+  }
+  hideImportProgress();
+  const parts = [];
+  if (imported > 0) parts.push(`${imported} imported`);
+  if (skipped > 0) parts.push(`${skipped} skipped`);
+  if (failed > 0) parts.push(`${failed} failed`);
+  showNotification(`Batch import complete: ${parts.join(', ')}`, imported > 0 ? 'success' : 'info');
+}
+
+async function showBatchImportProgress(step, fileName, current, total) {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  let html = `<div class="batch-progress-counter">Processing file ${current} of ${total}</div>`;
+  html += '<div class="import-progress">';
+  for (let i = 0; i < IMPORT_STEPS.length; i++) {
+    const isDone = i < step;
+    const isActive = i === step;
+    const cls = isDone ? "done" : isActive ? "active" : "";
+    const icon = isDone
+      ? '<span class="step-icon">\u2713</span>'
+      : isActive
+        ? '<span class="step-icon"><span class="progress-spinner"></span></span>'
+        : '<span class="step-icon">\u25CB</span>';
+    html += `<div class="progress-step ${cls}">${icon}<span>${IMPORT_STEPS[i]}${isActive ? "..." : ""}</span></div>`;
+  }
+  if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
+  html += '</div>';
+  dropZone.innerHTML = html;
+  await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+function showImportPreviewAsync(result, fileName, current, total) {
+  return new Promise(resolve => {
+    window._batchImportResolve = resolve;
+    window._batchImportContext = { current, total };
+    showImportPreview(result);
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -4206,6 +4372,88 @@ function handleChatKeydown(event) {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     sendChatMessage();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MARKER GLOSSARY
+// ═══════════════════════════════════════════════
+function openGlossary() {
+  const data = getActiveData();
+  const modal = document.getElementById('glossary-modal');
+  const overlay = document.getElementById('glossary-modal-overlay');
+  const descCache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
+  let html = `<button class="modal-close" onclick="closeGlossary()">&times;</button>
+    <h3 style="margin-bottom:12px">Marker Glossary</h3>
+    <input type="text" class="glossary-search" id="glossary-search" placeholder="Search markers..." oninput="filterGlossary()">
+    <div class="glossary-body" id="glossary-body">`;
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    const markers = Object.entries(cat.markers);
+    if (markers.length === 0) continue;
+    html += `<div class="glossary-category" data-cat="${catKey}">
+      <div class="glossary-cat-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span>${cat.icon} ${cat.label}</span>
+        <span class="glossary-cat-count">${markers.length}</span>
+      </div>
+      <div class="glossary-cat-body">`;
+    for (const [mKey, marker] of markers) {
+      const id = catKey + '_' + mKey;
+      markerRegistry[id] = marker;
+      const latestIdx = getLatestValueIndex(marker.values);
+      const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
+      const r = getEffectiveRange(marker);
+      const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : 'missing';
+      const desc = descCache[id] || '';
+      html += `<div class="glossary-marker" data-name="${marker.name.toLowerCase()}" onclick="closeGlossary();showDetailModal('${id}')">
+        <div class="glossary-marker-top">
+          <span class="glossary-marker-name">${marker.name}</span>
+          <span class="glossary-marker-value val-${status}">${latestVal !== null ? formatValue(latestVal) : '\u2014'} <span class="glossary-marker-unit">${marker.unit}</span></span>
+        </div>
+        <div class="glossary-marker-meta">
+          ${r.min != null && r.max != null ? `<span>Ref: ${formatValue(r.min)}\u2013${formatValue(r.max)}</span>` : ''}
+          ${marker.optimalMin != null ? `<span style="color:var(--green)">Opt: ${formatValue(marker.optimalMin)}\u2013${formatValue(marker.optimalMax)}</span>` : ''}
+        </div>
+        ${desc ? `<div class="glossary-marker-desc">${escapeHTML(desc)}</div>` : `<div class="glossary-marker-desc" id="gdesc-${id}"></div>`}
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+  modal.innerHTML = html;
+  overlay.classList.add('show');
+  lazyLoadGlossaryDescriptions(data);
+}
+
+function closeGlossary() {
+  document.getElementById('glossary-modal-overlay').classList.remove('show');
+}
+
+function filterGlossary() {
+  const q = (document.getElementById('glossary-search')?.value || '').toLowerCase().trim();
+  const cats = document.querySelectorAll('.glossary-category');
+  cats.forEach(cat => {
+    const markers = cat.querySelectorAll('.glossary-marker');
+    let visible = 0;
+    markers.forEach(m => {
+      const show = !q || m.dataset.name.includes(q);
+      m.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    cat.style.display = visible > 0 || !q ? '' : 'none';
+  });
+}
+
+async function lazyLoadGlossaryDescriptions(data) {
+  const descCache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      const id = catKey + '_' + mKey;
+      if (descCache[id]) continue;
+      const el = document.getElementById('gdesc-' + id);
+      if (!el) continue;
+      const text = await fetchMarkerDescription(id, marker.name, marker.unit);
+      if (text && el) el.textContent = text;
+    }
   }
 }
 

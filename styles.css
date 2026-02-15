@@ -1137,3 +1137,91 @@ body {
 .confirm-btn-cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
 .confirm-btn-danger { background: var(--red); color: white; }
 .confirm-btn-danger:hover { background: #ef5350; }
+/* Trend Alerts */
+.trend-alerts-section { margin-bottom: 20px; }
+.trend-alerts-header {
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+  padding: 12px 16px; background: var(--bg-card); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--yellow);
+}
+.trend-alerts-toggle { font-size: 10px; transition: transform 0.2s; }
+.trend-alerts-section.collapsed .trend-alerts-toggle { transform: rotate(-90deg); }
+.trend-alerts-section.collapsed .trend-alerts-body { display: none; }
+.trend-alerts-body { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.trend-alert-card {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: var(--bg-card); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); cursor: pointer; transition: background 0.15s;
+}
+.trend-alert-card:hover { background: var(--bg-hover); }
+.trend-alert-danger { border-left: 3px solid var(--red); }
+.trend-alert-warning { border-left: 3px solid var(--yellow); }
+.trend-alert-arrow { font-size: 20px; flex-shrink: 0; }
+.trend-alert-danger .trend-alert-arrow { color: var(--red); }
+.trend-alert-warning .trend-alert-arrow { color: var(--yellow); }
+.trend-alert-info { flex: 1; min-width: 0; }
+.trend-alert-name { font-size: 13px; font-weight: 600; }
+.trend-alert-cat { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+.trend-alert-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.trend-alert-spark {
+  font-size: 12px; color: var(--text-secondary); white-space: nowrap;
+  font-variant-numeric: tabular-nums; flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .trend-alert-spark { display: none; }
+}
+/* Glossary */
+.glossary-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
+  padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 16px;
+  transition: all 0.15s; line-height: 1;
+}
+.glossary-btn:hover { color: var(--accent); border-color: var(--accent); }
+.glossary-modal {
+  max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto;
+}
+.glossary-search {
+  width: 100%; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px;
+  font-family: inherit; margin-bottom: 16px;
+}
+.glossary-search:focus { outline: none; border-color: var(--accent); }
+.glossary-category { margin-bottom: 8px; }
+.glossary-cat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-sm);
+  cursor: pointer; font-weight: 600; font-size: 13px; user-select: none;
+}
+.glossary-cat-header:hover { background: var(--bg-hover); }
+.glossary-cat-count {
+  background: var(--bg-card); color: var(--text-muted); padding: 2px 8px;
+  border-radius: 10px; font-size: 11px; font-weight: 500;
+}
+.glossary-category.collapsed .glossary-cat-body { display: none; }
+.glossary-cat-body { padding: 4px 0; }
+.glossary-marker {
+  padding: 10px 14px; border-radius: var(--radius-sm); cursor: pointer;
+  border: 1px solid transparent; transition: all 0.15s; margin: 2px 0;
+}
+.glossary-marker:hover { background: var(--bg-hover); border-color: var(--border); }
+.glossary-marker-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.glossary-marker-name { font-weight: 600; font-size: 13px; }
+.glossary-marker-value { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.glossary-marker-unit { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+.glossary-marker-meta {
+  display: flex; gap: 12px; margin-top: 4px; font-size: 11px; color: var(--text-muted);
+}
+.glossary-marker-desc {
+  font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4;
+  min-height: 16px;
+}
+/* Batch Import */
+.batch-progress-counter {
+  text-align: center; color: var(--accent); font-weight: 600; font-size: 14px;
+  margin-bottom: 12px;
+}
+.batch-counter {
+  color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 8px;
+}
