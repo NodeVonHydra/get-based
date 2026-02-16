@@ -115,6 +115,25 @@ Combines field experts and scientific paradigms into a single interpretive frame
 - **System prompt**: AI considers listed experts' published work and frames analysis through specified paradigms
 - **Migration**: Old `fieldExperts` + `fieldLens` fields are auto-merged on profile load
 
+### Menstrual Cycle Tracking
+
+Cycle-aware lab interpretation for female profiles — tracks cycle profile, period log, and maps blood draw dates to cycle phases:
+
+- **Visibility**: Only renders when `profileSex === 'female'`
+- **Storage**: `importedData.menstrualCycle` — `null` (not set up) or object with `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`
+- **Period log**: `periods` array of `{ startDate, endDate, flow, notes }`, most recent first
+- **Helpers**:
+  - `getCyclePhase(dateStr, mc)` — returns `{ cycleDay, phase, phaseName }` or `null`. Phases: menstrual (1–periodLength), follicular, ovulatory (ovulationDay±1), luteal. Ovulation estimated at `cycleLength - 14`
+  - `getNextBestDrawDate(mc)` — predicts next early follicular window (days 3-5) from most recent period + cycle length
+  - `getBloodDrawPhases(mc, dates)` — maps each lab date to its cycle phase
+- **Dashboard section**: Between profile context cards and supplements. Setup prompt when `null`; when configured shows cycle summary, next draw recommendation (accent box), blood draw phase badges, and compact period log (last 6)
+- **Editor**: `openMenstrualCycleEditor()` — structured form (not textarea) with cycle profile fields + period log management
+- **AI context**: `buildLabContext()` adds `## Menstrual Cycle` section with profile summary, recent periods, blood draw phase context, and next draw recommendation
+- **System prompt**: AI considers cycle phase for hormones (estrogen, progesterone, LH, FSH), iron/ferritin, inflammatory markers, insulin sensitivity. Flags suboptimal draw timing
+- **Export/import**: Included in JSON export; import overwrites profile fields, merges periods by startDate
+- **PDF report**: Adds cycle context section with summary and blood draw phases
+- **CSS**: `.cycle-section`, `.cycle-summary`, `.cycle-draw-date` (accent box), `.cycle-phase-badge` with `.phase-menstrual` (red), `.phase-follicular` (blue), `.phase-ovulatory` (green), `.phase-luteal` (purple), `.cycle-period-log`, `.cycle-editor-form`
+
 ### Free Water Deficit
 
 Free Water Deficit is a calculated marker in `calculatedRatios` that estimates hydration status from serum sodium:
@@ -138,6 +157,15 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 - **No reference range**: `refMin: null, refMax: null` — PhenoAge is meaningful relative to chronological age, not absolute bounds. `getStatus()` returns `"normal"` for null refs; `refBandPlugin` skips drawing; chart/table/modal UI omit ref range text
 - **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
 - **Unit system**: PhenoAge outputs years regardless of EU/US setting — no `UNIT_CONVERSIONS` entry needed
+
+### Chart Overlay Toggles
+
+Off/On toggles controlling note dots and supplement bars on charts. Both appear in category view and dashboard toolbars alongside the date range filter. Hidden when the profile has no notes/supplements respectively.
+
+- **Notes** (`📝 [Off][On]`): `noteOverlayMode` variable, persisted in `labcharts-{profileId}-noteOverlay`. `getNotesForChart(chartDates)` returns `[]` when off. `renderNoteOverlayToggle()` / `setNoteOverlay(mode)`
+- **Supplements** (`💊 [Off][On]`): `suppOverlayMode` variable, persisted in `labcharts-{profileId}-suppOverlay`. `getSupplementsForChart(chartDates)` returns `[]` when off. `renderSuppOverlayToggle()` / `setSuppOverlay(mode)`
+- **Default**: Both off
+- **CSS**: Both use `.supp-overlay-toggle` wrapper with `.range-btn` buttons
 
 ### Trend Alerts on Dashboard
 

@@ -607,6 +607,46 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .context-info-icon:hover .context-tooltip { display: block; }
+/* Health Goals List */
+.goals-list { margin-bottom: 16px; }
+.goals-list-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 6px; font-size: 13px;
+}
+.goals-severity-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 4px;
+  white-space: nowrap; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.severity-major { background: var(--red-bg); color: var(--red); }
+.severity-mild { background: var(--yellow-bg); color: var(--yellow); }
+.severity-minor { background: var(--green-bg); color: var(--green); }
+.goals-list-item .goals-text { flex: 1; color: var(--text-primary); min-width: 0; }
+.goals-delete-btn {
+  background: none; border: none; color: var(--text-muted); font-size: 16px;
+  cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0; transition: color 0.15s;
+}
+.goals-delete-btn:hover { color: var(--red); }
+.goals-add-row {
+  display: flex; gap: 8px; align-items: flex-end; margin-top: 16px;
+}
+.goals-text-input {
+  flex: 1; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 13px; font-family: inherit;
+}
+.goals-text-input:focus { outline: none; border-color: var(--accent); }
+.goals-severity-select {
+  padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg-primary); color: var(--text-primary); font-size: 13px;
+  font-family: inherit; cursor: pointer;
+}
+.goals-severity-select option { background: var(--bg-secondary); }
+.goals-severity-select:focus { outline: none; border-color: var(--accent); }
+@media (max-width: 600px) {
+  .goals-add-row { flex-wrap: wrap; }
+  .goals-text-input { min-width: 100%; }
+}
 /* Supplements & Medications Timeline */
 .supp-timeline-section { margin-bottom: 16px; }
 .supp-timeline-header {
@@ -1264,4 +1304,67 @@ body {
 }
 .batch-counter {
   color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 8px;
+}
+/* Menstrual Cycle */
+.cycle-section { margin-bottom: 16px; }
+.cycle-prompt {
+  display: flex; align-items: center; gap: 14px; padding: 16px 18px;
+  background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--text-primary);
+}
+.cycle-prompt:hover { border-color: var(--accent); background: var(--bg-hover); }
+.cycle-prompt-icon { font-size: 20px; flex-shrink: 0; }
+.cycle-summary {
+  font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;
+  padding: 8px 14px; background: var(--bg-card); border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.cycle-draw-date {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+  background: var(--ref-band); border: 1px solid var(--ref-border);
+  border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 13px;
+  color: var(--text-primary);
+}
+.cycle-draw-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.cycle-draw-explain {
+  font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;
+}
+.cycle-draw-phases {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+}
+.cycle-draw-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+  padding: 4px 10px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.cycle-phase-badge {
+  display: inline-block; padding: 1px 7px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; text-transform: capitalize;
+}
+.phase-menstrual { background: rgba(248,113,113,0.15); color: var(--red); }
+.phase-follicular { background: rgba(79,140,255,0.15); color: var(--accent); }
+.phase-ovulatory { background: rgba(52,211,153,0.15); color: var(--green); }
+.phase-luteal { background: rgba(167,139,250,0.15); color: #a78bfa; }
+[data-theme="light"] .phase-luteal { color: #7c3aed; }
+.cycle-period-log {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;
+}
+.cycle-period-entry {
+  font-size: 12px; color: var(--text-secondary);
+  padding: 3px 8px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 5px; display: inline-flex; align-items: center; gap: 4px;
+}
+.cycle-period-note { color: var(--text-muted); font-style: italic; }
+.cycle-editor-form { margin-top: 12px; }
+/* Supplement Overlay Toggle */
+.supp-overlay-toggle {
+  display: flex; gap: 4px; align-items: center; background: var(--bg-secondary);
+  padding: 3px; padding-left: 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); width: fit-content;
+}
+.supp-overlay-icon { font-size: 14px; margin-right: 2px; }
+@media (max-width: 768px) {
+  .cycle-draw-phases { flex-direction: column; gap: 4px; }
+  .cycle-period-log { flex-direction: column; gap: 4px; }
 }
