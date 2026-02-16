@@ -26,7 +26,7 @@ No build system, no bundler, no package manager. Three source files:
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
-  - Diagnoses, diet, circadian, sleep, exercise & field experts profile context (`openDiagnosesEditor`, `openDietEditor`, `openCircadianEditor`, `openSleepEditor`, `openExerciseEditor`, `openFieldExpertsEditor`)
+  - Diagnoses, diet, exercise, sleep & circadian, health goals & interpretive lens profile context (`openDiagnosesEditor`, `openDietEditor`, `openExerciseEditor`, `openSleepCircadianEditor`, `openHealthGoalsEditor`, `openInterpretiveLensEditor`)
   - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
   - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
   - AI marker descriptions (`fetchMarkerDescription` — cached one-sentence explanations in detail modal)
@@ -40,7 +40,7 @@ No build system, no bundler, no package manager. Three source files:
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, circadian, exercise, sleep, fieldExperts }`; unit preference under `labcharts-{profileId}-units`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepCircadian, interpretiveLens, healthGoals }`; unit preference under `labcharts-{profileId}-units`. Legacy fields (`circadian`, `sleep`, `fieldExperts`, `fieldLens`) are auto-migrated on load via `migrateProfileData()`
 3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` at category level in the schema; `getActiveData()` sets `singleDate`, `singleDateLabel` on the category and `singlePoint`, `singleDateLabel` on each marker
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -80,16 +80,40 @@ Notes are independent of lab entries — they support any date and are stored in
 - Notes appear in the detail modal as a clickable memo icon on date cards; clicking toggles an inline expanded note text panel (`.mv-note-text`) below the date
 - `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
 
-### Diagnoses, Diet, Circadian, Sleep, Exercise & Field Experts
+### Profile Context Cards
 
-Free-text profile context stored in `importedData.diagnoses`, `importedData.diet`, `importedData.circadian`, `importedData.sleep`, `importedData.exercise`, and `importedData.fieldExperts` (all strings):
+Six profile context cards stored as free-text strings in `importedData`: `diagnoses`, `diet`, `exercise`, `sleepCircadian`, `interpretiveLens` (plus structured `healthGoals`):
 
-- Dashboard renders six cards in a `.profile-context-cards` grid (3×2 on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section heading
+- Dashboard renders six cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section heading, ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Circadian, Interpretive Lens
 - Each card has an info icon (i) with a hover tooltip explaining why that context matters for lab interpretation
 - Each card shows current text or a placeholder prompt; clicking opens a modal editor
-- `buildLabContext()` prepends `## Medical Conditions / Diagnoses`, `## Diet`, `## Circadian Habits`, `## Sleep`, `## Exercise & Movement`, and `## Field Experts` sections to the AI context
+- **Merged fields**: Sleep & Circadian combines old `sleep` + `circadian`; Interpretive Lens combines old `fieldExperts` + `fieldLens`. Migration happens automatically via `migrateProfileData()` on profile load
+- `buildLabContext()` prepends `## Medical Conditions / Diagnoses`, `## Diet`, `## Exercise & Movement`, `## Sleep & Circadian`, `## Health Goals (Things to Solve)`, and `## Interpretive Lens` sections to the AI context
 - `CHAT_SYSTEM_PROMPT` instructs the AI to factor all six into lab interpretation
-- All fields are included in JSON export/import
+- All fields are included in JSON export/import; import handles both old and new field names
+
+### Health Goals
+
+Structured list of things the user wants to solve or improve, each with a severity level:
+
+- **Storage**: `importedData.healthGoals` — array of `{ text, severity }` where severity is `major`, `mild`, or `minor`
+- **Dashboard card** (🎯): Shows severity count summary (e.g. "2 major, 1 mild goals") or placeholder. Opens `openHealthGoalsEditor()`
+- **Editor**: Modal with live list of goals (severity badge + text + delete button), add form (text input + severity dropdown + Add button), Done/Clear All buttons. Enter key in text input triggers add. Changes persist immediately on add/delete
+- **AI context**: `buildLabContext()` adds `## Health Goals (Things to Solve)` section grouped by severity (major → mild → minor)
+- **System prompt**: AI prioritizes analysis around stated goals, focusing on major priorities first
+- **Export/import**: Included in JSON export; import merges array, deduplicating by text content
+- **CSS**: `.goals-list`, `.goals-severity-badge` with `.severity-major` (red), `.severity-mild` (yellow), `.severity-minor` (green)
+
+### Interpretive Lens
+
+Combines field experts and scientific paradigms into a single interpretive framework for lab analysis:
+
+- **Storage**: `importedData.interpretiveLens` — string
+- **Dashboard card** (🔬): Shows text preview (truncated at 200 chars) or placeholder. Opens `openInterpretiveLensEditor()`
+- **Editor**: Textarea modal (`openInterpretiveLensEditor`, `saveInterpretiveLens`, `clearInterpretiveLens`). Placeholder suggests both experts and paradigms
+- **AI context**: `buildLabContext()` adds `## Interpretive Lens` section
+- **System prompt**: AI considers listed experts' published work and frames analysis through specified paradigms
+- **Migration**: Old `fieldExperts` + `fieldLens` fields are auto-merged on profile load
 
 ### Free Water Deficit
 
@@ -169,8 +193,8 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 
 ### JSON Export/Import
 
-- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "...", circadian: "...", exercise: "...", sleep: "...", fieldExperts: "..." }`
-- Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet/circadian/exercise if present
+- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: "...", diet: "...", exercise: "...", sleepCircadian: "...", interpretiveLens: "...", healthGoals: [...] }`
+- Import merges entries by date, deduplicates notes by date+text, overwrites diagnoses/diet/exercise if present, merges healthGoals by text. Handles legacy fields: old `circadian`+`sleep` → `sleepCircadian`, old `fieldExperts`+`fieldLens` → `interpretiveLens`
 - Drop zone accepts both PDF and JSON files
 
 ### External Dependencies (CDN)
@@ -201,7 +225,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v5` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v7` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
