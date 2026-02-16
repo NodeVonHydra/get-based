@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Three source files:
 - **`index.html`** — HTML structure only (header, sidebar, modals, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
 - **`app.js`** — all JavaScript, organized into sections:
-  - `MARKER_SCHEMA` — biomarker definitions (categories, names, units, reference ranges) with no personal data
+  - `MARKER_SCHEMA` — biomarker definitions (categories, names, units, reference ranges, descriptions) with no personal data
   - `UNIT_CONVERSIONS` — EU (SI) to US unit conversion factors
   - `CORRELATION_PRESETS` — predefined marker combinations for the correlation view
   - API key management (`getApiKey`, `saveApiKey`, `hasApiKey`, `validateApiKey`)
@@ -32,7 +32,7 @@ No build system, no bundler, no package manager. Three source files:
   - Diagnoses, diet, exercise, sleep & circadian, health goals & interpretive lens profile context (`openDiagnosesEditor`, `openDietEditor`, `openExerciseEditor`, `openSleepCircadianEditor`, `openHealthGoalsEditor`, `openInterpretiveLensEditor`)
   - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
   - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
-  - AI marker descriptions (`fetchMarkerDescription` — cached one-sentence explanations in detail modal)
+  - Marker descriptions (`getMarkerDescription` — reads hardcoded `desc` from schema, falls back to localStorage for custom markers)
   - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
   - Chat personalities (`CHAT_PERSONALITIES`, `setChatPersonality`, `getActivePersonality`, `loadChatPersonality`, `updatePersonalityBar`)
   - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
@@ -218,21 +218,24 @@ A single "Layers" dropdown controlling note dots and supplement bars on charts. 
 
 ### Trend Alerts on Dashboard
 
-Detects markers with monotonically rising/falling values approaching or exceeding reference boundaries:
+Detects markers drifting toward or past reference boundaries using linear regression and sudden change detection:
 
-- **`detectTrendAlerts(data)`**: Iterates all markers with 3+ non-null values; checks last 3-5 values for strict monotonic change (>2% per step); classifies as `past_high`, `past_low`, `approaching_high`, or `approaching_low` (within 15% of boundary)
-- **Dashboard rendering**: Merged into "Trends & Alerts" section. All trend types render (approaching = yellow, past = red). Shown first, above critical flags. Trend markers are deduplicated from the critical flags below
+- **`linearRegression(points)`**: Standard least-squares returning `{ slope, intercept, r2 }` over indexed data points
+- **`detectTrendAlerts(data)`**: Two detection methods per marker:
+  1. **Sudden change** (2+ values): If latest-to-previous jump exceeds 25% of reference range AND latest value is outside range → `sudden_high` or `sudden_low` (takes priority, skips regression)
+  2. **Linear regression** (3+ values): Computes slope over all non-null values. Normalized slope (`slope / range`) must exceed ±0.02. R² > 0.5 required only for 4+ data points. Classifies as `past_high`, `past_low`, `approaching_high`, or `approaching_low` (within 15% of boundary)
+- **Dashboard rendering**: Merged into "Trends & Alerts" section. Sudden = orange with lightning bolt, past = red, approaching = yellow. Sorted: sudden first, then past, then approaching. Trend markers are deduplicated from the critical flags below
 - **Click-through**: Cards open `showDetailModal(id)` for the trending marker
 - **Respects date range filter**: Uses `filterDatesByRange(data)` before detection
+- **CSS**: `.trend-alert-sudden` border-left + `.trend-alert-sudden .trend-alert-arrow` color, both orange (#fb923c)
 
 ### Marker Glossary
 
 Searchable modal listing all markers grouped by category:
 
 - **Header button**: Book icon (&#128214;) between settings and Ask AI buttons
-- **`openGlossary()`**: Renders full marker inventory from `getActiveData()` with collapsible category headers, marker cards showing name, latest value (color-coded), unit, ref range, optimal range, and AI description
+- **`openGlossary()`**: Renders full marker inventory from `getActiveData()` with collapsible category headers, marker cards showing name, latest value (color-coded), unit, ref range, optimal range, and hardcoded description
 - **`filterGlossary()`**: Real-time search by marker name, hides empty categories
-- **`lazyLoadGlossaryDescriptions(data)`**: Sequential async loop calling `fetchMarkerDescription()` for uncached markers, updating DOM as descriptions arrive
 - **Click-through**: Clicking a marker closes glossary and opens `showDetailModal(id)`
 - **CSS**: `.glossary-modal` (max-width 800px, max-height 85vh), collapsible categories, hover-highlighted marker cards
 
@@ -257,7 +260,7 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
-- AI marker descriptions: `fetchMarkerDescription()` calls Claude for a one-sentence explanation of each biomarker, cached globally in `localStorage` key `labcharts-marker-desc` (object keyed by marker ID). Displayed between the unit/reference line and the chart in the detail modal with a shimmer loading skeleton while fetching
+- Marker descriptions: Each marker in `MARKER_SCHEMA` has a `desc` field with a one-sentence explanation. `getMarkerDescription(id)` reads from `marker.desc` in the registry, falling back to `localStorage` key `labcharts-marker-desc` for custom markers. For custom markers without a cached description, `fetchCustomMarkerDescription()` calls Claude API (one-time, then cached in localStorage). Displayed between the unit/reference line and the chart in the detail modal
 
 ### API Key Management
 
@@ -302,7 +305,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v12` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v13` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network

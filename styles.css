@@ -1234,9 +1234,11 @@ body {
 .trend-alert-card:hover { background: var(--bg-hover); }
 .trend-alert-danger { border-left: 3px solid var(--red); }
 .trend-alert-warning { border-left: 3px solid var(--yellow); }
+.trend-alert-sudden { border-left: 3px solid #fb923c; }
 .trend-alert-arrow { font-size: 20px; flex-shrink: 0; }
 .trend-alert-danger .trend-alert-arrow { color: var(--red); }
 .trend-alert-warning .trend-alert-arrow { color: var(--yellow); }
+.trend-alert-sudden .trend-alert-arrow { color: #fb923c; }
 .trend-alert-info { flex: 1; min-width: 0; }
 .trend-alert-name { font-size: 13px; font-weight: 600; }
 .trend-alert-cat { font-size: 11px; color: var(--text-muted); font-weight: 400; margin-left: 6px; }

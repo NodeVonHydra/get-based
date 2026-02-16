@@ -5,189 +5,189 @@ const MARKER_SCHEMA = {
   biochemistry: {
     label: "Biochemistry", icon: "\u{1F9EA}",
     markers: {
-      glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60 },
-      urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3 },
-      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106, refMin_f: 44, refMax_f: 80 },
-      egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30 },
-      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417, refMin_f: 143, refMax_f: 339 },
-      bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0 },
-      ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85 },
-      alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83 },
-      alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15 },
-      ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19 },
-      ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75 },
-      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14, refMin_f: 0.42, refMax_f: 3.08 },
-      cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95 },
-      gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63 }
+      glucose: { name: "Glucose (Gluk\u00f3za)", unit: "mmol/l", refMin: 4.11, refMax: 5.60, desc: "Measures blood sugar level; the primary marker for diagnosing and monitoring diabetes and metabolic health." },
+      urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3, desc: "A waste product of protein metabolism filtered by the kidneys; elevated levels suggest impaired kidney function or dehydration." },
+      creatinine: { name: "Creatinine (Kreatinin)", unit: "\u00b5mol/l", refMin: 62, refMax: 106, refMin_f: 44, refMax_f: 80, desc: "A muscle metabolism byproduct cleared by the kidneys; used to estimate kidney filtration rate and detect renal dysfunction." },
+      egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30, desc: "Estimates how well the kidneys filter waste from blood; the standard measure for staging chronic kidney disease." },
+      uricAcid: { name: "Uric Acid (Kyselina mo\u010dov\u00e1)", unit: "\u00b5mol/l", refMin: 202, refMax: 417, refMin_f: 143, refMax_f: 339, desc: "End product of purine metabolism; high levels cause gout and are linked to kidney stones and cardiovascular risk." },
+      bilirubinTotal: { name: "Bilirubin Total", unit: "\u00b5mol/l", refMin: 3.0, refMax: 24.0, desc: "A yellow pigment from red blood cell breakdown processed by the liver; elevated levels indicate liver disease or hemolysis." },
+      ast: { name: "AST", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.85, desc: "A liver and muscle enzyme released during cell damage; elevated in liver disease, heart attack, or muscle injury." },
+      alt: { name: "ALT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 0.83, desc: "A liver-specific enzyme; the most sensitive marker for liver cell damage from hepatitis, fatty liver, or toxins." },
+      alp: { name: "ALP", unit: "\u00b5kat/l", refMin: 0.67, refMax: 2.15, desc: "An enzyme found in liver and bone; elevated levels suggest bile duct obstruction, bone disorders, or liver disease." },
+      ggt: { name: "GGT", unit: "\u00b5kat/l", refMin: 0.17, refMax: 1.19, desc: "A liver enzyme sensitive to alcohol and bile duct damage; often the earliest marker of liver stress." },
+      ldh: { name: "LDH", unit: "\u00b5kat/l", refMin: 2.25, refMax: 3.75, desc: "A general tissue damage marker found in most organs; elevated in hemolysis, liver disease, heart attack, or cancer." },
+      creatineKinase: { name: "Creatine Kinase", unit: "\u00b5kat/l", refMin: 0.65, refMax: 5.14, refMin_f: 0.42, refMax_f: 3.08, desc: "An enzyme released from damaged muscle tissue; elevated after intense exercise, muscle injury, or in myopathy." },
+      cystatinC: { name: "Cystatin C", unit: "mg/l", refMin: 0.61, refMax: 0.95, desc: "A protein filtered by the kidneys; a more accurate kidney function marker than creatinine, unaffected by muscle mass." },
+      gfrCystatin: { name: "GFR Cystatin", unit: "ml/s", refMin: 1.80, refMax: 2.63, desc: "Kidney filtration rate estimated from cystatin C; provides a muscle-mass-independent assessment of renal function." }
     }
   },
   hormones: {
     label: "Hormones", icon: "\u26A1",
     markers: {
-      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, refMin_f: 0.29, refMax_f: 1.67 },
-      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, refMin_f: 0.30, refMax_f: 10.40 },
-      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1, refMin_f: 26.1, refMax_f: 110.0 },
-      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60, refMin_f: 1.77, refMax_f: 9.22 },
-      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0, refMin_f: 0.5, refMax_f: 6.9 },
-      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0, refMin_f: 45.4, refMax_f: 854.0 },
-      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474, refMin_f: 0.181, refMax_f: 27.0 },
-      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, refMin_f: 1.0, refMax_f: 4.6 },
-      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, refMin_f: 0.12, refMax_f: 0.86 },
-      igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8 },
-      insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 }
+      testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, refMin_f: 0.29, refMax_f: 1.67, desc: "The primary male sex hormone; critical for muscle mass, bone density, libido, and mood in both sexes." },
+      freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, refMin_f: 0.30, refMax_f: 10.40, desc: "The unbound, biologically active fraction of testosterone; a better indicator of androgen status than total testosterone." },
+      shbg: { name: "SHBG", unit: "nmol/l", refMin: 14.5, refMax: 54.1, refMin_f: 26.1, refMax_f: 110.0, desc: "A protein that binds sex hormones and regulates their availability; high levels reduce free testosterone." },
+      dheaS: { name: "DHEA-S", unit: "\u00b5mol/l", refMin: 2.41, refMax: 11.60, refMin_f: 1.77, refMax_f: 9.22, desc: "An adrenal hormone precursor to testosterone and estrogen; declines with age and reflects adrenal function." },
+      fai: { name: "Free Androgen Index", unit: "%", refMin: 34.0, refMax: 106.0, refMin_f: 0.5, refMax_f: 6.9, desc: "Ratio of total testosterone to SHBG; estimates bioavailable androgen activity, useful for detecting hormonal imbalances." },
+      estradiol: { name: "Estradiol", unit: "pmol/l", refMin: 41.4, refMax: 159.0, refMin_f: 45.4, refMax_f: 854.0, desc: "The primary estrogen hormone; essential for bone health, cardiovascular protection, and reproductive function." },
+      progesterone: { name: "Progesterone", unit: "nmol/l", refMin: 0.159, refMax: 0.474, refMin_f: 0.181, refMax_f: 27.0, desc: "A hormone supporting pregnancy and menstrual cycle regulation; also has neuroprotective and calming effects." },
+      calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, refMin_f: 1.0, refMax_f: 4.6, desc: "A thyroid hormone that lowers blood calcium; used as a tumor marker for medullary thyroid carcinoma." },
+      dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, refMin_f: 0.12, refMax_f: 0.86, desc: "A potent androgen converted from testosterone; drives male-pattern hair loss and prostate growth." },
+      igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8, desc: "A growth-factor hormone mediating the effects of growth hormone; reflects GH status and influences tissue repair." },
+      insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "The hormone regulating blood sugar uptake into cells; elevated fasting levels indicate insulin resistance." }
     }
   },
   electrolytes: {
     label: "Electrolytes & Minerals", icon: "\u2699\uFE0F",
     markers: {
-      sodium: { name: "Sodium", unit: "mmol/l", refMin: 136, refMax: 145 },
-      potassium: { name: "Potassium", unit: "mmol/l", refMin: 3.5, refMax: 5.1 },
-      chloride: { name: "Chloride", unit: "mmol/l", refMin: 97, refMax: 108 },
-      calciumTotal: { name: "Calcium Total", unit: "mmol/l", refMin: 2.15, refMax: 2.50 },
-      phosphorus: { name: "Phosphorus", unit: "mmol/l", refMin: 0.81, refMax: 1.45 },
-      magnesium: { name: "Magnesium (serum)", unit: "mmol/l", refMin: 0.66, refMax: 1.07 },
-      magnesiumRBC: { name: "Magnesium RBC", unit: "mmol/l", refMin: 1.44, refMax: 2.60 },
-      copper: { name: "Copper", unit: "\u00b5mol/l", refMin: 11.6, refMax: 20.6 },
-      zinc: { name: "Zinc", unit: "\u00b5mol/l", refMin: 9.8, refMax: 18.0 }
+      sodium: { name: "Sodium", unit: "mmol/l", refMin: 136, refMax: 145, desc: "The main extracellular electrolyte controlling fluid balance and blood pressure; abnormal levels affect nerve and muscle function." },
+      potassium: { name: "Potassium", unit: "mmol/l", refMin: 3.5, refMax: 5.1, desc: "A critical intracellular electrolyte regulating heart rhythm and muscle contraction; abnormal levels can be life-threatening." },
+      chloride: { name: "Chloride", unit: "mmol/l", refMin: 97, refMax: 108, desc: "An electrolyte that maintains fluid balance and acid-base status; usually changes in parallel with sodium." },
+      calciumTotal: { name: "Calcium Total", unit: "mmol/l", refMin: 2.15, refMax: 2.50, desc: "Essential for bone strength, nerve signaling, and muscle contraction; regulated by parathyroid hormone and vitamin D." },
+      phosphorus: { name: "Phosphorus", unit: "mmol/l", refMin: 0.81, refMax: 1.45, desc: "Works with calcium for bone mineralization and energy metabolism; imbalances affect bone health and kidney function." },
+      magnesium: { name: "Magnesium (serum)", unit: "mmol/l", refMin: 0.66, refMax: 1.07, desc: "A cofactor in 300+ enzymatic reactions including energy production and nerve function; deficiency is common and underdiagnosed." },
+      magnesiumRBC: { name: "Magnesium RBC", unit: "mmol/l", refMin: 1.44, refMax: 2.60, desc: "Intracellular magnesium level; a more accurate measure of true magnesium status than serum, which reflects only 1% of body stores." },
+      copper: { name: "Copper", unit: "\u00b5mol/l", refMin: 11.6, refMax: 20.6, desc: "A trace mineral essential for iron metabolism, connective tissue, and antioxidant defense; excess is toxic to the liver." },
+      zinc: { name: "Zinc", unit: "\u00b5mol/l", refMin: 9.8, refMax: 18.0, desc: "A trace mineral vital for immune function, wound healing, and testosterone production; deficiency impairs taste and immunity." }
     }
   },
   lipids: {
     label: "Lipid Panel", icon: "\uD83D\uDCA7",
     markers: {
-      cholesterol: { name: "Total Cholesterol", unit: "mmol/l", refMin: 2.90, refMax: 5.00 },
-      triglycerides: { name: "Triglycerides", unit: "mmol/l", refMin: 0.45, refMax: 1.70 },
-      hdl: { name: "HDL Cholesterol", unit: "mmol/l", refMin: 1.00, refMax: 2.10 },
-      ldl: { name: "LDL Cholesterol", unit: "mmol/l", refMin: 1.20, refMax: 3.00 },
-      nonHdl: { name: "Non-HDL Cholesterol", unit: "mmol/l", refMin: 0.00, refMax: 3.80 },
-      cholHdlRatio: { name: "Chol/HDL Ratio", unit: "", refMin: 0.0, refMax: 5.0 },
-      apoAI: { name: "Apo A-I", unit: "g/l", refMin: 1.00, refMax: 1.70 },
-      apoB: { name: "Apo B", unit: "g/l", refMin: 0.50, refMax: 1.00 }
+      cholesterol: { name: "Total Cholesterol", unit: "mmol/l", refMin: 2.90, refMax: 5.00, desc: "The sum of all cholesterol fractions in blood; a basic cardiovascular risk indicator, though HDL/LDL ratio matters more." },
+      triglycerides: { name: "Triglycerides", unit: "mmol/l", refMin: 0.45, refMax: 1.70, desc: "Blood fats from dietary intake and liver production; elevated levels increase cardiovascular and pancreatitis risk." },
+      hdl: { name: "HDL Cholesterol", unit: "mmol/l", refMin: 1.00, refMax: 2.10, desc: "Protective cholesterol that transports fat away from arteries back to the liver; higher levels reduce cardiovascular risk." },
+      ldl: { name: "LDL Cholesterol", unit: "mmol/l", refMin: 1.20, refMax: 3.00, desc: "The primary atherogenic cholesterol that deposits in artery walls; the main target for cardiovascular risk reduction." },
+      nonHdl: { name: "Non-HDL Cholesterol", unit: "mmol/l", refMin: 0.00, refMax: 3.80, desc: "All atherogenic cholesterol particles combined (LDL + VLDL + remnants); a better cardiovascular predictor than LDL alone." },
+      cholHdlRatio: { name: "Chol/HDL Ratio", unit: "", refMin: 0.0, refMax: 5.0, desc: "Total cholesterol divided by HDL; a simple cardiovascular risk ratio where lower values indicate better lipid balance." },
+      apoAI: { name: "Apo A-I", unit: "g/l", refMin: 1.00, refMax: 1.70, desc: "The main protein of HDL particles; reflects protective cholesterol transport capacity and cardiovascular health." },
+      apoB: { name: "Apo B", unit: "g/l", refMin: 0.50, refMax: 1.00, desc: "The protein on each LDL particle; directly counts atherogenic particles, making it a superior cardiovascular risk marker." }
     }
   },
   iron: {
     label: "Iron Metabolism", icon: "\uD83D\uDD34",
     markers: {
-      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5, refMin_f: 6.6, refMax_f: 26.0 },
-      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400, refMin_f: 13, refMax_f: 150 },
-      transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6 },
-      tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7 },
-      transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0 }
+      iron: { name: "Iron", unit: "\u00b5mol/l", refMin: 5.8, refMax: 34.5, refMin_f: 6.6, refMax_f: 26.0, desc: "Serum iron level reflecting current iron availability; fluctuates with meals and inflammation, best interpreted with ferritin." },
+      ferritin: { name: "Ferritin", unit: "\u00b5g/l", refMin: 30, refMax: 400, refMin_f: 13, refMax_f: 150, desc: "The primary iron storage protein; the most reliable marker for total body iron stores, though elevated by inflammation." },
+      transferrin: { name: "Transferrin", unit: "g/l", refMin: 2.0, refMax: 3.6, desc: "The iron transport protein in blood; rises when iron stores are low as the body tries to capture more iron." },
+      tibc: { name: "TIBC", unit: "\u00b5mol/l", refMin: 22.3, refMax: 61.7, desc: "Total iron-binding capacity of transferrin; high values suggest iron deficiency, low values suggest iron overload." },
+      transferrinSat: { name: "Transferrin Sat.", unit: "%", refMin: 16.0, refMax: 45.0, desc: "Percentage of transferrin loaded with iron; low values confirm iron deficiency, high values suggest overload risk." }
     }
   },
   proteins: {
     label: "Proteins & Inflammation", icon: "\uD83D\uDEE1\uFE0F",
     markers: {
-      hsCRP: { name: "hs-CRP", unit: "mg/l", refMin: 0.00, refMax: 3.00 },
-      totalProtein: { name: "Total Protein", unit: "g/l", refMin: 64.0, refMax: 83.0 },
-      albumin: { name: "Albumin", unit: "g/l", refMin: 35.0, refMax: 52.0 },
-      ceruloplasmin: { name: "Ceruloplasmin", unit: "g/l", refMin: 0.15, refMax: 0.30 }
+      hsCRP: { name: "hs-CRP", unit: "mg/l", refMin: 0.00, refMax: 3.00, desc: "High-sensitivity C-reactive protein; a key marker of systemic inflammation and independent predictor of cardiovascular events." },
+      totalProtein: { name: "Total Protein", unit: "g/l", refMin: 64.0, refMax: 83.0, desc: "Sum of albumin and globulins in blood; reflects nutritional status, liver function, and immune system activity." },
+      albumin: { name: "Albumin", unit: "g/l", refMin: 35.0, refMax: 52.0, desc: "The most abundant blood protein made by the liver; low levels indicate malnutrition, liver disease, or chronic inflammation." },
+      ceruloplasmin: { name: "Ceruloplasmin", unit: "g/l", refMin: 0.15, refMax: 0.30, desc: "A copper-carrying protein produced by the liver; low levels suggest Wilson disease, high levels indicate inflammation." }
     }
   },
   thyroid: {
     label: "Thyroid", icon: "\uD83E\uDD8B",
     markers: {
-      tsh: { name: "TSH", unit: "mU/l", refMin: 0.270, refMax: 4.200 },
-      ft4: { name: "Free T4", unit: "pmol/l", refMin: 11.9, refMax: 21.6 },
-      ft3: { name: "Free T3", unit: "pmol/l", refMin: 3.1, refMax: 6.8 },
-      t4total: { name: "Total T4", unit: "nmol/l", refMin: 66.0, refMax: 181.0 },
-      t3total: { name: "Total T3", unit: "nmol/l", refMin: 1.30, refMax: 3.10 }
+      tsh: { name: "TSH", unit: "mU/l", refMin: 0.270, refMax: 4.200, desc: "Thyroid-stimulating hormone from the pituitary; the primary screening test for thyroid dysfunction (hypo- or hyperthyroidism)." },
+      ft4: { name: "Free T4", unit: "pmol/l", refMin: 11.9, refMax: 21.6, desc: "The unbound, active form of thyroxine; reflects actual thyroid hormone available to tissues for metabolism regulation." },
+      ft3: { name: "Free T3", unit: "pmol/l", refMin: 3.1, refMax: 6.8, desc: "The most metabolically active thyroid hormone; low levels despite normal T4 may indicate poor T4-to-T3 conversion." },
+      t4total: { name: "Total T4", unit: "nmol/l", refMin: 66.0, refMax: 181.0, desc: "Total thyroxine including protein-bound fraction; affected by binding protein levels, making free T4 more reliable." },
+      t3total: { name: "Total T3", unit: "nmol/l", refMin: 1.30, refMax: 3.10, desc: "Total triiodothyronine including bound fraction; useful for diagnosing hyperthyroidism when free T3 is unavailable." }
     }
   },
   vitamins: {
     label: "Vitamins", icon: "\u2600\uFE0F",
     markers: {
-      vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0 },
-      vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0 },
-      vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80 }
+      vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0, desc: "Sum of D2 and D3 forms; essential for calcium absorption, bone health, immune function, and mood regulation." },
+      vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0, desc: "The form of vitamin D produced by sun exposure and supplements; the most bioactive and clinically relevant form." },
+      vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, desc: "A fat-soluble vitamin essential for vision, immune defense, and cell growth; both deficiency and excess are harmful." }
     }
   },
   diabetes: {
     label: "Diabetes / Glucose", icon: "\uD83D\uDCCA",
     markers: {
-      hba1c: { name: "HbA1c", unit: "mmol/mol", refMin: 20.0, refMax: 42.0 },
-      insulin_d: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9 },
-      homaIR: { name: "HOMA-IR (calc)", unit: "", refMin: 0, refMax: 2.5 }
+      hba1c: { name: "HbA1c", unit: "mmol/mol", refMin: 20.0, refMax: 42.0, desc: "Glycated hemoglobin reflecting average blood sugar over 2\u20133 months; the gold standard for long-term glucose control." },
+      insulin_d: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "Fasting insulin level used in the diabetes context; elevated levels are an early sign of insulin resistance." },
+      homaIR: { name: "HOMA-IR (calc)", unit: "", refMin: 0, refMax: 2.5, desc: "Calculated index of insulin resistance from fasting glucose and insulin; higher values indicate greater resistance." }
     }
   },
   tumorMarkers: {
     label: "Tumor Markers", icon: "\uD83D\uDD2C",
     markers: {
-      psa: { name: "PSA", unit: "\u00b5g/l", refMin: 0.003, refMax: 1.400 }
+      psa: { name: "PSA", unit: "\u00b5g/l", refMin: 0.003, refMax: 1.400, desc: "Prostate-specific antigen; used to screen for prostate cancer and monitor treatment, though also elevated in benign conditions." }
     }
   },
   coagulation: {
     label: "Coagulation", icon: "\uD83E\uDE78",
     markers: {
-      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0, refMin_f: 3.7, refMax_f: 10.4 }
+      homocysteine: { name: "Homocysteine", unit: "\u00b5mol/l", refMin: 5.2, refMax: 15.0, refMin_f: 3.7, refMax_f: 10.4, desc: "An amino acid linked to cardiovascular and neurological risk when elevated; lowered by folate, B6, and B12." }
     }
   },
   hematology: {
     label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
     markers: {
-      wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00 },
-      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20 },
-      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, refMin_f: 120, refMax_f: 160 },
-      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, refMin_f: 0.350, refMax_f: 0.450 },
-      mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0 },
-      mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0 },
-      mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360 },
-      rdwcv: { name: "RDW-CV", unit: "%", refMin: 10.0, refMax: 15.2 },
-      platelets: { name: "Platelets", unit: "10^9/l", refMin: 150, refMax: 400 },
-      mpv: { name: "MPV", unit: "fl", refMin: 7.8, refMax: 12.8 },
-      pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0 }
+      wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00, desc: "White blood cell count; the primary measure of immune system activity, elevated in infection and inflammation." },
+      rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20, desc: "Red blood cell count; reflects oxygen-carrying capacity, with low values indicating anemia and high values polycythemia." },
+      hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, refMin_f: 120, refMax_f: 160, desc: "The oxygen-carrying protein in red blood cells; the definitive marker for diagnosing anemia or polycythemia." },
+      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, refMin_f: 0.350, refMax_f: 0.450, desc: "The percentage of blood volume occupied by red blood cells; affected by hydration status, anemia, and altitude." },
+      mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0, desc: "Average red blood cell size; helps classify anemia as microcytic (iron deficiency) or macrocytic (B12/folate deficiency)." },
+      mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0, desc: "Average hemoglobin content per red blood cell; low values suggest iron deficiency, high values suggest B12 deficiency." },
+      mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360, desc: "Average hemoglobin concentration in red blood cells; helps differentiate types of anemia and detect spherocytosis." },
+      rdwcv: { name: "RDW-CV", unit: "%", refMin: 10.0, refMax: 15.2, desc: "Variation in red blood cell size; elevated values suggest mixed nutritional deficiencies or early iron deficiency." },
+      platelets: { name: "Platelets", unit: "10^9/l", refMin: 150, refMax: 400, desc: "Blood cells essential for clotting; low counts risk bleeding, high counts risk clotting or indicate inflammation." },
+      mpv: { name: "MPV", unit: "fl", refMin: 7.8, refMax: 12.8, desc: "Average platelet size; larger platelets are more reactive, and elevated MPV is linked to cardiovascular risk." },
+      pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0, desc: "Variation in platelet size; elevated values suggest active platelet production or consumption in clotting disorders." }
     }
   },
   differential: {
     label: "WBC Differential", icon: "\uD83E\uDDEB",
     markers: {
-      neutrophils: { name: "Neutrophils #", unit: "10^9/l", refMin: 2.0, refMax: 7.0 },
-      lymphocytes: { name: "Lymphocytes #", unit: "10^9/l", refMin: 0.8, refMax: 4.0 },
-      monocytes: { name: "Monocytes #", unit: "10^9/l", refMin: 0.08, refMax: 1.20 },
-      eosinophils: { name: "Eosinophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.5 },
-      basophils: { name: "Basophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.2 },
-      neutrophilsPct: { name: "Neutrophils %", unit: "", refMin: 0.45, refMax: 0.70 },
-      lymphocytesPct: { name: "Lymphocytes %", unit: "", refMin: 0.20, refMax: 0.45 },
-      monocytesPct: { name: "Monocytes %", unit: "", refMin: 0.02, refMax: 0.12 }
+      neutrophils: { name: "Neutrophils #", unit: "10^9/l", refMin: 2.0, refMax: 7.0, desc: "The most abundant white blood cells; the first responders to bacterial infection, elevated in acute inflammation." },
+      lymphocytes: { name: "Lymphocytes #", unit: "10^9/l", refMin: 0.8, refMax: 4.0, desc: "Immune cells (T-cells, B-cells, NK cells) driving adaptive immunity; elevated in viral infections, low in immunodeficiency." },
+      monocytes: { name: "Monocytes #", unit: "10^9/l", refMin: 0.08, refMax: 1.20, desc: "White blood cells that become macrophages in tissues; elevated in chronic infections, autoimmune diseases, and recovery." },
+      eosinophils: { name: "Eosinophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.5, desc: "White blood cells that fight parasites and mediate allergic responses; elevated in allergies, asthma, and parasitic infections." },
+      basophils: { name: "Basophils #", unit: "10^9/l", refMin: 0.0, refMax: 0.2, desc: "The rarest white blood cells involved in allergic reactions and histamine release; markedly elevated in some blood cancers." },
+      neutrophilsPct: { name: "Neutrophils %", unit: "", refMin: 0.45, refMax: 0.70, desc: "Proportion of white blood cells that are neutrophils; shifts in percentage help distinguish bacterial from viral infections." },
+      lymphocytesPct: { name: "Lymphocytes %", unit: "", refMin: 0.20, refMax: 0.45, desc: "Proportion of white blood cells that are lymphocytes; relatively elevated in viral infections and lymphoproliferative disorders." },
+      monocytesPct: { name: "Monocytes %", unit: "", refMin: 0.02, refMax: 0.12, desc: "Proportion of white blood cells that are monocytes; elevated in chronic inflammation, tuberculosis, and recovery phases." }
     }
   },
   fattyAcids: {
     label: "Fatty Acids", icon: "\uD83D\uDC1F", singlePoint: true,
     markers: {
-      palmiticC16: { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1 },
-      stearicC18: { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8 },
-      oleicC18_1: { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4 },
-      linoleicC18_2: { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3 },
-      glaC18_3: { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22 },
-      arachidonicC20_4: { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50 },
-      dglaC20_3: { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16 },
-      alaC18_3: { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89 },
-      epaC20_5: { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72 },
-      dpaC22_5: { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36 },
-      dhaC22_6: { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64 },
-      omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0 },
-      omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0 },
-      membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0 },
-      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0 }
+      palmiticC16: { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1, desc: "The most common saturated fatty acid; elevated levels are associated with increased cardiovascular and metabolic risk." },
+      stearicC18: { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8, desc: "A long-chain saturated fatty acid with neutral cardiovascular effects; partially converts to oleic acid in the body." },
+      oleicC18_1: { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4, desc: "The main monounsaturated omega-9 fatty acid (olive oil); associated with cardiovascular protection and anti-inflammatory effects." },
+      linoleicC18_2: { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3, desc: "An essential omega-6 fatty acid from dietary sources; needed for cell membranes but excess may promote inflammation." },
+      glaC18_3: { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22, desc: "Gamma-linolenic acid, an omega-6 with anti-inflammatory properties; paradoxically reduces inflammation despite being omega-6." },
+      arachidonicC20_4: { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50, desc: "A key omega-6 fatty acid and precursor to inflammatory prostaglandins; its ratio to EPA reflects inflammatory balance." },
+      dglaC20_3: { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16, desc: "An omega-6 fatty acid that produces anti-inflammatory mediators; competes with arachidonic acid to reduce inflammation." },
+      alaC18_3: { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89, desc: "An essential omega-3 from plant sources (flax, chia); converts poorly to EPA/DHA but has independent cardiovascular benefits." },
+      epaC20_5: { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72, desc: "A marine omega-3 fatty acid with potent anti-inflammatory effects; lowers triglycerides and reduces cardiovascular risk." },
+      dpaC22_5: { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36, desc: "An intermediate omega-3 between EPA and DHA; contributes to anti-inflammatory and cardiovascular protective effects." },
+      dhaC22_6: { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64, desc: "A marine omega-3 critical for brain and retinal structure; essential for cognitive function and neurodevelopment." },
+      omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0, desc: "EPA + DHA as percentage of red blood cell membranes; values above 8% are associated with lowest cardiovascular risk." },
+      omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0, desc: "Balance between pro-inflammatory omega-6 and anti-inflammatory omega-3 fats; lower ratios indicate less systemic inflammation." },
+      membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0, desc: "Index of cell membrane flexibility based on fatty acid composition; optimal fluidity supports nutrient transport and cell signaling." },
+      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, desc: "Composite index derived from omega-3 levels reflecting neuronal membrane health and cognitive stress resilience." }
     }
   },
   boneMetabolism: {
     label: "Bone Metabolism", icon: "\uD83E\uDDB4",
     markers: {
-      osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0 }
+      osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0, desc: "A protein secreted by bone-forming cells; reflects bone turnover rate and also influences glucose metabolism." }
     }
   },
   calculatedRatios: {
     label: "Calculated Ratios", icon: "\uD83D\uDCD0", calculated: true,
     markers: {
-      tgHdlRatio: { name: "TG/HDL Ratio", unit: "", refMin: 0, refMax: 1.75 },
-      ldlHdlRatio: { name: "LDL/HDL Ratio", unit: "", refMin: 0, refMax: 2.5, refMax_f: 2.0 },
-      apoBapoAIRatio: { name: "ApoB/ApoA-I Ratio", unit: "", refMin: 0, refMax: 0.9, refMax_f: 0.8 },
-      nlr: { name: "Neutrophil-Lymphocyte Ratio (NLR)", unit: "", refMin: 1.0, refMax: 3.0 },
-      plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150 },
-      deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2 },
-      copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0 },
-      freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5 },
-      phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null }
+      tgHdlRatio: { name: "TG/HDL Ratio", unit: "", refMin: 0, refMax: 1.75, desc: "Triglycerides divided by HDL; a strong surrogate marker for insulin resistance and small dense LDL particles." },
+      ldlHdlRatio: { name: "LDL/HDL Ratio", unit: "", refMin: 0, refMax: 2.5, refMax_f: 2.0, desc: "Balance of atherogenic to protective cholesterol; a simple predictor of coronary heart disease risk." },
+      apoBapoAIRatio: { name: "ApoB/ApoA-I Ratio", unit: "", refMin: 0, refMax: 0.9, refMax_f: 0.8, desc: "Ratio of atherogenic to protective lipoprotein particles; considered the best single lipid marker for cardiovascular risk." },
+      nlr: { name: "Neutrophil-Lymphocyte Ratio (NLR)", unit: "", refMin: 1.0, refMax: 3.0, desc: "A marker of systemic inflammation and immune stress; elevated in infections, chronic inflammation, and cancer prognosis." },
+      plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150, desc: "Reflects the balance between thrombotic and immune responses; elevated in inflammation, cardiovascular disease, and cancer." },
+      deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2, desc: "AST divided by ALT; helps distinguish liver damage types \u2014 values above 2 suggest alcoholic liver disease or cirrhosis." },
+      copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0, desc: "Balance between copper and zinc; elevated ratios indicate oxidative stress, inflammation, or immune dysfunction." },
+      freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5, desc: "Estimated water surplus or deficit based on sodium level; positive values indicate dehydration, negative values overhydration." },
+      phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null, desc: "Biological age estimated from 9 blood biomarkers using the Levine formula; lower than chronological age suggests healthier aging." }
     }
   }
 };
@@ -1306,10 +1306,13 @@ function showDashboard(data) {
   if (totalAttention > 0) {
     html += `<div class="alerts-section"><div class="alerts-title">Trends & Alerts (${totalAttention})</div>`;
     for (const alert of trendAlerts) {
+      const isSudden = alert.concern.startsWith('sudden_');
       const isPast = alert.concern.startsWith('past_');
-      const cls = isPast ? 'trend-alert-danger' : 'trend-alert-warning';
-      const arrow = alert.direction === 'rising' ? '\u2197' : '\u2198';
-      const label = alert.concern === 'past_high' ? 'Above range & rising'
+      const cls = isSudden ? 'trend-alert-sudden' : isPast ? 'trend-alert-danger' : 'trend-alert-warning';
+      const arrow = isSudden ? '\u26A1' : alert.direction === 'rising' ? '\u2197' : '\u2198';
+      const label = alert.concern === 'sudden_high' ? 'Sudden jump above range'
+        : alert.concern === 'sudden_low' ? 'Sudden drop below range'
+        : alert.concern === 'past_high' ? 'Above range & rising'
         : alert.concern === 'past_low' ? 'Below range & falling'
         : alert.concern === 'approaching_high' ? 'Approaching upper limit'
         : 'Approaching lower limit';
@@ -2314,7 +2317,15 @@ function createLineChart(id, marker, dateLabels, chartDates) {
   });
 }
 
-async function fetchMarkerDescription(markerId, markerName, unit) {
+function getMarkerDescription(markerId) {
+  const marker = markerRegistry[markerId];
+  if (marker && marker.desc) return marker.desc;
+  // Fallback to localStorage cache for custom markers
+  const cache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
+  return cache[markerId] || null;
+}
+
+async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   const cacheKey = 'labcharts-marker-desc';
   const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
   if (cache[markerId]) return cache[markerId];
@@ -2386,16 +2397,16 @@ function showDetailModal(id) {
   setTimeout(() => {
     if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates);
   }, 50);
-  // Fetch and display AI marker description
+  // Display marker description (sync for schema markers, async fetch for custom)
   const descEl = document.getElementById('marker-desc');
   if (descEl) {
-    const cached = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}')[id];
-    if (cached) {
-      descEl.textContent = cached;
+    const desc = getMarkerDescription(id);
+    if (desc) {
+      descEl.textContent = desc;
       descEl.classList.add('loaded');
-    } else if (hasApiKey()) {
+    } else if (!marker.desc && hasApiKey()) {
       descEl.classList.add('loading');
-      fetchMarkerDescription(id, marker.name, marker.unit).then(text => {
+      fetchCustomMarkerDescription(id, marker.name, marker.unit).then(text => {
         const el = document.getElementById('marker-desc');
         if (text && el) {
           el.textContent = text;
@@ -2405,6 +2416,8 @@ function showDetailModal(id) {
           el.remove();
         }
       });
+    } else {
+      descEl.remove();
     }
   }
 }
@@ -2626,6 +2639,23 @@ function statusIcon(s) {
   if (s === 'low') return '\u25BC';
   return '';
 }
+function linearRegression(points) {
+  const n = points.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  for (let i = 0; i < n; i++) {
+    sumX += i; sumY += points[i];
+    sumXY += i * points[i]; sumX2 += i * i; sumY2 += points[i] * points[i];
+  }
+  const denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) return { slope: 0, intercept: points[0] || 0, r2: 0 };
+  const slope = (n * sumXY - sumX * sumY) / denom;
+  const intercept = (sumY - slope * sumX) / n;
+  const ssTot = sumY2 - (sumY * sumY) / n;
+  const ssRes = points.reduce((s, y, i) => { const e = y - (intercept + slope * i); return s + e * e; }, 0);
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+  return { slope, intercept, r2 };
+}
+
 function detectTrendAlerts(data) {
   const alerts = [];
   for (const [catKey, cat] of Object.entries(data.categories)) {
@@ -2633,36 +2663,54 @@ function detectTrendAlerts(data) {
     for (const [mKey, marker] of Object.entries(cat.markers)) {
       if (marker.singlePoint) continue;
       const nonNull = marker.values.map((v, i) => ({ v, i })).filter(x => x.v !== null);
-      if (nonNull.length < 3) continue;
-      const last = nonNull.slice(-Math.min(5, nonNull.length));
-      // Check monotonic rise
-      let rising = true, falling = true;
-      for (let i = 1; i < last.length; i++) {
-        const pct = ((last[i].v - last[i - 1].v) / Math.abs(last[i - 1].v || 1)) * 100;
-        if (pct <= 2) rising = false;
-        if (pct >= -2) falling = false;
-      }
-      if (!rising && !falling) continue;
+      if (nonNull.length < 2) continue;
       const r = getEffectiveRange(marker);
       if (r.min == null || r.max == null) continue;
-      const latestVal = last[last.length - 1].v;
       const range = r.max - r.min;
+      if (range <= 0) continue;
+      const id = catKey + '_' + mKey;
+      const latestVal = nonNull[nonNull.length - 1].v;
+      const prevVal = nonNull[nonNull.length - 2].v;
+      const sparkVals = nonNull.slice(-Math.min(5, nonNull.length));
+
+      // Sudden change detection (2+ values)
+      const jump = Math.abs(latestVal - prevVal);
+      if (jump > range * 0.25) {
+        if (latestVal > r.max) {
+          alerts.push({ id, name: marker.name, category: cat.label, concern: 'sudden_high',
+            spark: sparkVals.map(x => formatValue(x.v)), direction: 'rising' });
+          continue;
+        }
+        if (latestVal < r.min) {
+          alerts.push({ id, name: marker.name, category: cat.label, concern: 'sudden_low',
+            spark: sparkVals.map(x => formatValue(x.v)), direction: 'falling' });
+          continue;
+        }
+      }
+
+      // Linear regression (3+ values)
+      if (nonNull.length < 3) continue;
+      const vals = nonNull.map(x => x.v);
+      const reg = linearRegression(vals);
+      const normSlope = reg.slope / range;
+      if (Math.abs(normSlope) < 0.02) continue;
+      // R-squared filter only for 4+ points (2-3 points inherently have high R²)
+      if (nonNull.length >= 4 && reg.r2 < 0.5) continue;
+      const rising = normSlope > 0;
       let concern = null;
       if (rising && latestVal > r.max) concern = 'past_high';
-      else if (falling && latestVal < r.min) concern = 'past_low';
+      else if (!rising && latestVal < r.min) concern = 'past_low';
       else if (rising && latestVal >= r.max - range * 0.15) concern = 'approaching_high';
-      else if (falling && latestVal <= r.min + range * 0.15) concern = 'approaching_low';
+      else if (!rising && latestVal <= r.min + range * 0.15) concern = 'approaching_low';
       if (!concern) continue;
-      const id = catKey + '_' + mKey;
-      const spark = last.map(x => formatValue(x.v));
-      alerts.push({ id, name: marker.name, category: cat.label, concern, spark, direction: rising ? 'rising' : 'falling' });
+      alerts.push({ id, name: marker.name, category: cat.label, concern,
+        spark: sparkVals.map(x => formatValue(x.v)), direction: rising ? 'rising' : 'falling' });
     }
   }
-  // Sort: past first, then approaching
+  // Sort: sudden first, then past, then approaching
   alerts.sort((a, b) => {
-    const aPast = a.concern.startsWith('past_') ? 0 : 1;
-    const bPast = b.concern.startsWith('past_') ? 0 : 1;
-    return aPast - bPast;
+    const priority = c => c.startsWith('sudden_') ? 0 : c.startsWith('past_') ? 1 : 2;
+    return priority(a.concern) - priority(b.concern);
   });
   return alerts;
 }
@@ -5164,7 +5212,6 @@ function openGlossary() {
   const data = getActiveData();
   const modal = document.getElementById('glossary-modal');
   const overlay = document.getElementById('glossary-modal-overlay');
-  const descCache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
   let html = `<button class="modal-close" onclick="closeGlossary()">&times;</button>
     <h3 style="margin-bottom:12px">Marker Glossary</h3>
     <input type="text" class="glossary-search" id="glossary-search" placeholder="Search markers..." oninput="filterGlossary()">
@@ -5185,7 +5232,7 @@ function openGlossary() {
       const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
       const r = getEffectiveRange(marker);
       const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : 'missing';
-      const desc = descCache[id] || '';
+      const desc = getMarkerDescription(id) || '';
       html += `<div class="glossary-marker" data-name="${marker.name.toLowerCase()}" onclick="closeGlossary();showDetailModal('${id}')">
         <div class="glossary-marker-top">
           <span class="glossary-marker-name">${marker.name}</span>
@@ -5195,7 +5242,7 @@ function openGlossary() {
           ${r.min != null && r.max != null ? `<span>Ref: ${formatValue(r.min)}\u2013${formatValue(r.max)}</span>` : ''}
           ${marker.optimalMin != null ? `<span style="color:var(--green)">Opt: ${formatValue(marker.optimalMin)}\u2013${formatValue(marker.optimalMax)}</span>` : ''}
         </div>
-        ${desc ? `<div class="glossary-marker-desc">${escapeHTML(desc)}</div>` : `<div class="glossary-marker-desc" id="gdesc-${id}"></div>`}
+        ${desc ? `<div class="glossary-marker-desc">${escapeHTML(desc)}</div>` : ''}
       </div>`;
     }
     html += `</div></div>`;
@@ -5203,7 +5250,6 @@ function openGlossary() {
   html += `</div>`;
   modal.innerHTML = html;
   overlay.classList.add('show');
-  lazyLoadGlossaryDescriptions(data);
 }
 
 function closeGlossary() {
@@ -5225,19 +5271,6 @@ function filterGlossary() {
   });
 }
 
-async function lazyLoadGlossaryDescriptions(data) {
-  const descCache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
-  for (const [catKey, cat] of Object.entries(data.categories)) {
-    for (const [mKey, marker] of Object.entries(cat.markers)) {
-      const id = catKey + '_' + mKey;
-      if (descCache[id]) continue;
-      const el = document.getElementById('gdesc-' + id);
-      if (!el) continue;
-      const text = await fetchMarkerDescription(id, marker.name, marker.unit);
-      if (text && el) el.textContent = text;
-    }
-  }
-}
 
 function askAIAboutMarker(markerId) {
   const marker = markerRegistry[markerId];
