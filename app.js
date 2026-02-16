@@ -350,7 +350,7 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [], notes: [], supplements: [] };
+let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], sleepCircadian: '', interpretiveLens: '' };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
@@ -534,11 +534,29 @@ function profileStorageKey(profileId, suffix) {
   return `labcharts-${profileId}-${suffix}`;
 }
 
+function migrateProfileData(data) {
+  // Merge circadian + sleep → sleepCircadian
+  if (!data.sleepCircadian) {
+    const parts = [data.circadian, data.sleep].filter(s => s && s.trim());
+    if (parts.length) data.sleepCircadian = parts.join('\n\n');
+  }
+  delete data.circadian;
+  delete data.sleep;
+  // Merge fieldExperts + fieldLens → interpretiveLens
+  if (!data.interpretiveLens) {
+    const parts = [data.fieldExperts, data.fieldLens].filter(s => s && s.trim());
+    if (parts.length) data.interpretiveLens = parts.join('\n\n');
+  }
+  delete data.fieldExperts;
+  delete data.fieldLens;
+  return data;
+}
+
 function loadProfile(profileId) {
   currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
-  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return d; } catch(e) { return { entries: [], notes: [], supplements: [] }; } })() : { entries: [], notes: [], supplements: [] };
+  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return { entries: [], notes: [], supplements: [] }; } })() : { entries: [], notes: [], supplements: [] };
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   const savedRange = localStorage.getItem(profileStorageKey(profileId, 'rangeMode'));
@@ -975,7 +993,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Load active profile
   currentProfile = getActiveProfileId();
   const savedImported = localStorage.getItem(profileStorageKey(currentProfile, 'imported'));
-  if (savedImported) { try { importedData = JSON.parse(savedImported); if (!importedData.notes) importedData.notes = []; } catch(e) {} }
+  if (savedImported) { try { importedData = JSON.parse(savedImported); if (!importedData.notes) importedData.notes = []; migrateProfileData(importedData); } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(currentProfile, 'units'));
   if (savedUnits === 'US') unitSystem = 'US';
   const savedRange = localStorage.getItem(profileStorageKey(currentProfile, 'rangeMode'));
@@ -1091,6 +1109,24 @@ function showDashboard(data) {
   // Profile context cards
   html += `<div class="context-section-title">What your GP won't ask you</div>`;
   html += `<div class="profile-context-cards">`;
+  const healthGoals = importedData.healthGoals || [];
+  const goalsSummary = healthGoals.length > 0
+    ? (() => {
+        const counts = { major: 0, mild: 0, minor: 0 };
+        for (const g of healthGoals) counts[g.severity] = (counts[g.severity] || 0) + 1;
+        return [counts.major ? `${counts.major} major` : '', counts.mild ? `${counts.mild} mild` : '', counts.minor ? `${counts.minor} minor` : ''].filter(Boolean).join(', ') + ` goal${healthGoals.length !== 1 ? 's' : ''}`;
+      })()
+    : '';
+  html += `<div class="diagnoses-card" onclick="openHealthGoalsEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83C\uDFAF Health Goals</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Define what you're trying to solve or improve. AI prioritizes analysis around your stated goals, focusing on major priorities first.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openHealthGoalsEditor()">${healthGoals.length > 0 ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${goalsSummary
+      ? `<div class="diagnoses-text">${escapeHTML(goalsSummary)}</div>`
+      : `<div class="diagnoses-placeholder">Add health goals so AI can prioritize analysis</div>`}
+  </div>`;
   const diagText = importedData.diagnoses || '';
   html += `<div class="diagnoses-card" onclick="openDiagnosesEditor()">
     <div class="diagnoses-header">
@@ -1113,28 +1149,6 @@ function showDashboard(data) {
       ? `<div class="diagnoses-text">${escapeHTML(dietText.length > 200 ? dietText.slice(0, 200) + '...' : dietText)}</div>`
       : `<div class="diagnoses-placeholder">Describe your diet so AI can factor it into lab interpretation</div>`}
   </div>`;
-  const circadianText = importedData.circadian || '';
-  html += `<div class="diagnoses-card" onclick="openCircadianEditor()">
-    <div class="diagnoses-header">
-      <span class="diagnoses-label">\uD83C\uDF19 Circadian Habits</span>
-      <span class="context-info-icon">i<span class="context-tooltip">Light exposure, meal timing, and shift work affect hormone rhythms, cortisol, and metabolic markers.</span></span>
-      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openCircadianEditor()">${circadianText ? 'Edit' : '+ Add'}</button>
-    </div>
-    ${circadianText
-      ? `<div class="diagnoses-text">${escapeHTML(circadianText.length > 200 ? circadianText.slice(0, 200) + '...' : circadianText)}</div>`
-      : `<div class="diagnoses-placeholder">Describe your circadian habits for AI context</div>`}
-  </div>`;
-  const sleepText = importedData.sleep || '';
-  html += `<div class="diagnoses-card" onclick="openSleepEditor()">
-    <div class="diagnoses-header">
-      <span class="diagnoses-label">\uD83D\uDE34 Sleep</span>
-      <span class="context-info-icon">i<span class="context-tooltip">Sleep quality and duration directly influence inflammation markers, insulin sensitivity, cortisol, and immune function.</span></span>
-      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openSleepEditor()">${sleepText ? 'Edit' : '+ Add'}</button>
-    </div>
-    ${sleepText
-      ? `<div class="diagnoses-text">${escapeHTML(sleepText.length > 200 ? sleepText.slice(0, 200) + '...' : sleepText)}</div>`
-      : `<div class="diagnoses-placeholder">Describe your sleep habits for AI context</div>`}
-  </div>`;
   const exerciseText = importedData.exercise || '';
   html += `<div class="diagnoses-card" onclick="openExerciseEditor()">
     <div class="diagnoses-header">
@@ -1146,16 +1160,27 @@ function showDashboard(data) {
       ? `<div class="diagnoses-text">${escapeHTML(exerciseText.length > 200 ? exerciseText.slice(0, 200) + '...' : exerciseText)}</div>`
       : `<div class="diagnoses-placeholder">Describe your exercise routine for AI context</div>`}
   </div>`;
-  const fieldExpertsText = importedData.fieldExperts || '';
-  html += `<div class="diagnoses-card" onclick="openFieldExpertsEditor()">
+  const sleepCircadianText = importedData.sleepCircadian || '';
+  html += `<div class="diagnoses-card" onclick="openSleepCircadianEditor()">
     <div class="diagnoses-header">
-      <span class="diagnoses-label">\uD83E\uDDEC Field Experts</span>
-      <span class="context-info-icon">i<span class="context-tooltip">Name researchers or clinicians whose frameworks you follow — AI will consider their published work when interpreting your results.</span></span>
-      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openFieldExpertsEditor()">${fieldExpertsText ? 'Edit' : '+ Add'}</button>
+      <span class="diagnoses-label">\uD83D\uDE34 Sleep & Circadian</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Sleep quality, duration, light exposure, and circadian rhythm affect inflammation, insulin sensitivity, cortisol, hormone rhythms, and immune function.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openSleepCircadianEditor()">${sleepCircadianText ? 'Edit' : '+ Add'}</button>
     </div>
-    ${fieldExpertsText
-      ? `<div class="diagnoses-text">${escapeHTML(fieldExpertsText.length > 200 ? fieldExpertsText.slice(0, 200) + '...' : fieldExpertsText)}</div>`
-      : `<div class="diagnoses-placeholder">List experts whose frameworks AI should consider</div>`}
+    ${sleepCircadianText
+      ? `<div class="diagnoses-text">${escapeHTML(sleepCircadianText.length > 200 ? sleepCircadianText.slice(0, 200) + '...' : sleepCircadianText)}</div>`
+      : `<div class="diagnoses-placeholder">Describe your sleep and circadian habits for AI context</div>`}
+  </div>`;
+  const interpretiveLensText = importedData.interpretiveLens || '';
+  html += `<div class="diagnoses-card" onclick="openInterpretiveLensEditor()">
+    <div class="diagnoses-header">
+      <span class="diagnoses-label">\uD83D\uDD2C Interpretive Lens</span>
+      <span class="context-info-icon">i<span class="context-tooltip">Name experts and paradigms to frame AI interpretation — e.g. Dr. Jack Kruse's quantum biology, Functional Endocrinology, longevity medicine.</span></span>
+      <button class="diagnoses-edit-btn" onclick="event.stopPropagation();openInterpretiveLensEditor()">${interpretiveLensText ? 'Edit' : '+ Add'}</button>
+    </div>
+    ${interpretiveLensText
+      ? `<div class="diagnoses-text">${escapeHTML(interpretiveLensText.length > 200 ? interpretiveLensText.slice(0, 200) + '...' : interpretiveLensText)}</div>`
+      : `<div class="diagnoses-placeholder">List experts and frameworks for AI interpretation</div>`}
   </div>`;
   html += `</div>`;
 
@@ -3054,44 +3079,44 @@ function clearDiet() {
   showNotification('Diet cleared', 'info');
 }
 
-function openCircadianEditor() {
+function openSleepCircadianEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.circadian || '';
+  const current = importedData.sleepCircadian || '';
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Circadian Habits</h3>
-    <div class="modal-unit">Describe your typical sleep schedule, light exposure, shift work, or other circadian-related habits. The AI will factor this in when interpreting your lab results.</div>
-    <textarea class="note-editor" id="circadian-textarea" placeholder="e.g. Sleep 11 PM – 7 AM, morning sunlight 20 min, night shift 2x/week, blue-light glasses after sunset...">${escapeHTML(current)}</textarea>
+    <h3>Sleep & Circadian</h3>
+    <div class="modal-unit">Describe your sleep patterns, schedule, light exposure, and circadian habits. The AI will factor this in when interpreting your lab results.</div>
+    <textarea class="note-editor" id="sleep-circadian-textarea" placeholder="e.g. Sleep 7h (11pm–6am), morning sunlight, no shift work, blue light blockers after 8pm, sleep apnea, use CPAP...">${escapeHTML(current)}</textarea>
     <div class="note-editor-actions">
-      <button class="import-btn import-btn-primary" onclick="saveCircadian()">Save</button>
+      <button class="import-btn import-btn-primary" onclick="saveSleepCircadian()">Save</button>
       <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
-      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearCircadian()">Clear</button>` : ''}
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearSleepCircadian()">Clear</button>` : ''}
     </div>`;
   overlay.classList.add("show");
   setTimeout(() => {
-    const ta = document.getElementById('circadian-textarea');
+    const ta = document.getElementById('sleep-circadian-textarea');
     if (ta) ta.focus();
   }, 50);
 }
 
-function saveCircadian() {
-  const ta = document.getElementById('circadian-textarea');
+function saveSleepCircadian() {
+  const ta = document.getElementById('sleep-circadian-textarea');
   const text = ta ? ta.value.trim() : '';
-  importedData.circadian = text || '';
+  importedData.sleepCircadian = text || '';
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification(text ? 'Circadian habits saved' : 'Circadian habits cleared', 'success');
+  showNotification(text ? 'Sleep & circadian saved' : 'Sleep & circadian cleared', 'success');
 }
 
-function clearCircadian() {
-  importedData.circadian = '';
+function clearSleepCircadian() {
+  importedData.sleepCircadian = '';
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification('Circadian habits cleared', 'info');
+  showNotification('Sleep & circadian cleared', 'info');
 }
 
 function openExerciseEditor() {
@@ -3134,84 +3159,127 @@ function clearExercise() {
   showNotification('Exercise habits cleared', 'info');
 }
 
-function openSleepEditor() {
+
+// ═══════════════════════════════════════════════
+// HEALTH GOALS
+// ═══════════════════════════════════════════════
+function openHealthGoalsEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.sleep || '';
+  renderHealthGoalsModal(modal);
+  overlay.classList.add("show");
+}
+
+function renderHealthGoalsModal(modal) {
+  const goals = importedData.healthGoals || [];
+  let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Health Goals</h3>
+    <div class="modal-unit">List things you want to solve or improve. The AI will prioritize analysis around your stated goals.</div>`;
+  if (goals.length > 0) {
+    html += `<div class="goals-list">`;
+    for (let i = 0; i < goals.length; i++) {
+      const g = goals[i];
+      html += `<div class="goals-list-item">
+        <span class="goals-severity-badge severity-${g.severity}">${g.severity}</span>
+        <span class="goals-text">${escapeHTML(g.text)}</span>
+        <button class="goals-delete-btn" onclick="deleteHealthGoal(${i})" title="Remove">&times;</button>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="goals-add-row">
+    <input type="text" class="goals-text-input" id="goal-text-input" placeholder="e.g. Improve insulin sensitivity, Optimize thyroid function">
+    <select class="goals-severity-select" id="goal-severity-select">
+      <option value="major">Major</option>
+      <option value="mild">Mild</option>
+      <option value="minor">Minor</option>
+    </select>
+    <button class="import-btn import-btn-primary" onclick="addHealthGoal()">Add</button>
+  </div>
+  <div class="note-editor-actions" style="margin-top:16px">
+    <button class="import-btn import-btn-secondary" onclick="closeModal()">Done</button>
+    ${goals.length > 0 ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearHealthGoals()">Clear All</button>` : ''}
+  </div>`;
+  modal.innerHTML = html;
+  setTimeout(() => {
+    const input = document.getElementById('goal-text-input');
+    if (input) {
+      input.focus();
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addHealthGoal(); }
+      });
+    }
+  }, 50);
+}
+
+function addHealthGoal() {
+  const input = document.getElementById('goal-text-input');
+  const select = document.getElementById('goal-severity-select');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+  if (!importedData.healthGoals) importedData.healthGoals = [];
+  importedData.healthGoals.push({ text, severity: select.value });
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  renderHealthGoalsModal(document.getElementById("detail-modal"));
+}
+
+function deleteHealthGoal(idx) {
+  if (!importedData.healthGoals) return;
+  importedData.healthGoals.splice(idx, 1);
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  renderHealthGoalsModal(document.getElementById("detail-modal"));
+}
+
+function clearHealthGoals() {
+  importedData.healthGoals = [];
+  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Health goals cleared', 'info');
+}
+
+// ═══════════════════════════════════════════════
+// INTERPRETIVE LENS
+// ═══════════════════════════════════════════════
+function openInterpretiveLensEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.interpretiveLens || '';
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Sleep</h3>
-    <div class="modal-unit">Describe your typical sleep patterns, quality, and any sleep-related conditions. The AI will factor this in when interpreting your lab results.</div>
-    <textarea class="note-editor" id="sleep-textarea" placeholder="e.g. 7-8 hours/night, frequent waking, sleep apnea, use CPAP, melatonin supplement...">${escapeHTML(current)}</textarea>
+    <h3>Interpretive Lens</h3>
+    <div class="modal-unit">List researchers, clinicians, or scientific paradigms whose frameworks you follow. The AI will consider their perspectives when interpreting your results.</div>
+    <textarea class="note-editor" id="interpretive-lens-textarea" placeholder="e.g. Peter Attia (longevity), Jack Kruse (quantum biology), Functional Endocrinology framework...">${escapeHTML(current)}</textarea>
     <div class="note-editor-actions">
-      <button class="import-btn import-btn-primary" onclick="saveSleep()">Save</button>
+      <button class="import-btn import-btn-primary" onclick="saveInterpretiveLens()">Save</button>
       <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
-      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearSleep()">Clear</button>` : ''}
+      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearInterpretiveLens()">Clear</button>` : ''}
     </div>`;
   overlay.classList.add("show");
   setTimeout(() => {
-    const ta = document.getElementById('sleep-textarea');
+    const ta = document.getElementById('interpretive-lens-textarea');
     if (ta) ta.focus();
   }, 50);
 }
 
-function saveSleep() {
-  const ta = document.getElementById('sleep-textarea');
+function saveInterpretiveLens() {
+  const ta = document.getElementById('interpretive-lens-textarea');
   const text = ta ? ta.value.trim() : '';
-  importedData.sleep = text || '';
+  importedData.interpretiveLens = text || '';
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification(text ? 'Sleep habits saved' : 'Sleep habits cleared', 'success');
+  showNotification(text ? 'Interpretive lens saved' : 'Interpretive lens cleared', 'success');
 }
 
-function clearSleep() {
-  importedData.sleep = '';
+function clearInterpretiveLens() {
+  importedData.interpretiveLens = '';
   localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification('Sleep habits cleared', 'info');
-}
-
-function openFieldExpertsEditor() {
-  const modal = document.getElementById("detail-modal");
-  const overlay = document.getElementById("modal-overlay");
-  const current = importedData.fieldExperts || '';
-  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Field Experts</h3>
-    <div class="modal-unit">List researchers or clinicians whose frameworks you follow. The AI will consider their published work and perspectives when interpreting your results.</div>
-    <textarea class="note-editor" id="field-experts-textarea" placeholder="e.g. Peter Attia (longevity medicine), Thomas Dayspring (lipidology), Robert Lustig (metabolic health)...">${escapeHTML(current)}</textarea>
-    <div class="note-editor-actions">
-      <button class="import-btn import-btn-primary" onclick="saveFieldExperts()">Save</button>
-      <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
-      ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearFieldExperts()">Clear</button>` : ''}
-    </div>`;
-  overlay.classList.add("show");
-  setTimeout(() => {
-    const ta = document.getElementById('field-experts-textarea');
-    if (ta) ta.focus();
-  }, 50);
-}
-
-function saveFieldExperts() {
-  const ta = document.getElementById('field-experts-textarea');
-  const text = ta ? ta.value.trim() : '';
-  importedData.fieldExperts = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
-  closeModal();
-  const activeNav = document.querySelector(".nav-item.active");
-  navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification(text ? 'Field experts saved' : 'Field experts cleared', 'success');
-}
-
-function clearFieldExperts() {
-  importedData.fieldExperts = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
-  closeModal();
-  const activeNav = document.querySelector(".nav-item.active");
-  navigate(activeNav ? activeNav.dataset.category : "dashboard");
-  showNotification('Field experts cleared', 'info');
+  showNotification('Interpretive lens cleared', 'info');
 }
 
 // ═══════════════════════════════════════════════
@@ -3502,10 +3570,14 @@ function exportPDFReport() {
   const contextSections = [];
   if (importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: importedData.diagnoses });
   if (importedData.diet) contextSections.push({ title: 'Diet', text: importedData.diet });
-  if (importedData.circadian) contextSections.push({ title: 'Circadian Habits', text: importedData.circadian });
-  if (importedData.sleep) contextSections.push({ title: 'Sleep', text: importedData.sleep });
   if (importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: importedData.exercise });
-  if (importedData.fieldExperts) contextSections.push({ title: 'Field Experts', text: importedData.fieldExperts });
+  if (importedData.sleepCircadian) contextSections.push({ title: 'Sleep & Circadian', text: importedData.sleepCircadian });
+  if (importedData.interpretiveLens) contextSections.push({ title: 'Interpretive Lens', text: importedData.interpretiveLens });
+  const hg = importedData.healthGoals || [];
+  if (hg.length) {
+    const goalsText = hg.map(g => `[${g.severity}] ${g.text}`).join('\n');
+    contextSections.push({ title: 'Health Goals', text: goalsText });
+  }
 
   const html = buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections);
   const win = window.open('', '_blank');
@@ -3711,13 +3783,13 @@ function exportDataJSON() {
   if (entries.length === 0 && notes.length === 0) { showNotification("No data to export", "error"); return; }
   const diagnoses = importedData.diagnoses || '';
   const diet = importedData.diet || '';
-  const circadian = importedData.circadian || '';
   const exercise = importedData.exercise || '';
-  const sleep = importedData.sleep || '';
-  const fieldExperts = importedData.fieldExperts || '';
+  const sleepCircadian = importedData.sleepCircadian || '';
+  const interpretiveLens = importedData.interpretiveLens || '';
   const customMarkers = importedData.customMarkers || {};
   const supplements = importedData.supplements || [];
-  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, circadian, exercise, sleep, fieldExperts, customMarkers };
+  const healthGoals = importedData.healthGoals || [];
+  const exportObj = { version: 1, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, exercise, sleepCircadian, interpretiveLens, healthGoals, customMarkers };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3757,17 +3829,31 @@ function importDataJSON(file) {
       if (json.diet && typeof json.diet === 'string' && json.diet.trim()) {
         importedData.diet = json.diet.trim();
       }
-      if (json.circadian && typeof json.circadian === 'string' && json.circadian.trim()) {
-        importedData.circadian = json.circadian.trim();
-      }
       if (json.exercise && typeof json.exercise === 'string' && json.exercise.trim()) {
         importedData.exercise = json.exercise.trim();
       }
-      if (json.sleep && typeof json.sleep === 'string' && json.sleep.trim()) {
-        importedData.sleep = json.sleep.trim();
+      // Import sleep & circadian (new merged field, or migrate old separate fields)
+      if (json.sleepCircadian && typeof json.sleepCircadian === 'string' && json.sleepCircadian.trim()) {
+        importedData.sleepCircadian = json.sleepCircadian.trim();
+      } else {
+        const parts = [json.circadian, json.sleep].filter(s => typeof s === 'string' && s.trim());
+        if (parts.length) importedData.sleepCircadian = parts.map(s => s.trim()).join('\n\n');
       }
-      if (json.fieldExperts && typeof json.fieldExperts === 'string' && json.fieldExperts.trim()) {
-        importedData.fieldExperts = json.fieldExperts.trim();
+      // Import interpretive lens (new merged field, or migrate old separate fields)
+      if (json.interpretiveLens && typeof json.interpretiveLens === 'string' && json.interpretiveLens.trim()) {
+        importedData.interpretiveLens = json.interpretiveLens.trim();
+      } else {
+        const parts = [json.fieldExperts, json.fieldLens].filter(s => typeof s === 'string' && s.trim());
+        if (parts.length) importedData.interpretiveLens = parts.map(s => s.trim()).join('\n\n');
+      }
+      // Import health goals (merge, deduplicate by text)
+      if (json.healthGoals && Array.isArray(json.healthGoals)) {
+        if (!importedData.healthGoals) importedData.healthGoals = [];
+        for (const g of json.healthGoals) {
+          if (!g.text || !g.severity) continue;
+          const exists = importedData.healthGoals.some(x => x.text === g.text);
+          if (!exists) importedData.healthGoals.push({ text: g.text, severity: g.severity });
+        }
       }
       // Import custom markers (merge, don't overwrite existing definitions)
       if (json.customMarkers && typeof json.customMarkers === 'object') {
@@ -3811,7 +3897,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   showConfirmDialog('Are you sure you want to clear all imported data? This cannot be undone.', () => {
-    importedData = { entries: [], notes: [], supplements: [], diagnoses: '', diet: '', circadian: '', exercise: '', sleep: '', fieldExperts: '', customMarkers: {} };
+    importedData = { entries: [], notes: [], supplements: [], healthGoals: [], sleepCircadian: '', interpretiveLens: '', diagnoses: '', diet: '', exercise: '', customMarkers: {} };
     localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
     buildSidebar();
     updateHeaderDates();
@@ -3986,11 +4072,11 @@ Important guidelines:
 - If the user has added notes for specific dates, consider them when interpreting results (e.g. medication changes, supplement starts, fasting status, symptoms).
 - If the user has listed medical conditions or diagnoses, always consider them when interpreting lab results. Explain how specific conditions may affect certain biomarkers, and flag results that are particularly relevant to their diagnoses.
 - If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
-- If the user has described their circadian habits, consider how sleep patterns, shift work, and light exposure may influence lab results (e.g. poor sleep can raise cortisol/hs-CRP/insulin resistance, shift work disrupts hormone rhythms, melatonin timing affects thyroid markers).
+- If the user has described their sleep and circadian habits, consider how sleep quality, duration, disorders, light exposure, and shift work affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; shift work disrupts hormone rhythms; melatonin timing affects thyroid markers).
 - If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
-- If the user has described their sleep habits, consider how sleep quality, duration, and disorders affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; chronic sleep debt impairs immune markers).
-- If the user has listed field experts, consider those experts' published research, frameworks, and clinical perspectives when interpreting results. Reference their specific work where relevant.
 - If the user has logged supplements or medications with date ranges, correlate their start/stop dates with biomarker changes. Note when a marker shift coincides with beginning or ending a supplement/medication, and explain known effects of that substance on relevant biomarkers.
+- If the user has defined health goals, prioritize your analysis around those stated goals. Focus on major priorities first, then mild, then minor. Connect biomarker trends to the user's specific health objectives.
+- If the user has specified an interpretive lens (experts and/or paradigms), consider those experts' published research and frame your analysis through the specified scientific paradigms. Use their terminology, frameworks, and perspectives when interpreting results.
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
@@ -4008,21 +4094,30 @@ function buildLabContext() {
   if (diet.trim()) {
     ctx += `## Diet\n${diet.trim()}\n\n`;
   }
-  const circadian = importedData.circadian || '';
-  if (circadian.trim()) {
-    ctx += `## Circadian Habits\n${circadian.trim()}\n\n`;
-  }
   const exercise = importedData.exercise || '';
   if (exercise.trim()) {
     ctx += `## Exercise & Movement\n${exercise.trim()}\n\n`;
   }
-  const sleep = importedData.sleep || '';
-  if (sleep.trim()) {
-    ctx += `## Sleep\n${sleep.trim()}\n\n`;
+  const sleepCircadian = importedData.sleepCircadian || '';
+  if (sleepCircadian.trim()) {
+    ctx += `## Sleep & Circadian\n${sleepCircadian.trim()}\n\n`;
   }
-  const fieldExperts = importedData.fieldExperts || '';
-  if (fieldExperts.trim()) {
-    ctx += `## Field Experts\n${fieldExperts.trim()}\n\n`;
+  const healthGoals = importedData.healthGoals || [];
+  if (healthGoals.length > 0) {
+    ctx += `## Health Goals (Things to Solve)\n`;
+    const byPriority = { major: [], mild: [], minor: [] };
+    for (const g of healthGoals) (byPriority[g.severity] || byPriority.minor).push(g.text);
+    for (const [sev, items] of Object.entries(byPriority)) {
+      if (items.length > 0) {
+        ctx += `### ${sev.charAt(0).toUpperCase() + sev.slice(1)} Priority\n`;
+        for (const t of items) ctx += `- ${t}\n`;
+      }
+    }
+    ctx += '\n';
+  }
+  const interpretiveLens = importedData.interpretiveLens || '';
+  if (interpretiveLens.trim()) {
+    ctx += `## Interpretive Lens\n${interpretiveLens.trim()}\n\n`;
   }
   const supps = importedData.supplements || [];
   if (supps.length > 0) {
