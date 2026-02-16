@@ -333,11 +333,28 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
+function hashString(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) hash = ((hash << 5) + hash) + str.charCodeAt(i);
+  return (hash >>> 0).toString(36);
+}
+
+function getFocusCardFingerprint() {
+  const parts = [
+    JSON.stringify((importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length)),
+    profileSex || '',
+    profileDob || '',
+    (importedData.diagnoses || '').slice(0, 100),
+    (importedData.healthGoals || []).map(g => g.text).join(',')
+  ];
+  return hashString(parts.join('|'));
+}
+
 function getStatus(value, refMin, refMax) {
   if (value === null || value === undefined) return "missing";
-  if (refMin == null || refMax == null) return "normal";
-  if (value < refMin) return "low";
-  if (value > refMax) return "high";
+  if (refMin == null && refMax == null) return "normal";
+  if (refMin != null && value < refMin) return "low";
+  if (refMax != null && value > refMax) return "high";
   return "normal";
 }
 function getRangePosition(value, refMin, refMax) {
@@ -465,11 +482,53 @@ function openSettingsModal() {
   const modal = document.getElementById('settings-modal');
   const currentKey = getApiKey();
   const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
+  const currentTheme = getTheme();
   modal.innerHTML = `
     <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
     <h3>Settings</h3>
-    <div style="margin-top:20px">
-      <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px">Anthropic API Key</label>
+
+    <div class="settings-section">
+      <label class="settings-label">Sex</label>
+      <div class="sex-toggle">
+        <button class="sex-toggle-btn${profileSex === 'male' ? ' active' : ''}" data-sex="male" onclick="switchSex('male');updateSettingsUI()">&#9794;</button>
+        <button class="sex-toggle-btn${profileSex === 'female' ? ' active' : ''}" data-sex="female" onclick="switchSex('female');updateSettingsUI()">&#9792;</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Date of Birth</label>
+      <div class="dob-input">
+        <input type="date" id="dob-input" value="${profileDob || ''}" onchange="switchDob(this.value)">
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Unit System</label>
+      <div class="unit-toggle">
+        <button class="unit-toggle-btn${unitSystem === 'EU' ? ' active' : ''}" data-unit="EU" onclick="switchUnitSystem('EU');updateSettingsUI()">EU (SI)</button>
+        <button class="unit-toggle-btn${unitSystem === 'US' ? ' active' : ''}" data-unit="US" onclick="switchUnitSystem('US');updateSettingsUI()">US</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Range Display</label>
+      <div class="range-toggle">
+        <button class="range-toggle-btn${rangeMode === 'optimal' ? ' active' : ''}" data-range="optimal" onclick="switchRangeMode('optimal');updateSettingsUI()">Optimal</button>
+        <button class="range-toggle-btn${rangeMode === 'reference' ? ' active' : ''}" data-range="reference" onclick="switchRangeMode('reference');updateSettingsUI()">Reference</button>
+        <button class="range-toggle-btn${rangeMode === 'both' ? ' active' : ''}" data-range="both" onclick="switchRangeMode('both');updateSettingsUI()">Both</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Theme</label>
+      <div class="settings-theme-toggle">
+        <button class="settings-theme-btn${currentTheme === 'dark' ? ' active' : ''}" onclick="setTheme('dark');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Dark</button>
+        <button class="settings-theme-btn${currentTheme === 'light' ? ' active' : ''}" onclick="setTheme('light');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Light</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Anthropic API Key</label>
       <div class="api-key-status" id="api-key-status">
         ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
@@ -481,6 +540,18 @@ function openSettingsModal() {
       <div class="privacy-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
     </div>`;
   overlay.classList.add('show');
+}
+
+function updateSettingsUI() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  modal.querySelectorAll('.sex-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.sex === profileSex));
+  modal.querySelectorAll('.unit-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.unit === unitSystem));
+  modal.querySelectorAll('.range-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.range === rangeMode));
+  const theme = getTheme();
+  modal.querySelectorAll('.settings-theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === theme);
+  });
 }
 
 function closeSettingsModal() {
@@ -569,17 +640,6 @@ function loadProfile(profileId) {
   noteOverlayMode = savedNoteOverlay === 'on' ? 'on' : 'off';
   profileSex = getProfileSex(profileId);
   profileDob = getProfileDob(profileId);
-  document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.unit === unitSystem);
-  });
-  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sex === profileSex);
-  });
-  document.querySelectorAll('.range-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.range === rangeMode);
-  });
-  const dobInput = document.getElementById('dob-input');
-  if (dobInput) dobInput.value = profileDob || '';
   selectedCorrelationMarkers = [];
   chatHistory = [];
   loadChatPersonality();
@@ -587,6 +647,7 @@ function loadProfile(profileId) {
   buildSidebar();
   showDashboard();
   updateHeaderDates();
+  updateHeaderRangeToggle();
   renderProfileDropdown();
 }
 
@@ -647,9 +708,6 @@ function setProfileSex(profileId, sex) {
 function switchSex(sex) {
   profileSex = sex;
   setProfileSex(currentProfile, sex);
-  document.querySelectorAll('.sex-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.sex === sex);
-  });
   const data = getActiveData();
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
@@ -970,12 +1028,40 @@ function setDateRange(range) {
   navigate(activeCat);
 }
 
-function renderSuppOverlayToggle() {
-  const supps = (importedData.supplements || []);
-  if (!supps.length) return '';
-  return `<div class="supp-overlay-toggle"><span class="supp-overlay-icon">💊</span>
-    <button class="range-btn${suppOverlayMode === 'off' ? ' active' : ''}" onclick="setSuppOverlay('off')">Off</button>
-    <button class="range-btn${suppOverlayMode !== 'off' ? ' active' : ''}" onclick="setSuppOverlay('on')">On</button></div>`;
+function renderChartLayersDropdown() {
+  const hasNotes = (importedData.notes || []).length > 0;
+  const hasSupps = (importedData.supplements || []).length > 0;
+  if (!hasNotes && !hasSupps) return '';
+  return `<div class="chart-layers-wrapper">
+    <button class="view-btn chart-layers-trigger" onclick="toggleChartLayersDropdown(event)">Layers \u25BE</button>
+    <div class="chart-layers-dropdown" id="chart-layers-dropdown">
+      ${hasNotes ? `<label class="chart-layers-row" onclick="event.stopPropagation()">
+        <input type="checkbox" ${noteOverlayMode === 'on' ? 'checked' : ''} onchange="setNoteOverlay(this.checked?'on':'off')">
+        <span>\uD83D\uDCDD Notes</span>
+      </label>` : ''}
+      ${hasSupps ? `<label class="chart-layers-row" onclick="event.stopPropagation()">
+        <input type="checkbox" ${suppOverlayMode === 'on' ? 'checked' : ''} onchange="setSuppOverlay(this.checked?'on':'off')">
+        <span>\uD83D\uDC8A Supplements</span>
+      </label>` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleChartLayersDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('chart-layers-dropdown');
+  if (!dd) return;
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    const close = (ev) => {
+      if (!ev.target.closest('.chart-layers-wrapper')) {
+        dd.classList.remove('open');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
 }
 
 function setSuppOverlay(mode) {
@@ -984,14 +1070,6 @@ function setSuppOverlay(mode) {
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
   navigate(activeCat);
-}
-
-function renderNoteOverlayToggle() {
-  const notes = (importedData.notes || []);
-  if (!notes.length) return '';
-  return `<div class="supp-overlay-toggle"><span class="supp-overlay-icon">📝</span>
-    <button class="range-btn${noteOverlayMode === 'off' ? ' active' : ''}" onclick="setNoteOverlay('off')">Off</button>
-    <button class="range-btn${noteOverlayMode !== 'off' ? ' active' : ''}" onclick="setNoteOverlay('on')">On</button></div>`;
 }
 
 function setNoteOverlay(mode) {
@@ -1058,6 +1136,7 @@ document.addEventListener("DOMContentLoaded", () => {
   buildSidebar();
   showDashboard();
   updateHeaderDates();
+  updateHeaderRangeToggle();
   renderProfileDropdown();
   document.getElementById("pdf-input").addEventListener("change", async e => {
     if (e.target.files.length > 0) {
@@ -1141,13 +1220,325 @@ function showDashboard(data) {
   }
   html += `</div>`;
 
+  // ── 1. Drop zone ──
   html += `<div class="drop-zone" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
 
-  // Profile context cards
-  html += `<div class="context-section-title">What your GP won't ask you</div>`;
+  if (!hasData) {
+    html += `<div class="onboarding-step1">
+      <div class="onboarding-steps">
+        <span class="onboarding-step active">1</span>
+        <span class="onboarding-step-line"></span>
+        <span class="onboarding-step">2</span>
+        <span class="onboarding-step-line"></span>
+        <span class="onboarding-step">3</span>
+      </div>
+      <div class="onboarding-step-labels">
+        <span class="onboarding-step-label active">Import</span>
+        <span class="onboarding-step-label">Profile</span>
+        <span class="onboarding-step-label">Ready</span>
+      </div>
+      <h3>Welcome to LabCharts</h3>
+      <p>Import your first lab results to get started.</p>
+      <button class="onboarding-import-btn" onclick="document.getElementById('pdf-input').click()">Choose PDF or JSON file</button>
+      <div class="onboarding-hint">or drag and drop onto the area above</div>
+    </div>`;
+    html += renderProfileContextCards();
+    if (profileSex === 'female') html += renderMenstrualCycleSection(data);
+    html += renderSupplementsSection();
+    main.innerHTML = html;
+    setupDropZone();
+    return;
+  }
+
+  // ── 2. Onboarding Banner (Step 2) ──
+  html += renderOnboardingBanner();
+
+  // ── 3. Focus Card ──
+  if (hasApiKey()) html += renderFocusCard();
+
+  // ── 4. Profile Context Cards ──
+  html += renderProfileContextCards();
+
+  // ── 5. Menstrual Cycle (female only) ──
+  if (profileSex === 'female') html += renderMenstrualCycleSection(data);
+
+  // ── 6. Supplements & Medications ──
+  html += renderSupplementsSection();
+
+  // ── 7. Key Trends ──
+  const filteredData = filterDatesByRange(data);
+  html += `<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px">
+    <div class="category-header" style="margin:0"><h2>Key Trends</h2>
+    <p>Important biomarkers tracked over time</p></div>
+    ${renderDateRangeFilter()}
+    ${renderChartLayersDropdown()}
+  </div>`;
+
+  const keyMarkers = [
+    { cat: "diabetes", key: "hba1c" }, { cat: "diabetes", key: "homaIR" },
+    { cat: "lipids", key: "ldl" }, { cat: "vitamins", key: "vitaminD" },
+    { cat: "thyroid", key: "tsh" }, { cat: "hormones", key: "testosterone" },
+    { cat: "proteins", key: "hsCRP" }, { cat: "biochemistry", key: "ggt" }
+  ];
+  html += `<div class="charts-grid charts-grid-4col">`;
+  for (const km of keyMarkers) {
+    const marker = filteredData.categories[km.cat].markers[km.key];
+    html += renderChartCard(km.cat + "_" + km.key, marker, filteredData.dateLabels);
+  }
+  html += `</div>`;
+
+  // ── 8. Trends & Critical Flags ──
+  const trendAlerts = detectTrendAlerts(filteredData);
+  const trendMarkerIds = new Set(trendAlerts.map(a => a.id));
+  const allFlags = getAllFlaggedMarkers(data);
+  // Critical flags always use reference range (not optimal) — critical is a medical concept
+  const criticalFlags = allFlags.filter(f => {
+    if (trendMarkerIds.has(f.id)) return false;
+    const refRange = f.refMax - f.refMin;
+    if (refRange <= 0 || f.refMin == null || f.refMax == null) return false;
+    const distance = f.status === 'high' ? (f.rawValue - f.refMax) : (f.refMin - f.rawValue);
+    return distance > refRange * 0.5;
+  });
+  const totalAttention = trendAlerts.length + criticalFlags.length;
+  if (totalAttention > 0) {
+    html += `<div class="alerts-section"><div class="alerts-title">Trends & Alerts (${totalAttention})</div>`;
+    for (const alert of trendAlerts) {
+      const isPast = alert.concern.startsWith('past_');
+      const cls = isPast ? 'trend-alert-danger' : 'trend-alert-warning';
+      const arrow = alert.direction === 'rising' ? '\u2197' : '\u2198';
+      const label = alert.concern === 'past_high' ? 'Above range & rising'
+        : alert.concern === 'past_low' ? 'Below range & falling'
+        : alert.concern === 'approaching_high' ? 'Approaching upper limit'
+        : 'Approaching lower limit';
+      html += `<div class="trend-alert-card ${cls}" onclick="showDetailModal('${alert.id}')">
+        <span class="trend-alert-arrow">${arrow}</span>
+        <div class="trend-alert-info">
+          <div class="trend-alert-name">${alert.name} <span class="trend-alert-cat">${alert.category}</span></div>
+          <div class="trend-alert-label">${label}</div>
+        </div>
+        <div class="trend-alert-spark">${alert.spark.join(' \u2192 ')}</div>
+      </div>`;
+    }
+    for (const f of criticalFlags) {
+      const cls = f.status === "high" ? "alert-high" : "alert-low";
+      const label = f.status === "high" ? "\u25B2 CRITICAL HIGH" : "\u25BC CRITICAL LOW";
+      html += `<div class="alert-card ${cls}" onclick="navigate('${f.categoryKey}')">
+        <span class="alert-indicator">${label}</span>
+        <span class="alert-name">${f.name}</span>
+        <span class="alert-value">${f.value} ${f.unit}</span>
+        <span class="alert-ref">${formatValue(f.effectiveMin)} \u2013 ${formatValue(f.effectiveMax)}</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // ── 9. Data & Notes (bottom) ──
+  const hasEntries = importedData.entries && importedData.entries.length > 0;
+  const hasNotes = importedData.notes && importedData.notes.length > 0;
+  if (hasEntries || hasNotes) {
+    const entryCount = (importedData.entries || []).length;
+    const noteCount = (importedData.notes || []).length;
+    const dataBadge = [entryCount ? `${entryCount} entries` : '', noteCount ? `${noteCount} notes` : ''].filter(Boolean).join(', ');
+    html += `<div style="margin-top:20px"><span class="context-section-title">Data & Notes (${dataBadge})</span></div>`;
+    html += `<div class="imported-entries">`;
+    html += `<button class="add-note-btn" onclick="openNoteEditor()">+ Add Note</button>`;
+    const items = [];
+    if (hasEntries) {
+      for (const entry of importedData.entries) {
+        items.push({ type: 'entry', date: entry.date, entry });
+      }
+    }
+    if (hasNotes) {
+      for (let i = 0; i < importedData.notes.length; i++) {
+        items.push({ type: 'note', date: importedData.notes[i].date, noteIdx: i, note: importedData.notes[i] });
+      }
+    }
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    for (const item of items) {
+      const d = new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      if (item.type === 'entry') {
+        const cnt = Object.keys(item.entry.markers).length;
+        html += `<div class="imported-entry">
+          <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
+          <div class="ie-actions">
+            <button class="ie-remove" onclick="removeImportedEntry('${item.entry.date}')">\u2715 Remove</button>
+          </div>
+        </div>`;
+      } else {
+        const preview = escapeHTML(item.note.text.length > 80 ? item.note.text.slice(0, 80) + '...' : item.note.text);
+        html += `<div class="note-row" onclick="openNoteEditor(null, ${item.noteIdx})">
+          <span class="note-row-icon">\uD83D\uDCDD</span>
+          <span class="note-row-date">${d}</span>
+          <span class="note-row-text">${preview}</span>
+          <div class="note-row-actions">
+            <button class="ie-remove" onclick="event.stopPropagation();deleteNote(${item.noteIdx})">\u2715</button>
+          </div>
+        </div>`;
+      }
+    }
+    html += `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+      <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
+      <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
+    html += `</div>`;
+  }
+
+  main.innerHTML = html;
+
+  for (const km of keyMarkers) {
+    const marker = filteredData.categories[km.cat].markers[km.key];
+    createLineChart(km.cat + "_" + km.key, marker, filteredData.dateLabels, filteredData.dates);
+  }
+  setupDropZone();
+
+  // Non-blocking: load focus card after DOM is ready
+  if (hasData && hasApiKey()) loadFocusCard();
+}
+
+// ── Focus Card ──
+
+function renderFocusCard() {
+  const cacheKey = profileStorageKey(currentProfile, 'focusCard');
+  const cached = (() => { try { return JSON.parse(localStorage.getItem(cacheKey)); } catch(e) { return null; } })();
+  const fp = getFocusCardFingerprint();
+  const text = (cached && cached.fingerprint === fp) ? cached.text : null;
+  return `<div class="focus-card" id="focus-card">
+    <div class="focus-card-icon">\uD83D\uDD2C</div>
+    <div class="focus-card-body" id="focus-card-body">${text
+      ? `<span class="focus-card-text">${escapeHTML(text)}</span>`
+      : `<span class="focus-card-shimmer"></span>`}</div>
+    <button class="focus-card-refresh" onclick="refreshFocusCard()" title="Regenerate insight">\u21BB</button>
+  </div>`;
+}
+
+async function loadFocusCard() {
+  const el = document.getElementById('focus-card-body');
+  if (!el) return;
+  const cacheKey = profileStorageKey(currentProfile, 'focusCard');
+  const cached = (() => { try { return JSON.parse(localStorage.getItem(cacheKey)); } catch(e) { return null; } })();
+  const fp = getFocusCardFingerprint();
+  if (cached && cached.fingerprint === fp && cached.text) {
+    el.innerHTML = `<span class="focus-card-text">${escapeHTML(cached.text)}</span>`;
+    return;
+  }
+  el.innerHTML = `<span class="focus-card-shimmer"></span>`;
+  try {
+    const ctx = buildLabContext();
+    const text = await callClaudeAPI({
+      system: 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.',
+      messages: [{ role: 'user', content: ctx }],
+      maxTokens: 100
+    });
+    const trimmed = (text || '').trim();
+    if (trimmed) {
+      localStorage.setItem(cacheKey, JSON.stringify({ fingerprint: fp, text: trimmed }));
+      el.innerHTML = `<span class="focus-card-text">${escapeHTML(trimmed)}</span>`;
+    } else {
+      el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
+    }
+  } catch(e) {
+    el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">Could not load insight</span>`;
+  }
+}
+
+function refreshFocusCard() {
+  const cacheKey = profileStorageKey(currentProfile, 'focusCard');
+  localStorage.removeItem(cacheKey);
+  loadFocusCard();
+}
+
+// ── Onboarding ──
+
+function renderOnboardingBanner() {
+  const onboarded = localStorage.getItem(profileStorageKey(currentProfile, 'onboarded'));
+  if (onboarded) return '';
+  if (profileSex && profileDob) {
+    localStorage.setItem(profileStorageKey(currentProfile, 'onboarded'), 'profile-set');
+    return '';
+  }
+  return `<div class="onboarding-banner" id="onboarding-banner">
+    <div class="onboarding-steps">
+      <span class="onboarding-step completed">\u2713</span>
+      <span class="onboarding-step-line"></span>
+      <span class="onboarding-step active">2</span>
+      <span class="onboarding-step-line"></span>
+      <span class="onboarding-step">3</span>
+    </div>
+    <div class="onboarding-step-labels">
+      <span class="onboarding-step-label">Import</span>
+      <span class="onboarding-step-label active">Profile</span>
+      <span class="onboarding-step-label">Ready</span>
+    </div>
+    <h3 class="onboarding-title">Set up your profile</h3>
+    <p class="onboarding-subtitle">Sex and date of birth help us show the right reference ranges for your results.</p>
+    <div class="onboarding-form">
+      <div class="onboarding-field">
+        <label class="onboarding-label">Sex</label>
+        <div class="onboarding-sex-toggle">
+          <button class="onboarding-sex-btn${profileSex === 'male' ? ' active' : ''}" onclick="completeOnboardingSex('male')">Male</button>
+          <button class="onboarding-sex-btn${profileSex === 'female' ? ' active' : ''}" onclick="completeOnboardingSex('female')">Female</button>
+        </div>
+      </div>
+      <div class="onboarding-field">
+        <label class="onboarding-label">Date of Birth</label>
+        <input type="date" class="onboarding-dob-input" id="onboarding-dob" value="${profileDob || ''}" />
+      </div>
+      <div class="onboarding-actions">
+        <button class="onboarding-save-btn" onclick="completeOnboardingProfile()">Save & Continue</button>
+        <button class="onboarding-skip-btn" onclick="dismissOnboarding()">Skip for now</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function completeOnboardingSex(sex) {
+  document.querySelectorAll('.onboarding-sex-btn').forEach(b => b.classList.remove('active'));
+  const btns = document.querySelectorAll('.onboarding-sex-btn');
+  if (sex === 'male' && btns[0]) btns[0].classList.add('active');
+  if (sex === 'female' && btns[1]) btns[1].classList.add('active');
+}
+
+function completeOnboardingProfile() {
+  const activeSexBtn = document.querySelector('.onboarding-sex-btn.active');
+  const sex = activeSexBtn ? (activeSexBtn.textContent.toLowerCase()) : null;
+  const dobInput = document.getElementById('onboarding-dob');
+  const dob = dobInput ? dobInput.value : null;
+  localStorage.setItem(profileStorageKey(currentProfile, 'onboarded'), 'profile-set');
+  if (sex) { profileSex = sex; setProfileSex(currentProfile, sex); }
+  if (dob) { profileDob = dob; setProfileDob(currentProfile, dob); }
+  const data = getActiveData();
+  buildSidebar(data);
+  updateHeaderDates(data);
+  navigate('dashboard', data);
+  showNotification("Profile set up — you're all set!", 'success');
+}
+
+function dismissOnboarding() {
+  localStorage.setItem(profileStorageKey(currentProfile, 'onboarded'), 'dismissed');
+  const banner = document.getElementById('onboarding-banner');
+  if (banner) {
+    banner.style.transition = 'opacity 0.3s, transform 0.3s';
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(-10px)';
+    setTimeout(() => banner.remove(), 300);
+  }
+  showNotification('You can set sex and DOB anytime in Settings.', 'info');
+}
+
+// ── Dashboard section renderers ──
+
+function renderProfileContextCards() {
+  const filledCount = [
+    (importedData.healthGoals || []).length > 0,
+    !!(importedData.diagnoses || '').trim(),
+    !!(importedData.diet || '').trim(),
+    !!(importedData.exercise || '').trim(),
+    !!(importedData.sleepCircadian || '').trim(),
+    !!(importedData.interpretiveLens || '').trim()
+  ].filter(Boolean).length;
+  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/6 filled)</span></div>`;
   html += `<div class="profile-context-cards">`;
   const healthGoals = importedData.healthGoals || [];
   const goalsSummary = healthGoals.length > 0
@@ -1223,74 +1614,71 @@ function showDashboard(data) {
       : `<div class="diagnoses-placeholder">List experts and frameworks for AI interpretation</div>`}
   </div>`;
   html += `</div>`;
+  return html;
+}
 
-  // Menstrual Cycle (female only)
-  if (profileSex === 'female') {
-    const mc = importedData.menstrualCycle;
-    html += `<div class="cycle-section">
-      <div class="supp-timeline-header">
-        <span class="context-section-title">Menstrual Cycle</span>
-        <button class="supp-add-btn" onclick="openMenstrualCycleEditor()">${mc ? 'Edit' : '+ Set Up'}</button>
+function renderMenstrualCycleSection(data) {
+  const mc = importedData.menstrualCycle;
+  let html = `<div class="cycle-section">
+    <div class="supp-timeline-header">
+      <span class="context-section-title">Menstrual Cycle</span>
+      <button class="supp-add-btn" onclick="openMenstrualCycleEditor()">${mc ? 'Edit' : '+ Set Up'}</button>
+    </div>`;
+  if (!mc) {
+    html += `<div class="cycle-prompt" onclick="openMenstrualCycleEditor()">
+      <span class="cycle-prompt-icon">\uD83D\uDD34</span>
+      <div><strong>Track your cycle for better lab interpretation</strong><br>
+      <span style="color:var(--text-muted);font-size:12px">Hormone, iron, and inflammation markers vary significantly by cycle phase. Set up cycle tracking so AI can factor this in.</span></div>
+    </div>`;
+  } else {
+    const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
+    let summary = `${mc.cycleLength || 28}-day cycle, ${regLabel}, ${mc.flow || 'moderate'} flow`;
+    if (mc.contraceptive) summary += ` \u2022 ${escapeHTML(mc.contraceptive)}`;
+    if (mc.conditions) summary += ` \u2022 ${escapeHTML(mc.conditions)}`;
+    html += `<div class="cycle-summary">${summary}</div>`;
+    const drawRec = getNextBestDrawDate(mc);
+    if (drawRec) {
+      html += `<div class="cycle-draw-date">
+        <span class="cycle-draw-icon">\uD83D\uDCC5</span>
+        <div><strong>Next best blood draw:</strong> ${escapeHTML(drawRec.description)}
+        <div class="cycle-draw-explain">Early follicular phase gives the most stable baseline for hormones, iron, and inflammation markers.</div></div>
       </div>`;
-    if (!mc) {
-      html += `<div class="cycle-prompt" onclick="openMenstrualCycleEditor()">
-        <span class="cycle-prompt-icon">\uD83D\uDD34</span>
-        <div><strong>Track your cycle for better lab interpretation</strong><br>
-        <span style="color:var(--text-muted);font-size:12px">Hormone, iron, and inflammation markers vary significantly by cycle phase. Set up cycle tracking so AI can factor this in.</span></div>
-      </div>`;
-    } else {
-      // Cycle summary
-      const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
-      let summary = `${mc.cycleLength || 28}-day cycle, ${regLabel}, ${mc.flow || 'moderate'} flow`;
-      if (mc.contraceptive) summary += ` \u2022 ${escapeHTML(mc.contraceptive)}`;
-      if (mc.conditions) summary += ` \u2022 ${escapeHTML(mc.conditions)}`;
-      html += `<div class="cycle-summary">${summary}</div>`;
-      // Next best draw date
-      const drawRec = getNextBestDrawDate(mc);
-      if (drawRec) {
-        html += `<div class="cycle-draw-date">
-          <span class="cycle-draw-icon">\uD83D\uDCC5</span>
-          <div><strong>Next best blood draw:</strong> ${escapeHTML(drawRec.description)}
-          <div class="cycle-draw-explain">Early follicular phase gives the most stable baseline for hormones, iron, and inflammation markers.</div></div>
-        </div>`;
-      }
-      // Blood draw phase tags
-      if (data.dates.length > 0) {
-        const phases = getBloodDrawPhases(mc, data.dates);
-        const phaseDates = Object.entries(phases);
-        if (phaseDates.length > 0) {
-          html += `<div class="cycle-draw-phases">`;
-          const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          for (const [date, p] of phaseDates) {
-            html += `<span class="cycle-draw-tag"><span class="cycle-phase-badge phase-${p.phase}">${p.phaseName}</span> ${fmtDate(date)} \u2014 Day ${p.cycleDay}</span>`;
-          }
-          html += `</div>`;
-        }
-      }
-      // Period log (last 6)
-      const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate)).slice(0, 6);
-      if (periods.length > 0) {
-        const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        html += `<div class="cycle-period-log">`;
-        for (const p of periods) {
-          const flowCls = p.flow === 'heavy' ? 'severity-major' : p.flow === 'light' ? 'severity-minor' : 'severity-mild';
-          html += `<span class="cycle-period-entry">${fmtDate(p.startDate)}\u2013${fmtDate(p.endDate)} <span class="goals-severity-badge ${flowCls}">${p.flow}</span>${p.notes ? ` <span class="cycle-period-note">${escapeHTML(p.notes)}</span>` : ''}</span>`;
+    }
+    if (data.dates.length > 0) {
+      const phases = getBloodDrawPhases(mc, data.dates);
+      const phaseDates = Object.entries(phases);
+      if (phaseDates.length > 0) {
+        html += `<div class="cycle-draw-phases">`;
+        const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        for (const [date, p] of phaseDates) {
+          html += `<span class="cycle-draw-tag"><span class="cycle-phase-badge phase-${p.phase}">${p.phaseName}</span> ${fmtDate(date)} \u2014 Day ${p.cycleDay}</span>`;
         }
         html += `</div>`;
       }
     }
-    html += `</div>`;
+    const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate)).slice(0, 6);
+    if (periods.length > 0) {
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      html += `<div class="cycle-period-log">`;
+      for (const p of periods) {
+        const flowCls = p.flow === 'heavy' ? 'severity-major' : p.flow === 'light' ? 'severity-minor' : 'severity-mild';
+        html += `<span class="cycle-period-entry">${fmtDate(p.startDate)}\u2013${fmtDate(p.endDate)} <span class="goals-severity-badge ${flowCls}">${p.flow}</span>${p.notes ? ` <span class="cycle-period-note">${escapeHTML(p.notes)}</span>` : ''}</span>`;
+      }
+      html += `</div>`;
+    }
   }
+  html += `</div>`;
+  return html;
+}
 
-  // Supplements & Medications Timeline
+function renderSupplementsSection() {
   const supps = importedData.supplements || [];
-  html += `<div class="supp-timeline-section">
+  let html = `<div class="supp-timeline-section">
     <div class="supp-timeline-header">
       <span class="context-section-title">Supplements & Medications</span>
       <button class="supp-add-btn" onclick="openSupplementsEditor()">+ Add</button>
     </div>`;
   if (supps.length > 0) {
-    // Compute date range for timeline axis
     const today = new Date().toISOString().slice(0, 10);
     let allDates = [];
     for (const s of supps) {
@@ -1331,163 +1719,7 @@ function showDashboard(data) {
     html += `<div class="supp-timeline"><div class="supp-empty">No supplements or medications tracked yet</div></div>`;
   }
   html += `</div>`;
-
-  // Trend Alerts
-  if (hasData) {
-    const trendData = filterDatesByRange(data);
-    const trendAlerts = detectTrendAlerts(trendData);
-    if (trendAlerts.length > 0) {
-      html += `<div class="trend-alerts-section">
-        <div class="trend-alerts-header" onclick="this.parentElement.classList.toggle('collapsed')">
-          <span>Trending Concerns (${trendAlerts.length})</span>
-          <span class="trend-alerts-toggle">&#9660;</span>
-        </div>
-        <div class="trend-alerts-body">`;
-      for (const alert of trendAlerts) {
-        const isPast = alert.concern.startsWith('past_');
-        const cls = isPast ? 'trend-alert-danger' : 'trend-alert-warning';
-        const arrow = alert.direction === 'rising' ? '\u2197' : '\u2198';
-        const label = alert.concern === 'past_high' ? 'Above range & rising'
-          : alert.concern === 'past_low' ? 'Below range & falling'
-          : alert.concern === 'approaching_high' ? 'Approaching upper limit'
-          : 'Approaching lower limit';
-        html += `<div class="trend-alert-card ${cls}" onclick="showDetailModal('${alert.id}')">
-          <span class="trend-alert-arrow">${arrow}</span>
-          <div class="trend-alert-info">
-            <div class="trend-alert-name">${alert.name} <span class="trend-alert-cat">${alert.category}</span></div>
-            <div class="trend-alert-label">${label}</div>
-          </div>
-          <div class="trend-alert-spark">${alert.spark.join(' \u2192 ')}</div>
-        </div>`;
-      }
-      html += `</div></div>`;
-    }
-  }
-
-  const hasEntries = importedData.entries && importedData.entries.length > 0;
-  const hasNotes = importedData.notes && importedData.notes.length > 0;
-  if (hasEntries || hasNotes) {
-    html += `<div class="imported-entries">`;
-    html += `<button class="add-note-btn" onclick="openNoteEditor()">+ Add Note</button>`;
-    // Merge entries and notes into one sorted-by-date list
-    const items = [];
-    if (hasEntries) {
-      for (const entry of importedData.entries) {
-        items.push({ type: 'entry', date: entry.date, entry });
-      }
-    }
-    if (hasNotes) {
-      for (let i = 0; i < importedData.notes.length; i++) {
-        items.push({ type: 'note', date: importedData.notes[i].date, noteIdx: i, note: importedData.notes[i] });
-      }
-    }
-    items.sort((a, b) => a.date.localeCompare(b.date));
-    for (const item of items) {
-      const d = new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      if (item.type === 'entry') {
-        const cnt = Object.keys(item.entry.markers).length;
-        html += `<div class="imported-entry">
-          <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
-          <div class="ie-actions">
-            <button class="ie-remove" onclick="removeImportedEntry('${item.entry.date}')">\u2715 Remove</button>
-          </div>
-        </div>`;
-      } else {
-        const preview = escapeHTML(item.note.text.length > 80 ? item.note.text.slice(0, 80) + '...' : item.note.text);
-        html += `<div class="note-row" onclick="openNoteEditor(null, ${item.noteIdx})">
-          <span class="note-row-icon">\uD83D\uDCDD</span>
-          <span class="note-row-date">${d}</span>
-          <span class="note-row-text">${preview}</span>
-          <div class="note-row-actions">
-            <button class="ie-remove" onclick="event.stopPropagation();deleteNote(${item.noteIdx})">\u2715</button>
-          </div>
-        </div>`;
-      }
-    }
-    html += `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-      <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
-      <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
-      <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
-    html += `</div>`;
-  }
-
-  if (!hasData) {
-    html += `<div class="empty-state">
-      <div class="empty-state-icon">\uD83D\uDCCA</div>
-      <h3>Welcome to LabCharts</h3>
-      <p>Import your blood work results to get started.</p>
-      <ul>
-        <li>Drop any lab PDF report above — AI extracts your results automatically</li>
-        <li>Import a previously exported LabCharts JSON file</li>
-        <li>Use "Ask AI" to get insights about your biomarker trends</li>
-      </ul></div>`;
-    main.innerHTML = html;
-    setupDropZone();
-    return;
-  }
-
-  const allFlags = getAllFlaggedMarkers(data);
-  if (allFlags.length > 0) {
-    html += `<div class="alerts-section"><div class="alerts-title">Flagged Results (Latest Values)</div>`;
-    for (const f of allFlags) {
-      const cls = f.status === "high" ? "alert-high" : "alert-low";
-      const label = f.status === "high" ? "\u25B2 HIGH" : "\u25BC LOW";
-      html += `<div class="alert-card ${cls}" onclick="navigate('${f.categoryKey}')">
-        <span class="alert-indicator">${label}</span>
-        <span class="alert-name">${f.name}</span>
-        <span class="alert-value">${f.value} ${f.unit}</span>
-        <span class="alert-ref">${formatValue(f.effectiveMin)} \u2013 ${formatValue(f.effectiveMax)}</span></div>`;
-    }
-    html += `</div>`;
-  }
-
-  html += `<div class="overview-grid">`;
-  for (const [key, cat] of Object.entries(data.categories)) {
-    const markers = Object.values(cat.markers);
-    const total = markers.length;
-    const flagged = countFlagged(markers);
-    const normal = total - flagged - countMissing(markers);
-    html += `<div class="overview-card" onclick="navigate('${key}')">
-      <div class="overview-card-header">
-        <span class="overview-card-title">${cat.label}</span>
-        <span class="overview-card-icon">${cat.icon}</span></div>
-      <div class="overview-stats">
-        <div class="overview-stat stat-normal"><div class="stat-value">${normal}</div><div class="stat-label">In Range</div></div>
-        <div class="overview-stat stat-flagged"><div class="stat-value">${flagged}</div><div class="stat-label">Flagged</div></div>
-        <div class="overview-stat stat-total"><div class="stat-value">${total}</div><div class="stat-label">Total</div></div>
-      </div></div>`;
-  }
-  html += `</div>`;
-
-  html += `<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px">
-    <div class="category-header" style="margin:0"><h2>Key Trends</h2>
-    <p>Important biomarkers tracked over time</p></div>
-    ${renderDateRangeFilter()}
-    ${renderNoteOverlayToggle()}
-    ${renderSuppOverlayToggle()}
-  </div>`;
-
-  const filteredData = filterDatesByRange(data);
-  const keyMarkers = [
-    { cat: "diabetes", key: "hba1c" }, { cat: "diabetes", key: "homaIR" },
-    { cat: "lipids", key: "ldl" }, { cat: "vitamins", key: "vitaminD" },
-    { cat: "thyroid", key: "tsh" }, { cat: "hormones", key: "testosterone" },
-    { cat: "proteins", key: "hsCRP" }, { cat: "biochemistry", key: "ggt" }
-  ];
-
-  html += `<div class="charts-grid">`;
-  for (const km of keyMarkers) {
-    const marker = filteredData.categories[km.cat].markers[km.key];
-    html += renderChartCard(km.cat + "_" + km.key, marker, filteredData.dateLabels);
-  }
-  html += `</div>`;
-  main.innerHTML = html;
-
-  for (const km of keyMarkers) {
-    const marker = filteredData.categories[km.cat].markers[km.key];
-    createLineChart(km.cat + "_" + km.key, marker, filteredData.dateLabels, filteredData.dates);
-  }
-  setupDropZone();
+  return html;
 }
 
 function showCategory(categoryKey, preData) {
@@ -1504,8 +1736,7 @@ function showCategory(categoryKey, preData) {
     <button class="view-btn" onclick="switchView('table','${categoryKey}',this)">Table</button>
     <button class="view-btn" onclick="switchView('heatmap','${categoryKey}',this)">Heatmap</button></div>`;
   html += renderDateRangeFilter();
-  html += renderNoteOverlayToggle();
-  html += renderSuppOverlayToggle();
+  html += renderChartLayersDropdown();
   html += `</div>`;
 
   const hasValues = Object.values(cat.markers).some(m => m.values && m.values.length > 0 && m.values.some(v => v !== null));
@@ -2331,8 +2562,6 @@ function setTheme(theme) {
   localStorage.setItem('labcharts-theme', theme);
   if (theme === 'light') document.documentElement.dataset.theme = 'light';
   else delete document.documentElement.dataset.theme;
-  const btn = document.getElementById('theme-toggle-btn');
-  if (btn) btn.innerHTML = theme === 'light' ? '&#9790;' : '&#9788;';
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = theme === 'light' ? '#ffffff' : '#1a1d27';
 }
@@ -2385,7 +2614,7 @@ function getAllFlaggedMarkers(data) {
     for (const [k, m] of Object.entries(cat.markers)) {
       const i = getLatestValueIndex(m.values);
       if (i!==-1) { const v=m.values[i], r=getEffectiveRange(m), s=getStatus(v,r.min,r.max);
-        if (s==="high"||s==="low") flags.push({categoryKey:ck,name:m.name,value:formatValue(v),rawValue:v,unit:m.unit,refMin:m.refMin,refMax:m.refMax,optimalMin:m.optimalMin,optimalMax:m.optimalMax,effectiveMin:r.min,effectiveMax:r.max,status:s});
+        if (s==="high"||s==="low") flags.push({categoryKey:ck,markerKey:k,id:ck+'_'+k,name:m.name,value:formatValue(v),rawValue:v,unit:m.unit,refMin:m.refMin,refMax:m.refMax,optimalMin:m.optimalMin,optimalMax:m.optimalMax,effectiveMin:r.min,effectiveMax:r.max,status:s});
       }
     }
   }
@@ -2461,9 +2690,6 @@ function formatValue(v) {
 function switchUnitSystem(system) {
   unitSystem = system;
   localStorage.setItem(profileStorageKey(currentProfile, 'units'), system);
-  document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.unit === system);
-  });
   const data = getActiveData();
   const activeNav = document.querySelector(".nav-item.active");
   const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
@@ -2484,9 +2710,7 @@ function getEffectiveRange(marker) {
 function switchRangeMode(mode) {
   rangeMode = mode;
   localStorage.setItem(profileStorageKey(currentProfile, 'rangeMode'), mode);
-  document.querySelectorAll('.range-toggle-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.range === mode);
-  });
+  updateHeaderRangeToggle();
   const data = getActiveData();
   const activeNav = document.querySelector(".nav-item.active");
   const currentCategory = activeNav ? activeNav.dataset.category : "dashboard";
@@ -2507,6 +2731,14 @@ function updateHeaderDates(data) {
       el.style.display = 'none';
     }
   }
+}
+
+function updateHeaderRangeToggle() {
+  const el = document.getElementById('header-range-toggle');
+  if (!el) return;
+  el.innerHTML = ['optimal', 'reference', 'both'].map(m =>
+    `<button class="range-toggle-btn${rangeMode === m ? ' active' : ''}" onclick="switchRangeMode('${m}')">${m.charAt(0).toUpperCase() + m.slice(1)}</button>`
+  ).join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -4386,26 +4618,6 @@ const CHAT_PERSONALITIES = [
     description: 'Sarcastic, brilliant, blunt',
     greeting: "Fine. Show me your labs. And try to make it interesting.",
     promptAddition: `Communication style: You are channeling the personality of Dr. Gregory House from the TV show "House M.D." Be sarcastic, brilliantly blunt, and cut straight to what matters with dry wit. Use biting humor. Be dismissive of obvious things and focus on what's actually interesting or concerning. Occasionally make references to the character's mannerisms. Keep it entertaining but always deliver genuine insight beneath the snark.
-
-IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
-  },
-  {
-    id: 'murphy',
-    name: 'Dr. Sean Murphy',
-    icon: '🩺',
-    description: 'Literal, precise, methodical',
-    greeting: 'I can analyze your lab results. I will examine each biomarker systematically.',
-    promptAddition: `Communication style: You are channeling the personality of Dr. Shaun Murphy from the TV show "The Good Doctor." Be extremely literal and direct. Enumerate your observations methodically (1, 2, 3...). Avoid metaphors, idioms, and figurative language — say exactly what you mean. State facts plainly. When uncertain, say so directly. Focus intensely on the data and patterns. Your precision and attention to detail is your strength.
-
-IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
-  },
-  {
-    id: 'robby',
-    name: 'Dr. Robby',
-    icon: '😎',
-    description: 'Warm, reassuring, encouraging',
-    greeting: "Hey! I'm here to help you understand your labs. No question too small!",
-    promptAddition: `Communication style: You are Dr. Robby — warm, reassuring, and genuinely encouraging. Use simple analogies to explain complex concepts. Celebrate wins (normal results, improving trends). Frame concerns gently and constructively — never alarming. Use a conversational, friendly tone like a supportive friend who happens to be a doctor. Make the user feel empowered about their health journey, not anxious.
 
 IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
   },

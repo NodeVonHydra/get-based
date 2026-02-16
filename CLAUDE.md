@@ -20,9 +20,12 @@ No build system, no bundler, no package manager. Three source files:
   - `CORRELATION_PRESETS` — predefined marker combinations for the correlation view
   - API key management (`getApiKey`, `saveApiKey`, `hasApiKey`, `validateApiKey`)
   - `callClaudeAPI()` — central API helper with streaming support
-  - Settings modal (`openSettingsModal`, `closeSettingsModal`, `handleSaveApiKey`)
+  - Settings modal (`openSettingsModal`, `closeSettingsModal`, `handleSaveApiKey`, `updateSettingsUI`) — contains API key, sex, DOB, unit system, range mode, and theme controls
+  - `updateHeaderRangeToggle()` — renders range mode toggle (Optimal/Reference/Both) in header, synced with settings modal
   - Core utilities and initialization (`getStatus`, `getActiveData`, `applyUnitConversion`, `recalculateHOMAIR`)
-  - UI rendering (sidebar, dashboard with empty state, category views, chart/table toggle, detail modals, flagged marker alerts)
+  - UI rendering (sidebar, dashboard with onboarding flow, category views, chart/table toggle, detail modals, flagged marker alerts)
+  - Focus card (`hashString`, `getFocusCardFingerprint`, `renderFocusCard`, `loadFocusCard`, `refreshFocusCard` — AI-generated one-sentence insight)
+  - Onboarding flow (`renderOnboardingBanner`, `completeOnboardingSex`, `completeOnboardingProfile`, `dismissOnboarding` — 3-step guided setup)
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
@@ -84,7 +87,7 @@ Notes are independent of lab entries — they support any date and are stored in
 
 Six profile context cards stored as free-text strings in `importedData`: `diagnoses`, `diet`, `exercise`, `sleepCircadian`, `interpretiveLens` (plus structured `healthGoals`):
 
-- Dashboard renders six cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section heading, ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Circadian, Interpretive Lens
+- Dashboard renders six cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section title with filled count (e.g., "3/6 filled"). Rendered by `renderProfileContextCards()`. Always visible. Ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Circadian, Interpretive Lens
 - Each card has an info icon (i) with a hover tooltip explaining why that context matters for lab interpretation
 - Each card shows current text or a placeholder prompt; clicking opens a modal editor
 - **Merged fields**: Sleep & Circadian combines old `sleep` + `circadian`; Interpretive Lens combines old `fieldExperts` + `fieldLens`. Migration happens automatically via `migrateProfileData()` on profile load
@@ -158,21 +161,67 @@ PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that 
 - **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
 - **Unit system**: PhenoAge outputs years regardless of EU/US setting — no `UNIT_CONVERSIONS` entry needed
 
-### Chart Overlay Toggles
+### Focus Card
 
-Off/On toggles controlling note dots and supplement bars on charts. Both appear in category view and dashboard toolbars alongside the date range filter. Hidden when the profile has no notes/supplements respectively.
+AI-generated one-sentence insight at the top of the dashboard (after drop zone, before context cards):
 
-- **Notes** (`📝 [Off][On]`): `noteOverlayMode` variable, persisted in `labcharts-{profileId}-noteOverlay`. `getNotesForChart(chartDates)` returns `[]` when off. `renderNoteOverlayToggle()` / `setNoteOverlay(mode)`
-- **Supplements** (`💊 [Off][On]`): `suppOverlayMode` variable, persisted in `labcharts-{profileId}-suppOverlay`. `getSupplementsForChart(chartDates)` returns `[]` when off. `renderSuppOverlayToggle()` / `setSuppOverlay(mode)`
+- **Visibility**: Only renders when data exists AND `hasApiKey()` is true
+- **Shimmer skeleton**: Shows animated placeholder while fetching, then the sentence
+- **Cache**: `labcharts-{profileId}-focusCard` — `{ fingerprint, text }`. Fingerprint is a djb2 hash of entries+sex+DOB+context. Auto-invalidates when data changes
+- **Refresh button**: Manual regenerate via `refreshFocusCard()` (clears cache, re-fetches)
+- **Non-blocking**: `loadFocusCard()` called async after DOM render
+- **AI prompt**: System instructs one sentence, max 40 words, naming marker+direction+clinical relevance. `maxTokens: 100`, non-streaming
+- **Functions**: `hashString(str)`, `getFocusCardFingerprint()`, `renderFocusCard()`, `loadFocusCard()`, `refreshFocusCard()`
+- **CSS**: `.focus-card`, `.focus-card-icon`, `.focus-card-body`, `.focus-card-text`, `.focus-card-refresh`, `.focus-card-shimmer` (animated gradient)
+
+### Onboarding Flow
+
+3-step guided setup replacing the bland empty state:
+
+- **Step 1 (Import)**: Shows when `!hasData`. Step indicator (1-2-3), "Choose PDF or JSON file" button, drag-and-drop hint. Context cards/cycle/supplements still render below
+- **Step 2 (Profile Banner)**: Shows at top when data exists AND `labcharts-{profileId}-onboarded` not set AND (sex OR DOB unset). Inline form with sex toggle buttons + DOB date input. "Save & Continue" or "Skip for now"
+- **Step 3 (Completion)**: `showNotification("Profile set up — you're all set!", "success")` toast only
+- **State key**: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped. Auto-sets to `profile-set` if sex+DOB already present
+- **Functions**: `renderOnboardingBanner()`, `completeOnboardingSex(sex)`, `completeOnboardingProfile()`, `dismissOnboarding()`
+- **CSS**: `.onboarding-step1`, `.onboarding-steps`, `.onboarding-step` (`.active`/`.completed`), `.onboarding-step-line`, `.onboarding-step-labels`, `.onboarding-banner`, `.onboarding-form`, `.onboarding-sex-toggle`, `.onboarding-sex-btn`, `.onboarding-dob-input`, `.onboarding-save-btn`, `.onboarding-skip-btn`
+
+### Dashboard Section Order
+
+All sections are always visible (flat layout, no collapsible toggles). Section titles use `.context-section-title`.
+
+| # | Section | Renderer |
+|---|---------|----------|
+| 1 | Dashboard header + drop zone | inline in `showDashboard()` |
+| 2 | Onboarding Step 1 (empty) / Step 2 banner (data) | conditional |
+| 3 | Focus Card (data + API key) | `renderFocusCard()` + `loadFocusCard()` |
+| 4 | Profile Context Cards ("What your GP won't ask you") | `renderProfileContextCards()` |
+| 5 | Menstrual Cycle (female only) | `renderMenstrualCycleSection(data)` |
+| 6 | Supplements & Medications | `renderSupplementsSection()` |
+| 7 | Key Trends + charts | inline (8 key markers with date range filter + layers dropdown) |
+| 8 | Trends & Alerts | inline — trend alerts first, then critical flags |
+| 9 | Data & Notes + Export | inline (entries + notes interleaved + export/clear buttons) |
+
+- **Trends & Alerts**: Merged section. Trend alerts from `detectTrendAlerts()` shown first (all types: approaching yellow, past red). Below that, critical flags from `getAllFlaggedMarkers()` — only markers >50% of **reference** range width past the boundary (always uses reference range, never optimal — critical is a medical concept). Excludes markers already in trends. Based on clinical critical value literature where tightest panic thresholds sit ~40-50% of range past boundary
+- **Empty state**: When no data, shows onboarding Step 1 (step indicator + import button) then sections 4-6 (context/tracking — user input, not derived)
+- **No Category Overview**: Removed — duplicated by sidebar category list
+
+### Chart Layers Dropdown
+
+A single "Layers" dropdown controlling note dots and supplement bars on charts. Appears in category view and dashboard toolbars alongside the date range filter. Hidden when the profile has no notes/supplements.
+
+- **`renderChartLayersDropdown()`**: Renders a dropdown trigger button with checkbox rows for Notes and Supplements
+- **`toggleChartLayersDropdown(e)`**: Opens/closes dropdown with click-outside listener
+- **Notes**: `noteOverlayMode` variable, persisted in `labcharts-{profileId}-noteOverlay`. `getNotesForChart(chartDates)` returns `[]` when off. `setNoteOverlay(mode)`
+- **Supplements**: `suppOverlayMode` variable, persisted in `labcharts-{profileId}-suppOverlay`. `getSupplementsForChart(chartDates)` returns `[]` when off. `setSuppOverlay(mode)`
 - **Default**: Both off
-- **CSS**: Both use `.supp-overlay-toggle` wrapper with `.range-btn` buttons
+- **CSS**: `.chart-layers-wrapper`, `.chart-layers-dropdown`, `.chart-layers-row`
 
 ### Trend Alerts on Dashboard
 
 Detects markers with monotonically rising/falling values approaching or exceeding reference boundaries:
 
 - **`detectTrendAlerts(data)`**: Iterates all markers with 3+ non-null values; checks last 3-5 values for strict monotonic change (>2% per step); classifies as `past_high`, `past_low`, `approaching_high`, or `approaching_low` (within 15% of boundary)
-- **Dashboard rendering**: Collapsible "Trending Concerns (N)" section after supplements, before entries. Cards show arrow icon, marker name/category, description, and spark values. Red border for `past_*`, yellow for `approaching_*`
+- **Dashboard rendering**: Merged into "Trends & Alerts" section. All trend types render (approaching = yellow, past = red). Shown first, above critical flags. Trend markers are deduplicated from the critical flags below
 - **Click-through**: Cards open `showDetailModal(id)` for the trending marker
 - **Respects date range filter**: Uses `filterDatesByRange(data)` before detection
 
@@ -203,7 +252,7 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 - Slide-out panel on the right side with streaming responses
 - **Responsive width**: Scales across 5 breakpoints — 560px default, 640px at 1400px+, 740px at 1600px+, 880px at 2000px+, 1060px at 3000px+. Font sizes, padding, gaps, and input area scale proportionally. Backdrop dims less on large screens (0.15 at 1400px+, 0.08 at 2000px+)
 - **Markdown rendering**: `renderMarkdown()` is a block-aware parser supporting headings (`#`/`##`/`###`), unordered/ordered lists, fenced code blocks, horizontal rules, and paragraphs. `applyInlineMarkdown()` handles bold, italic, inline code, and links. `.chat-msg` uses `white-space: normal` — HTML elements handle all spacing. Streaming-compatible (re-parses full accumulated text on each chunk)
-- **Personalities**: `CHAT_PERSONALITIES` array defines 6 presets (default, House, Murphy, Robby, Kruse, custom). Personality selector bar in panel header with collapsible options. Selected personality stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality text stored in `labcharts-{profileId}-chatPersonalityCustom`. Personality prompt is appended to `CHAT_SYSTEM_PROMPT` via `getActivePersonality()`. Switching personalities preserves chat history
+- **Personalities**: `CHAT_PERSONALITIES` array defines 4 presets (default, House, Kruse, custom). Personality selector bar in panel header with collapsible options. Selected personality stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality text stored in `labcharts-{profileId}-chatPersonalityCustom`. Personality prompt is appended to `CHAT_SYSTEM_PROMPT` via `getActivePersonality()`. Switching personalities preserves chat history. Profiles with removed personalities (Murphy, Robby) gracefully fall back to default
 - `buildLabContext()` serializes full profile data for the system prompt, including diagnoses, diet, circadian, exercise, lab values, flagged results, and notes
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
@@ -253,7 +302,7 @@ The app is installable and works offline via a service worker:
   - **Google Fonts** → stale-while-revalidate
   - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
   - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v7` — bump version to bust cache on deploy
+- **Cache name**: `labcharts-v12` — bump version to bust cache on deploy
 - **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
 - **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
 - **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
