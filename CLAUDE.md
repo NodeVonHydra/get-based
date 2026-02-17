@@ -282,13 +282,15 @@ Personal information in lab PDFs is replaced with fake data before sending to th
 
 ### AI Provider System
 
-Two AI backends: Anthropic (cloud) and Ollama (local). User picks in Settings → AI Provider toggle.
+Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama (local). User picks in Settings → AI Provider toggle.
 
-- **Provider storage**: `labcharts-ai-provider` — `'anthropic'` (default) or `'ollama'`
-- **Functions**: `getAIProvider()`, `setAIProvider(provider)`, `hasAIProvider()` (returns `hasApiKey()` for Anthropic, `true` for Ollama)
-- **Routing**: `callClaudeAPI(opts)` is the router — delegates to `callAnthropicAPI(opts)` or `callOllamaChat(opts)` based on provider. All 4 call sites (focus card, marker desc, PDF parsing, chat) use `callClaudeAPI` unchanged
+- **Provider storage**: `labcharts-ai-provider` — `'anthropic'` (default), `'venice'`, or `'ollama'`
+- **Functions**: `getAIProvider()`, `setAIProvider(provider)`, `hasAIProvider()` (returns `hasApiKey()` for Anthropic, `hasVeniceKey()` for Venice, `true` for Ollama)
+- **Routing**: `callClaudeAPI(opts)` is the router — delegates to `callAnthropicAPI(opts)`, `callVeniceAPI(opts)`, or `callOllamaChat(opts)` based on provider. All 4 call sites (focus card, marker desc, PDF parsing, chat) use `callClaudeAPI` unchanged
 - **`callAnthropicAPI`**: Anthropic Messages API with SSE streaming. Model: `claude-sonnet-4-5-20250929`. Requires `labcharts-api-key`
+- **`callVeniceAPI`**: OpenAI-compatible API with SSE streaming. Endpoint: `https://api.venice.ai/api/v1/chat/completions`. Auth: Bearer token. Model from `getVeniceModel()`. Requires `labcharts-venice-key`. 300s timeout
 - **`callOllamaChat`**: Ollama `/api/chat` endpoint with newline-delimited JSON streaming. Model from `getOllamaMainModel()`. System message prepended as `{ role: 'system' }`. `maxTokens` → `options.num_predict`. 120s timeout
+- **Venice key/model storage**: `labcharts-venice-key` (API key), `labcharts-venice-model` (default `llama-3.3-70b`). Functions: `getVeniceKey()`, `saveVeniceKey()`, `hasVeniceKey()`, `getVeniceModel()`, `setVeniceModel()`. Hardcoded model list (~29 models including Venice Uncensored, Llama, Qwen, DeepSeek, Mistral, Gemma, GLM, Kimi, MiniMax, Grok, Gemini, Claude, GPT)
 - **Ollama model storage**: `labcharts-ollama-model` (main AI model), `labcharts-ollama-pii-model` (PII obfuscation model, can differ). Functions: `getOllamaMainModel()`, `setOllamaMainModel()`, `getOllamaPIIModel()`, `setOllamaPIIModel()`
 - **Guard points**: `hasAIProvider()` replaces `hasApiKey()` at all 7 AI feature gates (focus card render/load, marker desc fetch/display, PDF import single/batch, chat panel open)
 - **Error handling**: Ollama not running → `"Ollama is not running. Start it or switch to Anthropic in Settings."`
@@ -297,17 +299,18 @@ Two AI backends: Anthropic (cloud) and Ollama (local). User picks in Settings �
 
 Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **Privacy** (PII model, debug mode).
 
-- **AI Provider toggle**: Two buttons — `☁️ Anthropic` / `🏠 Ollama`. `switchAIProvider(provider)` re-renders the panel without reloading the full modal
+- **AI Provider toggle**: Three buttons — `☁️ Anthropic` / `🎭 Venice` / `🏠 Ollama`. `switchAIProvider(provider)` re-renders the panel without reloading the full modal
 - **Anthropic panel**: API key input, save/validate, remove, privacy notice (existing UI)
+- **Venice panel**: API key input, save/validate, remove, model selector (3 models), link to venice.ai/settings/api, privacy notice
 - **Ollama panel**: Status dot, URL input + test button, model dropdown, "Don't have Ollama?" setup link
 - **Privacy section**: PII obfuscation status, separate PII model dropdown (when Ollama available), debug mode toggle
 - **CSS**: `.settings-group-title` (section dividers), `.ai-provider-toggle`, `.ai-provider-btn`, `.ai-provider-panel`, `.ai-provider-desc`
 
 ### API Key Management
 
-- Stored globally in `labcharts-api-key` (not per-profile — belongs to user's Anthropic account)
+- Anthropic key stored globally in `labcharts-api-key` (not per-profile — belongs to user's Anthropic account). Only used when AI Provider is Anthropic
+- Venice key stored globally in `labcharts-venice-key`. Only used when AI Provider is Venice
 - Settings modal accessible from gear button in header
-- Only used when AI Provider is set to Anthropic
 
 ### JSON Export/Import
 
@@ -320,6 +323,7 @@ Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, them
 - **pdf.js 3.11.174** — client-side PDF text extraction
 - **Inter font** (Google Fonts)
 - **Anthropic API** — Claude Sonnet for PDF parsing and chat (when Anthropic provider selected, requires user's API key)
+- **Venice AI API** — OpenAI-compatible cloud API for all AI features (when Venice provider selected, requires user's API key from venice.ai)
 - **Ollama** — local LLM for all AI features and PII obfuscation (when Ollama provider selected, runs on user's machine)
 
 ### Marker Key Convention
