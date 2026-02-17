@@ -822,8 +822,26 @@ body {
   border: 1px solid var(--border); line-height: 1.5;
 }
 /* Settings Sections */
-.settings-section { margin-top: 20px; }
+.settings-section { margin-top: 16px; }
 .settings-label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px; color: var(--text-secondary); }
+.settings-group-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin-top: 24px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+/* AI Provider Toggle */
+.ai-provider-toggle { display: flex; align-items: center; gap: 4px; }
+.ai-provider-btn {
+  padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 13px;
+  cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit;
+}
+.ai-provider-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.ai-provider-btn:hover:not(.active) { background: var(--bg-hover); }
+.ai-provider-panel { margin-top: 12px; }
+.ai-provider-desc {
+  font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;
+}
 .settings-theme-toggle { display: flex; align-items: center; gap: 4px; }
 .settings-theme-btn {
   padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
@@ -1497,44 +1515,13 @@ body {
 .ollama-status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
 .ollama-status-dot.disconnected { background: var(--red); }
 
-/* PII Warning Dialog */
+/* PII overlay (shared by diff viewer) */
 .pii-warning-overlay {
   position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.6);
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 0.2s;
 }
 .pii-warning-overlay.show { opacity: 1; }
-.pii-warning-dialog {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  padding: 28px; max-width: 480px; width: 90%;
-}
-.pii-warning-dialog h3 { margin: 0 0 14px; font-size: 18px; }
-.pii-warning-dialog p { font-size: 14px; line-height: 1.6; margin: 0 0 12px; color: var(--text-secondary); }
-.pii-warning-actions {
-  display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
-}
-
-/* Ollama Setup Guide */
-.ollama-setup-guide {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  padding: 28px; max-width: 560px; width: 90%; position: relative;
-}
-.ollama-setup-guide h3 { margin: 0 0 20px; font-size: 18px; }
-.setup-steps { display: flex; flex-direction: column; gap: 20px; }
-.setup-step {
-  display: flex; gap: 14px; align-items: flex-start;
-}
-.setup-step-num {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; flex-shrink: 0;
-}
-.setup-step-content { flex: 1; }
-.setup-step-content strong { display: block; margin-bottom: 4px; font-size: 14px; }
-.setup-step-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
-.setup-step-content code {
-  background: var(--bg-main); padding: 2px 6px; border-radius: 4px; font-size: 12px;
-}
 
 /* PII Diff Viewer (debug mode) */
 .pii-diff-modal {

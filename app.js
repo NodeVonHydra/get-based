@@ -382,11 +382,26 @@ let noteOverlayMode = 'off';
 let compareDate1 = null, compareDate2 = null;
 
 // ═══════════════════════════════════════════════
-// API KEY MANAGEMENT (global, not per-profile)
+// AI PROVIDER MANAGEMENT
 // ═══════════════════════════════════════════════
 function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
 function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
 function hasApiKey() { return !!getApiKey(); }
+
+function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
+function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
+function hasAIProvider() {
+  const provider = getAIProvider();
+  if (provider === 'anthropic') return hasApiKey();
+  return true; // Ollama — optimistic, errors caught at call time
+}
+
+function getOllamaMainModel() { return localStorage.getItem('labcharts-ollama-model') || getOllamaConfig().model || 'llama3.2'; }
+function setOllamaMainModel(model) { localStorage.setItem('labcharts-ollama-model', model); }
+function getOllamaPIIUrl() { return localStorage.getItem('labcharts-ollama-pii-url') || getOllamaConfig().url; }
+function setOllamaPIIUrl(url) { localStorage.setItem('labcharts-ollama-pii-url', url); }
+function getOllamaPIIModel() { return localStorage.getItem('labcharts-ollama-pii-model') || getOllamaMainModel(); }
+function setOllamaPIIModel(model) { localStorage.setItem('labcharts-ollama-pii-model', model); }
 
 async function validateApiKey(key) {
   try {
@@ -415,9 +430,9 @@ async function validateApiKey(key) {
   }
 }
 
-async function callClaudeAPI({ system, messages, maxTokens, onStream }) {
+async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
   const key = getApiKey();
-  if (!key) throw new Error('No API key configured');
+  if (!key) throw new Error('No API key configured. Add your Anthropic key in Settings.');
   const body = {
     model: 'claude-sonnet-4-5-20250929',
     max_tokens: maxTokens || 4096,
@@ -476,18 +491,90 @@ async function callClaudeAPI({ system, messages, maxTokens, onStream }) {
   }
 }
 
+async function callOllamaChat({ system, messages, maxTokens, onStream }) {
+  const config = getOllamaConfig();
+  const model = getOllamaMainModel();
+  const ollamaMessages = [];
+  if (system) ollamaMessages.push({ role: 'system', content: system });
+  for (const msg of messages) ollamaMessages.push({ role: msg.role, content: msg.content });
+
+  const body = { model, messages: ollamaMessages, stream: !!onStream };
+  if (maxTokens) body.options = { num_predict: maxTokens };
+
+  let res;
+  try {
+    res = await fetch(`${config.url}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(300000)
+    });
+  } catch (e) {
+    if (e.name === 'TimeoutError' || e.message.includes('timed out')) {
+      const modelName = model;
+      showNotification(`Model "${modelName}" timed out after 5 min. Try a smaller model in Settings → AI Provider.`, 'error', 8000);
+      throw new Error(`Ollama timed out with "${modelName}". A smaller model (e.g. qwen3:32b or llama3.2) will be faster.`);
+    }
+    if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
+      throw new Error('Cannot reach Ollama. This is usually a CORS issue — try starting Ollama with: OLLAMA_ORIGINS=* ollama serve');
+    }
+    throw new Error(`Cannot reach Ollama. Check that it's running. (${e.message})`);
+  }
+
+  if (!res.ok) {
+    let errMsg = `Ollama error (${res.status})`;
+    try { const errBody = await res.json(); errMsg += `: ${errBody.error || JSON.stringify(errBody)}`; } catch {}
+    throw new Error(errMsg);
+  }
+
+  if (onStream) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const event = JSON.parse(line);
+          if (event.message?.content) {
+            fullText += event.message.content;
+            onStream(fullText);
+          }
+        } catch {}
+      }
+    }
+    return fullText;
+  } else {
+    const data = await res.json();
+    return data.message?.content || '';
+  }
+}
+
+async function callClaudeAPI(opts) {
+  const provider = getAIProvider();
+  if (provider === 'ollama') return callOllamaChat(opts);
+  return callAnthropicAPI(opts);
+}
+
 // ═══════════════════════════════════════════════
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════
 function openSettingsModal() {
   const overlay = document.getElementById('settings-modal-overlay');
   const modal = document.getElementById('settings-modal');
-  const currentKey = getApiKey();
-  const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
   const currentTheme = getTheme();
+  const provider = getAIProvider();
   modal.innerHTML = `
     <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
     <h3>Settings</h3>
+
+    <div class="settings-group-title">Profile</div>
 
     <div class="settings-section">
       <label class="settings-label">Sex</label>
@@ -503,6 +590,8 @@ function openSettingsModal() {
         <input type="date" id="dob-input" value="${profileDob || ''}" onchange="switchDob(this.value)">
       </div>
     </div>
+
+    <div class="settings-group-title">Display</div>
 
     <div class="settings-section">
       <label class="settings-label">Unit System</label>
@@ -529,8 +618,31 @@ function openSettingsModal() {
       </div>
     </div>
 
+    <div class="settings-group-title">AI Provider</div>
+
     <div class="settings-section">
-      <label class="settings-label">Anthropic API Key</label>
+      <div class="ai-provider-toggle">
+        <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Anthropic</button>
+        <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')">&#127968; Ollama</button>
+      </div>
+      <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
+    </div>
+
+    <div class="settings-group-title">Privacy</div>
+
+    <div class="settings-section" id="privacy-section">
+      ${renderPrivacySection()}
+    </div>`;
+  overlay.classList.add('show');
+  initSettingsOllamaCheck();
+}
+
+function renderAIProviderPanel(provider) {
+  if (provider === 'anthropic') {
+    const currentKey = getApiKey();
+    const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
+    return `<div class="ai-provider-panel">
+      <div class="ai-provider-desc">Uses Claude AI via the internet. Best quality, requires API key ($).</div>
       <div class="api-key-status" id="api-key-status">
         ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
@@ -540,55 +652,126 @@ function openSettingsModal() {
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
       </div>
       <div class="api-key-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
-    </div>
-
-    <div class="settings-section">
-      <label class="settings-label">Privacy — PDF Import</label>
-      <div class="ollama-settings">
-        <div class="ollama-status" id="ollama-status">
-          <span class="ollama-status-dot" id="ollama-dot"></span>
-          <span id="ollama-status-text">Checking Ollama...</span>
-        </div>
-        <div style="margin-top:8px">
-          <label style="font-size:12px;color:var(--text-muted)">Ollama URL</label>
-          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-            <input type="text" class="api-key-input" id="ollama-url-input" value="${getOllamaConfig().url}" placeholder="http://localhost:11434" style="flex:1">
-            <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
-          </div>
-        </div>
-        <div id="ollama-model-section" style="margin-top:8px;display:none">
-          <label style="font-size:12px;color:var(--text-muted)">Model</label>
-          <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="saveOllamaConfig({url:document.getElementById('ollama-url-input').value.trim(),model:this.value})"></select>
-        </div>
-        <div style="margin-top:8px">
-          <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
-            <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
-            Debug mode <span style="color:var(--text-muted);font-size:12px">(show PII diff in import preview)</span>
-          </label>
-        </div>
-        <div class="api-key-notice">When importing PDFs, personal information is obfuscated with fake data before being sent to the API. Ollama provides local AI processing for comprehensive, language-aware protection.</div>
-      </div>
     </div>`;
-  overlay.classList.add('show');
-  // Check Ollama status async
+  }
+  // Ollama panel
+  const config = getOllamaConfig();
+  return `<div class="ai-provider-panel">
+    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine.</div>
+    <div class="ollama-status" id="ollama-status">
+      <span class="ollama-status-dot" id="ollama-dot"></span>
+      <span id="ollama-status-text">Checking Ollama...</span>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:12px;color:var(--text-muted)">Ollama URL</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+        <input type="text" class="api-key-input" id="ollama-url-input" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
+        <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
+      </div>
+    </div>
+    <div id="ollama-model-section" style="margin-top:8px;display:none">
+      <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
+      <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
+    </div>
+    <div class="api-key-notice" style="margin-top:12px">
+      Don't have Ollama? <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Download it free</a>, then run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.
+    </div>
+  </div>`;
+}
+
+function renderPrivacySection() {
+  const piiUrl = getOllamaPIIUrl();
+  return `<div class="ollama-settings">
+    <div class="ai-provider-desc" style="margin-bottom:8px">When importing PDFs, personal info is replaced with fake data before AI processing. Can use a separate Ollama instance (e.g. on another PC in your network).</div>
+    <div id="pii-model-section">
+      <div class="ollama-status" id="pii-ollama-status">
+        <span class="ollama-status-dot" id="pii-ollama-dot"></span>
+        <span id="pii-ollama-status-text">Checking...</span>
+      </div>
+      <div style="margin-top:8px">
+        <label style="font-size:12px;color:var(--text-muted)">Ollama URL for PII</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <input type="text" class="api-key-input" id="pii-ollama-url-input" value="${piiUrl}" placeholder="http://localhost:11434" style="flex:1">
+          <button class="import-btn import-btn-secondary" onclick="testPIIOllamaConnection()" style="white-space:nowrap">Test</button>
+        </div>
+      </div>
+      <div id="pii-model-dropdown" style="margin-top:8px;display:none">
+        <label style="font-size:12px;color:var(--text-muted)">PII Model <span style="font-size:11px">(can be a smaller, faster model)</span></label>
+        <select class="api-key-input" id="pii-model-select" style="margin-top:4px" onchange="setOllamaPIIModel(this.value)"></select>
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
+        Debug mode <span style="color:var(--text-muted);font-size:12px">(show PII diff in import preview)</span>
+      </label>
+    </div>
+  </div>`;
+}
+
+function switchAIProvider(provider) {
+  setAIProvider(provider);
+  const panel = document.getElementById('ai-provider-panel');
+  if (panel) panel.innerHTML = renderAIProviderPanel(provider);
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.querySelectorAll('.ai-provider-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.provider === provider));
+  }
+  initSettingsOllamaCheck();
+}
+
+function initSettingsOllamaCheck() {
   checkOllama().then(result => {
+    // Update AI provider panel (if Ollama selected)
     const dot = document.getElementById('ollama-dot');
     const text = document.getElementById('ollama-status-text');
     const modelSection = document.getElementById('ollama-model-section');
     const modelSelect = document.getElementById('ollama-model-select');
-    if (!dot || !text) return;
-    if (result.available) {
-      dot.classList.add('connected');
-      const config = getOllamaConfig();
-      const currentModel = config.model || result.models[0] || '';
-      text.textContent = `Connected (${currentModel})`;
-      if (modelSection && modelSelect && result.models.length > 0) {
-        modelSection.style.display = 'block';
-        modelSelect.innerHTML = result.models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+    if (dot && text) {
+      if (result.available && result.models.length > 0) {
+        dot.classList.add('connected');
+        let currentModel = getOllamaMainModel();
+        // Auto-correct stale model name if it's not in the available list
+        if (!result.models.includes(currentModel)) {
+          currentModel = result.models[0];
+          setOllamaMainModel(currentModel);
+        }
+        text.textContent = `Connected (${currentModel})`;
+        if (modelSection && modelSelect) {
+          modelSection.style.display = 'block';
+          modelSelect.innerHTML = result.models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+        }
+      } else if (result.available) {
+        dot.classList.add('disconnected');
+        text.textContent = 'Connected but no models. Run: ollama pull llama3.2';
+      } else {
+        dot.classList.add('disconnected');
+        text.textContent = 'Not detected — start Ollama to use';
+      }
+    }
+  });
+  // Update privacy section PII model (uses its own URL)
+  checkOllamaPII().then(piiResult => {
+    const piiDot = document.getElementById('pii-ollama-dot');
+    const piiText = document.getElementById('pii-ollama-status-text');
+    const piiDropdown = document.getElementById('pii-model-dropdown');
+    const piiSelect = document.getElementById('pii-model-select');
+    if (!piiDot || !piiText) return;
+    if (piiResult.available && piiResult.models.length > 0) {
+      piiDot.classList.add('connected');
+      let currentPII = getOllamaPIIModel();
+      if (!piiResult.models.includes(currentPII)) {
+        currentPII = piiResult.models[0];
+        setOllamaPIIModel(currentPII);
+      }
+      piiText.textContent = `Connected — using ${currentPII}`;
+      if (piiDropdown && piiSelect) {
+        piiDropdown.style.display = 'block';
+        piiSelect.innerHTML = piiResult.models.map(m => `<option value="${m}" ${m === currentPII ? 'selected' : ''}>${m}</option>`).join('');
       }
     } else {
-      dot.classList.add('disconnected');
-      text.textContent = 'Not detected — basic regex mode active';
+      piiDot.classList.add('disconnected');
+      piiText.textContent = 'Not available — basic regex mode active';
     }
   });
 }
@@ -630,10 +813,49 @@ async function testOllamaConnection() {
     } else {
       dot.classList.add('connected');
       saveOllamaConfig({ url, model: models[0] });
-      text.textContent = `Connected (${models[0]})`;
+      if (!localStorage.getItem('labcharts-ollama-model')) setOllamaMainModel(models[0]);
+      text.textContent = `Connected (${getOllamaMainModel()})`;
       if (modelSection && modelSelect) {
+        const currentModel = getOllamaMainModel();
         modelSection.style.display = 'block';
-        modelSelect.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+        modelSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+      }
+    }
+    // Also refresh privacy PII section
+    initSettingsOllamaCheck();
+  } catch {
+    dot.classList.add('disconnected');
+    text.textContent = 'Not detected — check URL and ensure Ollama is running';
+  }
+}
+
+async function testPIIOllamaConnection() {
+  const urlInput = document.getElementById('pii-ollama-url-input');
+  const dot = document.getElementById('pii-ollama-dot');
+  const text = document.getElementById('pii-ollama-status-text');
+  const piiDropdown = document.getElementById('pii-model-dropdown');
+  const piiSelect = document.getElementById('pii-model-select');
+  if (!urlInput || !text) return;
+  const url = urlInput.value.trim().replace(/\/+$/, '');
+  text.textContent = 'Testing...';
+  dot.className = 'ollama-status-dot';
+  try {
+    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    if (models.length === 0) {
+      dot.classList.add('disconnected');
+      text.textContent = 'Connected but no models';
+    } else {
+      dot.classList.add('connected');
+      setOllamaPIIUrl(url);
+      let currentPII = getOllamaPIIModel();
+      if (!models.includes(currentPII)) { currentPII = models[0]; setOllamaPIIModel(currentPII); }
+      text.textContent = `Connected — using ${currentPII}`;
+      if (piiDropdown && piiSelect) {
+        piiDropdown.style.display = 'block';
+        piiSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentPII ? 'selected' : ''}>${m}</option>`).join('');
       }
     }
   } catch {
@@ -1341,7 +1563,7 @@ function showDashboard(data) {
   html += renderOnboardingBanner();
 
   // ── 3. Focus Card ──
-  if (hasApiKey()) html += renderFocusCard();
+  if (hasAIProvider()) html += renderFocusCard();
 
   // ── 4. Profile Context Cards ──
   html += renderProfileContextCards();
@@ -1481,7 +1703,7 @@ function showDashboard(data) {
   setupDropZone();
 
   // Non-blocking: load focus card after DOM is ready
-  if (hasData && hasApiKey()) loadFocusCard();
+  if (hasData && hasAIProvider()) loadFocusCard();
 }
 
 // ── Focus Card ──
@@ -2413,7 +2635,7 @@ async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   const cacheKey = 'labcharts-marker-desc';
   const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
   if (cache[markerId]) return cache[markerId];
-  if (!hasApiKey()) return null;
+  if (!hasAIProvider()) return null;
   try {
     const resp = await callClaudeAPI({
       system: 'You are a concise medical reference. Reply with exactly one sentence (max 30 words) explaining what this blood biomarker measures and why it matters clinically. No preamble.',
@@ -2488,7 +2710,7 @@ function showDetailModal(id) {
     if (desc) {
       descEl.textContent = desc;
       descEl.classList.add('loaded');
-    } else if (!marker.desc && hasApiKey()) {
+    } else if (!marker.desc && hasAIProvider()) {
       descEl.classList.add('loading');
       fetchCustomMarkerDescription(id, marker.name, marker.unit).then(text => {
         const el = document.getElementById('marker-desc');
@@ -3194,10 +3416,10 @@ function getOllamaConfig() {
 }
 function saveOllamaConfig(config) { localStorage.setItem('labcharts-ollama', JSON.stringify(config)); }
 
-async function checkOllama() {
-  const config = getOllamaConfig();
+async function checkOllama(url) {
+  const baseUrl = url || getOllamaConfig().url;
   try {
-    const resp = await fetch(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    const resp = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
     if (!resp.ok) return { available: false, models: [] };
     const data = await resp.json();
     const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
@@ -3207,18 +3429,24 @@ async function checkOllama() {
   }
 }
 
-function unloadOllamaModel() {
-  const config = getOllamaConfig();
-  fetch(`${config.url}/api/generate`, {
+async function checkOllamaPII() {
+  return checkOllama(getOllamaPIIUrl());
+}
+
+function unloadOllamaPIIModel() {
+  const piiUrl = getOllamaPIIUrl();
+  const piiModel = getOllamaPIIModel();
+  fetch(`${piiUrl}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: config.model, prompt: '', stream: false, keep_alive: 0 }),
+    body: JSON.stringify({ model: piiModel, prompt: '', stream: false, keep_alive: 0 }),
     signal: AbortSignal.timeout(5000)
   }).catch(() => {});
 }
 
 async function sanitizeWithOllama(pdfText) {
-  const config = getOllamaConfig();
+  const piiUrl = getOllamaPIIUrl();
+  const piiModel = getOllamaPIIModel();
   const prompt = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
 
 REPLACE these with fake data:
@@ -3241,10 +3469,10 @@ Output ONLY the modified text. No explanations, no markdown, no commentary.
 TEXT TO PROCESS:
 ${pdfText}`;
   try {
-    const resp = await fetch(`${config.url}/api/generate`, {
+    const resp = await fetch(`${piiUrl}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: config.model, prompt, stream: false, keep_alive: 0 }),
+      body: JSON.stringify({ model: piiModel, prompt, stream: false, keep_alive: 0 }),
       signal: AbortSignal.timeout(90000)
     });
     if (!resp.ok) throw new Error(`Ollama error: ${resp.status}`);
@@ -3260,10 +3488,13 @@ ${pdfText}`;
     const outputDates = result.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
     if (inputDates.length > 0 && outputDates.length === 0) throw new Error('Ollama lost all dates from the text');
 
-    unloadOllamaModel();
+    unloadOllamaPIIModel();
     return result;
   } catch (e) {
-    unloadOllamaModel();
+    unloadOllamaPIIModel();
+    if (e.name === 'TimeoutError' || e.message.includes('timed out')) {
+      showNotification(`PII model "${piiModel}" timed out. Falling back to regex. Try a smaller model in Settings → Privacy.`, 'info', 6000);
+    }
     throw e;
   }
 }
@@ -3366,106 +3597,6 @@ function obfuscatePDFText(pdfText) {
 // ═══════════════════════════════════════════════
 // PII WARNING DIALOG & OLLAMA SETUP GUIDE
 // ═══════════════════════════════════════════════
-function showPIIWarningDialog() {
-  return new Promise(resolve => {
-    // Check session storage — don't nag repeatedly
-    if (sessionStorage.getItem('labcharts-pii-choice')) {
-      resolve(sessionStorage.getItem('labcharts-pii-choice'));
-      return;
-    }
-    const overlay = document.createElement('div');
-    overlay.className = 'pii-warning-overlay';
-    overlay.innerHTML = `
-      <div class="pii-warning-dialog">
-        <h3>&#128274; Privacy Protection</h3>
-        <p>This PDF may contain personal information (names, birth numbers, addresses). Basic privacy mode will replace detected PII with fake data before sending to the AI, but some items may be missed.</p>
-        <p style="color:var(--text-muted);font-size:13px">For comprehensive protection, <strong>Ollama</strong> provides local AI processing that understands any language and format.</p>
-        <div class="pii-warning-actions">
-          <button class="import-btn import-btn-primary" id="pii-continue-btn">Continue with basic mode</button>
-          <button class="import-btn import-btn-secondary" id="pii-setup-btn">Setup Ollama</button>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-    requestAnimationFrame(() => overlay.classList.add('show'));
-    overlay.querySelector('#pii-continue-btn').onclick = () => {
-      sessionStorage.setItem('labcharts-pii-choice', 'continue');
-      overlay.classList.remove('show');
-      setTimeout(() => overlay.remove(), 200);
-      resolve('continue');
-    };
-    overlay.querySelector('#pii-setup-btn').onclick = () => {
-      overlay.classList.remove('show');
-      setTimeout(() => overlay.remove(), 200);
-      showOllamaSetupGuide();
-      resolve('setup');
-    };
-  });
-}
-
-function showOllamaSetupGuide() {
-  const overlay = document.createElement('div');
-  overlay.className = 'pii-warning-overlay';
-  const config = getOllamaConfig();
-  overlay.innerHTML = `
-    <div class="ollama-setup-guide">
-      <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
-      <h3>&#129302; Setup Ollama for Local Privacy</h3>
-      <div class="setup-steps">
-        <div class="setup-step">
-          <div class="setup-step-num">1</div>
-          <div class="setup-step-content">
-            <strong>Install Ollama</strong>
-            <p>Visit <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a> and install for your OS. On Linux: <code>curl -fsSL https://ollama.com/install.sh | sh</code></p>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="setup-step-num">2</div>
-          <div class="setup-step-content">
-            <strong>Pull a model</strong>
-            <p>Run <code>ollama pull llama3.2</code> in your terminal. Any model works — llama3.2 (2GB) is fast and capable.</p>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="setup-step-num">3</div>
-          <div class="setup-step-content">
-            <strong>Configure connection</strong>
-            <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
-              <input type="text" class="api-key-input" id="ollama-setup-url" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
-              <button class="import-btn import-btn-primary" onclick="testOllamaFromSetup()">Test Connection</button>
-            </div>
-            <div id="ollama-setup-status" style="margin-top:8px;font-size:13px"></div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:16px">
-        <button class="import-btn import-btn-secondary" onclick="this.closest('.pii-warning-overlay').remove()">Close</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add('show'));
-}
-
-async function testOllamaFromSetup() {
-  const urlInput = document.getElementById('ollama-setup-url');
-  const statusEl = document.getElementById('ollama-setup-status');
-  if (!urlInput || !statusEl) return;
-  const url = urlInput.value.trim().replace(/\/+$/, '');
-  statusEl.innerHTML = '<span style="color:var(--text-muted)">Testing...</span>';
-  try {
-    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
-    if (models.length === 0) {
-      statusEl.innerHTML = '<span style="color:var(--yellow)">&#9888; Connected but no models found. Run: ollama pull llama3.2</span>';
-    } else {
-      saveOllamaConfig({ url, model: models[0] });
-      statusEl.innerHTML = `<span style="color:var(--green)">&#10003; Connected! Found ${models.length} model${models.length > 1 ? 's' : ''}: ${models.join(', ')}</span>`;
-    }
-  } catch {
-    statusEl.innerHTML = '<span style="color:var(--red)">&#10007; Could not connect. Make sure Ollama is running.</span>';
-  }
-}
 
 // ═══════════════════════════════════════════════
 // PII DIFF VIEWER (debug mode)
@@ -3572,6 +3703,38 @@ async function extractPDFText(file) {
   return text;
 }
 
+function tryParseJSON(str) {
+  try { return JSON.parse(str); } catch {}
+  // Attempt to repair truncated JSON from local models
+  let s = str;
+  // Close any unterminated string
+  const quotes = (s.match(/"/g) || []).length;
+  if (quotes % 2 !== 0) s += '"';
+  // Try closing open arrays and objects
+  const opens = { '{': 0, '[': 0 };
+  let inString = false;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === '"' && (i === 0 || s[i - 1] !== '\\')) { inString = !inString; continue; }
+    if (inString) continue;
+    if (s[i] === '{') opens['{']++;
+    if (s[i] === '}') opens['{']--;
+    if (s[i] === '[') opens['[']++;
+    if (s[i] === ']') opens['[']--;
+  }
+  // Remove trailing comma before closing
+  s = s.replace(/,\s*$/, '');
+  // Close unclosed brackets/braces
+  for (let i = 0; i < opens['[']; i++) s += ']';
+  for (let i = 0; i < opens['{']; i++) s += '}';
+  try {
+    const result = JSON.parse(s);
+    console.log('[PDF Parse] Repaired truncated JSON from model');
+    return result;
+  } catch (e2) {
+    throw new Error(`Model returned invalid JSON that could not be repaired. Try a more capable model.`);
+  }
+}
+
 async function parseLabPDFWithAI(pdfText, fileName) {
   const markerRef = buildMarkerReference();
   const system = `You are a lab report data extraction assistant. You extract biomarker results from lab report text and map them to a known set of marker keys.
@@ -3608,17 +3771,21 @@ Return ONLY valid JSON in this exact format, no other text:
   ]
 }`;
 
+  const isOllama = getAIProvider() === 'ollama';
   const response = await callClaudeAPI({
     system,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report:\n\n${pdfText}` }],
-    maxTokens: 4096
+    maxTokens: isOllama ? 8192 : 4096
   });
 
-  // Parse JSON from response (handle markdown code blocks)
+  // Parse JSON from response (handle markdown code blocks, truncated output)
   let jsonStr = response.trim();
   const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
-  const parsed = JSON.parse(jsonStr);
+  // Strip any leading text before the JSON object
+  const jsonStart = jsonStr.indexOf('{');
+  if (jsonStart > 0) jsonStr = jsonStr.slice(jsonStart);
+  const parsed = tryParseJSON(jsonStr);
 
   return {
     date: parsed.date || null,
@@ -3688,9 +3855,18 @@ function showImportPreview(parseResult) {
     html += `<div class="privacy-notice privacy-notice-warning">&#128274; ${parseResult.privacyReplacements} personal detail${parseResult.privacyReplacements !== 1 ? 's' : ''} replaced with fake data`;
     html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Install Ollama for comprehensive language-aware protection</span></div>`;
   }
-  // Debug diff button
-  if (isDebugMode() && parseResult.privacyOriginal && parseResult.privacyObfuscated) {
-    html += `<button class="import-btn import-btn-secondary" style="margin-top:8px;font-size:12px" onclick="showPIIDiffViewer(window._pendingImport.privacyOriginal, window._pendingImport.privacyObfuscated)">&#128269; View privacy details</button>`;
+  // Debug: timings and diff button
+  if (isDebugMode()) {
+    const t = parseResult.timings;
+    if (t) {
+      const piiLabel = parseResult.privacyMethod === 'ollama' ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
+      const provider = getAIProvider();
+      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : 'Claude Sonnet';
+      html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
+    }
+    if (parseResult.privacyOriginal && parseResult.privacyObfuscated) {
+      html += `<button class="import-btn import-btn-secondary" style="margin-top:8px;font-size:12px" onclick="showPIIDiffViewer(window._pendingImport.privacyOriginal, window._pendingImport.privacyObfuscated)">&#128269; View privacy details</button>`;
+    }
   }
 
   const cancelLabel = batchCtx ? 'Skip' : 'Cancel';
@@ -4481,7 +4657,7 @@ function deleteSupplement(idx) {
 // ═══════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════
-function showNotification(message, type) {
+function showNotification(message, type, duration) {
   type = type || "info";
   const container = document.getElementById("notification-container");
   const toast = document.createElement("div");
@@ -4492,7 +4668,7 @@ function showNotification(message, type) {
   setTimeout(() => {
     toast.style.opacity = "0"; toast.style.transform = "translateX(100%)"; toast.style.transition = "all 0.3s";
     setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  }, duration || 3000);
 }
 
 // ═══════════════════════════════════════════════
@@ -4559,8 +4735,8 @@ function hideImportProgress() {
 }
 
 async function handlePDFFile(file) {
-  if (!hasApiKey()) {
-    showNotification("API key required for PDF import. Opening settings...", "info");
+  if (!hasAIProvider()) {
+    showNotification("AI provider not configured. Opening settings...", "info");
     setTimeout(() => openSettingsModal(), 500);
     return;
   }
@@ -4575,13 +4751,16 @@ async function handlePDFFile(file) {
     let privacyMethod = null;
     let privacyReplacements = 0;
     let privacyOriginal = null;
-    const ollama = await checkOllama();
+    let piiTime = 0;
+    const ollama = await checkOllamaPII();
     if (ollama.available) {
       try {
+        const piiStart = performance.now();
         textForAI = await sanitizeWithOllama(pdfText);
+        piiTime = Math.round((performance.now() - piiStart) / 1000);
         privacyMethod = 'ollama';
         privacyOriginal = pdfText;
-        if (isDebugMode()) console.log('[PII] Obfuscated via Ollama');
+        if (isDebugMode()) console.log(`[PII] Obfuscated via Ollama (${piiTime}s)`);
       } catch (e) {
         console.warn('[PII] Ollama failed, falling back to regex:', e.message);
         const result = obfuscatePDFText(pdfText);
@@ -4591,8 +4770,6 @@ async function handlePDFFile(file) {
         privacyMethod = 'regex';
       }
     } else {
-      const choice = await showPIIWarningDialog();
-      if (choice === 'setup') { hideImportProgress(); return; }
       const result = obfuscatePDFText(pdfText);
       textForAI = result.obfuscated;
       privacyReplacements = result.replacements;
@@ -4602,9 +4779,13 @@ async function handlePDFFile(file) {
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
 
     await showImportProgress(2, file.name);
+    const analysisStart = performance.now();
     const result = await parseLabPDFWithAI(textForAI, file.name);
+    const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
+    if (isDebugMode()) console.log(`[Analysis] Parsed in ${analysisTime}s`);
     result.privacyMethod = privacyMethod;
     result.privacyReplacements = privacyReplacements;
+    result.timings = { pii: piiTime, analysis: analysisTime };
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
@@ -4622,17 +4803,12 @@ async function handlePDFFile(file) {
 // BATCH PDF IMPORT
 // ═══════════════════════════════════════════════
 async function handleBatchPDFs(pdfFiles) {
-  if (!hasApiKey()) {
-    showNotification("API key required for PDF import. Opening settings...", "info");
+  if (!hasAIProvider()) {
+    showNotification("AI provider not configured. Opening settings...", "info");
     setTimeout(() => openSettingsModal(), 500);
     return;
   }
-  // Pre-check Ollama once for the batch and pre-ask PII warning if needed
-  const ollama = await checkOllama();
-  if (!ollama.available) {
-    const choice = await showPIIWarningDialog();
-    if (choice === 'setup') return;
-  }
+  const ollama = await checkOllamaPII();
   let imported = 0, skipped = 0, failed = 0;
   for (let i = 0; i < pdfFiles.length; i++) {
     const file = pdfFiles[i];
@@ -4647,9 +4823,12 @@ async function handleBatchPDFs(pdfFiles) {
       let privacyMethod = null;
       let privacyReplacements = 0;
       let privacyOriginal = null;
+      let piiTime = 0;
       if (ollama.available) {
         try {
+          const piiStart = performance.now();
           textForAI = await sanitizeWithOllama(pdfText);
+          piiTime = Math.round((performance.now() - piiStart) / 1000);
           privacyMethod = 'ollama';
           privacyOriginal = pdfText;
         } catch (e) {
@@ -4663,12 +4842,16 @@ async function handleBatchPDFs(pdfFiles) {
         textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
         privacyMethod = 'regex';
       }
-      if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, replacements: ${privacyReplacements}`);
+      if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
 
       await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
+      const analysisStart = performance.now();
       const result = await parseLabPDFWithAI(textForAI, file.name);
+      const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
+      if (isDebugMode()) console.log(`[Analysis] ${file.name} parsed in ${analysisTime}s`);
       result.privacyMethod = privacyMethod;
       result.privacyReplacements = privacyReplacements;
+      result.timings = { pii: piiTime, analysis: analysisTime };
       if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
       if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
       await showBatchImportProgress(3, file.name, i + 1, pdfFiles.length);
@@ -5614,8 +5797,8 @@ function toggleChatPanel() {
 }
 
 function openChatPanel(prefillMessage) {
-  if (!hasApiKey()) {
-    showNotification("API key required. Opening settings...", "info");
+  if (!hasAIProvider()) {
+    showNotification("AI provider not configured. Opening settings...", "info");
     setTimeout(() => openSettingsModal(), 500);
     return;
   }
