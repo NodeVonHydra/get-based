@@ -827,7 +827,7 @@ function renderPrivacySection() {
     </div>
     <div class="privacy-configure-toggle" onclick="togglePrivacyConfigure()">
       <span class="privacy-configure-arrow" id="privacy-configure-arrow">&#9654;</span>
-      Configure
+      Configure Local AI
     </div>
     <div class="privacy-configure-body" id="privacy-configure-body" style="display:none">
       <div id="pii-model-section">
@@ -896,7 +896,7 @@ async function updatePrivacyStatusCard(enhanced) {
     card.className = 'privacy-status-card privacy-status-basic';
     if (icon) icon.innerHTML = '&#128274;';
     title.textContent = 'Basic protection';
-    detail.textContent = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.';
+    detail.innerHTML = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.<br><span style="margin-top:4px;display:inline-block">Install <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> for enhanced protection — a free local AI that reliably catches all personal info.</span>';
   }
 }
 
