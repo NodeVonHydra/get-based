@@ -440,7 +440,9 @@ async function callClaudeAPI({ system, messages, maxTokens, onStream }) {
   if (!res.ok) {
     if (res.status === 401) throw new Error('Invalid API key. Check your settings.');
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
-    throw new Error(`API error (${res.status})`);
+    let errMsg = `API error (${res.status})`;
+    try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
+    throw new Error(errMsg);
   }
 
   if (onStream) {
@@ -537,9 +539,58 @@ function openSettingsModal() {
         <button class="import-btn import-btn-primary" id="save-api-key-btn" onclick="handleSaveApiKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
       </div>
-      <div class="privacy-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
+      <div class="api-key-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Privacy — PDF Import</label>
+      <div class="ollama-settings">
+        <div class="ollama-status" id="ollama-status">
+          <span class="ollama-status-dot" id="ollama-dot"></span>
+          <span id="ollama-status-text">Checking Ollama...</span>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-size:12px;color:var(--text-muted)">Ollama URL</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+            <input type="text" class="api-key-input" id="ollama-url-input" value="${getOllamaConfig().url}" placeholder="http://localhost:11434" style="flex:1">
+            <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
+          </div>
+        </div>
+        <div id="ollama-model-section" style="margin-top:8px;display:none">
+          <label style="font-size:12px;color:var(--text-muted)">Model</label>
+          <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="saveOllamaConfig({url:document.getElementById('ollama-url-input').value.trim(),model:this.value})"></select>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
+            Debug mode <span style="color:var(--text-muted);font-size:12px">(show PII diff in import preview)</span>
+          </label>
+        </div>
+        <div class="api-key-notice">When importing PDFs, personal information is obfuscated with fake data before being sent to the API. Ollama provides local AI processing for comprehensive, language-aware protection.</div>
+      </div>
     </div>`;
   overlay.classList.add('show');
+  // Check Ollama status async
+  checkOllama().then(result => {
+    const dot = document.getElementById('ollama-dot');
+    const text = document.getElementById('ollama-status-text');
+    const modelSection = document.getElementById('ollama-model-section');
+    const modelSelect = document.getElementById('ollama-model-select');
+    if (!dot || !text) return;
+    if (result.available) {
+      dot.classList.add('connected');
+      const config = getOllamaConfig();
+      const currentModel = config.model || result.models[0] || '';
+      text.textContent = `Connected (${currentModel})`;
+      if (modelSection && modelSelect && result.models.length > 0) {
+        modelSection.style.display = 'block';
+        modelSelect.innerHTML = result.models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+      }
+    } else {
+      dot.classList.add('disconnected');
+      text.textContent = 'Not detected — basic regex mode active';
+    }
+  });
 }
 
 function updateSettingsUI() {
@@ -556,6 +607,39 @@ function updateSettingsUI() {
 
 function closeSettingsModal() {
   document.getElementById('settings-modal-overlay').classList.remove('show');
+}
+
+async function testOllamaConnection() {
+  const urlInput = document.getElementById('ollama-url-input');
+  const dot = document.getElementById('ollama-dot');
+  const text = document.getElementById('ollama-status-text');
+  const modelSection = document.getElementById('ollama-model-section');
+  const modelSelect = document.getElementById('ollama-model-select');
+  if (!urlInput || !text) return;
+  const url = urlInput.value.trim().replace(/\/+$/, '');
+  text.textContent = 'Testing...';
+  dot.className = 'ollama-status-dot';
+  try {
+    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    if (models.length === 0) {
+      dot.classList.add('disconnected');
+      text.textContent = 'Connected but no models. Run: ollama pull llama3.2';
+    } else {
+      dot.classList.add('connected');
+      saveOllamaConfig({ url, model: models[0] });
+      text.textContent = `Connected (${models[0]})`;
+      if (modelSection && modelSelect) {
+        modelSection.style.display = 'block';
+        modelSelect.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+      }
+    }
+  } catch {
+    dot.classList.add('disconnected');
+    text.textContent = 'Not detected — check URL and ensure Ollama is running';
+  }
 }
 
 async function handleSaveApiKey() {
@@ -3060,6 +3144,371 @@ function renderCorrelationChart() {
 }
 
 // ═══════════════════════════════════════════════
+// PII OBFUSCATION — Fake data generators & sanitization
+// ═══════════════════════════════════════════════
+function detectSexFromPDF(text) {
+  // Check for sex/gender labels in Czech and English lab reports
+  // Note: \b doesn't work with accented chars (í,ž), so use [\s:] boundary instead
+  if (/(?:pohlav[ií]|sex|gender)[\s:]+(?:ž|žena|female|f)(?:\s|$)/im.test(text)) return 'female';
+  if (/(?:pohlav[ií]|sex|gender)[\s:]+(?:m|muž|male)(?:\s|$)/im.test(text)) return 'male';
+  // Czech birth numbers: month 51-62 = female (month + 50)
+  const bn = text.match(/\b\d{2}(5[1-9]|6[0-2])\d{2}\/\d{3,4}\b/);
+  if (bn) return 'female';
+  return null;
+}
+function fakeName(sex) { return sex === 'female' ? 'Jana Nováková' : 'Jan Novák'; }
+const FAKE_STREETS = [
+  'Sokolská 17', 'Národní 8', 'Lidická 32', 'Husova 5', 'Květná 12',
+  'Nádražní 44', 'Masarykova 19', 'Palackého 7', 'Riegrova 23', 'Zahradní 3'
+];
+const FAKE_CITIES = ['Brno', 'Olomouc', 'Plzeň', 'Ostrava', 'Liberec', 'České Budějovice', 'Hradec Králové', 'Pardubice'];
+const FAKE_DOCTORS = [
+  'MUDr. Dvořák', 'MUDr. Procházka', 'MUDr. Horáková', 'MUDr. Novák',
+  'MUDr. Šimková', 'MUDr. Veselý', 'MUDr. Kopecký', 'MUDr. Marková'
+];
+
+function randomPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randomDigits(n) { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 10); return s; }
+function fakeBirthNumber() {
+  const y = 50 + Math.floor(Math.random() * 50);
+  const m = 1 + Math.floor(Math.random() * 12);
+  const d = 1 + Math.floor(Math.random() * 28);
+  return `${String(y).padStart(2,'0')}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}/${randomDigits(4)}`;
+}
+function fakePhone() { return `+420 7${randomDigits(2)} ${randomDigits(3)} ${randomDigits(3)}`; }
+function fakeEmail() { return `user${randomDigits(4)}@mail.com`; }
+function fakeDate() {
+  const y = 1960 + Math.floor(Math.random() * 40);
+  const m = 1 + Math.floor(Math.random() * 12);
+  const d = 1 + Math.floor(Math.random() * 28);
+  return `${String(d).padStart(2,'0')}.${String(m).padStart(2,'0')}.${y}`;
+}
+function fakePatientId() { return randomDigits(10); }
+
+// ═══════════════════════════════════════════════
+// OLLAMA INTEGRATION
+// ═══════════════════════════════════════════════
+function getOllamaConfig() {
+  try { return JSON.parse(localStorage.getItem('labcharts-ollama')) || { url: 'http://localhost:11434', model: 'llama3.2' }; }
+  catch { return { url: 'http://localhost:11434', model: 'llama3.2' }; }
+}
+function saveOllamaConfig(config) { localStorage.setItem('labcharts-ollama', JSON.stringify(config)); }
+
+async function checkOllama() {
+  const config = getOllamaConfig();
+  try {
+    const resp = await fetch(`${config.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (!resp.ok) return { available: false, models: [] };
+    const data = await resp.json();
+    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    return { available: true, models };
+  } catch {
+    return { available: false, models: [] };
+  }
+}
+
+function unloadOllamaModel() {
+  const config = getOllamaConfig();
+  fetch(`${config.url}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: config.model, prompt: '', stream: false, keep_alive: 0 }),
+    signal: AbortSignal.timeout(5000)
+  }).catch(() => {});
+}
+
+async function sanitizeWithOllama(pdfText) {
+  const config = getOllamaConfig();
+  const prompt = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
+
+REPLACE these with fake data:
+- Patient names → fictional names
+- Birth numbers (e.g. 850115/1234) → random numbers in same format
+- Addresses → fictional addresses
+- Phone numbers → random phone numbers
+- Emails → fictional emails
+- Doctor names → fictional doctor names
+- Patient IDs → random numbers
+
+DO NOT CHANGE (copy exactly as-is):
+- ALL dates (collection dates, sample dates, report dates) — these are critical
+- ALL "=== Page N ===" headers
+- ALL lab test names, numeric values, units, reference ranges
+- ALL line structure and formatting
+
+Output ONLY the modified text. No explanations, no markdown, no commentary.
+
+TEXT TO PROCESS:
+${pdfText}`;
+  try {
+    const resp = await fetch(`${config.url}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: config.model, prompt, stream: false, keep_alive: 0 }),
+      signal: AbortSignal.timeout(90000)
+    });
+    if (!resp.ok) throw new Error(`Ollama error: ${resp.status}`);
+    const data = await resp.json();
+    const result = (data.response || '').trim();
+
+    // Validate output — if Ollama mangled the text, reject it
+    if (!result) throw new Error('Ollama returned empty response');
+    // Output should be at least 25% of input length (LLM shouldn't be summarizing)
+    if (result.length < pdfText.length * 0.25) throw new Error(`Ollama output too short (${result.length} vs ${pdfText.length} chars)`);
+    // Check that date-like patterns survived (YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY)
+    const inputDates = pdfText.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
+    const outputDates = result.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
+    if (inputDates.length > 0 && outputDates.length === 0) throw new Error('Ollama lost all dates from the text');
+
+    unloadOllamaModel();
+    return result;
+  } catch (e) {
+    unloadOllamaModel();
+    throw e;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// REGEX PII OBFUSCATION (fallback when no Ollama)
+// ═══════════════════════════════════════════════
+function obfuscatePDFText(pdfText) {
+  let text = pdfText;
+  let replacements = 0;
+  const original = pdfText;
+  const pdfSex = detectSexFromPDF(pdfText) || profileSex;
+
+  // Unit keywords that indicate a result line — never strip digits from these
+  const unitKeywords = /\b(mmol|µmol|µkat|umol|ukat|g\/l|mg\/l|ng\/l|µg|ug|mU\/l|pmol|nmol|ml\/s|fL|pg|×10|10\^|u\/l|iu\/l|%|sec|s\/1)\b/i;
+  // Collection date line — protect entirely
+  const collectionDateLine = /^.*\b(odb[eě]r|collect|datum|sample|vzork|nasb[ií]r|drawn)\b.*$/gim;
+  const protectedLines = new Set();
+  let m;
+  while ((m = collectionDateLine.exec(pdfText)) !== null) {
+    protectedLines.add(m.index);
+  }
+
+  function isProtectedLine(matchIndex) {
+    // Check if this match falls on a collection date line
+    const lineStart = text.lastIndexOf('\n', matchIndex) + 1;
+    return protectedLines.has(lineStart) || protectedLines.has(matchIndex);
+  }
+
+  // Phase 1 — Label-based: lines with PII-identifying labels
+  const labelReplacements = [
+    { pattern: /^(.*?\b(?:jm[eé]no|name|pacient|patient|p[rř][ií]jmen[ií]|surname)\b[:\s]+)(.+)$/gim, gen: () => fakeName(pdfSex) },
+    { pattern: /^(.*?\b(?:adresa|address|bydli[sš]t[eě]|residence)\b[:\s]+)(.+)$/gim, gen: () => `${randomPick(FAKE_STREETS)}, ${randomPick(FAKE_CITIES)}` },
+    { pattern: /^(.*?\b(?:datum\s*narozen|date\s*of\s*birth|nar(?:ozen[ií])?\.?)\b[:\s]+)(.+)$/gim, gen: () => fakeDate() },
+    { pattern: /^(.*?\b(?:l[eé]ka[rř]|doctor|phy?sician|o[sš]et[rř]uj[ií]c[ií])\b\.?[:\s]+)(.+)$/gim, gen: () => randomPick(FAKE_DOCTORS) },
+    { pattern: /^(.*?\b(?:rodn[eé]\s*[cč][ií]slo|birth\s*number|r[\.\s]?[cč][\.\s]?)\b[:\s]+)(.+)$/gim, gen: () => fakeBirthNumber() },
+    { pattern: /^(.*?\b(?:[cč][ií]slo\s*(?:poji[sš]t[eě]n|insurance)|insurance\s*(?:no|number|id)|poji[sš][tť]ovna)\b[:\s]+)(.+)$/gim, gen: () => randomDigits(3) },
+    { pattern: /^(.*?\b(?:id\s*pacienta|patient\s*id|[cč][ií]slo\s*pacienta)\b[:\s]+)(.+)$/gim, gen: () => fakePatientId() },
+  ];
+
+  for (const { pattern, gen } of labelReplacements) {
+    text = text.replace(pattern, (match, label, value, offset) => {
+      if (isProtectedLine(offset)) return match;
+      replacements++;
+      return label + gen();
+    });
+  }
+
+  // Phase 2 — Pattern-based: anywhere in text
+  // Czech/Slovak birth number (YYMMDD/XXXX)
+  text = text.replace(/\b(\d{2})(0[1-9]|1[0-2]|5[1-9]|6[0-2])(0[1-9]|[12]\d|3[01])\/(\d{3,4})\b/g, (match, _y, _m, _d, _s, offset) => {
+    if (isProtectedLine(offset)) return match;
+    replacements++;
+    return fakeBirthNumber();
+  });
+
+  // SSN (XXX-XX-XXXX)
+  text = text.replace(/\b\d{3}-\d{2}-\d{4}\b/g, (match, offset) => {
+    if (isProtectedLine(offset)) return match;
+    replacements++;
+    return `${randomDigits(3)}-${randomDigits(2)}-${randomDigits(4)}`;
+  });
+
+  // Email
+  text = text.replace(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g, (match, offset) => {
+    if (isProtectedLine(offset)) return match;
+    replacements++;
+    return fakeEmail();
+  });
+
+  // Phone numbers (international and local)
+  text = text.replace(/(?:\+\d{1,3}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b/g, (match, offset) => {
+    if (isProtectedLine(offset)) return match;
+    const lineStart = text.lastIndexOf('\n', offset) + 1;
+    const lineEnd = text.indexOf('\n', offset);
+    const line = text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd);
+    // Skip result lines and lines already handled by label-based phase (IDs, birth numbers)
+    if (unitKeywords.test(line)) return match;
+    if (/\b(id\s*pacienta|patient\s*id|rodn[eé]\s*[cč][ií]slo|birth\s*number|[cč][ií]slo\s*pacienta|i[cč]p)\b/i.test(line)) return match;
+    replacements++;
+    return fakePhone();
+  });
+
+  // Long digit sequences (8+ digits) on non-result lines — likely patient/sample IDs
+  text = text.replace(/\b\d{8,}\b/g, (match, offset) => {
+    if (isProtectedLine(offset)) return match;
+    const lineStart = text.lastIndexOf('\n', offset) + 1;
+    const lineEnd = text.indexOf('\n', offset);
+    const line = text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd);
+    if (unitKeywords.test(line)) return match;
+    // Skip page headers
+    if (/===\s*Page/i.test(line)) return match;
+    replacements++;
+    return randomDigits(match.length);
+  });
+
+  return { obfuscated: text, original, replacements };
+}
+
+// ═══════════════════════════════════════════════
+// PII WARNING DIALOG & OLLAMA SETUP GUIDE
+// ═══════════════════════════════════════════════
+function showPIIWarningDialog() {
+  return new Promise(resolve => {
+    // Check session storage — don't nag repeatedly
+    if (sessionStorage.getItem('labcharts-pii-choice')) {
+      resolve(sessionStorage.getItem('labcharts-pii-choice'));
+      return;
+    }
+    const overlay = document.createElement('div');
+    overlay.className = 'pii-warning-overlay';
+    overlay.innerHTML = `
+      <div class="pii-warning-dialog">
+        <h3>&#128274; Privacy Protection</h3>
+        <p>This PDF may contain personal information (names, birth numbers, addresses). Basic privacy mode will replace detected PII with fake data before sending to the AI, but some items may be missed.</p>
+        <p style="color:var(--text-muted);font-size:13px">For comprehensive protection, <strong>Ollama</strong> provides local AI processing that understands any language and format.</p>
+        <div class="pii-warning-actions">
+          <button class="import-btn import-btn-primary" id="pii-continue-btn">Continue with basic mode</button>
+          <button class="import-btn import-btn-secondary" id="pii-setup-btn">Setup Ollama</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('show'));
+    overlay.querySelector('#pii-continue-btn').onclick = () => {
+      sessionStorage.setItem('labcharts-pii-choice', 'continue');
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.remove(), 200);
+      resolve('continue');
+    };
+    overlay.querySelector('#pii-setup-btn').onclick = () => {
+      overlay.classList.remove('show');
+      setTimeout(() => overlay.remove(), 200);
+      showOllamaSetupGuide();
+      resolve('setup');
+    };
+  });
+}
+
+function showOllamaSetupGuide() {
+  const overlay = document.createElement('div');
+  overlay.className = 'pii-warning-overlay';
+  const config = getOllamaConfig();
+  overlay.innerHTML = `
+    <div class="ollama-setup-guide">
+      <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
+      <h3>&#129302; Setup Ollama for Local Privacy</h3>
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="setup-step-num">1</div>
+          <div class="setup-step-content">
+            <strong>Install Ollama</strong>
+            <p>Visit <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a> and install for your OS. On Linux: <code>curl -fsSL https://ollama.com/install.sh | sh</code></p>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">2</div>
+          <div class="setup-step-content">
+            <strong>Pull a model</strong>
+            <p>Run <code>ollama pull llama3.2</code> in your terminal. Any model works — llama3.2 (2GB) is fast and capable.</p>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">3</div>
+          <div class="setup-step-content">
+            <strong>Configure connection</strong>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+              <input type="text" class="api-key-input" id="ollama-setup-url" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
+              <button class="import-btn import-btn-primary" onclick="testOllamaFromSetup()">Test Connection</button>
+            </div>
+            <div id="ollama-setup-status" style="margin-top:8px;font-size:13px"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <button class="import-btn import-btn-secondary" onclick="this.closest('.pii-warning-overlay').remove()">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+async function testOllamaFromSetup() {
+  const urlInput = document.getElementById('ollama-setup-url');
+  const statusEl = document.getElementById('ollama-setup-status');
+  if (!urlInput || !statusEl) return;
+  const url = urlInput.value.trim().replace(/\/+$/, '');
+  statusEl.innerHTML = '<span style="color:var(--text-muted)">Testing...</span>';
+  try {
+    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    if (models.length === 0) {
+      statusEl.innerHTML = '<span style="color:var(--yellow)">&#9888; Connected but no models found. Run: ollama pull llama3.2</span>';
+    } else {
+      saveOllamaConfig({ url, model: models[0] });
+      statusEl.innerHTML = `<span style="color:var(--green)">&#10003; Connected! Found ${models.length} model${models.length > 1 ? 's' : ''}: ${models.join(', ')}</span>`;
+    }
+  } catch {
+    statusEl.innerHTML = '<span style="color:var(--red)">&#10007; Could not connect. Make sure Ollama is running.</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// PII DIFF VIEWER (debug mode)
+// ═══════════════════════════════════════════════
+function isDebugMode() { return localStorage.getItem('labcharts-debug') === 'true'; }
+function setDebugMode(on) { localStorage.setItem('labcharts-debug', on ? 'true' : 'false'); }
+
+function showPIIDiffViewer(originalText, obfuscatedText) {
+  const overlay = document.createElement('div');
+  overlay.className = 'pii-warning-overlay';
+  // Simple line-by-line diff
+  const origLines = originalText.split('\n');
+  const obfLines = obfuscatedText.split('\n');
+  const maxLines = Math.max(origLines.length, obfLines.length);
+  let leftHtml = '', rightHtml = '';
+  for (let i = 0; i < maxLines; i++) {
+    const origLine = origLines[i] || '';
+    const obfLine = obfLines[i] || '';
+    const changed = origLine !== obfLine;
+    leftHtml += `<div class="${changed ? 'pii-diff-highlight-removed' : ''}">${escapeHtml(origLine) || '&nbsp;'}</div>`;
+    rightHtml += `<div class="${changed ? 'pii-diff-highlight-added' : ''}">${escapeHtml(obfLine) || '&nbsp;'}</div>`;
+  }
+  overlay.innerHTML = `
+    <div class="pii-diff-modal">
+      <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
+      <h3>&#128269; Privacy Diff — Before / After</h3>
+      <div class="pii-diff-viewer">
+        <div class="pii-diff-left"><div class="pii-diff-header">Original</div>${leftHtml}</div>
+        <div class="pii-diff-right"><div class="pii-diff-header">Obfuscated</div>${rightHtml}</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px">
+        <button class="import-btn import-btn-secondary" onclick="this.closest('.pii-warning-overlay').remove()">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ═══════════════════════════════════════════════
 // AI-POWERED PDF IMPORT
 // ═══════════════════════════════════════════════
 function buildMarkerReference() {
@@ -3231,6 +3680,19 @@ function showImportPreview(parseResult) {
       <td>${m.value}</td><td>\u2014</td></tr>`;
   }
   html += `</tbody></table>`;
+
+  // Privacy notice
+  if (parseResult.privacyMethod === 'ollama') {
+    html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information replaced locally via Ollama</div>`;
+  } else if (parseResult.privacyMethod === 'regex') {
+    html += `<div class="privacy-notice privacy-notice-warning">&#128274; ${parseResult.privacyReplacements} personal detail${parseResult.privacyReplacements !== 1 ? 's' : ''} replaced with fake data`;
+    html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Install Ollama for comprehensive language-aware protection</span></div>`;
+  }
+  // Debug diff button
+  if (isDebugMode() && parseResult.privacyOriginal && parseResult.privacyObfuscated) {
+    html += `<button class="import-btn import-btn-secondary" style="margin-top:8px;font-size:12px" onclick="showPIIDiffViewer(window._pendingImport.privacyOriginal, window._pendingImport.privacyObfuscated)">&#128269; View privacy details</button>`;
+  }
+
   const cancelLabel = batchCtx ? 'Skip' : 'Cancel';
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">${cancelLabel}</button>
@@ -4061,6 +4523,7 @@ function setupDropZone() {
 
 const IMPORT_STEPS = [
   "Extracting text from PDF",
+  "Protecting personal information",
   "AI analyzing lab report",
   "Preparing preview"
 ];
@@ -4105,11 +4568,47 @@ async function handlePDFFile(file) {
     await showImportProgress(0, file.name);
     const pdfText = await extractPDFText(file);
     if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
+
+    // PII obfuscation step
     await showImportProgress(1, file.name);
-    const result = await parseLabPDFWithAI(pdfText, file.name);
+    let textForAI = pdfText;
+    let privacyMethod = null;
+    let privacyReplacements = 0;
+    let privacyOriginal = null;
+    const ollama = await checkOllama();
+    if (ollama.available) {
+      try {
+        textForAI = await sanitizeWithOllama(pdfText);
+        privacyMethod = 'ollama';
+        privacyOriginal = pdfText;
+        if (isDebugMode()) console.log('[PII] Obfuscated via Ollama');
+      } catch (e) {
+        console.warn('[PII] Ollama failed, falling back to regex:', e.message);
+        const result = obfuscatePDFText(pdfText);
+        textForAI = result.obfuscated;
+        privacyReplacements = result.replacements;
+        privacyOriginal = result.original;
+        privacyMethod = 'regex';
+      }
+    } else {
+      const choice = await showPIIWarningDialog();
+      if (choice === 'setup') { hideImportProgress(); return; }
+      const result = obfuscatePDFText(pdfText);
+      textForAI = result.obfuscated;
+      privacyReplacements = result.replacements;
+      privacyOriginal = result.original;
+      privacyMethod = 'regex';
+    }
+    if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
+
+    await showImportProgress(2, file.name);
+    const result = await parseLabPDFWithAI(textForAI, file.name);
+    result.privacyMethod = privacyMethod;
+    result.privacyReplacements = privacyReplacements;
+    if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
-    await showImportProgress(2, file.name);
+    await showImportProgress(3, file.name);
     showImportPreview(result);
     hideImportProgress();
   } catch (err) {
@@ -4128,6 +4627,12 @@ async function handleBatchPDFs(pdfFiles) {
     setTimeout(() => openSettingsModal(), 500);
     return;
   }
+  // Pre-check Ollama once for the batch and pre-ask PII warning if needed
+  const ollama = await checkOllama();
+  if (!ollama.available) {
+    const choice = await showPIIWarningDialog();
+    if (choice === 'setup') return;
+  }
   let imported = 0, skipped = 0, failed = 0;
   for (let i = 0; i < pdfFiles.length; i++) {
     const file = pdfFiles[i];
@@ -4135,10 +4640,38 @@ async function handleBatchPDFs(pdfFiles) {
       await showBatchImportProgress(0, file.name, i + 1, pdfFiles.length);
       const pdfText = await extractPDFText(file);
       if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); failed++; continue; }
+
+      // PII obfuscation
       await showBatchImportProgress(1, file.name, i + 1, pdfFiles.length);
-      const result = await parseLabPDFWithAI(pdfText, file.name);
-      if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
+      let textForAI = pdfText;
+      let privacyMethod = null;
+      let privacyReplacements = 0;
+      let privacyOriginal = null;
+      if (ollama.available) {
+        try {
+          textForAI = await sanitizeWithOllama(pdfText);
+          privacyMethod = 'ollama';
+          privacyOriginal = pdfText;
+        } catch (e) {
+          console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
+          const r = obfuscatePDFText(pdfText);
+          textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
+          privacyMethod = 'regex';
+        }
+      } else {
+        const r = obfuscatePDFText(pdfText);
+        textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
+        privacyMethod = 'regex';
+      }
+      if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, replacements: ${privacyReplacements}`);
+
       await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
+      const result = await parseLabPDFWithAI(textForAI, file.name);
+      result.privacyMethod = privacyMethod;
+      result.privacyReplacements = privacyReplacements;
+      if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
+      if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
+      await showBatchImportProgress(3, file.name, i + 1, pdfFiles.length);
       const action = await showImportPreviewAsync(result, file.name, i + 1, pdfFiles.length);
       if (action === 'skip') { skipped++; } else { imported++; }
     } catch (err) {

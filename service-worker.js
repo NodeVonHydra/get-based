@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v13';
+const CACHE_NAME = 'labcharts-v14';
 
 const APP_SHELL = [
   '/',
@@ -36,9 +36,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only: Anthropic API calls (never cache)
-  if (url.hostname === 'api.anthropic.com') {
-    event.respondWith(fetch(event.request));
+  // Network-only: Anthropic API calls and Ollama (never cache)
+  if (url.hostname === 'api.anthropic.com' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    event.respondWith(fetch(event.request).catch(() => new Response('Network error', { status: 503, statusText: 'Service Unavailable' })));
     return;
   }
 

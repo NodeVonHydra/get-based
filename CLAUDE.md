@@ -250,6 +250,24 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 - **Batch context**: `window._batchImportContext` stores `{ current, total }`; `showImportPreview` shows "File X of Y" counter and changes Cancel to "Skip" during batch mode
 - **`confirmImport()`**: Resolves batch promise with 'import' before closing modal; `closeImportModal()` resolves with 'skip'
 
+### PII Obfuscation (PDF Import Privacy)
+
+Personal information in lab PDFs is replaced with fake data before sending to the Anthropic API. Two-path architecture:
+
+- **Ollama path** (preferred): Local LLM replaces PII with plausible fake data, understands any language/format. Config stored in `labcharts-ollama` as `{ url, model }`. Functions: `getOllamaConfig()`, `saveOllamaConfig()`, `checkOllama()` (GET `/api/tags`), `sanitizeWithOllama(pdfText)` (POST `/api/generate`)
+- **Regex fallback**: Pattern-based detection when Ollama unavailable. `obfuscatePDFText(pdfText)` returns `{ obfuscated, original, replacements }`. Two phases:
+  1. **Label-based**: Detects PII-label lines (name, address, DOB, doctor, ID, insurance) → replaces value with matching fake data
+  2. **Pattern-based**: Czech birth numbers, SSNs, emails, phones, long digit sequences → replaced with fake equivalents
+  - Collection date lines and result lines (containing unit keywords) are protected from modification
+- **Fake data generators**: `FAKE_NAMES`, `FAKE_STREETS`, `FAKE_CITIES`, `FAKE_DOCTORS` arrays + `randomPick()`, `randomDigits()`, `fakeBirthNumber()`, `fakePhone()`, `fakeEmail()`, `fakeDate()`, `fakePatientId()`
+- **UX flow**: Ollama auto-detected → used silently. No Ollama → one-time warning dialog per session (`sessionStorage` key `labcharts-pii-choice`), offers "Continue with basic mode" or "Setup Ollama"
+- **Import pipeline**: `IMPORT_STEPS` has 4 steps (extract → obfuscate → AI analyze → preview). `handlePDFFile`/`handleBatchPDFs` insert obfuscation between extraction and API call. Parse result carries `privacyMethod` ('ollama'|'regex'), `privacyReplacements`, and optionally `privacyOriginal`/`privacyObfuscated` (when debug mode on)
+- **Import preview**: Green lock for Ollama, yellow lock with count for regex. Debug mode adds "View privacy details" button showing before/after diff
+- **Settings**: Privacy section with Ollama status dot (green/red), URL input, model dropdown, test button, debug mode toggle
+- **Debug mode**: `labcharts-debug` localStorage flag. Console logs `[PII] Original:` and `[PII] Obfuscated:` on every import. Diff viewer in import preview
+- **Service worker**: Ollama (localhost/127.0.0.1) requests are network-only (never cached). Cache bumped to v14
+- **CSS**: `.privacy-notice` (`.privacy-notice-success`, `.privacy-notice-warning`), `.ollama-settings`, `.ollama-status`, `.ollama-status-dot`, `.pii-warning-overlay`, `.pii-warning-dialog`, `.ollama-setup-guide`, `.setup-step`, `.pii-diff-modal`, `.pii-diff-viewer`
+
 ### AI Chat Panel
 
 - Slide-out panel on the right side with streaming responses

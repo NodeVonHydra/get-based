@@ -816,7 +816,7 @@ body {
 }
 .api-key-input:focus { outline: none; border-color: var(--accent); }
 .api-key-status { font-size: 13px; margin-bottom: 4px; }
-.privacy-notice {
+.api-key-notice {
   font-size: 11px; color: var(--text-muted); margin-top: 12px;
   padding: 10px; background: var(--bg-card); border-radius: var(--radius-sm);
   border: 1px solid var(--border); line-height: 1.5;
@@ -1472,3 +1472,90 @@ body {
   .onboarding-actions { justify-content: center; }
   .onboarding-step-labels { gap: 20px; }
 }
+
+/* ═══ Privacy / PII Obfuscation ═══ */
+.privacy-notice {
+  padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px;
+  margin-top: 12px; line-height: 1.5;
+}
+.privacy-notice-success {
+  background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: var(--green);
+}
+.privacy-notice-warning {
+  background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25); color: var(--yellow);
+}
+
+/* Ollama settings in Settings modal */
+.ollama-settings { margin-top: 4px; }
+.ollama-status {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+}
+.ollama-status-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted);
+  flex-shrink: 0;
+}
+.ollama-status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.ollama-status-dot.disconnected { background: var(--red); }
+
+/* PII Warning Dialog */
+.pii-warning-overlay {
+  position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.pii-warning-overlay.show { opacity: 1; }
+.pii-warning-dialog {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 28px; max-width: 480px; width: 90%;
+}
+.pii-warning-dialog h3 { margin: 0 0 14px; font-size: 18px; }
+.pii-warning-dialog p { font-size: 14px; line-height: 1.6; margin: 0 0 12px; color: var(--text-secondary); }
+.pii-warning-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+}
+
+/* Ollama Setup Guide */
+.ollama-setup-guide {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 28px; max-width: 560px; width: 90%; position: relative;
+}
+.ollama-setup-guide h3 { margin: 0 0 20px; font-size: 18px; }
+.setup-steps { display: flex; flex-direction: column; gap: 20px; }
+.setup-step {
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.setup-step-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.setup-step-content { flex: 1; }
+.setup-step-content strong { display: block; margin-bottom: 4px; font-size: 14px; }
+.setup-step-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+.setup-step-content code {
+  background: var(--bg-main); padding: 2px 6px; border-radius: 4px; font-size: 12px;
+}
+
+/* PII Diff Viewer (debug mode) */
+.pii-diff-modal {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 24px; max-width: 95vw; width: 1200px; max-height: 85vh; overflow: hidden;
+  display: flex; flex-direction: column; position: relative;
+}
+.pii-diff-modal h3 { margin: 0 0 16px; font-size: 16px; }
+.pii-diff-viewer {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  overflow-y: auto; flex: 1; font-family: monospace; font-size: 11px;
+  line-height: 1.6; border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.pii-diff-left, .pii-diff-right {
+  padding: 8px; overflow-x: auto; white-space: pre;
+}
+.pii-diff-left { background: rgba(239,68,68,0.03); }
+.pii-diff-right { background: rgba(34,197,94,0.03); }
+.pii-diff-header {
+  font-weight: 700; font-size: 12px; padding-bottom: 8px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--border); font-family: var(--font);
+}
+.pii-diff-highlight-removed { background: rgba(239,68,68,0.12); border-radius: 2px; }
+.pii-diff-highlight-added { background: rgba(34,197,94,0.12); border-radius: 2px; }
