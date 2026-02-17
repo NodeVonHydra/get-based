@@ -333,6 +333,14 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
+function saveImportedData() {
+  try {
+    localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  } catch (e) {
+    showNotification('Storage limit reached — clear old data or profiles to free space.', 'error');
+  }
+}
+
 function hashString(str) {
   let hash = 5381;
   for (let i = 0; i < str.length; i++) hash = ((hash << 5) + hash) + str.charCodeAt(i);
@@ -2860,7 +2868,13 @@ async function fetchCustomMarkerDescription(markerId, markerName, unit) {
 }
 
 function showDetailModal(id) {
-  const marker = markerRegistry[id];
+  let marker = markerRegistry[id];
+  if (!marker) {
+    const data = getActiveData();
+    const [catKey, mKey] = id.split('_');
+    marker = data.categories[catKey]?.markers[mKey];
+    if (marker) markerRegistry[id] = marker;
+  }
   if (!marker) return;
   const data = getActiveData();
   const modal = document.getElementById("detail-modal");
@@ -2989,7 +3003,7 @@ function saveManualEntry(id) {
   // Insulin dual-mapping
   if (dotKey === 'hormones.insulin') entry.markers['diabetes.insulin_d'] = value;
   recalculateHOMAIR(entry);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   buildSidebar();
   updateHeaderDates();
   closeModal();
@@ -3012,7 +3026,7 @@ function deleteMarkerValue(id, date) {
   if (Object.keys(entry.markers).length === 0) {
     importedData.entries = importedData.entries.filter(e => e.date !== date);
   }
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   buildSidebar();
   updateHeaderDates();
   // Re-open the detail modal to show updated values
@@ -3824,8 +3838,8 @@ function showPIIDiffViewer(originalText, obfuscatedText) {
     const origLine = origLines[i] || '';
     const obfLine = obfLines[i] || '';
     const changed = origLine !== obfLine;
-    leftHtml += `<div class="${changed ? 'pii-diff-highlight-removed' : ''}">${escapeHtml(origLine) || '&nbsp;'}</div>`;
-    rightHtml += `<div class="${changed ? 'pii-diff-highlight-added' : ''}">${escapeHtml(obfLine) || '&nbsp;'}</div>`;
+    leftHtml += `<div class="${changed ? 'pii-diff-highlight-removed' : ''}">${escapeHTML(origLine) || '&nbsp;'}</div>`;
+    rightHtml += `<div class="${changed ? 'pii-diff-highlight-added' : ''}">${escapeHTML(obfLine) || '&nbsp;'}</div>`;
   }
   overlay.innerHTML = `
     <div class="pii-diff-modal">
@@ -3841,10 +3855,6 @@ function showPIIDiffViewer(originalText, obfuscatedText) {
     </div>`;
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('show'));
-}
-
-function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ═══════════════════════════════════════════════
@@ -4132,7 +4142,7 @@ function confirmImport() {
   }
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   // Resolve batch promise before closeImportModal (which would resolve with 'skip')
   if (window._batchImportResolve) {
     const resolve = window._batchImportResolve;
@@ -4154,7 +4164,7 @@ function confirmImport() {
 function removeImportedEntry(date) {
   if (!importedData.entries) return;
   importedData.entries = importedData.entries.filter(e => e.date !== date);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   buildSidebar();
   updateHeaderDates();
   const activeNav = document.querySelector(".nav-item.active");
@@ -4206,7 +4216,7 @@ function saveNote(idx) {
   } else {
     importedData.notes.push({ date, text });
   }
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4216,7 +4226,7 @@ function saveNote(idx) {
 function deleteNote(idx) {
   if (!importedData.notes) return;
   importedData.notes.splice(idx, 1);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4250,7 +4260,7 @@ function saveDiagnoses() {
   const ta = document.getElementById('diagnoses-textarea');
   const text = ta ? ta.value.trim() : '';
   importedData.diagnoses = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4259,7 +4269,7 @@ function saveDiagnoses() {
 
 function clearDiagnoses() {
   importedData.diagnoses = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4293,7 +4303,7 @@ function saveDiet() {
   const ta = document.getElementById('diet-textarea');
   const text = ta ? ta.value.trim() : '';
   importedData.diet = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4302,7 +4312,7 @@ function saveDiet() {
 
 function clearDiet() {
   importedData.diet = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4333,7 +4343,7 @@ function saveSleepCircadian() {
   const ta = document.getElementById('sleep-circadian-textarea');
   const text = ta ? ta.value.trim() : '';
   importedData.sleepCircadian = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4342,7 +4352,7 @@ function saveSleepCircadian() {
 
 function clearSleepCircadian() {
   importedData.sleepCircadian = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4373,7 +4383,7 @@ function saveExercise() {
   const ta = document.getElementById('exercise-textarea');
   const text = ta ? ta.value.trim() : '';
   importedData.exercise = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4382,7 +4392,7 @@ function saveExercise() {
 
 function clearExercise() {
   importedData.exercise = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4435,9 +4445,7 @@ function renderHealthGoalsModal(modal) {
     const input = document.getElementById('goal-text-input');
     if (input) {
       input.focus();
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); addHealthGoal(); }
-      });
+      input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addHealthGoal(); } };
     }
   }, 50);
 }
@@ -4449,20 +4457,20 @@ function addHealthGoal() {
   if (!text) return;
   if (!importedData.healthGoals) importedData.healthGoals = [];
   importedData.healthGoals.push({ text, severity: select.value });
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
 }
 
 function deleteHealthGoal(idx) {
   if (!importedData.healthGoals) return;
   importedData.healthGoals.splice(idx, 1);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
 }
 
 function clearHealthGoals() {
   importedData.healthGoals = [];
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4496,7 +4504,7 @@ function saveInterpretiveLens() {
   const ta = document.getElementById('interpretive-lens-textarea');
   const text = ta ? ta.value.trim() : '';
   importedData.interpretiveLens = text || '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4505,7 +4513,7 @@ function saveInterpretiveLens() {
 
 function clearInterpretiveLens() {
   importedData.interpretiveLens = '';
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4702,7 +4710,7 @@ function openMenstrualCycleEditor() {
 
 function saveMenstrualCycle() {
   syncMenstrualCycleProfileFromForm();
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4712,7 +4720,7 @@ function saveMenstrualCycle() {
 function clearMenstrualCycle() {
   showConfirmDialog('Clear all menstrual cycle data? This cannot be undone.', () => {
     importedData.menstrualCycle = null;
-    localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+    saveImportedData();
     closeModal();
     const activeNav = document.querySelector(".nav-item.active");
     navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4746,7 +4754,7 @@ function addPeriodEntry() {
   const exists = importedData.menstrualCycle.periods.some(p => p.startDate === startDate);
   if (exists) { showNotification('A period entry with this start date already exists', 'error'); return; }
   importedData.menstrualCycle.periods.push({ startDate, endDate, flow, notes });
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   openMenstrualCycleEditor();
 }
 
@@ -4754,7 +4762,7 @@ function deletePeriodEntry(startDate) {
   if (!importedData.menstrualCycle || !importedData.menstrualCycle.periods) return;
   syncMenstrualCycleProfileFromForm();
   importedData.menstrualCycle.periods = importedData.menstrualCycle.periods.filter(p => p.startDate !== startDate);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   openMenstrualCycleEditor();
 }
 
@@ -4844,7 +4852,7 @@ function saveSupplement(idx) {
   } else {
     importedData.supplements.push(entry);
   }
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -4855,7 +4863,7 @@ function deleteSupplement(idx) {
   if (!importedData.supplements || !importedData.supplements[idx]) return;
   const name = importedData.supplements[idx].name;
   importedData.supplements.splice(idx, 1);
-  localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+  saveImportedData();
   closeModal();
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
@@ -5496,7 +5504,7 @@ function importDataJSON(file) {
           if (!exists) importedData.notes.push({ date: note.date, text: note.text });
         }
       }
-      localStorage.setItem(profileStorageKey(currentProfile, 'imported'), JSON.stringify(importedData));
+      saveImportedData();
       buildSidebar();
       updateHeaderDates();
       navigate('dashboard');
