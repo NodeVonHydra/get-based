@@ -1951,11 +1951,13 @@ async function loadFocusCard() {
   el.innerHTML = `<span class="focus-card-shimmer"></span>`;
   try {
     const ctx = buildLabContext();
-    const text = await callClaudeAPI({
+    const apiCall = callClaudeAPI({
       system: 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.',
       messages: [{ role: 'user', content: ctx }],
       maxTokens: 100
     });
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
+    const text = await Promise.race([apiCall, timeout]);
     const trimmed = (text || '').trim();
     if (trimmed) {
       localStorage.setItem(cacheKey, JSON.stringify({ fingerprint: fp, text: trimmed }));
@@ -5022,7 +5024,7 @@ async function handlePDFFile(file) {
     hideImportProgress();
   } catch (err) {
     hideImportProgress();
-    console.error("PDF parse error:", err);
+    if (isDebugMode()) console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error");
   }
 }
@@ -5096,7 +5098,7 @@ async function handleBatchPDFs(pdfFiles) {
       const action = await showImportPreviewAsync(result, file.name, i + 1, pdfFiles.length);
       if (action === 'skip') { skipped++; } else { imported++; }
     } catch (err) {
-      console.error(`Batch import error (${file.name}):`, err);
+      if (isDebugMode()) console.error(`Batch import error (${file.name}):`, err);
       showNotification(`Error: ${file.name} — ${err.message}`, 'error');
       failed++;
     }
@@ -6120,7 +6122,10 @@ async function sendChatMessage() {
         if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
         aiMsgEl.innerHTML = renderMarkdown(_streamLatest);
         container.scrollTop = container.scrollHeight;
-      } catch (e) { console.error('Stream render error:', e); }
+      } catch (e) {
+          if (isDebugMode()) console.error('Stream render error:', e);
+          showNotification('Display error — try resending your message.', 'error');
+        }
     };
 
     const fullText = await callClaudeAPI({
