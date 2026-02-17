@@ -388,6 +388,7 @@ function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
 function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
 function hasApiKey() { return !!getApiKey(); }
 function getAnthropicModel() { return 'claude-sonnet-4-5-20250929'; }
+function getAnthropicModelDisplay() { return 'Claude Sonnet 4.5'; }
 
 function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
 function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
@@ -440,7 +441,7 @@ async function validateApiKey(key) {
 
 async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
   const key = getApiKey();
-  if (!key) throw new Error('No API key configured. Add your Anthropic key in Settings.');
+  if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
   const body = {
     model: 'claude-sonnet-4-5-20250929',
     max_tokens: maxTokens || 4096,
@@ -722,14 +723,14 @@ function openSettingsModal() {
 
     <div class="settings-section">
       <div class="ai-provider-toggle">
-        <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Anthropic</button>
+        <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Claude</button>
         <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')">&#127914; Venice</button>
-        <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')">&#127968; Ollama</button>
+        <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')">&#128187; Local AI</button>
       </div>
       <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
     </div>
 
-    <div class="settings-group-title">Privacy</div>
+    <div class="settings-group-title">PDF Import Privacy</div>
 
     <div class="settings-section" id="privacy-section">
       ${renderPrivacySection()}
@@ -741,12 +742,11 @@ function openSettingsModal() {
 function renderAIProviderPanel(provider) {
   if (provider === 'anthropic') {
     const currentKey = getApiKey();
-    const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
     return `<div class="ai-provider-panel">
-      <div class="ai-provider-desc">Uses Claude AI via the internet. Best quality, requires API key ($).</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Model: <span style="color:var(--text-primary)">${getAnthropicModel()}</span></div>
+      <div class="ai-provider-desc">Anthropic's best AI model, runs in the cloud. Requires an API key (pay-per-use).</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Model: <span style="color:var(--text-primary)">${getAnthropicModelDisplay()}</span></div>
       <div class="api-key-status" id="api-key-status">
-        ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
+        ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
       <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-..." value="${currentKey}">
       <div style="display:flex;gap:8px;margin-top:12px">
@@ -758,7 +758,6 @@ function renderAIProviderPanel(provider) {
   }
   if (provider === 'venice') {
     const currentKey = getVeniceKey();
-    const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
     const veniceModel = getVeniceModel();
     const veniceModels = [
       ['llama-3.3-70b', 'Llama 3.3 70B'],
@@ -773,7 +772,7 @@ function renderAIProviderPanel(provider) {
     return `<div class="ai-provider-panel">
       <div class="ai-provider-desc">Privacy-focused cloud AI. Uncensored models, no data stored. Requires API key.</div>
       <div class="api-key-status" id="venice-key-status">
-        ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
+        ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
       <input type="password" class="api-key-input" id="venice-key-input" placeholder="venice-..." value="${currentKey}">
       <div style="display:flex;gap:8px;margin-top:12px">
@@ -789,16 +788,16 @@ function renderAIProviderPanel(provider) {
       <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
-  // Ollama panel
+  // Local AI (Ollama) panel
   const config = getOllamaConfig();
   return `<div class="ai-provider-panel">
     <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine.</div>
     <div class="ollama-status" id="ollama-status">
       <span class="ollama-status-dot" id="ollama-dot"></span>
-      <span id="ollama-status-text">Checking Ollama...</span>
+      <span id="ollama-status-text">Checking connection...</span>
     </div>
     <div style="margin-top:8px">
-      <label style="font-size:12px;color:var(--text-muted)">Ollama URL</label>
+      <label style="font-size:12px;color:var(--text-muted)">Server address</label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
         <input type="text" class="api-key-input" id="ollama-url-input" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
         <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
@@ -809,7 +808,7 @@ function renderAIProviderPanel(provider) {
       <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
     </div>
     <div class="api-key-notice" style="margin-top:12px">
-      Don't have Ollama? <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Download it free</a>, then run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.
+      Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.
     </div>
   </div>`;
 }
@@ -817,31 +816,87 @@ function renderAIProviderPanel(provider) {
 function renderPrivacySection() {
   const piiUrl = getOllamaPIIUrl();
   return `<div class="ollama-settings">
-    <div class="ai-provider-desc" style="margin-bottom:8px">When importing PDFs, personal info is replaced with fake data before AI processing. Can use a separate Ollama instance (e.g. on another PC in your network).</div>
-    <div id="pii-model-section">
-      <div class="ollama-status" id="pii-ollama-status">
-        <span class="ollama-status-dot" id="pii-ollama-dot"></span>
-        <span id="pii-ollama-status-text">Click Test to check</span>
+    <div class="ai-provider-desc" style="margin-bottom:10px">Personal info in your lab PDFs is automatically replaced with fake data before sending to AI.</div>
+    <div class="privacy-status-card" id="privacy-status-card">
+      <div class="privacy-status-icon" id="privacy-status-icon">&#128274;</div>
+      <div class="privacy-status-body">
+        <div class="privacy-status-title" id="privacy-status-title">Checking...</div>
+        <div class="privacy-status-detail" id="privacy-status-detail"></div>
       </div>
-      <div style="margin-top:8px">
-        <label style="font-size:12px;color:var(--text-muted)">Ollama URL for PII</label>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-          <input type="text" class="api-key-input" id="pii-ollama-url-input" value="${piiUrl}" placeholder="http://localhost:11434" style="flex:1">
-          <button class="import-btn import-btn-secondary" onclick="testPIIOllamaConnection()" style="white-space:nowrap">Test</button>
+    </div>
+    <div class="privacy-configure-toggle" onclick="togglePrivacyConfigure()">
+      <span class="privacy-configure-arrow" id="privacy-configure-arrow">&#9654;</span>
+      Configure
+    </div>
+    <div class="privacy-configure-body" id="privacy-configure-body" style="display:none">
+      <div id="pii-model-section">
+        <div class="ollama-status" id="pii-ollama-status">
+          <span class="ollama-status-dot" id="pii-ollama-dot"></span>
+          <span id="pii-ollama-status-text">Click Test to check</span>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-size:12px;color:var(--text-muted)">Server address</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+            <input type="text" class="api-key-input" id="pii-ollama-url-input" value="${piiUrl}" placeholder="http://localhost:11434" style="flex:1">
+            <button class="import-btn import-btn-secondary" onclick="testPIIOllamaConnection()" style="white-space:nowrap">Test</button>
+          </div>
+        </div>
+        <div id="pii-model-dropdown" style="margin-top:8px;display:none">
+          <label style="font-size:12px;color:var(--text-muted)">Privacy model <span style="font-size:11px">(can be a smaller, faster model)</span></label>
+          <select class="api-key-input" id="pii-model-select" style="margin-top:4px" onchange="setOllamaPIIModel(this.value)"></select>
         </div>
       </div>
-      <div id="pii-model-dropdown" style="margin-top:8px;display:none">
-        <label style="font-size:12px;color:var(--text-muted)">PII Model <span style="font-size:11px">(can be a smaller, faster model)</span></label>
-        <select class="api-key-input" id="pii-model-select" style="margin-top:4px" onchange="setOllamaPIIModel(this.value)"></select>
+      <div style="margin-top:8px">
+        <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+          <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
+          Show privacy details in import preview
+        </label>
       </div>
     </div>
-    <div style="margin-top:8px">
-      <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
-        <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
-        Debug mode <span style="color:var(--text-muted);font-size:12px">(show PII diff in import preview)</span>
-      </label>
-    </div>
   </div>`;
+}
+
+function togglePrivacyConfigure() {
+  const body = document.getElementById('privacy-configure-body');
+  const arrow = document.getElementById('privacy-configure-arrow');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.innerHTML = open ? '&#9654;' : '&#9660;';
+}
+
+async function updatePrivacyStatusCard(enhanced) {
+  const icon = document.getElementById('privacy-status-icon');
+  const title = document.getElementById('privacy-status-title');
+  const detail = document.getElementById('privacy-status-detail');
+  const card = document.getElementById('privacy-status-card');
+  if (!title || !detail || !card) return;
+  // If not passed explicitly, check PII Ollama
+  if (enhanced === undefined) {
+    try {
+      const piiUrl = getOllamaPIIUrl();
+      const resp = await fetch(`${piiUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      if (resp.ok) {
+        const data = await resp.json();
+        const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+        enhanced = models.length > 0;
+      } else {
+        enhanced = false;
+      }
+    } catch { enhanced = false; }
+  }
+  if (enhanced) {
+    const model = getOllamaPIIModel();
+    card.className = 'privacy-status-card privacy-status-enhanced';
+    if (icon) icon.innerHTML = '&#128274;';
+    title.textContent = 'Enhanced protection';
+    detail.textContent = `Local AI (${model}) scrubs your data before it reaches any cloud service.`;
+  } else {
+    card.className = 'privacy-status-card privacy-status-basic';
+    if (icon) icon.innerHTML = '&#128274;';
+    title.textContent = 'Basic protection';
+    detail.textContent = 'Pattern matching removes common personal info (names, IDs, dates of birth).';
+  }
 }
 
 function switchAIProvider(provider) {
@@ -856,7 +911,11 @@ function switchAIProvider(provider) {
 }
 
 function initSettingsOllamaCheck() {
-  // Only check main Ollama if the panel is visible (Ollama provider selected)
+  const mainUrl = getOllamaConfig().url;
+  const piiUrl = getOllamaPIIUrl();
+  const sameUrl = mainUrl === piiUrl;
+
+  // Check main Ollama if the panel is visible (Ollama provider selected)
   if (document.getElementById('ollama-dot')) {
     checkOllama().then(result => {
       const dot = document.getElementById('ollama-dot');
@@ -878,12 +937,21 @@ function initSettingsOllamaCheck() {
         }
       } else if (result.available) {
         dot.classList.add('disconnected');
-        text.textContent = 'Connected but no models. Run: ollama pull llama3.2';
+        text.textContent = 'Connected but no models found. Run: ollama pull llama3.2';
       } else {
         dot.classList.add('disconnected');
-        text.textContent = 'Not detected — start Ollama to use';
+        text.textContent = 'Not connected — start Ollama to use';
+      }
+      // Reuse result for privacy card if same URL
+      if (sameUrl) {
+        updatePrivacyStatusCard(result.available && result.models.length > 0);
+      } else {
+        updatePrivacyStatusCard();
       }
     });
+  } else {
+    // Main panel not visible — just update privacy card
+    updatePrivacyStatusCard();
   }
 }
 
@@ -920,7 +988,7 @@ async function testOllamaConnection() {
     const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
     if (models.length === 0) {
       dot.classList.add('disconnected');
-      text.textContent = 'Connected but no models. Run: ollama pull llama3.2';
+      text.textContent = 'Connected but no models found. Run: ollama pull llama3.2';
     } else {
       dot.classList.add('connected');
       saveOllamaConfig({ url, model: models[0] });
@@ -932,11 +1000,12 @@ async function testOllamaConnection() {
         modelSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
       }
     }
-    // Also refresh privacy PII section
+    // Also refresh privacy section status
     initSettingsOllamaCheck();
+    updatePrivacyStatusCard();
   } catch {
     dot.classList.add('disconnected');
-    text.textContent = 'Not detected — check URL and ensure Ollama is running';
+    text.textContent = 'Not connected — check URL and ensure Ollama is running';
   }
 }
 
@@ -957,7 +1026,7 @@ async function testPIIOllamaConnection() {
     const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
     if (models.length === 0) {
       dot.classList.add('disconnected');
-      text.textContent = 'Connected but no models';
+      text.textContent = 'Connected but no models found';
     } else {
       dot.classList.add('connected');
       setOllamaPIIUrl(url);
@@ -969,9 +1038,11 @@ async function testPIIOllamaConnection() {
         piiSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentPII ? 'selected' : ''}>${m}</option>`).join('');
       }
     }
+    updatePrivacyStatusCard();
   } catch {
     dot.classList.add('disconnected');
-    text.textContent = 'Not detected — check URL and ensure Ollama is running';
+    text.textContent = 'Not connected — check URL and ensure Ollama is running';
+    updatePrivacyStatusCard();
   }
 }
 
@@ -3986,10 +4057,10 @@ function showImportPreview(parseResult) {
 
   // Privacy notice
   if (parseResult.privacyMethod === 'ollama') {
-    html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information replaced locally via Ollama</div>`;
+    html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information scrubbed by local AI</div>`;
   } else if (parseResult.privacyMethod === 'regex') {
     html += `<div class="privacy-notice privacy-notice-warning">&#128274; ${parseResult.privacyReplacements} personal detail${parseResult.privacyReplacements !== 1 ? 's' : ''} replaced with fake data`;
-    html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Install Ollama for comprehensive language-aware protection</span></div>`;
+    html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Set up Local AI in Settings for comprehensive language-aware protection</span></div>`;
   }
   // Debug: timings and diff button
   if (isDebugMode()) {

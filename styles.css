@@ -1515,6 +1515,33 @@ body {
 .ollama-status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
 .ollama-status-dot.disconnected { background: var(--red); }
 
+/* Privacy status card & collapsible configure */
+.privacy-status-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.privacy-status-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.privacy-status-body { flex: 1; min-width: 0; }
+.privacy-status-title { font-size: 13px; font-weight: 600; }
+.privacy-status-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.privacy-status-enhanced {
+  background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25);
+}
+.privacy-status-enhanced .privacy-status-title { color: var(--green); }
+.privacy-status-basic {
+  background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25);
+}
+.privacy-status-basic .privacy-status-title { color: var(--yellow); }
+.privacy-configure-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted); cursor: pointer;
+  padding: 4px 0; user-select: none;
+}
+.privacy-configure-toggle:hover { color: var(--text-secondary); }
+.privacy-configure-arrow { font-size: 9px; transition: transform 0.15s; }
+.privacy-configure-body { padding-top: 8px; }
+
 /* PII overlay (shared by diff viewer) */
 .pii-warning-overlay {
   position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.6);
