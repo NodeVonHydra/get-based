@@ -1794,23 +1794,20 @@ function showDashboard(data) {
   const filteredData = filterDatesByRange(data);
   html += `<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px">
     <div class="category-header" style="margin:0"><h2>Key Trends</h2>
-    <p>Important biomarkers tracked over time</p></div>
+    <p>Auto-selected from your data</p></div>
     ${renderDateRangeFilter()}
     ${renderChartLayersDropdown()}
   </div>`;
 
-  const keyMarkers = [
-    { cat: "diabetes", key: "hba1c" }, { cat: "diabetes", key: "homaIR" },
-    { cat: "lipids", key: "ldl" }, { cat: "vitamins", key: "vitaminD" },
-    { cat: "thyroid", key: "tsh" }, { cat: "hormones", key: "testosterone" },
-    { cat: "proteins", key: "hsCRP" }, { cat: "biochemistry", key: "ggt" }
-  ];
-  html += `<div class="charts-grid charts-grid-4col">`;
-  for (const km of keyMarkers) {
-    const marker = filteredData.categories[km.cat].markers[km.key];
-    html += renderChartCard(km.cat + "_" + km.key, marker, filteredData.dateLabels);
+  const keyMarkers = getKeyTrendMarkers(filteredData);
+  if (keyMarkers.length > 0) {
+    html += `<div class="charts-grid charts-grid-4col">`;
+    for (const km of keyMarkers) {
+      const marker = filteredData.categories[km.cat].markers[km.key];
+      html += renderChartCard(km.cat + "_" + km.key, marker, filteredData.dateLabels);
+    }
+    html += `</div>`;
   }
-  html += `</div>`;
 
   // ── 8. Trends & Critical Flags ──
   const trendAlerts = detectTrendAlerts(filteredData);
@@ -3243,6 +3240,54 @@ function detectTrendAlerts(data) {
     return priority(a.concern) - priority(b.concern);
   });
   return alerts;
+}
+
+function getKeyTrendMarkers(filteredData) {
+  const selected = [];
+  const seen = new Set();
+  const MAX = 8;
+
+  function hasData(cat, key) {
+    const c = filteredData.categories[cat];
+    if (!c || c.singlePoint) return false;
+    const m = c.markers[key];
+    return m && m.values && m.values.some(v => v !== null);
+  }
+
+  function add(cat, key) {
+    if (selected.length >= MAX) return;
+    const id = cat + '_' + key;
+    if (seen.has(id)) return;
+    if (!hasData(cat, key)) return;
+    seen.add(id);
+    selected.push({ cat, key });
+  }
+
+  // Tier 1: Trend alerts (sudden > past > approaching — already sorted)
+  const alerts = detectTrendAlerts(filteredData);
+  for (const a of alerts) {
+    const dot = a.id.indexOf('_');
+    add(a.id.substring(0, dot), a.id.substring(dot + 1));
+  }
+
+  // Tier 2: Flagged (out-of-range) markers
+  const flags = getAllFlaggedMarkers(filteredData);
+  for (const f of flags) {
+    add(f.categoryKey, f.markerKey);
+  }
+
+  // Tier 3: Sex-aware defaults
+  const defaults = profileSex === 'female'
+    ? [['diabetes','hba1c'],['diabetes','homaIR'],['lipids','ldl'],['vitamins','vitaminD'],
+       ['thyroid','tsh'],['hematology','ferritin'],['hormones','estradiol'],['proteins','hsCRP']]
+    : profileSex === 'male'
+    ? [['diabetes','hba1c'],['diabetes','homaIR'],['lipids','ldl'],['vitamins','vitaminD'],
+       ['thyroid','tsh'],['hormones','testosterone'],['proteins','hsCRP'],['biochemistry','ggt']]
+    : [['diabetes','hba1c'],['diabetes','homaIR'],['lipids','ldl'],['vitamins','vitaminD'],
+       ['thyroid','tsh'],['proteins','hsCRP'],['biochemistry','ggt'],['hematology','hemoglobin']];
+  for (const [cat, key] of defaults) add(cat, key);
+
+  return selected;
 }
 
 function getTrend(values) {
