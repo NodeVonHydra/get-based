@@ -254,7 +254,7 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 
 Personal information in lab PDFs is replaced with fake data before sending to the Anthropic API. Two-path architecture:
 
-- **Ollama path** (preferred): Local LLM replaces PII with plausible fake data, understands any language/format. Config stored in `labcharts-ollama` as `{ url, model }`. Functions: `getOllamaConfig()`, `saveOllamaConfig()`, `checkOllama()` (GET `/api/tags`), `sanitizeWithOllama(pdfText)` (POST `/api/generate`)
+- **Ollama path** (preferred): Local LLM replaces PII with plausible fake data, understands any language/format. Uses dedicated PII model (`getOllamaPIIModel()`) which can differ from the main AI model — allows a small fast model (e.g. `gemma3:1b`) for PII while a larger model handles analysis. Config stored in `labcharts-ollama` as `{ url, model }`, PII model in `labcharts-ollama-pii-model`. Functions: `getOllamaConfig()`, `saveOllamaConfig()`, `checkOllama()` (GET `/api/tags`), `sanitizeWithOllama(pdfText)` (POST `/api/generate`), `unloadOllamaPIIModel()`
 - **Regex fallback**: Pattern-based detection when Ollama unavailable. `obfuscatePDFText(pdfText)` returns `{ obfuscated, original, replacements }`. Two phases:
   1. **Label-based**: Detects PII-label lines (name, address, DOB, doctor, ID, insurance) → replaces value with matching fake data
   2. **Pattern-based**: Czech birth numbers, SSNs, emails, phones, long digit sequences → replaced with fake equivalents
@@ -280,14 +280,34 @@ Personal information in lab PDFs is replaced with fake data before sending to th
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
 - Marker descriptions: Each marker in `MARKER_SCHEMA` has a `desc` field with a one-sentence explanation. `getMarkerDescription(id)` reads from `marker.desc` in the registry, falling back to `localStorage` key `labcharts-marker-desc` for custom markers. For custom markers without a cached description, `fetchCustomMarkerDescription()` calls Claude API (one-time, then cached in localStorage). Displayed between the unit/reference line and the chart in the detail modal
 
+### AI Provider System
+
+Two AI backends: Anthropic (cloud) and Ollama (local). User picks in Settings → AI Provider toggle.
+
+- **Provider storage**: `labcharts-ai-provider` — `'anthropic'` (default) or `'ollama'`
+- **Functions**: `getAIProvider()`, `setAIProvider(provider)`, `hasAIProvider()` (returns `hasApiKey()` for Anthropic, `true` for Ollama)
+- **Routing**: `callClaudeAPI(opts)` is the router — delegates to `callAnthropicAPI(opts)` or `callOllamaChat(opts)` based on provider. All 4 call sites (focus card, marker desc, PDF parsing, chat) use `callClaudeAPI` unchanged
+- **`callAnthropicAPI`**: Anthropic Messages API with SSE streaming. Model: `claude-sonnet-4-5-20250929`. Requires `labcharts-api-key`
+- **`callOllamaChat`**: Ollama `/api/chat` endpoint with newline-delimited JSON streaming. Model from `getOllamaMainModel()`. System message prepended as `{ role: 'system' }`. `maxTokens` → `options.num_predict`. 120s timeout
+- **Ollama model storage**: `labcharts-ollama-model` (main AI model), `labcharts-ollama-pii-model` (PII obfuscation model, can differ). Functions: `getOllamaMainModel()`, `setOllamaMainModel()`, `getOllamaPIIModel()`, `setOllamaPIIModel()`
+- **Guard points**: `hasAIProvider()` replaces `hasApiKey()` at all 7 AI feature gates (focus card render/load, marker desc fetch/display, PDF import single/batch, chat panel open)
+- **Error handling**: Ollama not running → `"Ollama is not running. Start it or switch to Anthropic in Settings."`
+
+### Settings Modal
+
+Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **Privacy** (PII model, debug mode).
+
+- **AI Provider toggle**: Two buttons — `☁️ Anthropic` / `🏠 Ollama`. `switchAIProvider(provider)` re-renders the panel without reloading the full modal
+- **Anthropic panel**: API key input, save/validate, remove, privacy notice (existing UI)
+- **Ollama panel**: Status dot, URL input + test button, model dropdown, "Don't have Ollama?" setup link
+- **Privacy section**: PII obfuscation status, separate PII model dropdown (when Ollama available), debug mode toggle
+- **CSS**: `.settings-group-title` (section dividers), `.ai-provider-toggle`, `.ai-provider-btn`, `.ai-provider-panel`, `.ai-provider-desc`
+
 ### API Key Management
 
 - Stored globally in `labcharts-api-key` (not per-profile — belongs to user's Anthropic account)
 - Settings modal accessible from gear button in header
-- `callClaudeAPI({ system, messages, maxTokens, onStream })` — central function for all AI calls
-  - Uses `anthropic-dangerous-direct-browser-access: true` header for direct browser access
-  - Model: `claude-sonnet-4-5-20250929`
-  - Supports streaming via SSE parsing for chat responses
+- Only used when AI Provider is set to Anthropic
 
 ### JSON Export/Import
 
@@ -299,7 +319,8 @@ Personal information in lab PDFs is replaced with fake data before sending to th
 - **Chart.js 4.4.7** — all chart rendering
 - **pdf.js 3.11.174** — client-side PDF text extraction
 - **Inter font** (Google Fonts)
-- **Anthropic API** — Claude Sonnet for PDF parsing and chat (requires user's API key)
+- **Anthropic API** — Claude Sonnet for PDF parsing and chat (when Anthropic provider selected, requires user's API key)
+- **Ollama** — local LLM for all AI features and PII obfuscation (when Ollama provider selected, runs on user's machine)
 
 ### Marker Key Convention
 Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `hormones.testosterone`). This format is used in `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, the imported data store, and AI prompt marker references.
