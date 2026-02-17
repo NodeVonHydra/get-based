@@ -722,6 +722,7 @@ function openSettingsModal() {
     <div class="settings-group-title">AI Provider</div>
 
     <div class="settings-section">
+      <div class="ai-provider-desc" style="margin-bottom:10px">For medical data like blood work, state-of-the-art models give the most accurate analysis. Claude is recommended — fastest and best results.</div>
       <div class="ai-provider-toggle">
         <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Claude</button>
         <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')">&#127914; Venice</button>
@@ -816,7 +817,7 @@ function renderAIProviderPanel(provider) {
 function renderPrivacySection() {
   const piiUrl = getOllamaPIIUrl();
   return `<div class="ollama-settings">
-    <div class="ai-provider-desc" style="margin-bottom:10px">Personal info in your lab PDFs is automatically replaced with fake data before sending to AI.</div>
+    <div class="ai-provider-desc" style="margin-bottom:10px">Before your lab PDF is sent to AI for analysis, personal information (name, date of birth, ID numbers, address) is detected and replaced with fake data. Only lab results and marker values reach the AI provider.</div>
     <div class="privacy-status-card" id="privacy-status-card">
       <div class="privacy-status-icon" id="privacy-status-icon">&#128274;</div>
       <div class="privacy-status-body">
@@ -890,12 +891,12 @@ async function updatePrivacyStatusCard(enhanced) {
     card.className = 'privacy-status-card privacy-status-enhanced';
     if (icon) icon.innerHTML = '&#128274;';
     title.textContent = 'Enhanced protection';
-    detail.textContent = `Local AI (${model}) scrubs your data before it reaches any cloud service.`;
+    detail.textContent = `Local AI (${model}) understands context and language, so it reliably finds and replaces all personal info — including uncommon formats and non-English text.`;
   } else {
     card.className = 'privacy-status-card privacy-status-basic';
     if (icon) icon.innerHTML = '&#128274;';
     title.textContent = 'Basic protection';
-    detail.textContent = 'Pattern matching removes common personal info (names, IDs, dates of birth).';
+    detail.textContent = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.';
   }
 }
 
