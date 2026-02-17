@@ -299,11 +299,12 @@ Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama
 
 Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **PDF Import Privacy** (status card + collapsible configure).
 
+- **AI Provider description**: Recommendation text above toggle — for medical data, state-of-the-art models recommended, Claude is fastest and best results
 - **AI Provider toggle**: Three buttons — `☁️ Claude` / `🎭 Venice` / `💻 Local AI`. Internal values unchanged (`'anthropic'`, `'venice'`, `'ollama'`). `switchAIProvider(provider)` re-renders the panel without reloading the full modal
 - **Claude panel**: "Claude Sonnet 4.5" model display (`getAnthropicModelDisplay()`), "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, privacy notice
 - **Venice panel**: "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, model selector, link to venice.ai/settings/api, privacy notice
 - **Local AI panel**: "Server address" label, status dot with connection check, model dropdown, notice about requiring Ollama installed
-- **PDF Import Privacy section**: Explanation text, auto-detected status card (green "Enhanced protection" / yellow "Basic protection"), collapsible "Configure" with server URL + test, model dropdown, privacy details checkbox
+- **PDF Import Privacy section**: Explanation of what happens (personal info replaced with fake data, only lab results reach AI). Auto-detected status card: green "Enhanced protection" (local AI — context-aware, handles all languages/formats) or yellow "Basic protection" (regex — common formats only, may miss unusual layouts). Collapsible "Configure" with server URL + test, model dropdown, privacy details checkbox
 - **CSS**: `.settings-group-title` (section dividers), `.ai-provider-toggle`, `.ai-provider-btn`, `.ai-provider-panel`, `.ai-provider-desc`
 
 ### API Key Management
