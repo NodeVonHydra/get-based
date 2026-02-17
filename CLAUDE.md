@@ -12,7 +12,7 @@ Lab Charts is a blood work dashboard for tracking biomarker trends over time. It
 
 No build system, no bundler, no package manager. Three source files:
 
-- **`index.html`** — HTML structure only (header, sidebar, modals, chat panel, script/CSS includes)
+- **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
 - **`app.js`** — all JavaScript, organized into sections:
   - `MARKER_SCHEMA` — biomarker definitions (categories, names, units, reference ranges, descriptions) with no personal data
@@ -320,8 +320,8 @@ Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, them
 - Drop zone accepts both PDF and JSON files
 
 ### External Dependencies (CDN)
-- **Chart.js 4.4.7** — all chart rendering
-- **pdf.js 3.11.174** — client-side PDF text extraction
+- **Chart.js 4.4.7** — all chart rendering (SRI integrity hash verified)
+- **pdf.js 3.11.174** — client-side PDF text extraction (SRI integrity hash verified)
 - **Inter font** (Google Fonts)
 - **Anthropic API** — Claude Sonnet for PDF parsing and chat (when Anthropic provider selected, requires user's API key)
 - **Venice AI API** — OpenAI-compatible cloud API for all AI features (when Venice provider selected, requires user's API key from venice.ai)
@@ -365,3 +365,11 @@ The app is installable and works offline via a service worker:
 - **Fatty acids category** has `singlePoint: true` at category level in `MARKER_SCHEMA` — single-date results rendered differently (grid cards instead of trend charts)
 - **Empty state**: When no data is loaded, dashboard shows welcome message with import instructions; category views show "No data available"
 - **Streaming**: Chat uses SSE streaming via `callClaudeAPI({ onStream })` for real-time response display
+- **HTML escaping**: Single `escapeHTML(str)` function for all user-facing string interpolation in innerHTML. Markdown link URLs validated to `http/https/mailto` schemes only
+- **localStorage safety**: All data saves go through `saveImportedData()` which wraps `localStorage.setItem()` in try/catch with user-facing quota error notification
+- **Debug logging**: All `console.warn`/`console.error` in production paths are gated behind `isDebugMode()`. Debug mode toggled in Settings → Privacy
+- **Focus card timeout**: `loadFocusCard()` races the API call against a 15s timeout to prevent indefinite shimmer
+- **Accessibility**: Global `:focus-visible` outline on all focusable elements. Modals have `role="dialog"` and `aria-modal="true"`. Icon-only buttons have `aria-label`. `@media (prefers-reduced-motion)` disables all animations/transitions
+- **CSS color system**: All UI colors use CSS variables from `:root` — including `--orange`, `--purple`, `--cyan` for supplement bars, trend alerts, and cycle phases. Light theme overrides all variables in `[data-theme="light"]`
+- **Chat panel animation**: Uses `transform: translateX(100%)` (GPU-accelerated) instead of `right` property for smooth slide-in on mobile
+- **SEO**: `<meta name="description">` and Open Graph tags (`og:title`, `og:description`, `og:type`) in `<head>`
