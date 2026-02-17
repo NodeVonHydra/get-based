@@ -252,7 +252,7 @@ Process multiple PDF files sequentially with individual confirm/skip for each:
 
 ### PII Obfuscation (PDF Import Privacy)
 
-Personal information in lab PDFs is replaced with fake data before sending to the Anthropic API. Two-path architecture:
+Personal information in lab PDFs is replaced with fake data before sending to AI. Two-path architecture:
 
 - **Ollama path** (preferred): Local LLM replaces PII with plausible fake data, understands any language/format. Uses dedicated PII model (`getOllamaPIIModel()`) which can differ from the main AI model — allows a small fast model (e.g. `gemma3:1b`) for PII while a larger model handles analysis. Config stored in `labcharts-ollama` as `{ url, model }`, PII model in `labcharts-ollama-pii-model`. Functions: `getOllamaConfig()`, `saveOllamaConfig()`, `checkOllama()` (GET `/api/tags`), `sanitizeWithOllama(pdfText)` (POST `/api/generate`), `unloadOllamaPIIModel()`
 - **Regex fallback**: Pattern-based detection when Ollama unavailable. `obfuscatePDFText(pdfText)` returns `{ obfuscated, original, replacements }`. Two phases:
@@ -262,11 +262,11 @@ Personal information in lab PDFs is replaced with fake data before sending to th
 - **Fake data generators**: `FAKE_NAMES`, `FAKE_STREETS`, `FAKE_CITIES`, `FAKE_DOCTORS` arrays + `randomPick()`, `randomDigits()`, `fakeBirthNumber()`, `fakePhone()`, `fakeEmail()`, `fakeDate()`, `fakePatientId()`
 - **UX flow**: Ollama auto-detected → used silently. No Ollama → one-time warning dialog per session (`sessionStorage` key `labcharts-pii-choice`), offers "Continue with basic mode" or "Setup Ollama"
 - **Import pipeline**: `IMPORT_STEPS` has 4 steps (extract → obfuscate → AI analyze → preview). `handlePDFFile`/`handleBatchPDFs` insert obfuscation between extraction and API call. Parse result carries `privacyMethod` ('ollama'|'regex'), `privacyReplacements`, and optionally `privacyOriginal`/`privacyObfuscated` (when debug mode on)
-- **Import preview**: Green lock for Ollama, yellow lock with count for regex. Debug mode adds "View privacy details" button showing before/after diff
-- **Settings**: Privacy section with Ollama status dot (green/red), URL input, model dropdown, test button, debug mode toggle
+- **Import preview**: Green lock "scrubbed by local AI" for Ollama, yellow lock with count for regex. Regex fallback suggests "Set up Local AI in Settings". Debug mode adds "View privacy details" button showing before/after diff
+- **Settings**: "PDF Import Privacy" section with auto-detected status card (green "Enhanced protection" when Ollama available, yellow "Basic protection" for regex fallback). Collapsible "Configure" panel with server URL, test button, model dropdown, and "Show privacy details in import preview" checkbox. Functions: `togglePrivacyConfigure()`, `updatePrivacyStatusCard(enhanced?)` (accepts optional boolean to skip redundant fetch)
 - **Debug mode**: `labcharts-debug` localStorage flag. Console logs `[PII] Original:` and `[PII] Obfuscated:` on every import. Diff viewer in import preview
 - **Service worker**: Ollama (localhost/127.0.0.1) requests are network-only (never cached). Cache bumped to v14
-- **CSS**: `.privacy-notice` (`.privacy-notice-success`, `.privacy-notice-warning`), `.ollama-settings`, `.ollama-status`, `.ollama-status-dot`, `.pii-warning-overlay`, `.pii-warning-dialog`, `.ollama-setup-guide`, `.setup-step`, `.pii-diff-modal`, `.pii-diff-viewer`
+- **CSS**: `.privacy-notice` (`.privacy-notice-success`, `.privacy-notice-warning`), `.privacy-status-card` (`.privacy-status-enhanced`, `.privacy-status-basic`), `.privacy-status-icon`, `.privacy-status-body`, `.privacy-status-title`, `.privacy-status-detail`, `.privacy-configure-toggle`, `.privacy-configure-arrow`, `.privacy-configure-body`, `.ollama-settings`, `.ollama-status`, `.ollama-status-dot`, `.pii-warning-overlay`, `.pii-warning-dialog`, `.ollama-setup-guide`, `.setup-step`, `.pii-diff-modal`, `.pii-diff-viewer`
 
 ### AI Chat Panel
 
@@ -282,12 +282,12 @@ Personal information in lab PDFs is replaced with fake data before sending to th
 
 ### AI Provider System
 
-Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama (local). User picks in Settings → AI Provider toggle.
+Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama (local). User picks in Settings → AI Provider toggle (labeled "Claude" / "Venice" / "Local AI").
 
 - **Provider storage**: `labcharts-ai-provider` — `'anthropic'` (default), `'venice'`, or `'ollama'`
 - **Functions**: `getAIProvider()`, `setAIProvider(provider)`, `hasAIProvider()` (returns `hasApiKey()` for Anthropic, `hasVeniceKey()` for Venice, `true` for Ollama)
 - **Routing**: `callClaudeAPI(opts)` is the router — delegates to `callAnthropicAPI(opts)`, `callVeniceAPI(opts)`, or `callOllamaChat(opts)` based on provider. All 4 call sites (focus card, marker desc, PDF parsing, chat) use `callClaudeAPI` unchanged
-- **`callAnthropicAPI`**: Anthropic Messages API with SSE streaming. Model: `claude-sonnet-4-5-20250929`. Requires `labcharts-api-key`
+- **`callAnthropicAPI`**: Anthropic Messages API with SSE streaming. Model: `claude-sonnet-4-5-20250929` (displayed as "Claude Sonnet 4.5" via `getAnthropicModelDisplay()`). Requires `labcharts-api-key`
 - **`callVeniceAPI`**: OpenAI-compatible API with SSE streaming. Endpoint: `https://api.venice.ai/api/v1/chat/completions`. Auth: Bearer token. Model from `getVeniceModel()`. Requires `labcharts-venice-key`. 300s timeout
 - **`callOllamaChat`**: Ollama `/api/chat` endpoint with newline-delimited JSON streaming. Model from `getOllamaMainModel()`. System message prepended as `{ role: 'system' }`. `maxTokens` → `options.num_predict`. 120s timeout
 - **Venice key/model storage**: `labcharts-venice-key` (API key), `labcharts-venice-model` (default `llama-3.3-70b`). Functions: `getVeniceKey()`, `saveVeniceKey()`, `hasVeniceKey()`, `getVeniceModel()`, `setVeniceModel()`. Hardcoded model list (~29 models including Venice Uncensored, Llama, Qwen, DeepSeek, Mistral, Gemma, GLM, Kimi, MiniMax, Grok, Gemini, Claude, GPT)
@@ -297,13 +297,13 @@ Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama
 
 ### Settings Modal
 
-Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **Privacy** (PII model, debug mode).
+Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **PDF Import Privacy** (status card + collapsible configure).
 
-- **AI Provider toggle**: Three buttons — `☁️ Anthropic` / `🎭 Venice` / `🏠 Ollama`. `switchAIProvider(provider)` re-renders the panel without reloading the full modal
-- **Anthropic panel**: API key input, save/validate, remove, privacy notice (existing UI)
-- **Venice panel**: API key input, save/validate, remove, model selector (3 models), link to venice.ai/settings/api, privacy notice
-- **Ollama panel**: Status dot, URL input + test button, model dropdown, "Don't have Ollama?" setup link
-- **Privacy section**: PII obfuscation status, separate PII model dropdown (when Ollama available), debug mode toggle
+- **AI Provider toggle**: Three buttons — `☁️ Claude` / `🎭 Venice` / `💻 Local AI`. Internal values unchanged (`'anthropic'`, `'venice'`, `'ollama'`). `switchAIProvider(provider)` re-renders the panel without reloading the full modal
+- **Claude panel**: "Claude Sonnet 4.5" model display (`getAnthropicModelDisplay()`), "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, privacy notice
+- **Venice panel**: "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, model selector, link to venice.ai/settings/api, privacy notice
+- **Local AI panel**: "Server address" label, status dot with connection check, model dropdown, notice about requiring Ollama installed
+- **PDF Import Privacy section**: Explanation text, auto-detected status card (green "Enhanced protection" / yellow "Basic protection"), collapsible "Configure" with server URL + test, model dropdown, privacy details checkbox
 - **CSS**: `.settings-group-title` (section dividers), `.ai-provider-toggle`, `.ai-provider-btn`, `.ai-provider-panel`, `.ai-provider-desc`
 
 ### API Key Management
