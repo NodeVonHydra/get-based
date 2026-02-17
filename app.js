@@ -4970,19 +4970,31 @@ async function handlePDFFile(file) {
         privacyOriginal = pdfText;
         if (isDebugMode()) console.log(`[PII] Obfuscated via Ollama (${piiTime}s)`);
       } catch (e) {
-        console.warn('[PII] Ollama failed, falling back to regex:', e.message);
+        if (isDebugMode()) console.warn('[PII] Ollama failed, falling back to regex:', e.message);
+        try {
+          const result = obfuscatePDFText(pdfText);
+          textForAI = result.obfuscated;
+          privacyReplacements = result.replacements;
+          privacyOriginal = result.original;
+          privacyMethod = 'regex';
+        } catch (e2) {
+          hideImportProgress();
+          showNotification('Privacy protection failed — PDF not sent to AI. Try again or check Settings.', 'error');
+          return;
+        }
+      }
+    } else {
+      try {
         const result = obfuscatePDFText(pdfText);
         textForAI = result.obfuscated;
         privacyReplacements = result.replacements;
         privacyOriginal = result.original;
         privacyMethod = 'regex';
+      } catch (e) {
+        hideImportProgress();
+        showNotification('Privacy protection failed — PDF not sent to AI. Try again or check Settings.', 'error');
+        return;
       }
-    } else {
-      const result = obfuscatePDFText(pdfText);
-      textForAI = result.obfuscated;
-      privacyReplacements = result.replacements;
-      privacyOriginal = result.original;
-      privacyMethod = 'regex';
     }
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
 
@@ -5040,15 +5052,25 @@ async function handleBatchPDFs(pdfFiles) {
           privacyMethod = 'ollama';
           privacyOriginal = pdfText;
         } catch (e) {
-          console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
+          if (isDebugMode()) console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
+          try {
+            const r = obfuscatePDFText(pdfText);
+            textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
+            privacyMethod = 'regex';
+          } catch (e2) {
+            showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+            failed++; continue;
+          }
+        }
+      } else {
+        try {
           const r = obfuscatePDFText(pdfText);
           textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
           privacyMethod = 'regex';
+        } catch (e) {
+          showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+          failed++; continue;
         }
-      } else {
-        const r = obfuscatePDFText(pdfText);
-        textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
-        privacyMethod = 'regex';
       }
       if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
 
@@ -5906,7 +5928,10 @@ function applyInlineMarkdown(text) {
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+      const safe = /^(https?:|mailto:)/.test(url) ? url : '#';
+      return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`;
+    });
 }
 
 function renderMarkdown(text) {
@@ -6113,7 +6138,7 @@ async function sendChatMessage() {
     if (typingEl.parentNode) typingEl.remove();
     const errEl = document.createElement('div');
     errEl.className = 'chat-msg chat-ai';
-    errEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    errEl.innerHTML = `<span style="color:var(--red)">Error: ${escapeHTML(err.message)}</span>`;
     container.appendChild(errEl);
   }
 
