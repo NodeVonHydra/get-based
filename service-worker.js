@@ -36,8 +36,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only: Anthropic API calls and Ollama (never cache)
-  if (url.hostname === 'api.anthropic.com' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  // Network-only: Anthropic/Venice API calls and Ollama (never cache)
+  if (url.hostname === 'api.anthropic.com' || url.hostname === 'api.venice.ai' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
     event.respondWith(fetch(event.request).catch(() => new Response('Network error', { status: 503, statusText: 'Service Unavailable' })));
     return;
   }

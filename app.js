@@ -387,12 +387,14 @@ let compareDate1 = null, compareDate2 = null;
 function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
 function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
 function hasApiKey() { return !!getApiKey(); }
+function getAnthropicModel() { return 'claude-sonnet-4-5-20250929'; }
 
 function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
 function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
 function hasAIProvider() {
   const provider = getAIProvider();
   if (provider === 'anthropic') return hasApiKey();
+  if (provider === 'venice') return hasVeniceKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -402,6 +404,12 @@ function getOllamaPIIUrl() { return localStorage.getItem('labcharts-ollama-pii-u
 function setOllamaPIIUrl(url) { localStorage.setItem('labcharts-ollama-pii-url', url); }
 function getOllamaPIIModel() { return localStorage.getItem('labcharts-ollama-pii-model') || getOllamaMainModel(); }
 function setOllamaPIIModel(model) { localStorage.setItem('labcharts-ollama-pii-model', model); }
+
+function getVeniceKey() { return localStorage.getItem('labcharts-venice-key') || ''; }
+function saveVeniceKey(key) { localStorage.setItem('labcharts-venice-key', key); }
+function hasVeniceKey() { return !!getVeniceKey(); }
+function getVeniceModel() { return localStorage.getItem('labcharts-venice-model') || 'llama-3.3-70b'; }
+function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
 
 async function validateApiKey(key) {
   try {
@@ -414,7 +422,7 @@ async function validateApiKey(key) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: getAnthropicModel(),
         max_tokens: 16,
         messages: [{ role: 'user', content: 'Reply with "ok"' }]
       })
@@ -556,9 +564,101 @@ async function callOllamaChat({ system, messages, maxTokens, onStream }) {
   }
 }
 
+async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
+  const key = getVeniceKey();
+  if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
+  const model = getVeniceModel();
+  const apiMessages = [];
+  if (system) apiMessages.push({ role: 'system', content: system });
+  for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
+
+  const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096 };
+  if (onStream) body.stream = true;
+
+  let res;
+  try {
+    res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(300000)
+    });
+  } catch (e) {
+    if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error('Venice API timed out after 5 min.');
+    throw new Error(`Cannot reach Venice API: ${e.message}`);
+  }
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Invalid Venice API key. Check your settings.');
+    if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
+    let errMsg = `Venice API error (${res.status})`;
+    try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
+    throw new Error(errMsg);
+  }
+
+  if (onStream) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const event = JSON.parse(data);
+          if (event.choices?.[0]?.delta?.content) {
+            fullText += event.choices[0].delta.content;
+            onStream(fullText);
+          }
+        } catch {}
+      }
+    }
+    return fullText;
+  } else {
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+}
+
+async function validateVeniceKey(key) {
+  try {
+    const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b',
+        max_tokens: 16,
+        messages: [{ role: 'user', content: 'Reply with "ok"' }]
+      })
+    });
+    if (res.ok) return { valid: true };
+    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
+    if (res.status === 429) return { valid: true }; // Rate limited but key works
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach Venice API: ' + e.message };
+  }
+}
+
 async function callClaudeAPI(opts) {
   const provider = getAIProvider();
   if (provider === 'ollama') return callOllamaChat(opts);
+  if (provider === 'venice') return callVeniceAPI(opts);
   return callAnthropicAPI(opts);
 }
 
@@ -623,6 +723,7 @@ function openSettingsModal() {
     <div class="settings-section">
       <div class="ai-provider-toggle">
         <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Anthropic</button>
+        <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')">&#127914; Venice</button>
         <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')">&#127968; Ollama</button>
       </div>
       <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
@@ -643,6 +744,7 @@ function renderAIProviderPanel(provider) {
     const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
     return `<div class="ai-provider-panel">
       <div class="ai-provider-desc">Uses Claude AI via the internet. Best quality, requires API key ($).</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Model: <span style="color:var(--text-primary)">${getAnthropicModel()}</span></div>
       <div class="api-key-status" id="api-key-status">
         ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
@@ -652,6 +754,39 @@ function renderAIProviderPanel(provider) {
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
       </div>
       <div class="api-key-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
+    </div>`;
+  }
+  if (provider === 'venice') {
+    const currentKey = getVeniceKey();
+    const masked = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-4) : '';
+    const veniceModel = getVeniceModel();
+    const veniceModels = [
+      ['llama-3.3-70b', 'Llama 3.3 70B'],
+      ['venice-uncensored', 'Venice Uncensored'],
+      ['qwen3-next-80b', 'Qwen 3 Next 80B'],
+      ['claude-sonnet-45', 'Claude Sonnet 4.5'],
+      ['openai-gpt-52', 'GPT-5.2'],
+    ];
+    const modelOptions = veniceModels.map(function(m) {
+      return '<option value="' + m[0] + '"' + (veniceModel === m[0] ? ' selected' : '') + '>' + m[1] + '</option>';
+    }).join('');
+    return `<div class="ai-provider-panel">
+      <div class="ai-provider-desc">Privacy-focused cloud AI. Uncensored models, no data stored. Requires API key.</div>
+      <div class="api-key-status" id="venice-key-status">
+        ${currentKey ? `<span style="color:var(--green)">Key configured: ${masked}</span>` : '<span style="color:var(--text-muted)">No key set</span>'}
+      </div>
+      <input type="password" class="api-key-input" id="venice-key-input" placeholder="venice-..." value="${currentKey}">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="import-btn import-btn-primary" id="save-venice-key-btn" onclick="handleSaveVeniceKey()">Save & Validate</button>
+        ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveVeniceKey()">Remove Key</button>' : ''}
+      </div>
+      <div style="margin-top:12px">
+        <label style="font-size:12px;color:var(--text-muted)">Model</label>
+        <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">
+          ${modelOptions}
+        </select>
+      </div>
+      <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
   // Ollama panel
@@ -686,7 +821,7 @@ function renderPrivacySection() {
     <div id="pii-model-section">
       <div class="ollama-status" id="pii-ollama-status">
         <span class="ollama-status-dot" id="pii-ollama-dot"></span>
-        <span id="pii-ollama-status-text">Checking...</span>
+        <span id="pii-ollama-status-text">Click Test to check</span>
       </div>
       <div style="margin-top:8px">
         <label style="font-size:12px;color:var(--text-muted)">Ollama URL for PII</label>
@@ -721,17 +856,17 @@ function switchAIProvider(provider) {
 }
 
 function initSettingsOllamaCheck() {
-  checkOllama().then(result => {
-    // Update AI provider panel (if Ollama selected)
-    const dot = document.getElementById('ollama-dot');
-    const text = document.getElementById('ollama-status-text');
-    const modelSection = document.getElementById('ollama-model-section');
-    const modelSelect = document.getElementById('ollama-model-select');
-    if (dot && text) {
+  // Only check main Ollama if the panel is visible (Ollama provider selected)
+  if (document.getElementById('ollama-dot')) {
+    checkOllama().then(result => {
+      const dot = document.getElementById('ollama-dot');
+      const text = document.getElementById('ollama-status-text');
+      const modelSection = document.getElementById('ollama-model-section');
+      const modelSelect = document.getElementById('ollama-model-select');
+      if (!dot || !text) return;
       if (result.available && result.models.length > 0) {
         dot.classList.add('connected');
         let currentModel = getOllamaMainModel();
-        // Auto-correct stale model name if it's not in the available list
         if (!result.models.includes(currentModel)) {
           currentModel = result.models[0];
           setOllamaMainModel(currentModel);
@@ -748,32 +883,8 @@ function initSettingsOllamaCheck() {
         dot.classList.add('disconnected');
         text.textContent = 'Not detected — start Ollama to use';
       }
-    }
-  });
-  // Update privacy section PII model (uses its own URL)
-  checkOllamaPII().then(piiResult => {
-    const piiDot = document.getElementById('pii-ollama-dot');
-    const piiText = document.getElementById('pii-ollama-status-text');
-    const piiDropdown = document.getElementById('pii-model-dropdown');
-    const piiSelect = document.getElementById('pii-model-select');
-    if (!piiDot || !piiText) return;
-    if (piiResult.available && piiResult.models.length > 0) {
-      piiDot.classList.add('connected');
-      let currentPII = getOllamaPIIModel();
-      if (!piiResult.models.includes(currentPII)) {
-        currentPII = piiResult.models[0];
-        setOllamaPIIModel(currentPII);
-      }
-      piiText.textContent = `Connected — using ${currentPII}`;
-      if (piiDropdown && piiSelect) {
-        piiDropdown.style.display = 'block';
-        piiSelect.innerHTML = piiResult.models.map(m => `<option value="${m}" ${m === currentPII ? 'selected' : ''}>${m}</option>`).join('');
-      }
-    } else {
-      piiDot.classList.add('disconnected');
-      piiText.textContent = 'Not available — basic regex mode active';
-    }
-  });
+    });
+  }
 }
 
 function updateSettingsUI() {
@@ -886,6 +997,31 @@ async function handleSaveApiKey() {
 function handleRemoveApiKey() {
   localStorage.removeItem('labcharts-api-key');
   showNotification('API key removed', 'info');
+  openSettingsModal();
+}
+
+async function handleSaveVeniceKey() {
+  const input = document.getElementById('venice-key-input');
+  const btn = document.getElementById('save-venice-key-btn');
+  const status = document.getElementById('venice-key-status');
+  const key = input.value.trim();
+  if (!key) { status.innerHTML = '<span style="color:var(--red)">Please enter an API key</span>'; return; }
+  btn.disabled = true; btn.textContent = 'Validating...';
+  const result = await validateVeniceKey(key);
+  if (result.valid) {
+    saveVeniceKey(key);
+    status.innerHTML = '<span style="color:var(--green)">Connected successfully</span>';
+    showNotification('Venice API key saved', 'success');
+    setTimeout(() => closeSettingsModal(), 1000);
+  } else {
+    status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
+  }
+  btn.disabled = false; btn.textContent = 'Save & Validate';
+}
+
+function handleRemoveVeniceKey() {
+  localStorage.removeItem('labcharts-venice-key');
+  showNotification('Venice API key removed', 'info');
   openSettingsModal();
 }
 
@@ -3771,11 +3907,11 @@ Return ONLY valid JSON in this exact format, no other text:
   ]
 }`;
 
-  const isOllama = getAIProvider() === 'ollama';
+  const provider = getAIProvider();
   const response = await callClaudeAPI({
     system,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report:\n\n${pdfText}` }],
-    maxTokens: isOllama ? 8192 : 4096
+    maxTokens: provider === 'anthropic' ? 4096 : 8192
   });
 
   // Parse JSON from response (handle markdown code blocks, truncated output)
@@ -3861,7 +3997,7 @@ function showImportPreview(parseResult) {
     if (t) {
       const piiLabel = parseResult.privacyMethod === 'ollama' ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
       const provider = getAIProvider();
-      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : 'Claude Sonnet';
+      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModel() : 'Claude Sonnet';
       html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
     }
     if (parseResult.privacyOriginal && parseResult.privacyObfuscated) {
