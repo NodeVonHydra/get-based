@@ -272,15 +272,40 @@ const DAILY_MOVEMENT = ['sedentary desk job', 'some walking', 'active job', 'ver
 const SLEEP_DURATIONS = ['<5h', '5-6h', '6-7h', '7-8h', '8-9h', '9+h'];
 const SLEEP_QUALITY = ['poor', 'fair', 'good', 'excellent'];
 const SLEEP_SCHEDULE = ['consistent', 'somewhat variable', 'very irregular', 'shift work'];
-const SLEEP_ISSUES = ['trouble falling asleep', 'waking at night', 'early waking', 'sleep apnea', 'snoring', 'CPAP', 'mouth taping', 'blue light blockers', 'morning sunlight'];
+const SLEEP_ROOM_TEMP = ['cold (<18°C / 65°F)', 'cool (18-20°C / 65-68°F)', 'neutral (20-22°C / 68-72°F)', 'warm (>22°C / 72°F)'];
+const SLEEP_ISSUES = ['trouble falling asleep', 'waking at night', 'early waking', 'sleep apnea', 'snoring', 'restless legs', 'teeth grinding'];
+const SLEEP_ENVIRONMENT = ['blackout curtains', 'eye mask', 'no EMF (WiFi off)', 'grounding sheet', 'magnetico pad', 'white noise', 'earplugs', 'cool mattress'];
+const SLEEP_PRACTICES = ['mouth taping', 'CPAP', 'weighted blanket', 'evening magnesium', 'no food 3h before bed', 'cold shower before bed', 'evening walk'];
+// Light & Circadian
+const LIGHT_AM = ['sunrise outdoor (10+ min)', 'sunrise outdoor (<10 min)', 'morning outdoor (after sunrise)', 'light therapy lamp', 'no AM light habit'];
+const LIGHT_DAYTIME = ['mostly outdoors', '2-4h outdoor', '1-2h outdoor', '<1h outdoor', 'mostly indoor'];
+const LIGHT_UV = ['regular sun exposure (skin)', 'midday sun when possible', 'UVB lamp', 'avoid sun / always sunscreen', 'no UV awareness'];
+const LIGHT_EVENING = ['blue blockers after sunset', 'dim lights after sunset', 'no screens 1-2h before bed', 'f.lux / night shift on devices', 'bright lights until bed', 'screen in bed'];
+const LIGHT_COLD = ['cold plunge / ice bath', 'cold shower', 'cold face immersion', 'cold ocean / lake', 'winter cold exposure', 'no cold practice'];
+const LIGHT_GROUNDING = ['barefoot on earth daily', 'grounding mat / sheet', 'barefoot occasionally', 'ocean swimming', 'no grounding practice'];
+const LIGHT_SCREEN_TIME = ['<2h', '2-4h', '4-8h', '8-12h', '12+h'];
+const LIGHT_TECH_ENV = ['multiple monitors at work', 'phone in bedroom', 'smart watch 24/7', 'WiFi router near bed', 'work from home (all day screens)', 'TV before bed', 'gaming (evening)', 'e-reader before bed'];
+const LIGHT_MEAL_TIMING = ['eat within daylight only', 'early dinner (before 6pm)', 'late dinner (after 8pm)', 'skip breakfast', 'time-restricted eating'];
 const STRESS_LEVELS = ['low', 'moderate', 'high', 'chronic'];
 const STRESS_SOURCES = ['work', 'financial', 'relationships', 'health', 'family', 'caregiving', 'loneliness', 'major life change'];
 const STRESS_MGMT = ['meditation', 'therapy', 'exercise', 'nature', 'breathing exercises', 'journaling', 'social support', 'none'];
 const LOVE_STATUS = ['single', 'dating', 'in relationship', 'married', 'divorced/separated', 'widowed', 'it\'s complicated'];
 const LOVE_SATISFACTION = ['very satisfied', 'satisfied', 'neutral', 'unsatisfied', 'not applicable'];
-const ENV_SETTING = ['urban', 'suburban', 'rural'];
-const ENV_CLIMATE = ['tropical', 'dry/arid', 'temperate', 'cold', 'Mediterranean'];
-const ENV_CONCERNS = ['air pollution', 'water quality', 'mold exposure', 'heavy metals', 'pesticides', 'EMF', 'noise', 'wildfire smoke', 'industrial area'];
+const LOVE_LIBIDO = ['high', 'normal', 'low', 'very low', 'variable'];
+const LOVE_FREQUENCY = ['daily', 'few times/week', 'weekly', 'few times/month', 'monthly', 'rarely', 'none'];
+const LOVE_ORGASM = ['consistently', 'usually', 'sometimes', 'rarely', 'never', 'not applicable'];
+const LOVE_RELATIONSHIP = ['supportive & secure', 'mostly good', 'strained', 'conflicted', 'emotionally distant', 'codependent', 'new & exciting'];
+const LOVE_CONCERNS = ['low desire', 'erectile issues', 'pain during sex', 'performance anxiety', 'mismatched libido', 'hormonal changes', 'medication side effects', 'body image', 'trust issues', 'communication problems'];
+const ENV_SETTING = ['urban city center', 'urban residential', 'suburban', 'rural', 'near ocean/lake', 'mountain/altitude', 'island'];
+const ENV_CLIMATE = ['tropical', 'dry/arid', 'temperate', 'cold/northern', 'Mediterranean', 'monsoon/humid'];
+const ENV_WATER = ['spring water', 'well water', 'reverse osmosis', 'filtered (carbon)', 'tap water (unfiltered)', 'deuterium-depleted', 'distilled', 'bottled'];
+const ENV_WATER_CONCERNS = ['fluoridated', 'chlorinated', 'hard water', 'unknown source quality'];
+const ENV_EMF = ['WiFi router in bedroom', 'WiFi router nearby', 'smart meter on home', 'cell tower <500m', 'cell tower <2km', 'Bluetooth always on', '5G dense area', 'high-voltage power lines nearby', 'dirty electricity (old wiring)', 'smart home devices'];
+const ENV_EMF_MITIGATION = ['WiFi off at night', 'airplane mode sleep', 'wired ethernet', 'EMF meters used', 'faraday canopy', 'no smart meter', 'minimal Bluetooth'];
+const ENV_HOME_LIGHT = ['mostly LED lighting', 'incandescent bulbs', 'full-spectrum bulbs', 'fluorescent/CFL', 'natural daylight (large windows)', 'mixed lighting'];
+const ENV_AIR = ['HEPA air purifier', 'open windows daily', 'houseplants', 'air quality monitor', 'near highway/traffic', 'industrial area nearby', 'wildfire smoke region', 'high pollen area'];
+const ENV_TOXINS = ['mold exposure', 'heavy metals (lead/mercury)', 'pesticide exposure', 'plastic containers for food', 'non-stick cookware (PFAS)', 'conventional cleaning products', 'new car/furniture off-gassing', 'amalgam dental fillings', 'BPA/phthalate exposure', 'organic food mostly'];
+const ENV_BUILDING = ['new construction (<5yr)', 'old building (pre-1970)', 'concrete/steel', 'wood frame', 'natural materials', 'carpet (VOCs)', 'hardwood/tile floors'];
 
 // Optimal ranges — evidence-based "ideal" bands from mortality meta-analyses,
 // longevity research (Attia, Patrick, Levine), and functional medicine (Weatherby/OptimalDX).
@@ -407,7 +432,7 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null };
+let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
@@ -732,6 +757,15 @@ function openSettingsModal() {
       </div>
     </div>
 
+    <div class="settings-section">
+      <label class="settings-label">Location <span style="font-weight:400;color:var(--text-muted);font-size:11px">(for latitude / circadian context)</span></label>
+      <div class="loc-inputs">
+        <input class="ctx-note-input" id="loc-country" placeholder="Country" value="${escapeHTML(getProfileLocation().country)}" oninput="updateLocationLat()">
+        <input class="ctx-note-input loc-zip-input" id="loc-zip" placeholder="ZIP / postal code" value="${escapeHTML(getProfileLocation().zip)}" oninput="updateLocationLat()">
+      </div>
+      <div id="loc-lat-display" style="font-size:11px;margin-top:4px"></div>
+    </div>
+
     <div class="settings-group-title">Display</div>
 
     <div class="settings-section">
@@ -779,12 +813,24 @@ function openSettingsModal() {
       <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
     </div>
 
+    <div class="settings-group-title">Interpretive Lens</div>
+
+    <div class="settings-section">
+      <div class="settings-label" style="margin-bottom:6px;color:var(--text-muted);font-size:13px">Name researchers, clinicians, or paradigms whose frameworks the AI should use when interpreting your results.</div>
+      <textarea class="settings-lens-textarea" id="settings-lens-textarea" placeholder="e.g. Peter Attia (longevity), Jack Kruse (quantum biology), Functional Endocrinology framework..." rows="3">${escapeHTML(importedData.interpretiveLens || '')}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="import-btn import-btn-primary" onclick="saveInterpretiveLensFromSettings()">Save</button>
+        ${(importedData.interpretiveLens || '').trim() ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearInterpretiveLensFromSettings()">Clear</button>` : ''}
+      </div>
+    </div>
+
     <div class="settings-group-title">PDF Import Privacy</div>
 
     <div class="settings-section" id="privacy-section">
       ${renderPrivacySection()}
     </div>`;
   overlay.classList.add('show');
+  updateLocationLat();
   initSettingsOllamaCheck();
 }
 
@@ -1172,10 +1218,25 @@ function profileStorageKey(profileId, suffix) {
 }
 
 function migrateProfileData(data) {
-  // Merge circadian + sleep → sleepCircadian (legacy string merge)
-  if (!data.sleepCircadian) {
+  // Migrate sleepCircadian → sleepRest (sleep fields go to sleepRest, circadian items to lightCircadian)
+  if (data.sleepCircadian && !data.sleepRest) {
+    const sc = data.sleepCircadian;
+    if (typeof sc === 'string') {
+      data.sleepRest = sc.trim() ? { duration: null, quality: null, schedule: null, issues: [], note: sc.trim() } : null;
+    } else if (typeof sc === 'object') {
+      const sleepIssues = (sc.issues || []).filter(i => !['blue light blockers', 'morning sunlight'].includes(i));
+      const circadianPractices = (sc.issues || []).filter(i => ['blue light blockers', 'morning sunlight'].includes(i));
+      data.sleepRest = { duration: sc.duration || null, quality: sc.quality || null, schedule: sc.schedule || null, issues: sleepIssues, note: sc.note || '' };
+      if (circadianPractices.length && !data.lightCircadian) {
+        data.lightCircadian = { practices: circadianPractices, timing: null, mealTiming: [], note: '' };
+      }
+    }
+  }
+  delete data.sleepCircadian;
+  // Merge old circadian + sleep strings → sleepRest (very old legacy)
+  if (!data.sleepRest) {
     const parts = [data.circadian, data.sleep].filter(s => s && s.trim());
-    if (parts.length) data.sleepCircadian = parts.join('\n\n');
+    if (parts.length) data.sleepRest = { duration: null, quality: null, schedule: null, issues: [], note: parts.join('\n\n') };
   }
   delete data.circadian;
   delete data.sleep;
@@ -1196,10 +1257,29 @@ function migrateProfileData(data) {
   if (typeof data.exercise === 'string') {
     data.exercise = data.exercise.trim() ? { frequency: null, types: [], intensity: null, dailyMovement: null, note: data.exercise.trim() } : null;
   }
-  if (typeof data.sleepCircadian === 'string') {
-    data.sleepCircadian = data.sleepCircadian.trim() ? { duration: null, quality: null, schedule: null, issues: [], note: data.sleepCircadian.trim() } : null;
+  if (typeof data.sleepRest === 'string') {
+    data.sleepRest = data.sleepRest.trim() ? { duration: null, quality: null, schedule: null, issues: [], note: data.sleepRest.trim() } : null;
+  }
+  // Migrate old lightCircadian format (had practices/timing) → new format (amLight/daytime/uvExposure/evening/cold/grounding/latitude)
+  if (data.lightCircadian && data.lightCircadian.timing && !data.lightCircadian.amLight) {
+    const old = data.lightCircadian;
+    const newLc = { amLight: null, daytime: null, uvExposure: null, evening: [], cold: null, grounding: null, latitude: null, mealTiming: old.mealTiming || [], note: old.note || '' };
+    if (old.practices && old.practices.length) {
+      for (const p of old.practices) {
+        if (p === 'morning sunlight') newLc.amLight = 'morning outdoor (after sunrise)';
+        else if (p === 'blue light blockers') newLc.evening.push('blue blockers after sunset');
+        else if (p === 'no screens before bed') newLc.evening.push('no screens 1-2h before bed');
+        else if (p === 'red light therapy') { if (!newLc.note) newLc.note = p; else newLc.note += ', ' + p; }
+        else if (p === 'UVB exposure') newLc.uvExposure = 'UVB lamp';
+        else if (p === 'light therapy lamp') { if (!newLc.amLight) newLc.amLight = 'light therapy lamp'; }
+        else if (p === 'blackout curtains') { /* moved to sleep environment */ }
+      }
+    }
+    data.lightCircadian = newLc;
   }
   // Initialize new fields if missing
+  if (data.sleepRest === undefined) data.sleepRest = null;
+  if (data.lightCircadian === undefined) data.lightCircadian = null;
   if (data.stress === undefined) data.stress = null;
   if (data.loveLife === undefined) data.loveLife = null;
   if (data.environment === undefined) data.environment = null;
@@ -1308,6 +1388,64 @@ function setProfileDob(profileId, dob) {
   const profiles = getProfiles();
   const p = profiles.find(p => p.id === profileId);
   if (p) { p.dob = dob || null; saveProfiles(profiles); }
+}
+
+function getProfileLocation(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === (profileId || currentProfile));
+  return (p && p.location) || { country: '', zip: '' };
+}
+
+function setProfileLocation(profileId, country, zip) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === (profileId || currentProfile));
+  if (p) { p.location = { country: (country || '').trim(), zip: (zip || '').trim() }; saveProfiles(profiles); }
+}
+
+const COUNTRY_LATITUDES = {
+  // Tropical (<25°)
+  'singapore':0,'malaysia':0,'indonesia':0,'thailand':0,'philippines':0,'colombia':0,'ecuador':0,'peru':0,'venezuela':0,'kenya':0,'nigeria':0,'ghana':0,'cameroon':0,'tanzania':0,'uganda':0,'costa rica':0,'panama':0,'cuba':0,'dominican republic':0,'jamaica':0,'puerto rico':0,'hawaii':0,'india':0,'vietnam':0,'myanmar':0,'cambodia':0,'sri lanka':0,'bangladesh':0,'brazil':0,
+  // Subtropical (25-40°)
+  'mexico':1,'egypt':1,'morocco':1,'tunisia':1,'israel':1,'jordan':1,'saudi arabia':1,'uae':1,'iran':1,'pakistan':1,'nepal':1,'japan':1,'south korea':1,'taiwan':1,'china':1,'australia':1,'new zealand':1,'south africa':1,'argentina':1,'chile':1,'greece':1,'turkey':1,'spain':1,'portugal':1,'italy':1,'croatia':1,'serbia':1,'bulgaria':1,'romania':1,'cyprus':1,'malta':1,
+  // Temperate (40-50°)
+  'france':2,'austria':2,'switzerland':2,'hungary':2,'slovenia':2,'slovakia':2,'usa':2,'united states':2,'canada':2,
+  // Northern (50-60°)
+  'uk':3,'united kingdom':3,'ireland':3,'germany':3,'netherlands':3,'belgium':3,'luxembourg':3,'poland':3,'czech republic':3,'czechia':3,'denmark':3,'lithuania':3,'latvia':3,'estonia':3,'belarus':3,'ukraine':3,'russia':3,
+  // Subarctic (>60°)
+  'sweden':4,'norway':4,'finland':4,'iceland':4,'alaska':4,'greenland':4
+};
+const LATITUDE_BANDS = ['<25° latitude (tropical)', '25-40° (subtropical)', '40-50° (temperate)', '50-60° (northern)', '>60° (subarctic)'];
+
+function updateLocationLat() {
+  const country = (document.getElementById('loc-country') || {}).value || '';
+  const zip = (document.getElementById('loc-zip') || {}).value || '';
+  setProfileLocation(currentProfile, country, zip);
+  const lat = getLatitudeFromLocation();
+  const el = document.getElementById('loc-lat-display');
+  if (el) {
+    if (lat) {
+      el.style.color = 'var(--green)';
+      el.textContent = '✓ Detected: ' + lat;
+    } else if (country.trim()) {
+      el.style.color = 'var(--text-muted)';
+      el.textContent = 'Country not recognized — try the full name';
+    } else {
+      el.textContent = '';
+    }
+  }
+}
+
+function getLatitudeFromLocation() {
+  const loc = getProfileLocation();
+  if (!loc.country) return null;
+  const c = loc.country.toLowerCase().trim();
+  const band = COUNTRY_LATITUDES[c];
+  if (band !== undefined) return LATITUDE_BANDS[band];
+  // Partial match
+  for (const [key, val] of Object.entries(COUNTRY_LATITUDES)) {
+    if (c.includes(key) || key.includes(c)) return LATITUDE_BANDS[val];
+  }
+  return null;
 }
 
 function switchDob(dob) {
@@ -1841,6 +1979,9 @@ function showDashboard(data) {
   // ── 3. Focus Card ──
   if (hasAIProvider()) html += renderFocusCard();
 
+  // ── 3b. Interpretive Lens Indicator ──
+  html += renderLensIndicator();
+
   // ── 4. Profile Context Cards ──
   html += renderProfileContextCards();
 
@@ -2149,7 +2290,25 @@ function getSleepSummary(d) {
   if (d.duration) parts.push(d.duration);
   if (d.quality) parts.push(d.quality + ' quality');
   if (d.schedule) parts.push(d.schedule);
+  if (d.roomTemp) parts.push(d.roomTemp);
   if (d.issues && d.issues.length) parts.push(d.issues.join(', '));
+  if (d.environment && d.environment.length) parts.push(d.environment.join(', '));
+  if (d.practices && d.practices.length) parts.push(d.practices.join(', '));
+  if (d.note) parts.push(d.note);
+  return parts.join(', ');
+}
+function getLightCircadianSummary(d) {
+  if (!d) return '';
+  const parts = [];
+  if (d.amLight) parts.push(d.amLight);
+  if (d.daytime) parts.push(d.daytime);
+  if (d.uvExposure) parts.push(d.uvExposure);
+  if (d.evening && d.evening.length) parts.push(d.evening.join(', '));
+  if (d.screenTime) parts.push(d.screenTime + ' screens');
+  if (d.techEnv && d.techEnv.length) parts.push(d.techEnv.join(', '));
+  if (d.cold) parts.push(d.cold);
+  if (d.grounding) parts.push(d.grounding);
+  if (d.mealTiming && d.mealTiming.length) parts.push(d.mealTiming.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -2166,7 +2325,11 @@ function getLoveLifeSummary(d) {
   if (!d) return '';
   const parts = [];
   if (d.status) parts.push(d.status);
+  if (d.relationship) parts.push(d.relationship);
   if (d.satisfaction) parts.push(d.satisfaction);
+  if (d.libido) parts.push(d.libido + ' libido');
+  if (d.frequency) parts.push(d.frequency);
+  if (d.concerns && d.concerns.length) parts.push(d.concerns.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -2175,7 +2338,10 @@ function getEnvironmentSummary(d) {
   const parts = [];
   if (d.setting) parts.push(d.setting);
   if (d.climate) parts.push(d.climate);
-  if (d.concerns && d.concerns.length) parts.push(d.concerns.join(', '));
+  if (d.water) parts.push(d.water);
+  if (d.emf && d.emf.length) parts.push(d.emf.length + ' EMF source' + (d.emf.length > 1 ? 's' : ''));
+  if (d.emfMitigation && d.emfMitigation.length) parts.push(d.emfMitigation.length + ' EMF mitigation');
+  if (d.toxins && d.toxins.length) parts.push(d.toxins.length + ' toxin exposure' + (d.toxins.length > 1 ? 's' : ''));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -2198,14 +2364,14 @@ function renderProfileContextCards() {
     { key: 'diagnoses', emoji: '\uD83C\uDFE5', label: 'Medical Conditions', editor: 'openDiagnosesEditor', tooltip: 'Diagnoses directly affect how lab markers should be interpreted — what\'s abnormal for most may be expected for you.', placeholder: 'Add medical conditions', summaryFn: () => getConditionsSummary(importedData.diagnoses) },
     { key: 'diet', emoji: '\uD83E\uDD57', label: 'Diet', editor: 'openDietEditor', tooltip: 'Nutrition has a major impact on blood markers — keto raises LDL, vegetarian diets affect B12 and iron.', placeholder: 'Describe your diet', summaryFn: () => getDietSummary(importedData.diet) },
     { key: 'exercise', emoji: '\uD83C\uDFCB\uFE0F', label: 'Exercise', editor: 'openExerciseEditor', tooltip: 'Training type and intensity affect CK, liver enzymes, cholesterol, and inflammatory markers.', placeholder: 'Describe your routine', summaryFn: () => getExerciseSummary(importedData.exercise) },
-    { key: 'sleepCircadian', emoji: '\uD83D\uDE34', label: 'Sleep & Circadian', editor: 'openSleepCircadianEditor', tooltip: 'Sleep quality and circadian rhythm affect inflammation, insulin sensitivity, cortisol, and immune function.', placeholder: 'Describe your sleep', summaryFn: () => getSleepSummary(importedData.sleepCircadian) },
+    { key: 'sleepRest', emoji: '\uD83D\uDE34', label: 'Sleep & Rest', editor: 'openSleepRestEditor', tooltip: 'Sleep duration and quality directly affect inflammation, insulin sensitivity, cortisol, and immune function.', placeholder: 'Describe your sleep', summaryFn: () => getSleepSummary(importedData.sleepRest) },
+    { key: 'lightCircadian', emoji: '\u2600\uFE0F', label: 'Light & Circadian', editor: 'openLightCircadianEditor', tooltip: 'Light exposure timing, meal timing, and circadian rhythm drive hormone cycles, melatonin, cortisol, and metabolic health.', placeholder: 'Describe your light habits', summaryFn: () => getLightCircadianSummary(importedData.lightCircadian) },
     { key: 'stress', emoji: '\uD83E\uDDE0', label: 'Stress', editor: 'openStressEditor', tooltip: 'Chronic stress elevates cortisol, disrupts thyroid function, raises inflammation, and impairs immune response.', placeholder: 'Rate your stress level', summaryFn: () => getStressSummary(importedData.stress) },
-    { key: 'loveLife', emoji: '\u2764\uFE0F', label: 'Love Life', editor: 'openLoveLifeEditor', tooltip: 'Relationship status and satisfaction affect cortisol, oxytocin, immune function, and cardiovascular health.', placeholder: 'Share your status', summaryFn: () => getLoveLifeSummary(importedData.loveLife) },
-    { key: 'environment', emoji: '\uD83C\uDF0D', label: 'Environment', editor: 'openEnvironmentEditor', tooltip: 'Environmental exposures (pollution, mold, heavy metals) directly impact inflammatory markers, liver function, and oxidative stress.', placeholder: 'Describe your environment', summaryFn: () => getEnvironmentSummary(importedData.environment) },
-    { key: 'interpretiveLens', emoji: '\uD83D\uDD2C', label: 'Interpretive Lens', editor: 'openInterpretiveLensEditor', tooltip: 'Name experts and paradigms to frame AI interpretation — e.g. longevity medicine, functional endocrinology.', placeholder: 'List experts & frameworks', summaryFn: () => { const t = importedData.interpretiveLens || ''; return t.length > 120 ? t.slice(0, 120) + '...' : t; } },
+    { key: 'loveLife', emoji: '\u2764\uFE0F', label: 'Love Life & Relationships', editor: 'openLoveLifeEditor', tooltip: 'Sexual health and relationships directly affect hormones (testosterone, estrogen, oxytocin, cortisol), immune function, and cardiovascular markers.', placeholder: 'Share your status', summaryFn: () => getLoveLifeSummary(importedData.loveLife) },
+    { key: 'environment', emoji: '\uD83C\uDF0D', label: 'Environment', editor: 'openEnvironmentEditor', tooltip: 'Water quality, EMF, light environment, air, and toxin exposure shape mitochondrial function, inflammation, hormones, and oxidative stress.', placeholder: 'Describe your environment', summaryFn: () => getEnvironmentSummary(importedData.environment) },
   ];
   const filledCount = cardDefs.filter(c => isContextFilled(c.key)).length;
-  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/9 filled)</span></div>`;
+  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span></div>`;
   html += `<div class="profile-context-cards">`;
   for (const c of cardDefs) {
     const filled = isContextFilled(c.key);
@@ -2248,7 +2414,8 @@ function getContextHealthFingerprint() {
   const parts = [
     JSON.stringify((importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length)),
     JSON.stringify(importedData.diagnoses), JSON.stringify(importedData.diet),
-    JSON.stringify(importedData.exercise), JSON.stringify(importedData.sleepCircadian),
+    JSON.stringify(importedData.exercise), JSON.stringify(importedData.sleepRest),
+    JSON.stringify(importedData.lightCircadian),
     JSON.stringify(importedData.stress), JSON.stringify(importedData.loveLife),
     JSON.stringify(importedData.environment), importedData.interpretiveLens || '',
     JSON.stringify(importedData.healthGoals || []),
@@ -2265,7 +2432,7 @@ function applyDotColor(key, color) {
 
 async function loadContextHealthDots() {
   if (!hasAIProvider()) return;
-  const keys = ['healthGoals', 'diagnoses', 'diet', 'exercise', 'sleepCircadian', 'stress', 'loveLife', 'environment', 'interpretiveLens'];
+  const keys = ['healthGoals', 'diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment'];
   const fingerprint = getContextHealthFingerprint();
   const cacheKey = profileStorageKey(currentProfile, 'contextHealth');
   try {
@@ -2286,7 +2453,7 @@ async function loadContextHealthDots() {
     return;
   }
   const prompt = `Based on this person's lab data and profile context, rate each profile area's health impact as a single color dot. Return ONLY valid JSON with these keys and values of "green" (good/healthy), "yellow" (needs attention), "red" (concerning), or "gray" (not enough info):
-{"healthGoals","diagnoses","diet","exercise","sleepCircadian","stress","loveLife","environment","interpretiveLens"}
+{"healthGoals","diagnoses","diet","exercise","sleepRest","lightCircadian","stress","loveLife","environment","interpretiveLens"}
 
 Consider: does each area positively or negatively impact their lab results? Green = area supports health, Yellow = could be improved, Red = likely hurting their labs. If the area has no data, use "gray".`;
   try {
@@ -4712,41 +4879,100 @@ function clearDiet() {
 }
 
 // ═══════════════════════════════════════════════
-// SLEEP & CIRCADIAN
+// SLEEP & REST
 // ═══════════════════════════════════════════════
-function openSleepCircadianEditor() {
+function openSleepRestEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.sleepCircadian || { duration: null, quality: null, schedule: null, issues: [], note: '' };
+  const current = importedData.sleepRest || { duration: null, quality: null, schedule: null, roomTemp: null, issues: [], environment: [], practices: [], note: '' };
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Sleep & Circadian</h3>
-    <div class="modal-unit">Describe your sleep habits. The AI considers these when interpreting your labs.</div>
+    <h3>Sleep & Rest</h3>
+    <div class="modal-unit">Sleep is when the body repairs. Duration, temperature, darkness, and EMF exposure all affect hormones, inflammation, and recovery.</div>
     ${renderSelectField('Duration', 'sleep-duration', SLEEP_DURATIONS, current.duration)}
     ${renderSelectField('Quality', 'sleep-quality', SLEEP_QUALITY, current.quality)}
     ${renderSelectField('Schedule', 'sleep-schedule', SLEEP_SCHEDULE, current.schedule)}
-    ${renderTagsField('Issues & habits', 'sleep-issues', SLEEP_ISSUES, current.issues)}
+    ${renderSelectField('Room temperature', 'sleep-temp', SLEEP_ROOM_TEMP, current.roomTemp)}
+    ${renderTagsField('Sleep issues', 'sleep-issues', SLEEP_ISSUES, current.issues)}
+    <div class="ctx-editor-divider"></div>
+    ${renderTagsField('Sleep environment', 'sleep-env', SLEEP_ENVIRONMENT, current.environment)}
+    ${renderTagsField('Sleep practices', 'sleep-practices', SLEEP_PRACTICES, current.practices)}
     ${renderNoteField(current.note)}
-    ${contextEditorActions(importedData.sleepCircadian != null, 'saveSleepCircadian', 'clearSleepCircadian')}`;
+    ${contextEditorActions(importedData.sleepRest != null, 'saveSleepRest', 'clearSleepRest')}`;
   overlay.classList.add("show");
 }
 
-function saveSleepCircadian() {
+function saveSleepRest() {
   const duration = getSelectedOption('sleep-duration');
   const quality = getSelectedOption('sleep-quality');
   const schedule = getSelectedOption('sleep-schedule');
+  const roomTemp = getSelectedOption('sleep-temp');
   const issues = getSelectedTags('sleep-issues');
+  const environment = getSelectedTags('sleep-env');
+  const practices = getSelectedTags('sleep-practices');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!duration && !quality && !schedule && issues.length === 0 && !note.trim()) {
-    importedData.sleepCircadian = null;
+  if (!duration && !quality && !schedule && !roomTemp && issues.length === 0 && environment.length === 0 && practices.length === 0 && !note.trim()) {
+    importedData.sleepRest = null;
   } else {
-    importedData.sleepCircadian = { duration, quality, schedule, issues, note: note.trim() };
+    importedData.sleepRest = { duration, quality, schedule, roomTemp, issues, environment, practices, note: note.trim() };
   }
-  saveAndRefresh('Sleep & circadian saved');
+  saveAndRefresh('Sleep saved');
 }
 
-function clearSleepCircadian() {
-  importedData.sleepCircadian = null;
-  saveAndRefresh('Sleep & circadian cleared');
+function clearSleepRest() {
+  importedData.sleepRest = null;
+  saveAndRefresh('Sleep cleared');
+}
+
+// ═══════════════════════════════════════════════
+// LIGHT & CIRCADIAN
+// ═══════════════════════════════════════════════
+function openLightCircadianEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const current = importedData.lightCircadian || { amLight: null, daytime: null, uvExposure: null, evening: [], screenTime: null, techEnv: [], cold: null, grounding: null, mealTiming: [], note: '' };
+  const lat = getLatitudeFromLocation();
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Light & Circadian</h3>
+    <div class="modal-unit">Light is the #1 circadian signal. Morning light sets cortisol, UV drives vitamin D and hormones, cold and grounding affect mitochondrial function.</div>
+    ${renderSelectField('Morning light', 'light-am', LIGHT_AM, current.amLight)}
+    ${renderSelectField('Daytime outdoor exposure', 'light-daytime', LIGHT_DAYTIME, current.daytime)}
+    ${renderSelectField('UV / sun exposure', 'light-uv', LIGHT_UV, current.uvExposure)}
+    ${renderTagsField('Evening light discipline', 'light-evening', LIGHT_EVENING, current.evening)}
+    <div class="ctx-editor-divider"></div>
+    ${renderSelectField('Daily screen time', 'light-screen', LIGHT_SCREEN_TIME, current.screenTime)}
+    ${renderTagsField('Technology environment', 'light-tech', LIGHT_TECH_ENV, current.techEnv)}
+    <div class="ctx-editor-divider"></div>
+    ${renderSelectField('Cold exposure', 'light-cold', LIGHT_COLD, current.cold)}
+    ${renderSelectField('Grounding / earthing', 'light-grounding', LIGHT_GROUNDING, current.grounding)}
+    ${renderTagsField('Meal timing signals', 'light-meal', LIGHT_MEAL_TIMING, current.mealTiming)}
+    ${lat ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">📍 Latitude: <strong style="color:var(--text-primary)">${escapeHTML(lat)}</strong> <span style="font-size:11px">(from Settings → Location)</span></div>` : `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">💡 Set your country in Settings → Profile for automatic latitude detection</div>`}
+    ${renderNoteField(current.note)}
+    ${contextEditorActions(importedData.lightCircadian != null, 'saveLightCircadian', 'clearLightCircadian')}`;
+  overlay.classList.add("show");
+}
+
+function saveLightCircadian() {
+  const amLight = getSelectedOption('light-am');
+  const daytime = getSelectedOption('light-daytime');
+  const uvExposure = getSelectedOption('light-uv');
+  const evening = getSelectedTags('light-evening');
+  const screenTime = getSelectedOption('light-screen');
+  const techEnv = getSelectedTags('light-tech');
+  const cold = getSelectedOption('light-cold');
+  const grounding = getSelectedOption('light-grounding');
+  const mealTiming = getSelectedTags('light-meal');
+  const note = (document.getElementById('ctx-note-input') || {}).value || '';
+  if (!amLight && !daytime && !uvExposure && evening.length === 0 && !screenTime && techEnv.length === 0 && !cold && !grounding && mealTiming.length === 0 && !note.trim()) {
+    importedData.lightCircadian = null;
+  } else {
+    importedData.lightCircadian = { amLight, daytime, uvExposure, evening, screenTime, techEnv, cold, grounding, mealTiming, note: note.trim() };
+  }
+  saveAndRefresh('Light & circadian saved');
+}
+
+function clearLightCircadian() {
+  importedData.lightCircadian = null;
+  saveAndRefresh('Light & circadian cleared');
 }
 
 // ═══════════════════════════════════════════════
@@ -4829,12 +5055,19 @@ function clearStress() {
 function openLoveLifeEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.loveLife || { status: null, satisfaction: null, note: '' };
+  const current = importedData.loveLife || { status: null, satisfaction: null, relationship: null, libido: null, frequency: null, orgasm: null, concerns: [], note: '' };
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Love Life</h3>
-    <div class="modal-unit">Relationship status and satisfaction affect cortisol, oxytocin, immune function, and cardiovascular health.</div>
+    <div class="modal-unit">Sexual health and relationships directly affect hormones (testosterone, estrogen, oxytocin, cortisol), immune function, and cardiovascular markers.</div>
     ${renderSelectField('Relationship status', 'love-status', LOVE_STATUS, current.status)}
-    ${renderSelectField('Satisfaction', 'love-satisfaction', LOVE_SATISFACTION, current.satisfaction)}
+    ${renderSelectField('Relationship quality', 'love-relationship', LOVE_RELATIONSHIP, current.relationship)}
+    ${renderSelectField('Overall satisfaction', 'love-satisfaction', LOVE_SATISFACTION, current.satisfaction)}
+    <div class="ctx-editor-divider"></div>
+    ${renderSelectField('Libido', 'love-libido', LOVE_LIBIDO, current.libido)}
+    ${renderSelectField('Sexual frequency', 'love-frequency', LOVE_FREQUENCY, current.frequency)}
+    ${renderSelectField('Orgasm', 'love-orgasm', LOVE_ORGASM, current.orgasm)}
+    <div class="ctx-editor-divider"></div>
+    ${renderTagsField('Concerns', 'love-concerns', LOVE_CONCERNS, current.concerns)}
     ${renderNoteField(current.note)}
     ${contextEditorActions(importedData.loveLife != null, 'saveLoveLife', 'clearLoveLife')}`;
   overlay.classList.add("show");
@@ -4842,12 +5075,17 @@ function openLoveLifeEditor() {
 
 function saveLoveLife() {
   const status = getSelectedOption('love-status');
+  const relationship = getSelectedOption('love-relationship');
   const satisfaction = getSelectedOption('love-satisfaction');
+  const libido = getSelectedOption('love-libido');
+  const frequency = getSelectedOption('love-frequency');
+  const orgasm = getSelectedOption('love-orgasm');
+  const concerns = getSelectedTags('love-concerns');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!status && !satisfaction && !note.trim()) {
+  if (!status && !relationship && !satisfaction && !libido && !frequency && !orgasm && concerns.length === 0 && !note.trim()) {
     importedData.loveLife = null;
   } else {
-    importedData.loveLife = { status, satisfaction, note: note.trim() };
+    importedData.loveLife = { status, relationship, satisfaction, libido, frequency, orgasm, concerns, note: note.trim() };
   }
   saveAndRefresh('Love life saved');
 }
@@ -4863,13 +5101,24 @@ function clearLoveLife() {
 function openEnvironmentEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.environment || { setting: null, climate: null, concerns: [], note: '' };
+  const current = importedData.environment || { setting: null, climate: null, water: null, waterConcerns: [], emf: [], emfMitigation: [], homeLight: null, air: [], toxins: [], building: null, note: '' };
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Environment</h3>
-    <div class="modal-unit">Environmental exposures directly impact inflammatory markers, liver function, and oxidative stress.</div>
-    ${renderSelectField('Setting', 'env-setting', ENV_SETTING, current.setting)}
+    <div class="modal-unit">Your environment shapes your biology — water quality, EMF, light, air, and toxin exposure directly impact mitochondria, inflammation, and hormone function.</div>
+    ${renderSelectField('Living setting', 'env-setting', ENV_SETTING, current.setting)}
     ${renderSelectField('Climate', 'env-climate', ENV_CLIMATE, current.climate)}
-    ${renderTagsField('Concerns', 'env-concerns', ENV_CONCERNS, current.concerns)}
+    <div class="ctx-editor-divider"></div>
+    ${renderSelectField('Primary water source', 'env-water', ENV_WATER, current.water)}
+    ${renderTagsField('Water concerns', 'env-water-concerns', ENV_WATER_CONCERNS, current.waterConcerns)}
+    <div class="ctx-editor-divider"></div>
+    ${renderTagsField('EMF exposure', 'env-emf', ENV_EMF, current.emf)}
+    ${renderTagsField('EMF mitigation', 'env-emf-mit', ENV_EMF_MITIGATION, current.emfMitigation)}
+    <div class="ctx-editor-divider"></div>
+    ${renderSelectField('Home/work lighting', 'env-light', ENV_HOME_LIGHT, current.homeLight)}
+    ${renderTagsField('Air quality', 'env-air', ENV_AIR, current.air)}
+    <div class="ctx-editor-divider"></div>
+    ${renderTagsField('Toxin exposure', 'env-toxins', ENV_TOXINS, current.toxins)}
+    ${renderSelectField('Building', 'env-building', ENV_BUILDING, current.building)}
     ${renderNoteField(current.note)}
     ${contextEditorActions(importedData.environment != null, 'saveEnvironment', 'clearEnvironment')}`;
   overlay.classList.add("show");
@@ -4878,12 +5127,19 @@ function openEnvironmentEditor() {
 function saveEnvironment() {
   const setting = getSelectedOption('env-setting');
   const climate = getSelectedOption('env-climate');
-  const concerns = getSelectedTags('env-concerns');
+  const water = getSelectedOption('env-water');
+  const waterConcerns = getSelectedTags('env-water-concerns');
+  const emf = getSelectedTags('env-emf');
+  const emfMitigation = getSelectedTags('env-emf-mit');
+  const homeLight = getSelectedOption('env-light');
+  const air = getSelectedTags('env-air');
+  const toxins = getSelectedTags('env-toxins');
+  const building = getSelectedOption('env-building');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!setting && !climate && concerns.length === 0 && !note.trim()) {
+  if (!setting && !climate && !water && waterConcerns.length === 0 && emf.length === 0 && emfMitigation.length === 0 && !homeLight && air.length === 0 && toxins.length === 0 && !building && !note.trim()) {
     importedData.environment = null;
   } else {
-    importedData.environment = { setting, climate, concerns, note: note.trim() };
+    importedData.environment = { setting, climate, water, waterConcerns, emf, emfMitigation, homeLight, air, toxins, building, note: note.trim() };
   }
   saveAndRefresh('Environment saved');
 }
@@ -5014,6 +5270,42 @@ function clearInterpretiveLens() {
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showNotification('Interpretive lens cleared', 'info');
+}
+
+function saveInterpretiveLensFromSettings() {
+  const ta = document.getElementById('settings-lens-textarea');
+  const text = ta ? ta.value.trim() : '';
+  importedData.interpretiveLens = text || '';
+  saveImportedData();
+  showNotification(text ? 'Interpretive lens saved' : 'Interpretive lens cleared', 'success');
+  // Update the dashboard lens indicator if visible
+  const indicator = document.getElementById('lens-indicator');
+  if (indicator) {
+    indicator.innerHTML = renderLensIndicatorContent();
+  }
+}
+
+function clearInterpretiveLensFromSettings() {
+  importedData.interpretiveLens = '';
+  saveImportedData();
+  const ta = document.getElementById('settings-lens-textarea');
+  if (ta) ta.value = '';
+  showNotification('Interpretive lens cleared', 'info');
+  const indicator = document.getElementById('lens-indicator');
+  if (indicator) {
+    indicator.innerHTML = renderLensIndicatorContent();
+  }
+}
+
+function renderLensIndicatorContent() {
+  const lens = (importedData.interpretiveLens || '').trim();
+  if (!lens) return `<span class="lens-indicator-icon">&#128300;</span><span class="lens-indicator-text lens-indicator-empty">No interpretive lens set — <span class="lens-indicator-link">configure in Settings</span></span>`;
+  const display = lens.length > 100 ? lens.slice(0, 100) + '…' : lens;
+  return `<span class="lens-indicator-icon">&#128300;</span><span class="lens-indicator-text">${escapeHTML(display)}</span>`;
+}
+
+function renderLensIndicator() {
+  return `<div class="lens-indicator" id="lens-indicator" onclick="openSettingsModal()" title="Interpretive Lens — click to edit in Settings">${renderLensIndicatorContent()}</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -5651,7 +5943,8 @@ function exportPDFReport() {
   if (importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: importedData.diagnoses });
   if (importedData.diet) contextSections.push({ title: 'Diet', text: importedData.diet });
   if (importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: importedData.exercise });
-  if (importedData.sleepCircadian) contextSections.push({ title: 'Sleep & Circadian', text: importedData.sleepCircadian });
+  if (importedData.sleepRest) contextSections.push({ title: 'Sleep & Rest', text: importedData.sleepRest });
+  if (importedData.lightCircadian) contextSections.push({ title: 'Light & Circadian', text: importedData.lightCircadian });
   if (importedData.interpretiveLens) contextSections.push({ title: 'Interpretive Lens', text: importedData.interpretiveLens });
   const hg = importedData.healthGoals || [];
   if (hg.length) {
@@ -5877,7 +6170,8 @@ function exportDataJSON() {
   const diagnoses = importedData.diagnoses || null;
   const diet = importedData.diet || null;
   const exercise = importedData.exercise || null;
-  const sleepCircadian = importedData.sleepCircadian || null;
+  const sleepRest = importedData.sleepRest || null;
+  const lightCircadian = importedData.lightCircadian || null;
   const stress = importedData.stress || null;
   const loveLife = importedData.loveLife || null;
   const environment = importedData.environment || null;
@@ -5887,7 +6181,7 @@ function exportDataJSON() {
   const supplements = importedData.supplements || [];
   const healthGoals = importedData.healthGoals || [];
   const menstrualCycle = importedData.menstrualCycle || null;
-  const exportObj = { version: 2, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, exercise, sleepCircadian, stress, loveLife, environment, interpretiveLens, contextNotes, healthGoals, customMarkers, menstrualCycle };
+  const exportObj = { version: 2, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, contextNotes, healthGoals, customMarkers, menstrualCycle };
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -5933,7 +6227,7 @@ function importDataJSON(file) {
             diagnoses: { conditions: [], note: val.trim() },
             diet: { type: null, restrictions: [], pattern: null, note: val.trim() },
             exercise: { frequency: null, types: [], intensity: null, dailyMovement: null, note: val.trim() },
-            sleepCircadian: { duration: null, quality: null, schedule: null, issues: [], note: val.trim() }
+            sleepRest: { duration: null, quality: null, schedule: null, issues: [], note: val.trim() }
           };
           if (migrations[field]) importedData[field] = migrations[field];
         }
@@ -5941,13 +6235,27 @@ function importDataJSON(file) {
       importContextField('diagnoses');
       importContextField('diet');
       importContextField('exercise');
-      // Import sleep & circadian (new merged field, or migrate old separate fields)
-      if (json.sleepCircadian) {
-        importContextField('sleepCircadian');
+      // Import sleep & light/circadian (handle old sleepCircadian, old separate fields, or new split fields)
+      if (json.sleepRest) {
+        importContextField('sleepRest');
+      } else if (json.sleepCircadian) {
+        // Migrate old sleepCircadian → sleepRest
+        const sc = json.sleepCircadian;
+        if (typeof sc === 'object' && sc !== null) {
+          const sleepIssues = (sc.issues || []).filter(i => !['blue light blockers', 'morning sunlight'].includes(i));
+          const circPractices = (sc.issues || []).filter(i => ['blue light blockers', 'morning sunlight'].includes(i));
+          importedData.sleepRest = { duration: sc.duration || null, quality: sc.quality || null, schedule: sc.schedule || null, issues: sleepIssues, note: sc.note || '' };
+          if (circPractices.length && !importedData.lightCircadian) {
+            importedData.lightCircadian = { practices: circPractices, timing: null, mealTiming: [], note: '' };
+          }
+        } else if (typeof sc === 'string' && sc.trim()) {
+          importedData.sleepRest = { duration: null, quality: null, schedule: null, issues: [], note: sc.trim() };
+        }
       } else {
         const parts = [json.circadian, json.sleep].filter(s => typeof s === 'string' && s.trim());
-        if (parts.length) importedData.sleepCircadian = { duration: null, quality: null, schedule: null, issues: [], note: parts.map(s => s.trim()).join('\n\n') };
+        if (parts.length) importedData.sleepRest = { duration: null, quality: null, schedule: null, issues: [], note: parts.map(s => s.trim()).join('\n\n') };
       }
+      if (json.lightCircadian && typeof json.lightCircadian === 'object') importedData.lightCircadian = json.lightCircadian;
       // Import new context fields (v2 only)
       if (json.stress && typeof json.stress === 'object') importedData.stress = json.stress;
       if (json.loveLife && typeof json.loveLife === 'object') importedData.loveLife = json.loveLife;
@@ -6034,7 +6342,7 @@ function importDataJSON(file) {
 
 function clearAllData() {
   showConfirmDialog('Are you sure you want to clear all imported data? This cannot be undone.', () => {
-    importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, menstrualCycle: null };
+    importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, menstrualCycle: null };
     localStorage.removeItem(profileStorageKey(currentProfile, 'contextHealth'));
     localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
     buildSidebar();
@@ -6249,17 +6557,44 @@ function buildLabContext() {
     if (ex.note) ctx += `Notes: ${ex.note}\n`;
     ctx += '\n';
   }
-  // Sleep & Circadian (structured)
-  const sl = importedData.sleepCircadian;
+  // Sleep & Rest (structured)
+  const sl = importedData.sleepRest;
   if (sl) {
-    ctx += `## Sleep & Circadian\n`;
+    ctx += `## Sleep & Rest\n`;
     const parts = [];
     if (sl.duration) parts.push(`Duration: ${sl.duration}`);
     if (sl.quality) parts.push(`Quality: ${sl.quality}`);
     if (sl.schedule) parts.push(`Schedule: ${sl.schedule}`);
-    if (sl.issues && sl.issues.length) parts.push(`Issues/habits: ${sl.issues.join(', ')}`);
+    if (sl.roomTemp) parts.push(`Room temp: ${sl.roomTemp}`);
+    if (sl.issues && sl.issues.length) parts.push(`Issues: ${sl.issues.join(', ')}`);
+    if (sl.environment && sl.environment.length) parts.push(`Environment: ${sl.environment.join(', ')}`);
+    if (sl.practices && sl.practices.length) parts.push(`Practices: ${sl.practices.join(', ')}`);
     ctx += parts.join('. ') + '\n';
     if (sl.note) ctx += `Notes: ${sl.note}\n`;
+    ctx += '\n';
+  }
+  // Light & Circadian (structured)
+  const lc = importedData.lightCircadian;
+  const autoLat = getLatitudeFromLocation();
+  if (lc || autoLat) {
+    ctx += `## Light & Circadian\n`;
+    const parts = [];
+    if (lc) {
+      if (lc.amLight) parts.push(`Morning light: ${lc.amLight}`);
+      if (lc.daytime) parts.push(`Daytime outdoor: ${lc.daytime}`);
+      if (lc.uvExposure) parts.push(`UV exposure: ${lc.uvExposure}`);
+      if (lc.evening && lc.evening.length) parts.push(`Evening light: ${lc.evening.join(', ')}`);
+      if (lc.screenTime) parts.push(`Daily screen time: ${lc.screenTime}`);
+      if (lc.techEnv && lc.techEnv.length) parts.push(`Tech environment: ${lc.techEnv.join(', ')}`);
+      if (lc.cold) parts.push(`Cold exposure: ${lc.cold}`);
+      if (lc.grounding) parts.push(`Grounding: ${lc.grounding}`);
+      if (lc.mealTiming && lc.mealTiming.length) parts.push(`Meal timing: ${lc.mealTiming.join(', ')}`);
+    }
+    if (autoLat) parts.push(`Latitude: ${autoLat}`);
+    const loc = getProfileLocation();
+    if (loc.country) parts.push(`Location: ${loc.country}${loc.zip ? ' ' + loc.zip : ''}`);
+    ctx += parts.join('. ') + '\n';
+    if (lc && lc.note) ctx += `Notes: ${lc.note}\n`;
     ctx += '\n';
   }
   // Stress (structured)
@@ -6277,10 +6612,15 @@ function buildLabContext() {
   // Love Life (structured)
   const ll = importedData.loveLife;
   if (ll) {
-    ctx += `## Love Life\n`;
+    ctx += `## Love Life & Sexual Health\n`;
     const parts = [];
     if (ll.status) parts.push(`Status: ${ll.status}`);
+    if (ll.relationship) parts.push(`Relationship quality: ${ll.relationship}`);
     if (ll.satisfaction) parts.push(`Satisfaction: ${ll.satisfaction}`);
+    if (ll.libido) parts.push(`Libido: ${ll.libido}`);
+    if (ll.frequency) parts.push(`Sexual frequency: ${ll.frequency}`);
+    if (ll.orgasm) parts.push(`Orgasm: ${ll.orgasm}`);
+    if (ll.concerns && ll.concerns.length) parts.push(`Concerns: ${ll.concerns.join(', ')}`);
     ctx += parts.join('. ') + '\n';
     if (ll.note) ctx += `Notes: ${ll.note}\n`;
     ctx += '\n';
@@ -6292,7 +6632,14 @@ function buildLabContext() {
     const parts = [];
     if (env.setting) parts.push(`Setting: ${env.setting}`);
     if (env.climate) parts.push(`Climate: ${env.climate}`);
-    if (env.concerns && env.concerns.length) parts.push(`Concerns: ${env.concerns.join(', ')}`);
+    if (env.water) parts.push(`Water: ${env.water}`);
+    if (env.waterConcerns && env.waterConcerns.length) parts.push(`Water concerns: ${env.waterConcerns.join(', ')}`);
+    if (env.emf && env.emf.length) parts.push(`EMF exposure: ${env.emf.join(', ')}`);
+    if (env.emfMitigation && env.emfMitigation.length) parts.push(`EMF mitigation: ${env.emfMitigation.join(', ')}`);
+    if (env.homeLight) parts.push(`Home lighting: ${env.homeLight}`);
+    if (env.air && env.air.length) parts.push(`Air quality: ${env.air.join(', ')}`);
+    if (env.toxins && env.toxins.length) parts.push(`Toxin exposure: ${env.toxins.join(', ')}`);
+    if (env.building) parts.push(`Building: ${env.building}`);
     ctx += parts.join('. ') + '\n';
     if (env.note) ctx += `Notes: ${env.note}\n`;
     ctx += '\n';
