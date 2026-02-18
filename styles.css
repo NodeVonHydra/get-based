@@ -674,11 +674,28 @@ body {
   background: linear-gradient(90deg, var(--text-muted) 25%, var(--border) 50%, var(--text-muted) 75%);
   background-size: 200% 100%; animation: shimmer 1.5s infinite;
 }
+/* Context editor field groups */
+.ctx-field-group { margin-bottom: 16px; }
+.ctx-field-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 8px; display: block;
+}
+/* Button-group selector (replaces native <select>) */
+.ctx-btn-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.ctx-btn-option {
+  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
+}
+.ctx-btn-option:hover { border-color: var(--accent); color: var(--accent); }
+.ctx-btn-option.active {
+  background: var(--accent-gradient); border-color: transparent; color: white; font-weight: 600;
+}
 /* Toggle tag buttons for multi-select */
 .ctx-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .ctx-tag {
   background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary);
-  font-size: 12px; padding: 4px 12px; border-radius: 16px; cursor: pointer;
+  font-size: 12px; padding: 6px 14px; border-radius: 20px; cursor: pointer;
   font-family: inherit; transition: all 0.15s; white-space: nowrap;
 }
 .ctx-tag:hover { border-color: var(--accent); color: var(--accent); }
@@ -689,26 +706,46 @@ body {
 .ctx-autocomplete-wrapper { position: relative; flex: 1; }
 .ctx-suggestions {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  max-height: 200px; overflow-y: auto; box-shadow: var(--shadow);
+  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  max-height: 200px; overflow-y: auto; box-shadow: var(--shadow-lg);
 }
 .ctx-suggestion-item {
-  padding: 8px 12px; font-size: 13px; color: var(--text-secondary); cursor: pointer;
+  padding: 8px 14px; font-size: 13px; color: var(--text-secondary); cursor: pointer;
+  transition: all 0.1s;
 }
 .ctx-suggestion-item:hover { background: var(--bg-hover); color: var(--text-primary); }
 /* Condition list in editor */
-.ctx-conditions-list { margin-bottom: 12px; }
+.ctx-conditions-list { margin-bottom: 16px; }
 .ctx-condition-item {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  margin-bottom: 4px; font-size: 13px;
+  margin-bottom: 6px; font-size: 13px; transition: border-color 0.15s;
 }
-.ctx-condition-name { color: var(--text-primary); flex: 1; min-width: 0; }
+.ctx-condition-item:hover { border-color: var(--text-muted); }
+.ctx-condition-name { color: var(--text-primary); flex: 1; min-width: 0; font-weight: 500; }
 .ctx-condition-since { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
 .ctx-add-condition {
-  display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px;
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;
 }
 .ctx-add-condition .supp-form-field { flex: 1; min-width: 120px; }
+/* Context editor note input */
+.ctx-note-input {
+  width: 100%; padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 13px; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.ctx-note-input:focus { border-color: var(--accent); outline: none; }
+.ctx-note-input::placeholder { color: var(--text-muted); }
+/* Context editor action bar */
+.ctx-editor-actions {
+  display: flex; gap: 8px; align-items: center; margin-top: 20px;
+  padding-top: 16px; border-top: 1px solid var(--border);
+}
+/* Context editor modal section divider */
+.ctx-editor-divider {
+  height: 1px; background: var(--border); margin: 16px 0;
+}
 /* Additional Notes textarea */
 .ctx-notes-section { margin-top: 8px; margin-bottom: 16px; }
 .ctx-notes-textarea {

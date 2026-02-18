@@ -4440,15 +4440,27 @@ function deleteNote(idx) {
 // CONTEXT CARD EDITOR HELPERS
 // ═══════════════════════════════════════════════
 function renderSelectField(label, id, options, current) {
-  return `<div class="supp-form-row"><label class="supp-form-label">${label}</label>
-    <select class="supp-form-field" id="${id}">
-      <option value="">— Select —</option>
-      ${options.map(o => `<option value="${escapeHTML(o)}"${current === o ? ' selected' : ''}>${escapeHTML(o)}</option>`).join('')}
-    </select></div>`;
+  return `<div class="ctx-field-group"><label class="ctx-field-label">${label}</label>
+    <div class="ctx-btn-group" id="${id}">
+      ${options.map(o => `<button type="button" class="ctx-btn-option${current === o ? ' active' : ''}" onclick="selectCtxOption(this,'${id}')">${escapeHTML(o)}</button>`).join('')}
+    </div></div>`;
+}
+function selectCtxOption(btn, groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const wasActive = btn.classList.contains('active');
+  group.querySelectorAll('.ctx-btn-option').forEach(b => b.classList.remove('active'));
+  if (!wasActive) btn.classList.add('active');
+}
+function getSelectedOption(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return null;
+  const active = group.querySelector('.ctx-btn-option.active');
+  return active ? active.textContent : null;
 }
 function renderTagsField(label, id, options, selected) {
   const sel = selected || [];
-  return `<div class="supp-form-row"><label class="supp-form-label">${label}</label>
+  return `<div class="ctx-field-group"><label class="ctx-field-label">${label}</label>
     <div class="ctx-tags" id="${id}">
       ${options.map(o => `<button type="button" class="ctx-tag${sel.includes(o) ? ' active' : ''}" onclick="toggleCtxTag(this)">${escapeHTML(o)}</button>`).join('')}
     </div></div>`;
@@ -4460,11 +4472,11 @@ function getSelectedTags(containerId) {
   return Array.from(el.querySelectorAll('.ctx-tag.active')).map(b => b.textContent);
 }
 function renderNoteField(value) {
-  return `<div class="supp-form-row"><label class="supp-form-label">Notes</label>
-    <input type="text" class="supp-form-field" id="ctx-note-input" placeholder="Anything else..." value="${escapeHTML(value || '')}"></div>`;
+  return `<div class="ctx-field-group"><label class="ctx-field-label">Notes</label>
+    <input type="text" class="ctx-note-input" id="ctx-note-input" placeholder="Anything else..." value="${escapeHTML(value || '')}"></div>`;
 }
 function contextEditorActions(hasCurrent, saveFn, clearFn) {
-  return `<div class="note-editor-actions">
+  return `<div class="ctx-editor-actions">
     <button class="import-btn import-btn-primary" onclick="${saveFn}()">Save</button>
     <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
     ${hasCurrent ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="${clearFn}()">Clear</button>` : ''}
@@ -4507,18 +4519,20 @@ function renderDiagnosesModal(modal, current) {
     }
     html += `</div>`;
   }
-  html += `<div class="ctx-add-condition">
-    <div class="ctx-autocomplete-wrapper">
-      <input type="text" class="supp-form-field" id="condition-input" placeholder="Type condition name..." oninput="filterConditionSuggestions()" onfocus="filterConditionSuggestions()">
-      <div class="ctx-suggestions" id="condition-suggestions"></div>
+  html += `<div class="ctx-field-group"><label class="ctx-field-label">Add condition</label>
+    <div class="ctx-add-condition">
+      <div class="ctx-autocomplete-wrapper">
+        <input type="text" class="ctx-note-input" id="condition-input" placeholder="Type condition name..." oninput="filterConditionSuggestions()" onfocus="filterConditionSuggestions()">
+        <div class="ctx-suggestions" id="condition-suggestions"></div>
+      </div>
+      <input type="text" class="ctx-note-input" id="condition-since" placeholder="Since (e.g. 2020)" style="width:100px">
+      <button class="import-btn import-btn-primary" onclick="addCondition()">Add</button>
     </div>
-    <select class="goals-severity-select" id="condition-severity">
-      <option value="major">Major</option>
-      <option value="mild">Mild</option>
-      <option value="minor">Minor</option>
-    </select>
-    <input type="text" class="supp-form-field" id="condition-since" placeholder="Since (e.g. 2020)" style="width:100px">
-    <button class="import-btn import-btn-primary" onclick="addCondition()">Add</button>
+    <div class="ctx-btn-group" id="condition-severity" style="margin-top:8px">
+      <button type="button" class="ctx-btn-option active" onclick="selectCtxOption(this,'condition-severity')">major</button>
+      <button type="button" class="ctx-btn-option" onclick="selectCtxOption(this,'condition-severity')">mild</button>
+      <button type="button" class="ctx-btn-option" onclick="selectCtxOption(this,'condition-severity')">minor</button>
+    </div>
   </div>`;
   html += renderNoteField(current.note);
   html += contextEditorActions(conditions.length > 0 || current.note, 'saveDiagnoses', 'clearDiagnoses');
@@ -4560,12 +4574,12 @@ function closeSuggestionsOnClickOutside(e) {
 
 function addCondition() {
   const input = document.getElementById('condition-input');
-  const severity = document.getElementById('condition-severity');
+  const severity = getSelectedOption('condition-severity') || 'mild';
   const since = document.getElementById('condition-since');
   const name = input ? input.value.trim() : '';
   if (!name) return;
   if (!importedData.diagnoses) importedData.diagnoses = { conditions: [], note: '' };
-  const cond = { name, severity: severity ? severity.value : 'mild' };
+  const cond = { name, severity };
   if (since && since.value.trim()) cond.since = since.value.trim();
   importedData.diagnoses.conditions.push(cond);
   saveImportedData();
@@ -4613,14 +4627,14 @@ function openDietEditor() {
 }
 
 function saveDiet() {
-  const type = (document.getElementById('diet-type') || {}).value || null;
-  const pattern = (document.getElementById('diet-pattern') || {}).value || null;
+  const type = getSelectedOption('diet-type');
+  const pattern = getSelectedOption('diet-pattern');
   const restrictions = getSelectedTags('diet-restrictions');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!type && !pattern && restrictions.length === 0 && !note.trim()) {
     importedData.diet = null;
   } else {
-    importedData.diet = { type: type || null, restrictions, pattern: pattern || null, note: note.trim() };
+    importedData.diet = { type, restrictions, pattern, note: note.trim() };
   }
   saveAndRefresh('Diet saved');
 }
@@ -4650,15 +4664,15 @@ function openSleepCircadianEditor() {
 }
 
 function saveSleepCircadian() {
-  const duration = (document.getElementById('sleep-duration') || {}).value || null;
-  const quality = (document.getElementById('sleep-quality') || {}).value || null;
-  const schedule = (document.getElementById('sleep-schedule') || {}).value || null;
+  const duration = getSelectedOption('sleep-duration');
+  const quality = getSelectedOption('sleep-quality');
+  const schedule = getSelectedOption('sleep-schedule');
   const issues = getSelectedTags('sleep-issues');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!duration && !quality && !schedule && issues.length === 0 && !note.trim()) {
     importedData.sleepCircadian = null;
   } else {
-    importedData.sleepCircadian = { duration: duration || null, quality: quality || null, schedule: schedule || null, issues, note: note.trim() };
+    importedData.sleepCircadian = { duration, quality, schedule, issues, note: note.trim() };
   }
   saveAndRefresh('Sleep & circadian saved');
 }
@@ -4688,15 +4702,15 @@ function openExerciseEditor() {
 }
 
 function saveExercise() {
-  const frequency = (document.getElementById('exercise-freq') || {}).value || null;
+  const frequency = getSelectedOption('exercise-freq');
   const types = getSelectedTags('exercise-types');
-  const intensity = (document.getElementById('exercise-intensity') || {}).value || null;
-  const dailyMovement = (document.getElementById('exercise-movement') || {}).value || null;
+  const intensity = getSelectedOption('exercise-intensity');
+  const dailyMovement = getSelectedOption('exercise-movement');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!frequency && types.length === 0 && !intensity && !dailyMovement && !note.trim()) {
     importedData.exercise = null;
   } else {
-    importedData.exercise = { frequency: frequency || null, types, intensity: intensity || null, dailyMovement: dailyMovement || null, note: note.trim() };
+    importedData.exercise = { frequency, types, intensity, dailyMovement, note: note.trim() };
   }
   saveAndRefresh('Exercise saved');
 }
@@ -4725,14 +4739,14 @@ function openStressEditor() {
 }
 
 function saveStress() {
-  const level = (document.getElementById('stress-level') || {}).value || null;
+  const level = getSelectedOption('stress-level');
   const sources = getSelectedTags('stress-sources');
   const management = getSelectedTags('stress-mgmt');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!level && sources.length === 0 && management.length === 0 && !note.trim()) {
     importedData.stress = null;
   } else {
-    importedData.stress = { level: level || null, sources, management, note: note.trim() };
+    importedData.stress = { level, sources, management, note: note.trim() };
   }
   saveAndRefresh('Stress profile saved');
 }
@@ -4760,13 +4774,13 @@ function openLoveLifeEditor() {
 }
 
 function saveLoveLife() {
-  const status = (document.getElementById('love-status') || {}).value || null;
-  const satisfaction = (document.getElementById('love-satisfaction') || {}).value || null;
+  const status = getSelectedOption('love-status');
+  const satisfaction = getSelectedOption('love-satisfaction');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!status && !satisfaction && !note.trim()) {
     importedData.loveLife = null;
   } else {
-    importedData.loveLife = { status: status || null, satisfaction: satisfaction || null, note: note.trim() };
+    importedData.loveLife = { status, satisfaction, note: note.trim() };
   }
   saveAndRefresh('Love life saved');
 }
@@ -4795,14 +4809,14 @@ function openEnvironmentEditor() {
 }
 
 function saveEnvironment() {
-  const setting = (document.getElementById('env-setting') || {}).value || null;
-  const climate = (document.getElementById('env-climate') || {}).value || null;
+  const setting = getSelectedOption('env-setting');
+  const climate = getSelectedOption('env-climate');
   const concerns = getSelectedTags('env-concerns');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
   if (!setting && !climate && concerns.length === 0 && !note.trim()) {
     importedData.environment = null;
   } else {
-    importedData.environment = { setting: setting || null, climate: climate || null, concerns, note: note.trim() };
+    importedData.environment = { setting, climate, concerns, note: note.trim() };
   }
   saveAndRefresh('Environment saved');
 }
@@ -4840,16 +4854,18 @@ function renderHealthGoalsModal(modal) {
     }
     html += `</div>`;
   }
-  html += `<div class="goals-add-row">
-    <input type="text" class="goals-text-input" id="goal-text-input" placeholder="e.g. Improve insulin sensitivity, Optimize thyroid function">
-    <select class="goals-severity-select" id="goal-severity-select">
-      <option value="major">Major</option>
-      <option value="mild">Mild</option>
-      <option value="minor">Minor</option>
-    </select>
-    <button class="import-btn import-btn-primary" onclick="addHealthGoal()">Add</button>
+  html += `<div class="ctx-field-group"><label class="ctx-field-label">Add goal</label>
+    <div class="goals-add-row">
+      <input type="text" class="ctx-note-input" id="goal-text-input" placeholder="e.g. Improve insulin sensitivity, Optimize thyroid function" style="flex:1">
+      <button class="import-btn import-btn-primary" onclick="addHealthGoal()">Add</button>
+    </div>
+    <div class="ctx-btn-group" id="goal-severity-select" style="margin-top:8px">
+      <button type="button" class="ctx-btn-option active" onclick="selectCtxOption(this,'goal-severity-select')">major</button>
+      <button type="button" class="ctx-btn-option" onclick="selectCtxOption(this,'goal-severity-select')">mild</button>
+      <button type="button" class="ctx-btn-option" onclick="selectCtxOption(this,'goal-severity-select')">minor</button>
+    </div>
   </div>
-  <div class="note-editor-actions" style="margin-top:16px">
+  <div class="ctx-editor-actions">
     <button class="import-btn import-btn-secondary" onclick="closeModal()">Done</button>
     ${goals.length > 0 ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearHealthGoals()">Clear All</button>` : ''}
   </div>`;
@@ -4865,11 +4881,11 @@ function renderHealthGoalsModal(modal) {
 
 function addHealthGoal() {
   const input = document.getElementById('goal-text-input');
-  const select = document.getElementById('goal-severity-select');
+  const severity = getSelectedOption('goal-severity-select') || 'major';
   const text = input ? input.value.trim() : '';
   if (!text) return;
   if (!importedData.healthGoals) importedData.healthGoals = [];
-  importedData.healthGoals.push({ text, severity: select.value });
+  importedData.healthGoals.push({ text, severity });
   saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
 }
@@ -4901,7 +4917,7 @@ function openInterpretiveLensEditor() {
     <h3>Interpretive Lens</h3>
     <div class="modal-unit">List researchers, clinicians, or scientific paradigms whose frameworks you follow. The AI will consider their perspectives when interpreting your results.</div>
     <textarea class="note-editor" id="interpretive-lens-textarea" placeholder="e.g. Peter Attia (longevity), Jack Kruse (quantum biology), Functional Endocrinology framework...">${escapeHTML(current)}</textarea>
-    <div class="note-editor-actions">
+    <div class="ctx-editor-actions">
       <button class="import-btn import-btn-primary" onclick="saveInterpretiveLens()">Save</button>
       <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
       ${current ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearInterpretiveLens()">Clear</button>` : ''}
