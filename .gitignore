@@ -1,2 +1,7 @@
 *.pdf
 test-data.json
+*.png
+!icon-192.png
+!icon-512.png
+labcharts-*.json
+test-*.json
