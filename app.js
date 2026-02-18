@@ -2409,6 +2409,7 @@ function renderProfileContextCards() {
       ${summary
         ? `<div class="context-card-body">${escapeHTML(summary)}</div>`
         : `<div class="context-card-placeholder">${c.placeholder}</div>`}
+      <div class="ctx-ai-summary" id="ctx-ai-${c.key}"></div>
     </div>`;
   }
   html += `</div>`;
@@ -2439,6 +2440,20 @@ function applyDotColor(key, color) {
   dot.className = 'ctx-health-dot ctx-health-dot-' + color;
 }
 
+function applyAISummary(key, text, color) {
+  const el = document.getElementById('ctx-ai-' + key);
+  if (!el) return;
+  el.classList.remove('ctx-ai-summary-green', 'ctx-ai-summary-yellow', 'ctx-ai-summary-red');
+  if (text) {
+    el.textContent = text;
+    el.classList.add('ctx-ai-summary-visible');
+    if (color && color !== 'gray') el.classList.add('ctx-ai-summary-' + color);
+  } else {
+    el.textContent = '';
+    el.classList.remove('ctx-ai-summary-visible');
+  }
+}
+
 function getCardFingerprint(key) {
   const labPart = JSON.stringify((importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length));
   const val = key === 'healthGoals' ? JSON.stringify(importedData.healthGoals || []) : JSON.stringify(importedData[key]);
@@ -2453,12 +2468,15 @@ async function loadContextHealthDots() {
   try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch(e) { cached = null; }
   if (!cached || !cached.dots) cached = { dots: {}, fingerprints: {} };
 
+  if (!cached.summaries) cached.summaries = {};
+
   // Determine which cards need re-fetching
   const staleKeys = [];
   for (const k of keys) {
     const fp = getCardFingerprint(k);
-    if (cached.fingerprints && cached.fingerprints[k] === fp && cached.dots[k]) {
+    if (cached.fingerprints && cached.fingerprints[k] === fp && cached.dots[k] && cached.summaries[k] !== undefined) {
       applyDotColor(k, cached.dots[k]);
+      if (cached.summaries[k]) applyAISummary(k, cached.summaries[k], cached.dots[k]);
     } else {
       staleKeys.push(k);
     }
@@ -2469,6 +2487,8 @@ async function loadContextHealthDots() {
   for (const k of staleKeys) {
     const dot = document.getElementById('ctx-dot-' + k);
     if (dot) dot.classList.add('ctx-health-dot-shimmer');
+    const aiEl = document.getElementById('ctx-ai-' + k);
+    if (aiEl) { aiEl.textContent = ''; aiEl.classList.remove('ctx-ai-summary-visible'); }
   }
   const ctx = buildLabContext();
   if (ctx === 'No lab data is currently loaded for this profile.') {
@@ -2476,24 +2496,31 @@ async function loadContextHealthDots() {
     return;
   }
   const keyList = staleKeys.join('","');
-  const prompt = `Based on this person's lab data and profile context, rate each profile area's health impact as a single color dot. Return ONLY valid JSON with these keys and values of "green" (good/healthy), "yellow" (needs attention), "red" (concerning), or "gray" (not enough info):
-{"${keyList}"}
+  const prompt = `Based on this person's lab data and profile context, assess each profile area. Return ONLY valid JSON with these keys, each having "dot" (green/yellow/red/gray) and "tip" (max 12 words — a brief, specific insight connecting this area to their actual lab markers):
+{"${keyList}": {"dot":"...","tip":"..."}}
 
-Consider: does each area positively or negatively impact their lab results? Green = area supports health, Yellow = could be improved, Red = likely hurting their labs. If the area has no data, use "gray".`;
+Dot colors: green = supports health, yellow = needs attention, red = concerning, gray = not enough info.
+Tips should reference specific markers or trends when possible (e.g. "Low vitamin D may link to limited sun exposure" not "Consider improving this area"). If no data, use gray dot and empty tip.`;
   try {
     const result = await Promise.race([
-      callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 200 }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
+      callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 500 }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
     ]);
     const text = typeof result === 'string' ? result : '';
-    const jsonMatch = text.match(/\{[^}]+\}/);
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const dots = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
       if (!cached.fingerprints) cached.fingerprints = {};
       for (const k of staleKeys) {
-        const color = ['green', 'yellow', 'red', 'gray'].includes(dots[k]) ? dots[k] : 'gray';
+        const entry = parsed[k] || {};
+        const color = (typeof entry === 'string')
+          ? (['green', 'yellow', 'red', 'gray'].includes(entry) ? entry : 'gray')
+          : (['green', 'yellow', 'red', 'gray'].includes(entry.dot) ? entry.dot : 'gray');
+        const tip = (typeof entry === 'object' && entry.tip) ? entry.tip : '';
         applyDotColor(k, color);
+        applyAISummary(k, tip, color);
         cached.dots[k] = color;
+        cached.summaries[k] = tip;
         cached.fingerprints[k] = getCardFingerprint(k);
       }
       try { localStorage.setItem(cacheKey, JSON.stringify(cached)); } catch(e) {}
