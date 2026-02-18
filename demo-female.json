@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "exportedAt": "2026-02-17T00:00:00.000Z",
+  "version": 2,
+  "exportedAt": "2026-02-18T00:00:00.000Z",
   "entries": [
     {
       "date": "2025-04-10",
@@ -352,11 +352,87 @@
     { "name": "Iron Fumarate", "dosage": "25 mg/day", "startDate": "2025-04-15", "endDate": "2025-08-05", "type": "supplement" },
     { "name": "Levothyroxine", "dosage": "under discussion", "startDate": "", "endDate": "", "type": "medication" }
   ],
-  "diagnoses": "Iron deficiency (borderline anemia, improving with supplementation). Subclinical hypothyroidism suspected — TSH rising, fT4 trending low, pending thyroid antibody testing (TPO, Tg). No other chronic conditions. Family history: Hashimoto's thyroiditis (mother), osteoporosis (maternal grandmother).",
-  "diet": "Mostly whole foods, home-cooked. Higher protein focus since iron issues (~120g/day). Red meat 2-3x/week for heme iron. Reduced dairy due to mild sensitivity (bloating). Plenty of leafy greens, legumes, berries. Avoids coffee within 2 hours of iron supplement. Green tea 1-2 cups/day. No alcohol.",
-  "exercise": "Yoga 3x/week (vinyasa and yin). Running 2x/week (5-8 km, easy pace). Light resistance training 2x/week (started Nov 2025 for bone health and iron absorption). Rest days aligned with heavier period days. Daily walking 6000+ steps.",
-  "sleepCircadian": "Sleep 7 hours average, 22:30-05:30. Good sleep hygiene — dark room, no screens 1 hour before bed. Occasional insomnia during luteal phase (3-4 nights/month). Morning sunlight walk 15 min. No shift work history. Melatonin 0.5mg occasionally during luteal insomnia.",
+  "diagnoses": {
+    "conditions": [
+      { "name": "Iron deficiency", "severity": "mild", "since": "2025" },
+      { "name": "Subclinical hypothyroidism", "severity": "mild", "since": "2025" }
+    ],
+    "note": "Family history: Hashimoto's thyroiditis (mother), osteoporosis (maternal grandmother). No other chronic conditions. Pending thyroid antibody testing (TPO, Tg)."
+  },
+  "diet": {
+    "type": "omnivore",
+    "restrictions": ["dairy-free", "seed oil-free"],
+    "pattern": "3 meals/day",
+    "breakfast": "Eggs with spinach, sourdough toast, berries",
+    "breakfastTime": "07:30",
+    "lunch": "Grilled chicken salad with quinoa and roasted vegetables",
+    "lunchTime": "12:30",
+    "dinner": "Salmon or red meat with sweet potato and greens",
+    "dinnerTime": "19:00",
+    "snacks": "Nuts, dark chocolate, seasonal fruit",
+    "snacksTime": "15:30",
+    "note": "Higher protein focus (~120g/day). Red meat 2-3x/week for heme iron. Takes iron supplement away from coffee/tea. Green tea 1-2 cups/day."
+  },
+  "exercise": {
+    "frequency": "5-6x/week",
+    "types": ["yoga/mobility", "cardio/running", "strength", "walking"],
+    "intensity": "moderate",
+    "dailyMovement": "some walking",
+    "note": "Yoga 3x/week (vinyasa + yin). Running 2x/week (5-8 km easy pace). Light resistance training 2x/week since Nov 2025 for bone health. Rest days aligned with heavier period days. Daily 6000+ steps."
+  },
+  "sleepRest": {
+    "duration": "7-8h",
+    "quality": "good",
+    "schedule": "consistent",
+    "roomTemp": "cool (18-20°C / 65-68°F)",
+    "issues": ["trouble falling asleep"],
+    "environment": ["blackout curtains", "earplugs"],
+    "practices": ["evening magnesium", "no food 3h before bed"],
+    "note": "22:30-05:30 typical schedule. Occasional insomnia during luteal phase (3-4 nights/month). Melatonin 0.5mg occasionally."
+  },
+  "lightCircadian": {
+    "amLight": "morning outdoor (after sunrise)",
+    "daytime": "1-2h outdoor",
+    "uvExposure": "midday sun when possible",
+    "evening": ["dim lights after sunset", "f.lux / night shift on devices"],
+    "screenTime": "4-8h",
+    "techEnv": ["multiple monitors at work", "e-reader before bed"],
+    "cold": "cold shower",
+    "grounding": "barefoot occasionally",
+    "mealTiming": ["eat within daylight only"],
+    "note": "Morning sunlight walk 15 min. Works from office with large windows. No shift work history."
+  },
+  "stress": {
+    "level": "moderate",
+    "sources": ["work", "health"],
+    "management": ["exercise", "nature", "social support", "journaling"],
+    "note": "Work deadlines can be intense but manageable. Health anxiety around thyroid diagnosis and iron issues."
+  },
+  "loveLife": {
+    "status": "in relationship",
+    "relationship": "supportive & secure",
+    "satisfaction": "satisfied",
+    "libido": "variable",
+    "frequency": "few times/week",
+    "orgasm": "usually",
+    "concerns": ["hormonal changes"],
+    "note": "Libido fluctuates with cycle — lowest during late luteal/early menstrual. Partner supportive."
+  },
+  "environment": {
+    "setting": "urban residential",
+    "climate": "temperate",
+    "water": "filtered (carbon)",
+    "waterConcerns": ["chlorinated", "hard water"],
+    "emf": ["WiFi router nearby", "Bluetooth always on"],
+    "emfMitigation": ["WiFi off at night", "airplane mode sleep"],
+    "homeLight": "mixed lighting",
+    "air": ["open windows daily", "houseplants"],
+    "toxins": ["organic food mostly"],
+    "building": "old building (pre-1970)",
+    "note": "Lives in a quiet residential area of Prague. Building renovated 2018 — new windows, old structure."
+  },
   "interpretiveLens": "Interested in functional medicine approach to thyroid and iron. Follows Isabella Wentz (thyroid pharmacist) for Hashimoto's prevention strategies. Wants to optimize ferritin to 50+ µg/L (functional range), not just above lab minimum. Concerned about thyroid trajectory given family history.",
+  "contextNotes": "Sarah is proactive about her health and prefers functional/optimal reference ranges over standard lab ranges. She's particularly concerned about her thyroid trajectory given her mother's Hashimoto's diagnosis.",
   "healthGoals": [
     { "text": "Build ferritin to 50+ µg/L and maintain stable iron status", "severity": "major" },
     { "text": "Clarify thyroid status — determine if subclinical hypothyroidism or early Hashimoto's", "severity": "major" },
@@ -379,5 +455,6 @@
       { "startDate": "2025-09-22", "endDate": "2025-09-26", "flow": "heavy", "notes": "Heavy flow, mild cramps day 1-2" },
       { "startDate": "2025-08-24", "endDate": "2025-08-28", "flow": "moderate", "notes": "" }
     ]
-  }
+  },
+  "customMarkers": {}
 }
