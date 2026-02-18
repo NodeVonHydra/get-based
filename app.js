@@ -2283,12 +2283,10 @@ function getDietSummary(d) {
   if (d.type) parts.push(d.type);
   if (d.pattern) parts.push(d.pattern);
   if (d.restrictions && d.restrictions.length) parts.push(d.restrictions.join(', '));
-  const mealNames = [];
-  if (d.breakfast) mealNames.push('breakfast');
-  if (d.lunch) mealNames.push('lunch');
-  if (d.dinner) mealNames.push('dinner');
-  if (d.snacks) mealNames.push('snacks');
-  if (mealNames.length) parts.push(mealNames.join(', '));
+  if (d.breakfast) parts.push('B: ' + d.breakfast);
+  if (d.lunch) parts.push('L: ' + d.lunch);
+  if (d.dinner) parts.push('D: ' + d.dinner);
+  if (d.snacks) parts.push('S: ' + d.snacks);
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
