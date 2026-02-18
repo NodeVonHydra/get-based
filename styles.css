@@ -407,6 +407,14 @@ body {
 }
 .unit-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 .unit-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
+/* Time Format Toggle */
+.time-toggle-btn {
+  padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+}
+.time-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.time-toggle-btn:hover:not(.active) { background: var(--bg-hover); }
 /* Range Mode Toggle */
 .range-toggle { display: flex; align-items: center; gap: 4px; }
 .range-toggle-btn {
@@ -737,6 +745,22 @@ body {
 }
 .ctx-note-input:focus { border-color: var(--accent); outline: none; }
 .ctx-note-input::placeholder { color: var(--text-muted); }
+/* Meal row: time + description side by side */
+.ctx-meal-row { display: flex; gap: 8px; align-items: center; }
+.ctx-meal-time {
+  width: 90px; flex-shrink: 0; padding: 10px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 13px; font-family: var(--font-mono);
+  transition: border-color 0.15s; box-sizing: border-box; text-align: center;
+}
+.ctx-meal-time::placeholder { color: var(--text-muted); font-family: inherit; font-size: 11px; }
+.ctx-meal-time:focus { border-color: var(--accent); outline: none; }
+.ctx-meal-input { flex: 1; min-width: 0; }
+@media (max-width: 480px) {
+  .ctx-meal-row { flex-direction: column; gap: 4px; }
+  .ctx-meal-time { width: 100%; }
+  .ctx-meal-input { width: 100%; }
+}
 /* Context editor action bar */
 .ctx-editor-actions {
   display: flex; gap: 8px; align-items: center; margin-top: 20px;

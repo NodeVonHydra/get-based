@@ -263,7 +263,7 @@ const COMMON_CONDITIONS = [
   'Asthma', 'Sleep Apnea', 'Depression/Anxiety'
 ];
 const DIET_TYPES = ['omnivore', 'pescatarian', 'vegetarian', 'vegan', 'keto', 'low-carb', 'paleo', 'carnivore', 'mediterranean', 'other'];
-const DIET_RESTRICTIONS = ['gluten-free', 'dairy-free', 'nut-free', 'soy-free', 'egg-free', 'sugar-free', 'low-sodium', 'low-FODMAP'];
+const DIET_RESTRICTIONS = ['gluten-free', 'dairy-free', 'nut-free', 'soy-free', 'egg-free', 'sugar-free', 'seed oil-free', 'low-sodium', 'low-FODMAP'];
 const DIET_PATTERNS = ['3 meals/day', '2 meals/day', 'IF 16:8', 'IF 18:6', 'IF 20:4', 'OMAD', 'no pattern'];
 const EXERCISE_FREQ = ['sedentary', '1-2x/week', '3-4x/week', '5-6x/week', 'daily'];
 const EXERCISE_TYPES = ['strength', 'cardio/running', 'cycling', 'swimming', 'yoga/mobility', 'walking', 'HIIT', 'sports', 'martial arts'];
@@ -759,6 +759,14 @@ function openSettingsModal() {
       </div>
     </div>
 
+    <div class="settings-section">
+      <label class="settings-label">Time Format</label>
+      <div class="unit-toggle">
+        <button class="time-toggle-btn${getTimeFormat() === '24h' ? ' active' : ''}" data-timefmt="24h" onclick="setTimeFormat('24h');updateSettingsUI()">24h</button>
+        <button class="time-toggle-btn${getTimeFormat() === '12h' ? ' active' : ''}" data-timefmt="12h" onclick="setTimeFormat('12h');updateSettingsUI()">12h (AM/PM)</button>
+      </div>
+    </div>
+
     <div class="settings-group-title">AI Provider</div>
 
     <div class="settings-section">
@@ -1006,6 +1014,8 @@ function updateSettingsUI() {
   modal.querySelectorAll('.settings-theme-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent.toLowerCase() === theme);
   });
+  const timeFmt = getTimeFormat();
+  modal.querySelectorAll('.time-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.timefmt === timeFmt));
 }
 
 function closeSettingsModal() {
@@ -2118,6 +2128,8 @@ function getDietSummary(d) {
   if (d.type) parts.push(d.type);
   if (d.pattern) parts.push(d.pattern);
   if (d.restrictions && d.restrictions.length) parts.push(d.restrictions.join(', '));
+  const meals = [d.breakfast, d.lunch, d.dinner, d.snacks].filter(Boolean);
+  if (meals.length) parts.push(meals.length + ' meal' + (meals.length > 1 ? 's' : '') + ' described');
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -3250,6 +3262,46 @@ document.addEventListener("keydown", e => {
 });
 
 // ═══════════════════════════════════════════════
+// TIME FORMAT
+// ═══════════════════════════════════════════════
+function getTimeFormat() { return localStorage.getItem('labcharts-time-format') || '24h'; }
+function setTimeFormat(fmt) { localStorage.setItem('labcharts-time-format', fmt); }
+
+function formatTime(time24) {
+  if (!time24) return '';
+  if (getTimeFormat() === '24h') return time24;
+  const [h, m] = time24.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+function parseTimeInput(val) {
+  if (!val) return '';
+  const v = val.trim().toUpperCase();
+  // 24h format: "14:30" or "8:00"
+  const m24 = v.match(/^(\d{1,2}):(\d{2})$/);
+  if (m24) {
+    const h = parseInt(m24[1]), m = parseInt(m24[2]);
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+  // 12h format: "2:30 PM", "2:30PM", "2PM"
+  const m12 = v.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+  if (m12) {
+    let h = parseInt(m12[1]);
+    const m = parseInt(m12[2] || '0');
+    const p = m12[3];
+    if (p === 'AM' && h === 12) h = 0;
+    else if (p === 'PM' && h !== 12) h += 12;
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function getTimePlaceholder() {
+  return getTimeFormat() === '24h' ? 'HH:MM' : 'H:MM AM';
+}
+
 // THEME MANAGEMENT
 // ═══════════════════════════════════════════════
 function getTheme() { return localStorage.getItem('labcharts-theme') || 'dark'; }
@@ -4614,13 +4666,20 @@ function clearDiagnoses() {
 function openDietEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = importedData.diet || { type: null, restrictions: [], pattern: null, note: '' };
+  const current = importedData.diet || { type: null, restrictions: [], pattern: null, breakfast: '', lunch: '', dinner: '', snacks: '', note: '' };
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Diet</h3>
     <div class="modal-unit">Describe your typical diet. The AI will factor this in when interpreting your labs.</div>
     ${renderSelectField('Diet type', 'diet-type', DIET_TYPES, current.type)}
     ${renderSelectField('Eating pattern', 'diet-pattern', DIET_PATTERNS, current.pattern)}
     ${renderTagsField('Restrictions', 'diet-restrictions', DIET_RESTRICTIONS, current.restrictions)}
+    <div class="ctx-editor-divider"></div>
+    <div class="ctx-field-group"><label class="ctx-field-label">Typical meals</label>
+      <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-breakfast-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.breakfastTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-breakfast" placeholder="Breakfast — e.g. eggs, avocado, coffee" value="${escapeHTML(current.breakfast || '')}"></div>
+      <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-lunch-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.lunchTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-lunch" placeholder="Lunch — e.g. salad with grilled chicken" value="${escapeHTML(current.lunch || '')}"></div>
+      <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-dinner-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.dinnerTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-dinner" placeholder="Dinner — e.g. salmon, rice, vegetables" value="${escapeHTML(current.dinner || '')}"></div>
+      <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-snacks-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.snacksTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-snacks" placeholder="Snacks — e.g. nuts, fruit, dark chocolate" value="${escapeHTML(current.snacks || '')}"></div>
+    </div>
     ${renderNoteField(current.note)}
     ${contextEditorActions(importedData.diet != null, 'saveDiet', 'clearDiet')}`;
   overlay.classList.add("show");
@@ -4630,11 +4689,19 @@ function saveDiet() {
   const type = getSelectedOption('diet-type');
   const pattern = getSelectedOption('diet-pattern');
   const restrictions = getSelectedTags('diet-restrictions');
+  const breakfast = (document.getElementById('diet-breakfast') || {}).value || '';
+  const breakfastTime = parseTimeInput((document.getElementById('diet-breakfast-time') || {}).value || '');
+  const lunch = (document.getElementById('diet-lunch') || {}).value || '';
+  const lunchTime = parseTimeInput((document.getElementById('diet-lunch-time') || {}).value || '');
+  const dinner = (document.getElementById('diet-dinner') || {}).value || '';
+  const dinnerTime = parseTimeInput((document.getElementById('diet-dinner-time') || {}).value || '');
+  const snacks = (document.getElementById('diet-snacks') || {}).value || '';
+  const snacksTime = parseTimeInput((document.getElementById('diet-snacks-time') || {}).value || '');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!type && !pattern && restrictions.length === 0 && !note.trim()) {
+  if (!type && !pattern && restrictions.length === 0 && !breakfast.trim() && !lunch.trim() && !dinner.trim() && !snacks.trim() && !note.trim()) {
     importedData.diet = null;
   } else {
-    importedData.diet = { type, restrictions, pattern, note: note.trim() };
+    importedData.diet = { type, restrictions, pattern, breakfast: breakfast.trim(), breakfastTime, lunch: lunch.trim(), lunchTime, dinner: dinner.trim(), dinnerTime, snacks: snacks.trim(), snacksTime, note: note.trim() };
   }
   saveAndRefresh('Diet saved');
 }
@@ -6162,6 +6229,10 @@ function buildLabContext() {
     if (diet.pattern) parts.push(`Pattern: ${diet.pattern}`);
     if (diet.restrictions && diet.restrictions.length) parts.push(`Restrictions: ${diet.restrictions.join(', ')}`);
     ctx += parts.join('. ') + '\n';
+    if (diet.breakfast) ctx += `Breakfast${diet.breakfastTime ? ' (' + formatTime(diet.breakfastTime) + ')' : ''}: ${diet.breakfast}\n`;
+    if (diet.lunch) ctx += `Lunch${diet.lunchTime ? ' (' + formatTime(diet.lunchTime) + ')' : ''}: ${diet.lunch}\n`;
+    if (diet.dinner) ctx += `Dinner${diet.dinnerTime ? ' (' + formatTime(diet.dinnerTime) + ')' : ''}: ${diet.dinner}\n`;
+    if (diet.snacks) ctx += `Snacks${diet.snacksTime ? ' (' + formatTime(diet.snacksTime) + ')' : ''}: ${diet.snacks}\n`;
     if (diet.note) ctx += `Notes: ${diet.note}\n`;
     ctx += '\n';
   }
