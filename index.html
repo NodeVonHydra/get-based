@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -113,7 +113,7 @@
     <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-input-area">
       <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." rows="2" onkeydown="handleChatKeydown(event)"></textarea>
-      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">Send</button>
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()" aria-label="Send message">&#10148;</button>
     </div>
   </div>
 
