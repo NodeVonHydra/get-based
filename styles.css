@@ -634,7 +634,7 @@ body {
   background: var(--bg-card); border-radius: var(--radius-sm);
   border: 1px solid var(--border); padding: 12px 16px;
   cursor: pointer; transition: all 0.15s;
-  height: 90px; display: flex; flex-direction: column; overflow: hidden;
+  height: 90px; display: flex; flex-direction: column; overflow: visible;
 }
 .context-card:hover { border-color: var(--accent); }
 .context-card-header {
