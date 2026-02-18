@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "exportedAt": "2026-02-17T00:00:00.000Z",
+  "version": 2,
+  "exportedAt": "2026-02-18T00:00:00.000Z",
   "entries": [
     {
       "date": "2025-03-15",
@@ -345,15 +345,92 @@
     { "name": "B-Complex", "dosage": "1 capsule/day", "startDate": "2026-02-05", "endDate": "", "type": "supplement" },
     { "name": "Zinc Picolinate", "dosage": "30 mg/day", "startDate": "2025-08-01", "endDate": "2025-12-01", "type": "supplement" }
   ],
-  "diagnoses": "No chronic conditions. Family history: Type 2 diabetes (father, diagnosed at 55), hypertension (paternal grandmother). Occasional lower back pain from desk work.",
-  "diet": "Mediterranean-leaning whole foods diet. Intermittent fasting 16:8 most days. High protein (~150g/day from chicken, fish, eggs, legumes). Minimal processed food. 2-3 coffees/day. Social alcohol 1-2 drinks on weekends. Increased vegetable intake since July 2025.",
-  "exercise": "Strength training 3x/week (push-pull-legs split, progressive overload). Zone 2 cardio added Nov 2025 (cycling or brisk walking 30-45 min, 3x/week). Daily step goal 8000+. Desk job — standing desk used intermittently.",
-  "sleepCircadian": "Sleep 7-8 hours, usually 23:00-06:30. Blue light glasses after sunset. Morning sunlight exposure 10-15 min. Some difficulty falling asleep on training days. Previously worked rotating shifts (2020-2023) — may have residual circadian disruption. No sleep apnea symptoms.",
+  "diagnoses": {
+    "conditions": [
+      { "name": "Insulin resistance", "severity": "mild", "since": "2025" },
+      { "name": "Vitamin D deficiency", "severity": "minor", "since": "2025" }
+    ],
+    "note": "Family history: Type 2 diabetes (father, diagnosed at 55), hypertension (paternal grandmother). Occasional lower back pain from desk work. No chronic medications."
+  },
+  "diet": {
+    "type": "mediterranean",
+    "restrictions": ["seed oil-free"],
+    "pattern": "IF 16:8",
+    "breakfast": "",
+    "breakfastTime": "",
+    "lunch": "Grilled chicken or fish with large salad, olive oil, legumes",
+    "lunchTime": "12:00",
+    "dinner": "Steak or salmon with roasted vegetables and sweet potato",
+    "dinnerTime": "19:30",
+    "snacks": "Mixed nuts, Greek yogurt with berries, dark chocolate",
+    "snacksTime": "15:00",
+    "note": "Intermittent fasting — skips breakfast. High protein (~150g/day). Reduced refined carbs since July 2025. 2-3 coffees/day. Social alcohol 1-2 drinks on weekends."
+  },
+  "exercise": {
+    "frequency": "5-6x/week",
+    "types": ["strength", "cycling", "walking"],
+    "intensity": "mixed",
+    "dailyMovement": "sedentary desk job",
+    "note": "Strength training 3x/week (push-pull-legs, progressive overload). Zone 2 cycling added Nov 2025 (30-45 min, 3x/week). Daily step goal 8000+. Uses standing desk intermittently."
+  },
+  "sleepRest": {
+    "duration": "7-8h",
+    "quality": "fair",
+    "schedule": "somewhat variable",
+    "roomTemp": "cool (18-20°C / 65-68°F)",
+    "issues": ["trouble falling asleep", "waking at night"],
+    "environment": ["blackout curtains"],
+    "practices": ["evening magnesium", "no food 3h before bed"],
+    "note": "Usually 23:00-06:30. Blue light glasses after sunset. Some difficulty falling asleep on training days. Previously worked rotating shifts (2020-2023) — may have residual circadian disruption."
+  },
+  "lightCircadian": {
+    "amLight": "morning outdoor (after sunrise)",
+    "daytime": "<1h outdoor",
+    "uvExposure": "midday sun when possible",
+    "evening": ["blue blockers after sunset", "f.lux / night shift on devices"],
+    "screenTime": "8-12h",
+    "techEnv": ["multiple monitors at work", "work from home (all day screens)", "phone in bedroom"],
+    "cold": "cold shower",
+    "grounding": "barefoot occasionally",
+    "mealTiming": ["skip breakfast", "time-restricted eating"],
+    "note": "Software developer — heavy screen time. Morning sunlight walk 10-15 min. Works from home most days."
+  },
+  "stress": {
+    "level": "moderate",
+    "sources": ["work", "health", "financial"],
+    "management": ["exercise", "nature", "breathing exercises"],
+    "note": "Startup pressure with tight deadlines. Concerned about metabolic trajectory after seeing HOMA-IR trends. Exercise is primary stress relief."
+  },
+  "loveLife": {
+    "status": "married",
+    "relationship": "mostly good",
+    "satisfaction": "satisfied",
+    "libido": "normal",
+    "frequency": "weekly",
+    "orgasm": "consistently",
+    "concerns": ["mismatched libido"],
+    "note": "Married 5 years. Overall good relationship. Noticed slight decline in drive over past year — correlates with testosterone trend."
+  },
+  "environment": {
+    "setting": "suburban",
+    "climate": "temperate",
+    "water": "reverse osmosis",
+    "waterConcerns": ["fluoridated"],
+    "emf": ["WiFi router nearby", "smart meter on home", "Bluetooth always on", "smart home devices"],
+    "emfMitigation": ["wired ethernet", "WiFi off at night"],
+    "homeLight": "mostly LED lighting",
+    "air": ["HEPA air purifier", "open windows daily"],
+    "toxins": ["non-stick cookware (PFAS)", "plastic containers for food"],
+    "building": "new construction (<5yr)",
+    "note": "New development suburb. Good air quality area. Recently switched from non-stick to cast iron cookware."
+  },
   "interpretiveLens": "Interested in longevity and metabolic health optimization. Follows Peter Attia's framework on metabolic health markers. Wants to catch insulin resistance early given family history of T2D. Values functional/optimal ranges over just reference ranges.",
+  "contextNotes": "Alex is data-driven and tracks his metrics closely. He wants to understand the relationship between his declining testosterone, rising insulin, and lifestyle factors. Prefers evidence-based interventions.",
   "healthGoals": [
     { "text": "Reverse insulin resistance trend — get HOMA-IR back below 2.0", "severity": "major" },
     { "text": "Support testosterone levels naturally through lifestyle", "severity": "mild" },
-    { "text": "Reduce homocysteine below 10 µmol/l", "severity": "minor" },
-    { "text": "Maintain vitamin D between 100-150 nmol/l year-round", "severity": "mild" }
-  ]
+    { "text": "Reduce homocysteine below 10 µmol/L", "severity": "minor" },
+    { "text": "Maintain vitamin D between 100-150 nmol/L year-round", "severity": "mild" }
+  ],
+  "customMarkers": {}
 }
