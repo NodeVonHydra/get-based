@@ -29,7 +29,7 @@ No build system, no bundler, no package manager. Three source files:
   - Correlation chart feature (multi-marker overlay with % normalization)
   - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
   - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
-  - Profile context editors: 9 structured editors (`openDiagnosesEditor`, `openDietEditor`, `openExerciseEditor`, `openSleepCircadianEditor`, `openStressEditor`, `openLoveLifeEditor`, `openEnvironmentEditor`, `openHealthGoalsEditor`, `openInterpretiveLensEditor`) with shared helpers (`renderSelectField`, `selectCtxOption`, `getSelectedOption`, `renderTagsField`, `toggleCtxTag`, `getSelectedTags`, `renderNoteField`, `contextEditorActions`)
+  - Profile context editors: 9 structured editors (`openDiagnosesEditor`, `openDietEditor`, `openExerciseEditor`, `openSleepRestEditor`, `openLightCircadianEditor`, `openStressEditor`, `openLoveLifeEditor`, `openEnvironmentEditor`, `openHealthGoalsEditor`) with shared helpers (`renderSelectField`, `selectCtxOption`, `getSelectedOption`, `renderTagsField`, `toggleCtxTag`, `getSelectedTags`, `renderNoteField`, `contextEditorActions`). Interpretive Lens editor (`openInterpretiveLensEditor`) in Settings
   - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
   - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
   - Marker descriptions (`getMarkerDescription` — reads hardcoded `desc` from schema, falls back to localStorage for custom markers)
@@ -43,7 +43,7 @@ No build system, no bundler, no package manager. Three source files:
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`; unit preference under `labcharts-{profileId}-units`. Context fields store structured objects (not strings) — see Profile Context Cards section. Legacy fields (`circadian`, `sleep`, `fieldExperts`, `fieldLens`, old string-format context) are auto-migrated on load via `migrateProfileData()`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`; unit preference under `labcharts-{profileId}-units`. Context fields store structured objects (not strings) — see Profile Context Cards section. Legacy fields (`circadian`, `sleep`, `sleepCircadian`, `fieldExperts`, `fieldLens`, old string-format context) are auto-migrated on load via `migrateProfileData()`
 3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` at category level in the schema; `getActiveData()` sets `singleDate`, `singleDateLabel` on the category and `singlePoint`, `singleDateLabel` on each marker
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -87,25 +87,36 @@ Notes are independent of lab entries — they support any date and are stored in
 
 Nine profile context cards stored as structured objects in `importedData`. All editors use styled button-group selectors (`.ctx-btn-group` / `.ctx-btn-option`) instead of native `<select>` dropdowns, with multi-select tag pills (`.ctx-tags` / `.ctx-tag`) for array fields.
 
-- Dashboard renders nine cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section title with filled count (e.g., "5/9 filled"). Rendered by `renderProfileContextCards()` using a `cardDefs` array. Always visible. Ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Circadian, Stress, Love Life, Environment, Interpretive Lens
-- Each card has a **health status dot** (`.ctx-health-dot`) — AI-rated green/yellow/red/gray indicating how that area impacts labs. Loaded async via `loadContextHealthDots()`, cached with data fingerprint in `labcharts-{profileId}-contextHealth`. Red dots pulse with `dotPulse` animation
+- Dashboard renders nine cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section title with filled count (e.g., "5/9 filled"). Rendered by `renderProfileContextCards()` using a `cardDefs` array. Always visible. Ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Rest, Light & Circadian, Stress, Love Life & Relationships, Environment
+- Each card has a **health status dot** (`.ctx-health-dot`) — AI-rated green/yellow/red/gray indicating how that area impacts labs. Loaded async via `loadContextHealthDots()` with **per-card caching** — only stale cards are re-fetched from AI. Cache in `labcharts-{profileId}-contextHealth` stores `{ dots, summaries, fingerprints }` per key. `getCardFingerprint(key)` hashes lab data + card data + sex + DOB. Red dots pulse with `dotPulse` animation
+- Each card has an **AI-generated tip** (`.ctx-ai-summary`) — a brief color-coded insight (max 12 words) linking the card's content to actual lab markers. Appears below the card body with a smooth reveal animation. Color matches the dot (green/yellow/red). Cached alongside dots
 - Each card has an info icon (i) with a hover tooltip explaining why that context matters for lab interpretation
-- Each card shows a summary (via per-card `summaryFn`) or a dashed-border placeholder; clicking opens a modal editor
-- **Empty cards** have `border-style: dashed` and reduced opacity via `:has(.context-card-placeholder)` CSS
+- Each card shows a summary (via per-card `summaryFn`, includes structured data + freetext note) or a dashed-border placeholder; clicking opens a modal editor
+- **Empty cards** have `border-style: dashed` and reduced opacity via `:has(.context-card-placeholder)` CSS. Card height is `min-height: 90px` to accommodate the AI tip
 - **Additional Notes textarea** (`.ctx-notes-textarea`) below cards for free-form AI context, auto-saved via `debounceContextNotes()`
-- **Data structures**: `diagnoses` = `{ conditions: [{ name, severity, since? }], note }`, `diet` = `{ type, restrictions[], pattern, note }`, `exercise` = `{ frequency, types[], intensity, dailyMovement, note }`, `sleepCircadian` = `{ duration, quality, schedule, issues[], note }`, `stress` = `{ level, sources[], management[], note }`, `loveLife` = `{ status, satisfaction, note }`, `environment` = `{ setting, climate, concerns[], note }`. All nullable — `null` means not filled
-- **Option arrays**: `COMMON_CONDITIONS`, `DIET_TYPES`, `DIET_RESTRICTIONS`, `DIET_PATTERNS`, `EXERCISE_FREQ`, `EXERCISE_TYPES`, `EXERCISE_INTENSITY`, `DAILY_MOVEMENT`, `SLEEP_DURATIONS`, `SLEEP_QUALITY`, `SLEEP_SCHEDULE`, `SLEEP_ISSUES`, `STRESS_LEVELS`, `STRESS_SOURCES`, `STRESS_MGMT`, `LOVE_STATUS`, `LOVE_SATISFACTION`, `ENV_SETTING`, `ENV_CLIMATE`, `ENV_CONCERNS`
+- **Data structures**:
+  - `diagnoses` = `{ conditions: [{ name, severity, since? }], note }` — `syncDiagnosesNote()` preserves note on condition add/delete
+  - `diet` = `{ type, restrictions[], pattern, breakfast, breakfastTime, lunch, lunchTime, dinner, dinnerTime, snacks, snacksTime, note }` — meal times stored as 24h format via `parseTimeInput()`, displayed via `formatTime()`
+  - `exercise` = `{ frequency, types[], intensity, dailyMovement, note }`
+  - `sleepRest` = `{ duration, quality, schedule, roomTemp, issues[], environment[], practices[], note }` — Kruse-informed: room temperature, sleep environment (blackout, EMF, grounding sheet, magnetico), practices (mouth taping, cold shower, magnesium)
+  - `lightCircadian` = `{ amLight, daytime, uvExposure, evening[], screenTime, techEnv[], cold, grounding, mealTiming[], note }` — Kruse-informed: AM light, UV exposure, evening discipline, cold exposure, grounding/earthing, screen time, technology environment, meal timing. Latitude auto-detected from Settings location
+  - `stress` = `{ level, sources[], management[], note }`
+  - `loveLife` = `{ status, relationship, satisfaction, libido, frequency, orgasm, concerns[], note }` — relationship quality, sexual health details
+  - `environment` = `{ setting, climate, water, waterConcerns[], emf[], emfMitigation[], homeLight, air[], toxins[], building, note }` — Kruse-informed: water quality (spring, DDW, RO), EMF sources + mitigation, home lighting, air quality, toxin exposure, building materials
+  - All nullable — `null` means not filled
+- **Option arrays**: `COMMON_CONDITIONS`, `DIET_TYPES`, `DIET_RESTRICTIONS`, `DIET_PATTERNS`, `EXERCISE_FREQ`, `EXERCISE_TYPES`, `EXERCISE_INTENSITY`, `DAILY_MOVEMENT`, `SLEEP_DURATIONS`, `SLEEP_QUALITY`, `SLEEP_SCHEDULE`, `SLEEP_ROOM_TEMP`, `SLEEP_ISSUES`, `SLEEP_ENVIRONMENT`, `SLEEP_PRACTICES`, `LIGHT_AM`, `LIGHT_DAYTIME`, `LIGHT_UV`, `LIGHT_EVENING`, `LIGHT_SCREEN_TIME`, `LIGHT_TECH_ENV`, `LIGHT_COLD`, `LIGHT_GROUNDING`, `LIGHT_MEAL_TIMING`, `STRESS_LEVELS`, `STRESS_SOURCES`, `STRESS_MGMT`, `LOVE_STATUS`, `LOVE_RELATIONSHIP`, `LOVE_SATISFACTION`, `LOVE_LIBIDO`, `LOVE_FREQUENCY`, `LOVE_ORGASM`, `LOVE_CONCERNS`, `ENV_SETTING`, `ENV_CLIMATE`, `ENV_WATER`, `ENV_WATER_CONCERNS`, `ENV_EMF`, `ENV_EMF_MITIGATION`, `ENV_HOME_LIGHT`, `ENV_AIR`, `ENV_TOXINS`, `ENV_BUILDING`
 - **Editor helpers**: `renderSelectField()` renders `.ctx-btn-group` pill buttons, `selectCtxOption()` toggles selection, `getSelectedOption()` reads value. `renderTagsField()` renders `.ctx-tags`, `toggleCtxTag()` toggles, `getSelectedTags()` reads. `renderNoteField()` renders `.ctx-note-input`. `contextEditorActions()` renders Save/Cancel/Clear with `.ctx-editor-actions` (top-bordered action bar)
-- **Migration**: `migrateProfileData()` converts legacy string fields to structured objects, initializes new fields (`stress`, `loveLife`, `environment`, `contextNotes`)
-- `buildLabContext()` prepends sections for all 9 context areas plus contextNotes to the AI context
-- All fields are included in JSON export/import; import handles both old and new field names
+- **Migration**: `migrateProfileData()` converts legacy string fields to structured objects. Handles: old `sleepCircadian` → `sleepRest` + `lightCircadian` split, old `circadian` + `sleep` → merged, old `fieldExperts` + `fieldLens` → `interpretiveLens`, old `lightCircadian` format (timing/practices) → new format (amLight/evening/etc.). Initializes missing fields: `healthGoals`, `sleepRest`, `lightCircadian`, `stress`, `loveLife`, `environment`, `interpretiveLens`, `contextNotes`, `customMarkers`
+- `buildLabContext()` serializes all 9 context areas plus interpretiveLens and contextNotes to the AI context. Each context area has a dedicated `CHAT_SYSTEM_PROMPT` bullet explaining how to interpret it
+- All fields are included in JSON export/import and PDF report; import handles both old and new field names
+- **CSS**: `.ctx-ai-summary` (hidden by default, `.ctx-ai-summary-visible` for reveal), `.ctx-ai-summary-green`/`-yellow`/`-red` color classes
 
 ### Health Goals
 
 Structured list of things the user wants to solve or improve, each with a severity level:
 
 - **Storage**: `importedData.healthGoals` — array of `{ text, severity }` where severity is `major`, `mild`, or `minor`
-- **Dashboard card** (🎯): Shows severity count summary (e.g. "2 major, 1 mild goals") or placeholder. Opens `openHealthGoalsEditor()`
+- **Dashboard card** (🎯): Shows first 3 goal texts (e.g. "Improve insulin sensitivity, Lower inflammation +1 more") or placeholder. Opens `openHealthGoalsEditor()`
 - **Editor**: Modal with live list of goals (severity badge + text + delete button), add form (text input + pill-button severity selector + Add button), Done/Clear All buttons. Enter key in text input triggers add. Changes persist immediately on add/delete. Severity uses `ctx-btn-group` pill buttons (not native `<select>`)
 - **AI context**: `buildLabContext()` adds `## Health Goals (Things to Solve)` section grouped by severity (major → mild → minor)
 - **System prompt**: AI prioritizes analysis around stated goals, focusing on major priorities first
@@ -114,14 +125,16 @@ Structured list of things the user wants to solve or improve, each with a severi
 
 ### Interpretive Lens
 
-Combines field experts and scientific paradigms into a single interpretive framework for lab analysis:
+Combines field experts and scientific paradigms into a single interpretive framework for lab analysis. Lives in Settings (not the card grid) with a dashboard indicator bar:
 
 - **Storage**: `importedData.interpretiveLens` — string
-- **Dashboard card** (🔬): Shows text preview (truncated at 200 chars) or placeholder. Opens `openInterpretiveLensEditor()`
-- **Editor**: Textarea modal (`openInterpretiveLensEditor`, `saveInterpretiveLens`, `clearInterpretiveLens`). Placeholder suggests both experts and paradigms
+- **Settings**: Textarea in Settings → Interpretive Lens section (between AI Provider and PDF Import Privacy). `saveInterpretiveLensFromSettings()`, `clearInterpretiveLensFromSettings()`
+- **Dashboard indicator**: `.lens-indicator` bar between Focus Card and context cards. Shows active lens text (truncated, purple left border) or "No interpretive lens set — configure in Settings". Clicking opens Settings. Functions: `renderLensIndicator()`, `renderLensIndicatorContent()`
+- **Modal editor**: `openInterpretiveLensEditor()`, `saveInterpretiveLens()`, `clearInterpretiveLens()` still exist for programmatic use
 - **AI context**: `buildLabContext()` adds `## Interpretive Lens` section
 - **System prompt**: AI considers listed experts' published work and frames analysis through specified paradigms
 - **Migration**: Old `fieldExperts` + `fieldLens` fields are auto-merged on profile load
+- **CSS**: `.lens-indicator`, `.lens-indicator-icon`, `.lens-indicator-text`, `.lens-indicator-empty`, `.lens-indicator-link`, `.settings-lens-textarea`
 
 ### Menstrual Cycle Tracking
 
@@ -172,7 +185,7 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 - **Visibility**: Only renders when data exists AND `hasApiKey()` is true
 - **Shimmer skeleton**: Shows animated placeholder while fetching, then the sentence
-- **Cache**: `labcharts-{profileId}-focusCard` — `{ fingerprint, text }`. Fingerprint is a djb2 hash of entries+sex+DOB+context. Auto-invalidates when data changes
+- **Cache**: `labcharts-{profileId}-focusCard` — `{ fingerprint, text }`. Fingerprint is a djb2 hash of entries+sex+DOB+all 9 context cards+interpretiveLens. Auto-invalidates when any card or lab data changes
 - **Refresh button**: Manual regenerate via `refreshFocusCard()` (clears cache, re-fetches)
 - **Non-blocking**: `loadFocusCard()` called async after DOM render
 - **AI prompt**: System instructs one sentence, max 40 words, naming marker+direction+clinical relevance. `maxTokens: 100`, non-streaming
@@ -199,7 +212,8 @@ All sections are always visible (flat layout, no collapsible toggles). Section t
 | 1 | Dashboard header + drop zone | inline in `showDashboard()` |
 | 2 | Onboarding Step 1 (empty) / Step 2 banner (data) | conditional |
 | 3 | Focus Card (data + API key) | `renderFocusCard()` + `loadFocusCard()` |
-| 4 | Profile Context Cards ("What your GP won't ask you") | `renderProfileContextCards()` |
+| 3b | Interpretive Lens Indicator | `renderLensIndicator()` |
+| 4 | Profile Context Cards ("What your GP won't ask you") | `renderProfileContextCards()` + `loadContextHealthDots()` |
 | 5 | Menstrual Cycle (female only) | `renderMenstrualCycleSection(data)` |
 | 6 | Supplements & Medications | `renderSupplementsSection()` |
 | 7 | Key Trends + charts | inline (8 key markers with date range filter + layers dropdown) |
@@ -279,7 +293,7 @@ Personal information in lab PDFs is replaced with fake data before sending to AI
 - **Responsive width**: Scales across 5 breakpoints — 560px default, 640px at 1400px+, 740px at 1600px+, 880px at 2000px+, 1060px at 3000px+. Font sizes, padding, gaps, and input area scale proportionally. Backdrop dims less on large screens (0.15 at 1400px+, 0.08 at 2000px+)
 - **Markdown rendering**: `renderMarkdown()` is a block-aware parser supporting headings (`#`/`##`/`###`), unordered/ordered lists, fenced code blocks, horizontal rules, and paragraphs. `applyInlineMarkdown()` handles bold, italic, inline code, and links. `.chat-msg` uses `white-space: normal` — HTML elements handle all spacing. Streaming-compatible (re-parses full accumulated text on each chunk)
 - **Personalities**: `CHAT_PERSONALITIES` array defines 4 presets (default, House, Kruse, custom). Personality selector bar in panel header with collapsible options. Selected personality stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality text stored in `labcharts-{profileId}-chatPersonalityCustom`. Personality prompt is appended to `CHAT_SYSTEM_PROMPT` via `getActivePersonality()`. Switching personalities preserves chat history. Profiles with removed personalities (Murphy, Robby) gracefully fall back to default
-- `buildLabContext()` serializes full profile data for the system prompt, including all 9 context areas (diagnoses, diet, exercise, sleep & circadian, stress, love life, environment, interpretive lens, health goals), contextNotes, lab values, flagged results, and notes
+- `buildLabContext()` serializes full profile data for the system prompt, including all 9 context areas (diagnoses, diet, exercise, sleep & rest, light & circadian, stress, love life, environment, health goals), interpretive lens, contextNotes, lab values, flagged results, and notes. Each area has a dedicated `CHAT_SYSTEM_PROMPT` bullet (sleep and light/circadian have separate bullets)
 - Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
 - `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
 - Per-marker "Ask AI" button in detail modals pre-fills the chat input
@@ -302,7 +316,10 @@ Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama
 
 ### Settings Modal
 
-Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, theme), **AI Provider** (toggle + conditional panel), **PDF Import Privacy** (status card + collapsible configure).
+Grouped into 5 sections: **Profile** (sex, DOB, location), **Display** (units, range, theme, time format), **AI Provider** (toggle + conditional panel), **Interpretive Lens** (textarea), **PDF Import Privacy** (status card + collapsible configure).
+
+- **Profile location**: Country dropdown + ZIP input with auto-detected latitude band. `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries mapped to 5 bands), `LATITUDE_BANDS`, `getLatitudeFromLocation()`, `updateLocationLat()` (live update on input)
+- **Time format**: 24h/12h toggle (`.time-toggle-btn`). `getTimeFormat()`, `setTimeFormat()`, `formatTime()`, `parseTimeInput()`, `getTimePlaceholder()`. Stored in `labcharts-time-format`
 
 - **AI Provider description**: Recommendation text above toggle — for medical data, state-of-the-art models recommended, Claude is fastest and best results
 - **AI Provider toggle**: Three buttons — `☁️ Claude` / `🎭 Venice` / `💻 Local AI`. Internal values unchanged (`'anthropic'`, `'venice'`, `'ollama'`). `switchAIProvider(provider)` re-renders the panel without reloading the full modal
@@ -320,8 +337,8 @@ Grouped into 4 sections: **Profile** (sex, DOB), **Display** (units, range, them
 
 ### JSON Export/Import
 
-- Export format: `{ version: 1, exportedAt, entries: [...], notes: [...], diagnoses: {...}, diet: {...}, exercise: {...}, sleepCircadian: {...}, stress: {...}, loveLife: {...}, environment: {...}, interpretiveLens: "...", healthGoals: [...], contextNotes: "...", menstrualCycle: {...}, customMarkers: {...}, supplements: [...] }`
-- Import merges entries by date, deduplicates notes by date+text, overwrites context fields if present, merges healthGoals by text. Handles legacy fields: old `circadian`+`sleep` → `sleepCircadian`, old `fieldExperts`+`fieldLens` → `interpretiveLens`, old string-format context → structured objects
+- Export format: `{ version: 2, exportedAt, entries: [...], notes: [...], diagnoses: {...}, diet: {...}, exercise: {...}, sleepRest: {...}, lightCircadian: {...}, stress: {...}, loveLife: {...}, environment: {...}, interpretiveLens: "...", healthGoals: [...], contextNotes: "...", menstrualCycle: {...}, customMarkers: {...}, supplements: [...] }`
+- Import merges entries by date, deduplicates notes by date+text, overwrites context fields if present, merges healthGoals by text. Handles legacy fields: old `sleepCircadian` → `sleepRest` + `lightCircadian` split, old `circadian`+`sleep` → merged, old `fieldExperts`+`fieldLens` → `interpretiveLens`, old string-format context → structured objects
 - Drop zone accepts both PDF and JSON files
 
 ### External Dependencies (CDN)
