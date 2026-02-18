@@ -71,6 +71,7 @@
 [data-theme="light"] .overview-card,
 [data-theme="light"] .context-card,
 [data-theme="light"] .focus-card,
+[data-theme="light"] .lens-indicator,
 [data-theme="light"] .trend-alert-card,
 [data-theme="light"] .supp-timeline,
 [data-theme="light"] .alert-card { box-shadow: var(--shadow); border-color: transparent; }
@@ -745,6 +746,14 @@ body {
 }
 .ctx-note-input:focus { border-color: var(--accent); outline: none; }
 .ctx-note-input::placeholder { color: var(--text-muted); }
+/* Location inputs */
+.loc-inputs { display: flex; gap: 8px; }
+.loc-inputs .ctx-note-input { flex: 1; }
+.loc-zip-input { flex: 0 0 150px !important; }
+@media (max-width: 480px) {
+  .loc-inputs { flex-direction: column; }
+  .loc-zip-input { flex: 1 !important; }
+}
 /* Meal row: time + description side by side */
 .ctx-meal-row { display: flex; gap: 8px; align-items: center; }
 .ctx-meal-time {
@@ -1611,6 +1620,28 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* Interpretive Lens Indicator */
+.lens-indicator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; margin-top: 10px; cursor: pointer;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  border-left: 3px solid var(--purple);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.4;
+  transition: border-color 0.15s, background 0.15s;
+}
+.lens-indicator:hover { border-color: var(--purple); background: var(--bg-hover); }
+.lens-indicator-icon { font-size: 15px; flex-shrink: 0; }
+.lens-indicator-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lens-indicator-empty { color: var(--text-muted); font-style: italic; }
+.lens-indicator-link { color: var(--accent); text-decoration: underline; }
+/* Settings Lens Textarea */
+.settings-lens-textarea {
+  width: 100%; min-height: 70px; padding: 10px 12px;
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-family: var(--font-body); font-size: 13px; line-height: 1.5;
+  resize: vertical; box-sizing: border-box;
+}
+.settings-lens-textarea:focus { outline: none; border-color: var(--accent); }
 /* Onboarding */
 .onboarding-step1 {
   text-align: center; padding: 32px 20px; margin-top: 16px;
