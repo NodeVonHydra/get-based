@@ -458,8 +458,45 @@ let compareDate1 = null, compareDate2 = null;
 function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
 function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
 function hasApiKey() { return !!getApiKey(); }
-function getAnthropicModel() { return 'claude-sonnet-4-5-20250929'; }
-function getAnthropicModelDisplay() { return 'Claude Sonnet 4.5'; }
+function getAnthropicModel() { return localStorage.getItem('labcharts-anthropic-model') || 'claude-sonnet-4-6'; }
+function setAnthropicModel(id) { localStorage.setItem('labcharts-anthropic-model', id); }
+function getAnthropicModelDisplay() {
+  const id = getAnthropicModel();
+  const cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]');
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? m.display_name || m.id : id;
+}
+function deduplicateModels(models, familyFn) {
+  const seen = {};
+  return models.filter(function(m) {
+    const fam = familyFn(m.id);
+    if (seen[fam]) return false;
+    seen[fam] = true;
+    return true;
+  });
+}
+async function fetchAnthropicModels(key) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+      headers: { 'x-api-key': key || getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    // Sort descending so latest version comes first per family
+    const all = (json.data || []).filter(function(m) { return m.id && !m.id.includes('pdl-'); }).sort(function(a, b) { return b.id.localeCompare(a.id); });
+    // Deduplicate: keep only latest per tier (opus, sonnet, haiku)
+    const models = deduplicateModels(all, function(id) {
+      var tier = id.match(/(opus|sonnet|haiku)/);
+      return tier ? 'claude-' + tier[1] : id;
+    });
+    localStorage.setItem('labcharts-anthropic-models', JSON.stringify(models));
+    if (!localStorage.getItem('labcharts-anthropic-model') && models.length) {
+      const sonnet = models.find(function(m) { return m.id.includes('sonnet'); });
+      if (sonnet) setAnthropicModel(sonnet.id);
+    }
+    return models;
+  } catch (e) { return []; }
+}
 
 function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
 function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
@@ -482,22 +519,46 @@ function saveVeniceKey(key) { localStorage.setItem('labcharts-venice-key', key);
 function hasVeniceKey() { return !!getVeniceKey(); }
 function getVeniceModel() { return localStorage.getItem('labcharts-venice-model') || 'llama-3.3-70b'; }
 function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
+function getVeniceModelDisplay() {
+  const id = getVeniceModel();
+  const cached = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]');
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
+async function fetchVeniceModels(key) {
+  try {
+    const res = await fetch('https://api.venice.ai/api/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + (key || getVeniceKey()) }
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    // Sort descending so latest version comes first per family
+    const all = (json.data || []).filter(function(m) { return m.id && m.type === 'text'; }).sort(function(a, b) { return b.id.localeCompare(a.id); });
+    // Deduplicate: Claude models by tier, others by stripping size/date suffixes
+    const models = deduplicateModels(all, function(id) {
+      var tier = id.match(/(opus|sonnet|haiku)/);
+      if (tier) return 'claude-' + tier[1];
+      return id.replace(/-\d{8}$/, '').replace(/-\d+[bB]$/, '');
+    });
+    // Re-sort alphabetically by display name
+    models.sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    localStorage.setItem('labcharts-venice-models', JSON.stringify(models));
+    if (!localStorage.getItem('labcharts-venice-model') && models.length) {
+      const llama = models.find(function(m) { return m.id.includes('llama-3.3-70b'); });
+      if (llama) setVeniceModel(llama.id);
+    }
+    return models;
+  } catch (e) { return []; }
+}
 
 async function validateApiKey(key) {
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const res = await fetch('https://api.anthropic.com/v1/models?limit=1', {
       headers: {
-        'Content-Type': 'application/json',
         'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: getAnthropicModel(),
-        max_tokens: 16,
-        messages: [{ role: 'user', content: 'Reply with "ok"' }]
-      })
+      }
     });
     if (res.ok) return { valid: true };
     if (res.status === 401) return { valid: false, error: 'Invalid API key' };
@@ -514,7 +575,7 @@ async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
   const key = getApiKey();
   if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
   const body = {
-    model: 'claude-sonnet-4-5-20250929',
+    model: getAnthropicModel(),
     max_tokens: maxTokens || 4096,
     messages
   };
@@ -704,17 +765,8 @@ async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
 
 async function validateVeniceKey(key) {
   try {
-    const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b',
-        max_tokens: 16,
-        messages: [{ role: 'user', content: 'Reply with "ok"' }]
-      })
+    const res = await fetch('https://api.venice.ai/api/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
     });
     if (res.ok) return { valid: true };
     if (res.status === 401) return { valid: false, error: 'Invalid API key' };
@@ -843,9 +895,23 @@ function openSettingsModal() {
 function renderAIProviderPanel(provider) {
   if (provider === 'anthropic') {
     const currentKey = getApiKey();
+    const cachedModels = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]');
+    const currentModel = getAnthropicModel();
+    let modelHtml;
+    if (cachedModels.length > 0) {
+      const opts = cachedModels.map(function(m) {
+        const label = m.display_name || m.id;
+        return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + label + '</option>';
+      }).join('');
+      modelHtml = `<div style="margin-top:12px" id="anthropic-model-area">
+        <label style="font-size:12px;color:var(--text-muted)">Model</label>
+        <select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value)">${opts}</select>
+      </div>`;
+    } else {
+      modelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="anthropic-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getAnthropicModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
+    }
     return `<div class="ai-provider-panel">
-      <div class="ai-provider-desc">Anthropic's best AI model, runs in the cloud. Requires an API key (pay-per-use).</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Model: <span style="color:var(--text-primary)">${getAnthropicModelDisplay()}</span></div>
+      <div class="ai-provider-desc">Anthropic's AI models, run in the cloud. Requires an API key (pay-per-use).</div>
       <div class="api-key-status" id="api-key-status">
         ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
@@ -854,22 +920,27 @@ function renderAIProviderPanel(provider) {
         <button class="import-btn import-btn-primary" id="save-api-key-btn" onclick="handleSaveApiKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
       </div>
+      ${modelHtml}
       <div class="api-key-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
     </div>`;
   }
   if (provider === 'venice') {
     const currentKey = getVeniceKey();
     const veniceModel = getVeniceModel();
-    const veniceModels = [
-      ['llama-3.3-70b', 'Llama 3.3 70B'],
-      ['venice-uncensored', 'Venice Uncensored'],
-      ['qwen3-next-80b', 'Qwen 3 Next 80B'],
-      ['claude-sonnet-45', 'Claude Sonnet 4.5'],
-      ['openai-gpt-52', 'GPT-5.2'],
-    ];
-    const modelOptions = veniceModels.map(function(m) {
-      return '<option value="' + m[0] + '"' + (veniceModel === m[0] ? ' selected' : '') + '>' + m[1] + '</option>';
-    }).join('');
+    const cachedVeniceModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]');
+    let veniceModelHtml;
+    if (cachedVeniceModels.length > 0) {
+      const opts = cachedVeniceModels.map(function(m) {
+        const label = m.name || m.id;
+        return '<option value="' + m.id + '"' + (veniceModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
+      }).join('');
+      veniceModelHtml = `<div style="margin-top:12px" id="venice-model-area">
+        <label style="font-size:12px;color:var(--text-muted)">Model</label>
+        <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">${opts}</select>
+      </div>`;
+    } else {
+      veniceModelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="venice-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getVeniceModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
+    }
     return `<div class="ai-provider-panel">
       <div class="ai-provider-desc">Privacy-focused cloud AI. Uncensored models, no data stored. Requires API key.</div>
       <div class="api-key-status" id="venice-key-status">
@@ -880,12 +951,7 @@ function renderAIProviderPanel(provider) {
         <button class="import-btn import-btn-primary" id="save-venice-key-btn" onclick="handleSaveVeniceKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveVeniceKey()">Remove Key</button>' : ''}
       </div>
-      <div style="margin-top:12px">
-        <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">
-          ${modelOptions}
-        </select>
-      </div>
+      ${veniceModelHtml}
       <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
@@ -1009,6 +1075,18 @@ function switchAIProvider(provider) {
     modal.querySelectorAll('.ai-provider-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.provider === provider));
   }
   initSettingsOllamaCheck();
+  initSettingsAnthropicModels();
+}
+
+function initSettingsAnthropicModels() {
+  const key = getApiKey();
+  if (key && document.getElementById('anthropic-model-area')) {
+    fetchAnthropicModels(key).then(function(models) { if (models.length) renderAnthropicModelDropdown(models); });
+  }
+  const veniceKey = getVeniceKey();
+  if (veniceKey && document.getElementById('venice-model-area')) {
+    fetchVeniceModels(veniceKey).then(function(models) { if (models.length) renderVeniceModelDropdown(models); });
+  }
 }
 
 function initSettingsOllamaCheck() {
@@ -1159,9 +1237,15 @@ async function handleSaveApiKey() {
   const result = await validateApiKey(key);
   if (result.valid) {
     saveApiKey(key);
-    status.innerHTML = '<span style="color:var(--green)">Connected successfully</span>';
+    status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
+    const models = await fetchAnthropicModels(key);
+    if (models.length) {
+      renderAnthropicModelDropdown(models);
+      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
+    } else {
+      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
+    }
     showNotification('API key saved', 'success');
-    setTimeout(() => closeSettingsModal(), 1000);
   } else {
     status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
   }
@@ -1170,8 +1254,21 @@ async function handleSaveApiKey() {
 
 function handleRemoveApiKey() {
   localStorage.removeItem('labcharts-api-key');
+  localStorage.removeItem('labcharts-anthropic-models');
+  localStorage.removeItem('labcharts-anthropic-model');
   showNotification('API key removed', 'info');
   openSettingsModal();
+}
+
+function renderAnthropicModelDropdown(models) {
+  const area = document.getElementById('anthropic-model-area');
+  if (!area || !models.length) return;
+  const currentModel = getAnthropicModel();
+  const opts = models.map(function(m) {
+    const label = m.display_name || m.id;
+    return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + label + '</option>';
+  }).join('');
+  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label><select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value)">' + opts + '</select>';
 }
 
 async function handleSaveVeniceKey() {
@@ -1184,9 +1281,15 @@ async function handleSaveVeniceKey() {
   const result = await validateVeniceKey(key);
   if (result.valid) {
     saveVeniceKey(key);
-    status.innerHTML = '<span style="color:var(--green)">Connected successfully</span>';
+    status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
+    const models = await fetchVeniceModels(key);
+    if (models.length) {
+      renderVeniceModelDropdown(models);
+      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
+    } else {
+      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
+    }
     showNotification('Venice API key saved', 'success');
-    setTimeout(() => closeSettingsModal(), 1000);
   } else {
     status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
   }
@@ -1195,8 +1298,21 @@ async function handleSaveVeniceKey() {
 
 function handleRemoveVeniceKey() {
   localStorage.removeItem('labcharts-venice-key');
+  localStorage.removeItem('labcharts-venice-models');
+  localStorage.removeItem('labcharts-venice-model');
   showNotification('Venice API key removed', 'info');
   openSettingsModal();
+}
+
+function renderVeniceModelDropdown(models) {
+  const area = document.getElementById('venice-model-area');
+  if (!area || !models.length) return;
+  const currentModel = getVeniceModel();
+  const opts = models.map(function(m) {
+    const label = m.name || m.id;
+    return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
+  }).join('');
+  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label><select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">' + opts + '</select>';
 }
 
 // ═══════════════════════════════════════════════
@@ -4553,7 +4669,7 @@ function showImportPreview(parseResult) {
     if (t) {
       const piiLabel = parseResult.privacyMethod === 'ollama' ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
       const provider = getAIProvider();
-      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModel() : 'Claude Sonnet';
+      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : getAnthropicModelDisplay();
       html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
     }
     if (parseResult.privacyOriginal && parseResult.privacyObfuscated) {
