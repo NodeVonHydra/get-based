@@ -284,7 +284,7 @@ const LIGHT_EVENING = ['blue blockers after sunset', 'dim lights after sunset', 
 const LIGHT_COLD = ['cold plunge / ice bath', 'cold shower', 'cold face immersion', 'cold ocean / lake', 'winter cold exposure', 'no cold practice'];
 const LIGHT_GROUNDING = ['barefoot on earth daily', 'grounding mat / sheet', 'barefoot occasionally', 'ocean swimming', 'no grounding practice'];
 const LIGHT_SCREEN_TIME = ['<2h', '2-4h', '4-8h', '8-12h', '12+h'];
-const LIGHT_TECH_ENV = ['multiple monitors at work', 'phone in bedroom', 'smart watch 24/7', 'WiFi router near bed', 'work from home (all day screens)', 'TV before bed', 'gaming (evening)', 'e-reader before bed'];
+const LIGHT_TECH_ENV = ['multiple monitors at work', 'phone in bedroom', 'smart watch 24/7', 'work from home (all day screens)', 'TV before bed', 'gaming (evening)', 'e-reader before bed'];
 const LIGHT_MEAL_TIMING = ['eat within daylight only', 'early dinner (before 6pm)', 'late dinner (after 8pm)', 'skip breakfast', 'time-restricted eating'];
 const STRESS_LEVELS = ['low', 'moderate', 'high', 'chronic'];
 const STRESS_SOURCES = ['work', 'financial', 'relationships', 'health', 'family', 'caregiving', 'loneliness', 'major life change'];
@@ -410,7 +410,13 @@ function getFocusCardFingerprint() {
     JSON.stringify(importedData.diagnoses || null),
     (importedData.healthGoals || []).map(g => g.text).join(','),
     JSON.stringify(importedData.diet || null),
-    JSON.stringify(importedData.stress || null)
+    JSON.stringify(importedData.exercise || null),
+    JSON.stringify(importedData.sleepRest || null),
+    JSON.stringify(importedData.lightCircadian || null),
+    JSON.stringify(importedData.stress || null),
+    JSON.stringify(importedData.loveLife || null),
+    JSON.stringify(importedData.environment || null),
+    importedData.interpretiveLens || ''
   ];
   return hashString(parts.join('|'));
 }
@@ -432,7 +438,7 @@ function getRangePosition(value, refMin, refMax) {
 // ═══════════════════════════════════════════════
 let chartInstances = {};
 const markerRegistry = {};
-let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null };
+let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, customMarkers: {} };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
 let currentProfile = 'default';
@@ -1278,12 +1284,15 @@ function migrateProfileData(data) {
     data.lightCircadian = newLc;
   }
   // Initialize new fields if missing
+  if (data.healthGoals === undefined) data.healthGoals = [];
   if (data.sleepRest === undefined) data.sleepRest = null;
   if (data.lightCircadian === undefined) data.lightCircadian = null;
   if (data.stress === undefined) data.stress = null;
   if (data.loveLife === undefined) data.loveLife = null;
   if (data.environment === undefined) data.environment = null;
+  if (data.interpretiveLens === undefined) data.interpretiveLens = '';
   if (data.contextNotes === undefined) data.contextNotes = '';
+  if (data.customMarkers === undefined) data.customMarkers = {};
   return data;
 }
 
@@ -2259,7 +2268,12 @@ function dismissOnboarding() {
 function getConditionsSummary(d) {
   if (!d) return '';
   const parts = [];
-  if (d.conditions && d.conditions.length) parts.push(d.conditions.map(c => c.name).join(', '));
+  if (d.conditions && d.conditions.length) parts.push(d.conditions.map(c => {
+    let s = c.name;
+    if (c.severity && c.severity !== 'mild') s += ` (${c.severity})`;
+    if (c.since) s += ` since ${c.since}`;
+    return s;
+  }).join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(' — ');
 }
@@ -2269,8 +2283,12 @@ function getDietSummary(d) {
   if (d.type) parts.push(d.type);
   if (d.pattern) parts.push(d.pattern);
   if (d.restrictions && d.restrictions.length) parts.push(d.restrictions.join(', '));
-  const meals = [d.breakfast, d.lunch, d.dinner, d.snacks].filter(Boolean);
-  if (meals.length) parts.push(meals.length + ' meal' + (meals.length > 1 ? 's' : '') + ' described');
+  const mealNames = [];
+  if (d.breakfast) mealNames.push('breakfast');
+  if (d.lunch) mealNames.push('lunch');
+  if (d.dinner) mealNames.push('dinner');
+  if (d.snacks) mealNames.push('snacks');
+  if (mealNames.length) parts.push(mealNames.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -2329,6 +2347,7 @@ function getLoveLifeSummary(d) {
   if (d.satisfaction) parts.push(d.satisfaction);
   if (d.libido) parts.push(d.libido + ' libido');
   if (d.frequency) parts.push(d.frequency);
+  if (d.orgasm) parts.push('orgasm: ' + d.orgasm);
   if (d.concerns && d.concerns.length) parts.push(d.concerns.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
@@ -2339,22 +2358,26 @@ function getEnvironmentSummary(d) {
   if (d.setting) parts.push(d.setting);
   if (d.climate) parts.push(d.climate);
   if (d.water) parts.push(d.water);
+  if (d.waterConcerns && d.waterConcerns.length) parts.push(d.waterConcerns.join(', '));
   if (d.emf && d.emf.length) parts.push(d.emf.length + ' EMF source' + (d.emf.length > 1 ? 's' : ''));
   if (d.emfMitigation && d.emfMitigation.length) parts.push(d.emfMitigation.length + ' EMF mitigation');
+  if (d.homeLight) parts.push(d.homeLight);
+  if (d.air && d.air.length) parts.push(d.air.join(', '));
   if (d.toxins && d.toxins.length) parts.push(d.toxins.length + ' toxin exposure' + (d.toxins.length > 1 ? 's' : ''));
+  if (d.building) parts.push(d.building);
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
 function getGoalsSummary() {
   const healthGoals = importedData.healthGoals || [];
   if (healthGoals.length === 0) return '';
-  const counts = { major: 0, mild: 0, minor: 0 };
-  for (const g of healthGoals) counts[g.severity] = (counts[g.severity] || 0) + 1;
-  return [counts.major ? `${counts.major} major` : '', counts.mild ? `${counts.mild} mild` : '', counts.minor ? `${counts.minor} minor` : ''].filter(Boolean).join(', ') + ` goal${healthGoals.length !== 1 ? 's' : ''}`;
+  const texts = healthGoals.slice(0, 3).map(g => g.text);
+  const summary = texts.join(', ');
+  if (healthGoals.length > 3) return summary + ` +${healthGoals.length - 3} more`;
+  return summary;
 }
 function isContextFilled(key) {
   if (key === 'healthGoals') return (importedData.healthGoals || []).length > 0;
-  if (key === 'interpretiveLens') return !!(importedData.interpretiveLens || '').trim();
   return importedData[key] != null;
 }
 
@@ -2365,10 +2388,10 @@ function renderProfileContextCards() {
     { key: 'diet', emoji: '\uD83E\uDD57', label: 'Diet', editor: 'openDietEditor', tooltip: 'Nutrition has a major impact on blood markers — keto raises LDL, vegetarian diets affect B12 and iron.', placeholder: 'Describe your diet', summaryFn: () => getDietSummary(importedData.diet) },
     { key: 'exercise', emoji: '\uD83C\uDFCB\uFE0F', label: 'Exercise', editor: 'openExerciseEditor', tooltip: 'Training type and intensity affect CK, liver enzymes, cholesterol, and inflammatory markers.', placeholder: 'Describe your routine', summaryFn: () => getExerciseSummary(importedData.exercise) },
     { key: 'sleepRest', emoji: '\uD83D\uDE34', label: 'Sleep & Rest', editor: 'openSleepRestEditor', tooltip: 'Sleep duration and quality directly affect inflammation, insulin sensitivity, cortisol, and immune function.', placeholder: 'Describe your sleep', summaryFn: () => getSleepSummary(importedData.sleepRest) },
-    { key: 'lightCircadian', emoji: '\u2600\uFE0F', label: 'Light & Circadian', editor: 'openLightCircadianEditor', tooltip: 'Light exposure timing, meal timing, and circadian rhythm drive hormone cycles, melatonin, cortisol, and metabolic health.', placeholder: 'Describe your light habits', summaryFn: () => getLightCircadianSummary(importedData.lightCircadian) },
+    { key: 'lightCircadian', emoji: '\u2600\uFE0F', label: 'Light & Circadian', editor: 'openLightCircadianEditor', tooltip: 'Light, cold, grounding, screen time, and meal timing drive circadian rhythm, hormones, melatonin, cortisol, and metabolic health.', placeholder: 'Describe your light habits', summaryFn: () => getLightCircadianSummary(importedData.lightCircadian) },
     { key: 'stress', emoji: '\uD83E\uDDE0', label: 'Stress', editor: 'openStressEditor', tooltip: 'Chronic stress elevates cortisol, disrupts thyroid function, raises inflammation, and impairs immune response.', placeholder: 'Rate your stress level', summaryFn: () => getStressSummary(importedData.stress) },
     { key: 'loveLife', emoji: '\u2764\uFE0F', label: 'Love Life & Relationships', editor: 'openLoveLifeEditor', tooltip: 'Sexual health and relationships directly affect hormones (testosterone, estrogen, oxytocin, cortisol), immune function, and cardiovascular markers.', placeholder: 'Share your status', summaryFn: () => getLoveLifeSummary(importedData.loveLife) },
-    { key: 'environment', emoji: '\uD83C\uDF0D', label: 'Environment', editor: 'openEnvironmentEditor', tooltip: 'Water quality, EMF, light environment, air, and toxin exposure shape mitochondrial function, inflammation, hormones, and oxidative stress.', placeholder: 'Describe your environment', summaryFn: () => getEnvironmentSummary(importedData.environment) },
+    { key: 'environment', emoji: '\uD83C\uDF0D', label: 'Environment', editor: 'openEnvironmentEditor', tooltip: 'Water quality, EMF exposure, air quality, toxins, and building materials shape mitochondrial function, inflammation, hormones, and oxidative stress.', placeholder: 'Describe your environment', summaryFn: () => getEnvironmentSummary(importedData.environment) },
   ];
   const filledCount = cardDefs.filter(c => isContextFilled(c.key)).length;
   let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span></div>`;
@@ -2410,50 +2433,51 @@ function debounceContextNotes() {
 }
 
 // ── AI Health Status Dots ──
-function getContextHealthFingerprint() {
-  const parts = [
-    JSON.stringify((importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length)),
-    JSON.stringify(importedData.diagnoses), JSON.stringify(importedData.diet),
-    JSON.stringify(importedData.exercise), JSON.stringify(importedData.sleepRest),
-    JSON.stringify(importedData.lightCircadian),
-    JSON.stringify(importedData.stress), JSON.stringify(importedData.loveLife),
-    JSON.stringify(importedData.environment), importedData.interpretiveLens || '',
-    JSON.stringify(importedData.healthGoals || []),
-    importedData.contextNotes || '', profileSex || '', profileDob || ''
-  ];
-  return hashString(parts.join('|'));
-}
-
 function applyDotColor(key, color) {
   const dot = document.getElementById('ctx-dot-' + key);
   if (!dot) return;
   dot.className = 'ctx-health-dot ctx-health-dot-' + color;
 }
 
+function getCardFingerprint(key) {
+  const labPart = JSON.stringify((importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length));
+  const val = key === 'healthGoals' ? JSON.stringify(importedData.healthGoals || []) : JSON.stringify(importedData[key]);
+  return hashString(labPart + '|' + val + '|' + (profileSex || '') + '|' + (profileDob || ''));
+}
+
 async function loadContextHealthDots() {
   if (!hasAIProvider()) return;
   const keys = ['healthGoals', 'diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment'];
-  const fingerprint = getContextHealthFingerprint();
   const cacheKey = profileStorageKey(currentProfile, 'contextHealth');
-  try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-    if (cached && cached.fingerprint === fingerprint && cached.dots) {
-      for (const k of keys) if (cached.dots[k]) applyDotColor(k, cached.dots[k]);
-      return;
-    }
-  } catch(e) {}
-  // Show shimmer while loading
+  let cached;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch(e) { cached = null; }
+  if (!cached || !cached.dots) cached = { dots: {}, fingerprints: {} };
+
+  // Determine which cards need re-fetching
+  const staleKeys = [];
   for (const k of keys) {
+    const fp = getCardFingerprint(k);
+    if (cached.fingerprints && cached.fingerprints[k] === fp && cached.dots[k]) {
+      applyDotColor(k, cached.dots[k]);
+    } else {
+      staleKeys.push(k);
+    }
+  }
+  if (staleKeys.length === 0) return;
+
+  // Show shimmer only on stale cards
+  for (const k of staleKeys) {
     const dot = document.getElementById('ctx-dot-' + k);
     if (dot) dot.classList.add('ctx-health-dot-shimmer');
   }
   const ctx = buildLabContext();
   if (ctx === 'No lab data is currently loaded for this profile.') {
-    for (const k of keys) applyDotColor(k, 'gray');
+    for (const k of staleKeys) applyDotColor(k, 'gray');
     return;
   }
+  const keyList = staleKeys.join('","');
   const prompt = `Based on this person's lab data and profile context, rate each profile area's health impact as a single color dot. Return ONLY valid JSON with these keys and values of "green" (good/healthy), "yellow" (needs attention), "red" (concerning), or "gray" (not enough info):
-{"healthGoals","diagnoses","diet","exercise","sleepRest","lightCircadian","stress","loveLife","environment","interpretiveLens"}
+{"${keyList}"}
 
 Consider: does each area positively or negatively impact their lab results? Green = area supports health, Yellow = could be improved, Red = likely hurting their labs. If the area has no data, use "gray".`;
   try {
@@ -2465,14 +2489,17 @@ Consider: does each area positively or negatively impact their lab results? Gree
     const jsonMatch = text.match(/\{[^}]+\}/);
     if (jsonMatch) {
       const dots = JSON.parse(jsonMatch[0]);
-      for (const k of keys) {
+      if (!cached.fingerprints) cached.fingerprints = {};
+      for (const k of staleKeys) {
         const color = ['green', 'yellow', 'red', 'gray'].includes(dots[k]) ? dots[k] : 'gray';
         applyDotColor(k, color);
+        cached.dots[k] = color;
+        cached.fingerprints[k] = getCardFingerprint(k);
       }
-      try { localStorage.setItem(cacheKey, JSON.stringify({ fingerprint, dots })); } catch(e) {}
+      try { localStorage.setItem(cacheKey, JSON.stringify(cached)); } catch(e) {}
     }
   } catch(e) {
-    for (const k of keys) applyDotColor(k, 'gray');
+    for (const k of staleKeys) applyDotColor(k, 'gray');
   }
 }
 
@@ -4791,12 +4818,18 @@ function closeSuggestionsOnClickOutside(e) {
   }
 }
 
+function syncDiagnosesNote() {
+  const noteEl = document.getElementById('ctx-note-input');
+  if (noteEl && importedData.diagnoses) importedData.diagnoses.note = noteEl.value.trim();
+}
+
 function addCondition() {
   const input = document.getElementById('condition-input');
   const severity = getSelectedOption('condition-severity') || 'mild';
   const since = document.getElementById('condition-since');
   const name = input ? input.value.trim() : '';
   if (!name) return;
+  syncDiagnosesNote();
   if (!importedData.diagnoses) importedData.diagnoses = { conditions: [], note: '' };
   const cond = { name, severity };
   if (since && since.value.trim()) cond.since = since.value.trim();
@@ -4807,6 +4840,7 @@ function addCondition() {
 
 function deleteCondition(idx) {
   if (!importedData.diagnoses || !importedData.diagnoses.conditions) return;
+  syncDiagnosesNote();
   importedData.diagnoses.conditions.splice(idx, 1);
   saveImportedData();
   renderDiagnosesModal(document.getElementById("detail-modal"), importedData.diagnoses);
@@ -5945,6 +5979,9 @@ function exportPDFReport() {
   if (importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: importedData.exercise });
   if (importedData.sleepRest) contextSections.push({ title: 'Sleep & Rest', text: importedData.sleepRest });
   if (importedData.lightCircadian) contextSections.push({ title: 'Light & Circadian', text: importedData.lightCircadian });
+  if (importedData.stress) contextSections.push({ title: 'Stress', text: importedData.stress });
+  if (importedData.loveLife) contextSections.push({ title: 'Love Life & Relationships', text: importedData.loveLife });
+  if (importedData.environment) contextSections.push({ title: 'Environment', text: importedData.environment });
   if (importedData.interpretiveLens) contextSections.push({ title: 'Interpretive Lens', text: importedData.interpretiveLens });
   const hg = importedData.healthGoals || [];
   if (hg.length) {
@@ -6498,7 +6535,8 @@ Important guidelines:
 - If the user has added notes for specific dates, consider them when interpreting results (e.g. medication changes, supplement starts, fasting status, symptoms).
 - If the user has listed medical conditions or diagnoses, always consider them when interpreting lab results. Explain how specific conditions may affect certain biomarkers, and flag results that are particularly relevant to their diagnoses.
 - If the user has described their diet, consider how it may influence lab results (e.g. keto can raise LDL, vegetarian diets may affect B12/iron, high protein affects creatinine/urea).
-- If the user has described their sleep and circadian habits, consider how sleep quality, duration, disorders, light exposure, and shift work affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; shift work disrupts hormone rhythms; melatonin timing affects thyroid markers).
+- If the user has described their sleep habits, consider how sleep quality, duration, and disorders affect lab results (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin; room temperature and sleep environment affect sleep quality and recovery).
+- If the user has described their light and circadian habits, consider how light exposure timing, UV exposure, cold exposure, grounding, screen time, and meal timing affect lab results (e.g. morning sunlight regulates cortisol awakening response; UV drives vitamin D synthesis; blue light at night suppresses melatonin and disrupts hormone rhythms; cold exposure affects thyroid, brown fat activation, and inflammatory markers; grounding affects cortisol and inflammation; latitude affects seasonal hormone patterns).
 - If the user has described their exercise habits, consider how training type and intensity may influence lab results (e.g. heavy lifting raises CK/AST/ALT, endurance training lowers resting HR and raises HDL, overtraining elevates hs-CRP/cortisol, high protein intake affects creatinine/urea/BUN).
 - If the user has logged supplements or medications with date ranges, correlate their start/stop dates with biomarker changes. Note when a marker shift coincides with beginning or ending a supplement/medication, and explain known effects of that substance on relevant biomarkers.
 - If the user has defined health goals, prioritize your analysis around those stated goals. Focus on major priorities first, then mild, then minor. Connect biomarker trends to the user's specific health objectives.
@@ -6507,6 +6545,7 @@ Important guidelines:
 - If the user has shared their stress profile, consider how chronic stress elevates cortisol, disrupts thyroid function (TSH, T3/T4), raises inflammatory markers (hs-CRP, WBC), impairs insulin sensitivity, and suppresses immune function. Correlate stress sources and management strategies with lab trends.
 - If the user has shared their love life/relationship context, consider how relationship status and satisfaction affect cortisol regulation, oxytocin levels, immune function (WBC, lymphocytes), cardiovascular markers, and chronic inflammation.
 - If the user has shared their environment context, consider how environmental exposures affect lab results (e.g. air pollution raises hs-CRP and oxidative stress markers, mold exposure affects liver enzymes, heavy metals impact kidney function, climate affects vitamin D).
+- If the user has provided additional context notes, consider them as supplementary information when interpreting results.
 - Format responses with markdown where helpful (bold for emphasis, bullet points for lists).`;
 
 function buildLabContext() {
