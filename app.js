@@ -484,10 +484,9 @@ async function fetchAnthropicModels(key) {
     const json = await res.json();
     // Sort descending so latest version comes first per family
     const all = (json.data || []).filter(function(m) { return m.id && !m.id.includes('pdl-'); }).sort(function(a, b) { return b.id.localeCompare(a.id); });
-    // Deduplicate: keep only latest per tier (opus, sonnet, haiku)
+    // Deduplicate: strip date suffix to keep one per version (e.g., claude-sonnet-4-5, claude-sonnet-4-6)
     const models = deduplicateModels(all, function(id) {
-      var tier = id.match(/(opus|sonnet|haiku)/);
-      return tier ? 'claude-' + tier[1] : id;
+      return id.replace(/-\d{8}$/, '');
     });
     localStorage.setItem('labcharts-anthropic-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-anthropic-model') && models.length) {
@@ -534,10 +533,10 @@ async function fetchVeniceModels(key) {
     const json = await res.json();
     // Sort descending so latest version comes first per family
     const all = (json.data || []).filter(function(m) { return m.id && m.type === 'text'; }).sort(function(a, b) { return b.id.localeCompare(a.id); });
-    // Deduplicate: Claude models by tier, others by stripping size/date suffixes
+    // Deduplicate: Venice curates Claude models (no date-stamped variants), so keep all.
+    // For others, strip size/date suffixes to collapse duplicates.
     const models = deduplicateModels(all, function(id) {
-      var tier = id.match(/(opus|sonnet|haiku)/);
-      if (tier) return 'claude-' + tier[1];
+      if (id.startsWith('claude-')) return id;
       return id.replace(/-\d{8}$/, '').replace(/-\d+[bB]$/, '');
     });
     // Re-sort alphabetically by display name
