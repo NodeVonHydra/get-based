@@ -290,7 +290,7 @@ body {
 .fa-card-ref { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0); z-index: 200; display: none;
+  background: rgba(0,0,0,0); z-index: 275; display: none;
   align-items: center; justify-content: center; cursor: pointer;
   transition: background 0.25s ease;
 }
@@ -465,7 +465,7 @@ body {
 }
 /* Notification Toast */
 .notification-container {
-  position: fixed; top: 72px; right: 24px; z-index: 300;
+  position: fixed; top: 72px; right: 24px; z-index: 350;
   display: flex; flex-direction: column; gap: 8px;
 }
 .notification-toast {
@@ -849,13 +849,6 @@ body {
   color: var(--text-primary); font-size: 13px; font-family: inherit;
 }
 .goals-text-input:focus { border-color: var(--accent); }
-.goals-severity-select {
-  padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
-  background: var(--bg-primary); color: var(--text-primary); font-size: 13px;
-  font-family: inherit; cursor: pointer;
-}
-.goals-severity-select option { background: var(--bg-secondary); }
-.goals-severity-select:focus { border-color: var(--accent); }
 @media (max-width: 600px) {
   .goals-add-row { flex-wrap: wrap; }
   .goals-text-input { min-width: 100%; }
@@ -1146,7 +1139,7 @@ body {
   padding: 8px 10px 0;
 }
 .chat-personality-custom-textarea {
-  width: 100%; background: var(--bg-main); border: 1px solid var(--border);
+  width: 100%; background: var(--bg-primary); border: 1px solid var(--border);
   border-radius: 6px; color: var(--text-primary); font-family: inherit;
   font-size: 12px; padding: 8px 10px; resize: vertical; box-sizing: border-box;
 }
@@ -1635,7 +1628,6 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 /* Interpretive Lens Section */
 .lens-section {
   display: flex; align-items: flex-start; gap: 10px;
@@ -1790,7 +1782,7 @@ body {
 
 /* PII Diff Viewer (debug mode) */
 .pii-diff-modal {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 24px; max-width: 95vw; width: 1200px; max-height: 85vh; overflow: hidden;
   display: flex; flex-direction: column; position: relative;
 }
@@ -1807,7 +1799,7 @@ body {
 .pii-diff-right { background: rgba(34,197,94,0.03); }
 .pii-diff-header {
   font-weight: 700; font-size: 12px; padding-bottom: 8px; margin-bottom: 8px;
-  border-bottom: 1px solid var(--border); font-family: var(--font);
+  border-bottom: 1px solid var(--border); font-family: var(--font-display);
 }
 .pii-diff-highlight-removed { background: rgba(239,68,68,0.12); border-radius: 2px; }
 .pii-diff-highlight-added { background: rgba(34,197,94,0.12); border-radius: 2px; }
