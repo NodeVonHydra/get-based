@@ -1811,6 +1811,12 @@ body {
 }
 .pii-diff-highlight-removed { background: rgba(239,68,68,0.12); border-radius: 2px; }
 .pii-diff-highlight-added { background: rgba(34,197,94,0.12); border-radius: 2px; }
+.chat-cost-footnote {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  opacity: 0.6;
+}
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
