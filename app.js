@@ -1002,6 +1002,12 @@ function renderPrivacySection() {
         </div>
       </div>
       <div style="margin-top:8px">
+        <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
+          <input type="checkbox" id="pii-review-toggle" style="margin-top:2px" ${isPIIReviewEnabled() ? 'checked' : ''} onchange="setPIIReviewEnabled(this.checked)">
+          <span>Review obfuscated text before sending to AI<br><span style="font-size:11px;color:var(--text-muted)">Pause after privacy protection to inspect what AI will receive</span></span>
+        </label>
+      </div>
+      <div style="margin-top:8px">
         <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
           <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
           Show privacy details in import preview
@@ -4529,11 +4535,10 @@ function obfuscatePDFText(pdfText) {
 // ═══════════════════════════════════════════════
 function isDebugMode() { return localStorage.getItem('labcharts-debug') === 'true'; }
 function setDebugMode(on) { localStorage.setItem('labcharts-debug', on ? 'true' : 'false'); }
+function isPIIReviewEnabled() { return localStorage.getItem('labcharts-pii-review') !== 'false'; }
+function setPIIReviewEnabled(on) { localStorage.setItem('labcharts-pii-review', on ? 'true' : 'false'); }
 
-function showPIIDiffViewer(originalText, obfuscatedText) {
-  const overlay = document.createElement('div');
-  overlay.className = 'pii-warning-overlay';
-  // Simple line-by-line diff
+function buildPIIDiffHTML(originalText, obfuscatedText) {
   const origLines = originalText.split('\n');
   const obfLines = obfuscatedText.split('\n');
   const maxLines = Math.max(origLines.length, obfLines.length);
@@ -4545,6 +4550,13 @@ function showPIIDiffViewer(originalText, obfuscatedText) {
     leftHtml += `<div class="${changed ? 'pii-diff-highlight-removed' : ''}">${escapeHTML(origLine) || '&nbsp;'}</div>`;
     rightHtml += `<div class="${changed ? 'pii-diff-highlight-added' : ''}">${escapeHTML(obfLine) || '&nbsp;'}</div>`;
   }
+  return { leftHtml, rightHtml };
+}
+
+function showPIIDiffViewer(originalText, obfuscatedText) {
+  const overlay = document.createElement('div');
+  overlay.className = 'pii-warning-overlay';
+  const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
   overlay.innerHTML = `
     <div class="pii-diff-modal">
       <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
@@ -4559,6 +4571,31 @@ function showPIIDiffViewer(originalText, obfuscatedText) {
     </div>`;
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+function reviewPIIBeforeSend(originalText, obfuscatedText) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'pii-warning-overlay';
+    const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
+    overlay.innerHTML = `
+      <div class="pii-diff-modal">
+        <h3>&#128274; Review — This is what AI will receive</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">Personal information on the left has been replaced with fake data on the right. Verify no sensitive data remains before sending.</p>
+        <div class="pii-diff-viewer">
+          <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
+          <div class="pii-diff-right"><div class="pii-diff-header">Sent to AI</div>${rightHtml}</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="import-btn import-btn-secondary" id="pii-review-cancel">Cancel Import</button>
+          <button class="import-btn" id="pii-review-send">Send to AI</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('show'));
+    overlay.querySelector('#pii-review-send').addEventListener('click', () => { overlay.remove(); resolve('send'); });
+    overlay.querySelector('#pii-review-cancel').addEventListener('click', () => { overlay.remove(); resolve('cancel'); });
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -6053,6 +6090,11 @@ async function handlePDFFile(file) {
     }
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
 
+    if (isPIIReviewEnabled()) {
+      const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
+      if (decision === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+    }
+
     await showImportProgress(2, file.name);
     const analysisStart = performance.now();
     const result = await parseLabPDFWithAI(textForAI, file.name);
@@ -6128,6 +6170,11 @@ async function handleBatchPDFs(pdfFiles) {
         }
       }
       if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
+
+      if (isPIIReviewEnabled()) {
+        const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
+        if (decision === 'cancel') { skipped++; continue; }
+      }
 
       await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
       const analysisStart = performance.now();
