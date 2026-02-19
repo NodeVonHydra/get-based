@@ -713,7 +713,10 @@ function getFocusCardFingerprint() {
     JSON.stringify(importedData.stress || null),
     JSON.stringify(importedData.loveLife || null),
     JSON.stringify(importedData.environment || null),
-    importedData.interpretiveLens || ''
+    importedData.interpretiveLens || '',
+    importedData.contextNotes || '',
+    JSON.stringify(importedData.menstrualCycle || null),
+    JSON.stringify((importedData.supplements || []).map(s => s.name + ':' + s.startDate))
   ];
   return hashString(parts.join('|'));
 }
@@ -734,7 +737,7 @@ function getRangePosition(value, refMin, refMax) {
 // APP LOGIC
 // ═══════════════════════════════════════════════
 let chartInstances = {};
-const markerRegistry = {};
+let markerRegistry = {};
 let importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, customMarkers: {} };
 let unitSystem = 'EU';
 let selectedCorrelationMarkers = [];
@@ -893,7 +896,8 @@ async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(300000)
   });
 
   if (!res.ok) {
@@ -1431,7 +1435,7 @@ function initSettingsOllamaCheck() {
         text.textContent = `Connected (${currentModel})`;
         if (modelSection && modelSelect) {
           modelSection.style.display = 'block';
-          modelSelect.innerHTML = result.models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+          modelSelect.innerHTML = result.models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
         }
       } else if (result.available) {
         dot.classList.add('disconnected');
@@ -1497,7 +1501,7 @@ async function testOllamaConnection() {
       if (modelSection && modelSelect) {
         const currentModel = getOllamaMainModel();
         modelSection.style.display = 'block';
-        modelSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentModel ? 'selected' : ''}>${m}</option>`).join('');
+        modelSelect.innerHTML = models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
       }
     }
     // Also refresh privacy section status
@@ -1535,7 +1539,7 @@ async function testPIIOllamaConnection() {
       text.textContent = `Connected — using ${currentPII}`;
       if (piiDropdown && piiSelect) {
         piiDropdown.style.display = 'block';
-        piiSelect.innerHTML = models.map(m => `<option value="${m}" ${m === currentPII ? 'selected' : ''}>${m}</option>`).join('');
+        piiSelect.innerHTML = models.map(m => `<option value="${escapeHTML(m)}" ${m === currentPII ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
       }
     }
     updatePrivacyStatusCard();
@@ -1656,7 +1660,11 @@ function getProfiles() {
 }
 
 function saveProfiles(profiles) {
-  localStorage.setItem('labcharts-profiles', JSON.stringify(profiles));
+  try {
+    localStorage.setItem('labcharts-profiles', JSON.stringify(profiles));
+  } catch (e) {
+    showNotification('Storage limit reached — could not save profile changes.', 'error');
+  }
 }
 
 function getActiveProfileId() {
@@ -1741,6 +1749,7 @@ function migrateProfileData(data) {
   if (data.interpretiveLens === undefined) data.interpretiveLens = '';
   if (data.contextNotes === undefined) data.contextNotes = '';
   if (data.customMarkers === undefined) data.customMarkers = {};
+  if (data.menstrualCycle === undefined) data.menstrualCycle = null;
   return data;
 }
 
@@ -1748,7 +1757,8 @@ function loadProfile(profileId) {
   currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
-  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return { entries: [], notes: [], supplements: [] }; } })() : { entries: [], notes: [], supplements: [] };
+  const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, customMarkers: {} };
+  importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return defaultData; } })() : defaultData;
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   unitSystem = savedUnits === 'US' ? 'US' : 'EU';
   const savedRange = localStorage.getItem(profileStorageKey(profileId, 'rangeMode'));
@@ -1761,6 +1771,7 @@ function loadProfile(profileId) {
   profileDob = getProfileDob(profileId);
   selectedCorrelationMarkers = [];
   chatHistory = [];
+  markerRegistry = {};
   loadChatPersonality();
   destroyAllCharts();
   buildSidebar();
@@ -1794,7 +1805,13 @@ function deleteProfile(profileId) {
     localStorage.removeItem(profileStorageKey(profileId, 'units'));
     localStorage.removeItem(profileStorageKey(profileId, 'suppOverlay'));
     localStorage.removeItem(profileStorageKey(profileId, 'noteOverlay'));
+    localStorage.removeItem(profileStorageKey(profileId, 'rangeMode'));
     localStorage.removeItem(`labcharts-${profileId}-chat`);
+    localStorage.removeItem(`labcharts-${profileId}-chatPersonality`);
+    localStorage.removeItem(`labcharts-${profileId}-chatPersonalityCustom`);
+    localStorage.removeItem(`labcharts-${profileId}-focusCard`);
+    localStorage.removeItem(`labcharts-${profileId}-contextHealth`);
+    localStorage.removeItem(`labcharts-${profileId}-onboarded`);
     if (currentProfile === profileId) {
       loadProfile(updated[0].id);
     } else {
@@ -2141,11 +2158,11 @@ function getActiveData() {
   // Populate values for each category
   for (const [catKey, cat] of Object.entries(data.categories)) {
     if (cat.singlePoint) {
-      // Find the first entry that has any marker in this category
+      // Find the latest entry that has any marker in this category
       let singleDate = null;
-      for (const entry of entries) {
-        for (const key of Object.keys(entry.markers)) {
-          if (key.startsWith(catKey + '.')) { singleDate = entry.date; break; }
+      for (let ei = entries.length - 1; ei >= 0; ei--) {
+        for (const key of Object.keys(entries[ei].markers)) {
+          if (key.startsWith(catKey + '.')) { singleDate = entries[ei].date; break; }
         }
         if (singleDate) break;
       }
@@ -3069,9 +3086,11 @@ async function loadContextHealthDots() {
     for (const k of staleKeys) applyDotColor(k, 'gray');
     return;
   }
-  const keyList = staleKeys.join('","');
+  const exampleObj = {};
+  for (const k of staleKeys) exampleObj[k] = {"dot":"...","tip":"..."};
+  const exampleJSON = JSON.stringify(exampleObj);
   const prompt = `Based on this person's lab data and profile context, assess each profile area. Return ONLY valid JSON with these keys, each having "dot" (green/yellow/red/gray) and "tip" (max 12 words — a brief, specific insight connecting this area to their actual lab markers):
-{"${keyList}": {"dot":"...","tip":"..."}}
+${exampleJSON}
 
 Dot colors: green = supports health, yellow = needs attention, red = concerning, gray = not enough info.
 Tips should reference specific markers or trends when possible (e.g. "Low vitamin D may link to limited sun exposure" not "Consider improving this area"). If no data, use gray dot and empty tip.`;
@@ -3297,8 +3316,8 @@ function renderChartCard(id, marker, dateLabels) {
 
   let html = `<div class="chart-card" onclick="showDetailModal('${id}')">
     <div class="chart-card-header"><div>
-      <div class="chart-card-title">${marker.name}</div>
-      <div class="chart-card-unit">${marker.unit}</div></div>
+      <div class="chart-card-title">${escapeHTML(marker.name)}</div>
+      <div class="chart-card-unit">${escapeHTML(marker.unit)}</div></div>
       <div><span class="chart-card-status status-${status}">${sIcon ? sIcon + ' ' : ''}${statusLabel}</span>${trendBadge}</div></div>
     <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
     <div class="chart-values">`;
@@ -3310,7 +3329,7 @@ function renderChartCard(id, marker, dateLabels) {
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
   const rangeLabel = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
-  html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${marker.unit}</div>` : ''}</div>`;
+  html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : ''}</div>`;
   return html;
 }
 
@@ -3326,8 +3345,8 @@ function renderTableView(cat, dateLabels) {
     if (rangeMode === 'both') {
       if (marker.optimalMin != null) refCell = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span style="color:var(--green);font-size:11px">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
     }
-    html += `<tr><td class="marker-name">${marker.name}</td>
-      <td class="unit-col">${marker.unit}</td>
+    html += `<tr><td class="marker-name">${escapeHTML(marker.name)}</td>
+      <td class="unit-col">${escapeHTML(marker.unit)}</td>
       <td class="ref-col">${refCell}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
@@ -3358,7 +3377,7 @@ function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
     const id = categoryKey + "_" + key;
     markerRegistry[id] = marker;
     const r = getEffectiveRange(marker);
-    html += `<tr><td>${marker.name}</td>`;
+    html += `<tr><td>${escapeHTML(marker.name)}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
       const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
@@ -3380,8 +3399,8 @@ function renderFattyAcidsView(cat) {
     const v = marker.values[0], s = getStatus(v, r.min, r.max);
     const pos = Math.max(0, Math.min(100, getRangePosition(v, r.min, r.max)));
     const rangeLabel = rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
-    html += `<div class="fa-card"><div class="fa-card-name">${marker.name}</div>
-      <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + marker.unit : ""}</div>
+    html += `<div class="fa-card"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
+      <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + escapeHTML(marker.unit) : ""}</div>
       <div class="fa-card-ref">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}</div>
       <div class="range-bar" style="margin-top:8px;width:100%"><div class="range-bar-fill" style="left:0;width:100%"></div>
       <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></div>`;
@@ -3853,8 +3872,8 @@ function showDetailModal(id) {
     rangeInfo = ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}`;
   }
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>${marker.name}</h3>
-    <div class="modal-unit">${marker.unit}${rangeInfo}</div>
+    <h3>${escapeHTML(marker.name)}</h3>
+    <div class="modal-unit">${escapeHTML(marker.unit)}${rangeInfo}</div>
     <div class="marker-description" id="marker-desc"></div>
     <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
     <div class="modal-values-grid">`;
@@ -4001,6 +4020,7 @@ function deleteMarkerValue(id, date) {
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
   if (chartInstances["modal"]) { chartInstances["modal"].destroy(); delete chartInstances["modal"]; }
+  document.removeEventListener('click', closeSuggestionsOnClickOutside);
 }
 
 function showConfirmDialog(message, onConfirm) {
@@ -4943,10 +4963,13 @@ function reviewPIIBeforeSend(originalText, obfuscatedText) {
 // ═══════════════════════════════════════════════
 function buildMarkerReference() {
   const ref = {};
+  const isFemale = profileSex === 'female';
   for (const [catKey, cat] of Object.entries(MARKER_SCHEMA)) {
     if (cat.calculated) continue;
     for (const [markerKey, marker] of Object.entries(cat.markers)) {
-      ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: marker.refMin, refMax: marker.refMax };
+      const rMin = isFemale && marker.refMin_f != null ? marker.refMin_f : marker.refMin;
+      const rMax = isFemale && marker.refMax_f != null ? marker.refMax_f : marker.refMax;
+      ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: rMin, refMax: rMax };
     }
   }
   // Include custom markers from previous imports
@@ -5032,7 +5055,7 @@ function tryParseJSON(str) {
   for (let i = 0; i < opens['{']; i++) s += '}';
   try {
     const result = JSON.parse(s);
-    console.log('[PDF Parse] Repaired truncated JSON from model');
+    if (isDebugMode()) console.log('[PDF Parse] Repaired truncated JSON from model');
     return result;
   } catch (e2) {
     throw new Error(`Model returned invalid JSON that could not be repaired. Try a more capable model.`);
@@ -5205,6 +5228,7 @@ function showImportPreview(parseResult) {
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">${cancelLabel}</button>
     <button class="import-btn import-btn-primary" id="import-confirm-btn" onclick="confirmImport()"${importDisabled}>Import ${importCount} Markers</button></div>`;
+  parseResult._importProfileId = currentProfile;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
@@ -5231,6 +5255,12 @@ function closeImportModal() {
 function confirmImport() {
   const result = window._pendingImport;
   if (!result || !result.date) return;
+  // Guard: if profile changed during async import, abort to prevent saving to wrong profile
+  if (result._importProfileId && result._importProfileId !== currentProfile) {
+    showNotification('Profile changed during import — import cancelled for safety.', 'error');
+    closeImportModal();
+    return;
+  }
   const matched = result.markers.filter(m => m.matched);
   const newMarkers = result.markers.filter(m => !m.matched && m.suggestedKey);
   const importCount = matched.length + newMarkers.length;
@@ -6343,7 +6373,10 @@ function showNotification(message, type, duration) {
   const toast = document.createElement("div");
   toast.className = `notification-toast ${type}`;
   const icons = { success: "\u2713", error: "\u2717", info: "\u2139" };
-  toast.innerHTML = `<span>${icons[type] || "\u2139"}</span> ${message}`;
+  const iconSpan = document.createElement('span');
+  iconSpan.textContent = icons[type] || "\u2139";
+  toast.appendChild(iconSpan);
+  toast.appendChild(document.createTextNode(' ' + message));
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = "0"; toast.style.transform = "translateX(100%)"; toast.style.transition = "all 0.3s";
@@ -7049,6 +7082,7 @@ function clearAllData() {
   showConfirmDialog('Are you sure you want to clear all imported data? This cannot be undone.', () => {
     importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, menstrualCycle: null };
     localStorage.removeItem(profileStorageKey(currentProfile, 'contextHealth'));
+    localStorage.removeItem(`labcharts-${currentProfile}-focusCard`);
     localStorage.removeItem(profileStorageKey(currentProfile, 'imported'));
     buildSidebar();
     updateHeaderDates();
@@ -7069,7 +7103,7 @@ function renderProfileDropdown() {
 
   let html = `<div class="profile-dropdown">
     <button class="profile-dropdown-btn" onclick="toggleProfileMenu()">
-      <span class="profile-label">${active.name}</span>
+      <span class="profile-label">${escapeHTML(active.name)}</span>
       <span class="profile-arrow">\u25BC</span>
     </button>
     <div class="profile-menu" id="profile-menu">`;
@@ -7077,7 +7111,7 @@ function renderProfileDropdown() {
   for (const p of profiles) {
     const isActive = p.id === currentProfile;
     html += `<div class="profile-menu-item${isActive ? ' active' : ''}" onclick="switchProfile('${p.id}')">
-      <span class="profile-name">${p.name}</span>
+      <span class="profile-name">${escapeHTML(p.name)}</span>
       <span class="profile-menu-actions">
         <button class="profile-menu-action" onclick="event.stopPropagation();promptRenameProfile('${p.id}')" title="Rename">Rename</button>
         <button class="profile-menu-action delete" onclick="event.stopPropagation();deleteProfile('${p.id}')" title="Delete">\u2715</button>
@@ -7379,7 +7413,7 @@ function buildLabContext() {
   if (mc && profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
     ctx += `## Menstrual Cycle\n`;
-    ctx += `Profile: ${mc.cycleLength || 28}-day cycle, ${regLabel}, ${mc.flow || 'moderate'} flow.`;
+    ctx += `Profile: ${mc.cycleLength || 28}-day cycle (${mc.periodLength || 5}-day period), ${regLabel}, ${mc.flow || 'moderate'} flow.`;
     if (mc.contraceptive) ctx += ` Contraceptive: ${mc.contraceptive}.`;
     if (mc.conditions) ctx += ` Conditions: ${mc.conditions}.`;
     ctx += '\n';
@@ -7394,7 +7428,8 @@ function buildLabContext() {
       if (phaseDates.length > 0) {
         ctx += `\nBlood draw cycle context:\n`;
         for (const [date, p] of phaseDates) {
-          ctx += `- ${date}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
+          const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          ctx += `- ${dateLabel}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
         }
       }
     }
@@ -7414,6 +7449,8 @@ function buildLabContext() {
     }
     ctx += '\n';
   }
+  const rangeLabel = rangeMode === 'optimal' ? 'optimal' : 'reference';
+  ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;
@@ -7811,6 +7848,7 @@ async function sendChatMessage() {
     chatHistory.push({ role: 'assistant', content: fullText });
     saveChatHistory();
   } catch (err) {
+    if (_streamRafId) { cancelAnimationFrame(_streamRafId); _streamRafId = null; }
     if (typingEl.parentNode) typingEl.remove();
     const errEl = document.createElement('div');
     errEl.className = 'chat-msg chat-ai';
@@ -7858,10 +7896,10 @@ function openGlossary() {
       const r = getEffectiveRange(marker);
       const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : 'missing';
       const desc = getMarkerDescription(id) || '';
-      html += `<div class="glossary-marker" data-name="${marker.name.toLowerCase()}" onclick="closeGlossary();showDetailModal('${id}')">
+      html += `<div class="glossary-marker" data-name="${escapeHTML(marker.name.toLowerCase())}" onclick="closeGlossary();showDetailModal('${id}')">
         <div class="glossary-marker-top">
-          <span class="glossary-marker-name">${marker.name}</span>
-          <span class="glossary-marker-value val-${status}">${latestVal !== null ? formatValue(latestVal) : '\u2014'} <span class="glossary-marker-unit">${marker.unit}</span></span>
+          <span class="glossary-marker-name">${escapeHTML(marker.name)}</span>
+          <span class="glossary-marker-value val-${status}">${latestVal !== null ? formatValue(latestVal) : '\u2014'} <span class="glossary-marker-unit">${escapeHTML(marker.unit)}</span></span>
         </div>
         <div class="glossary-marker-meta">
           ${r.min != null && r.max != null ? `<span>Ref: ${formatValue(r.min)}\u2013${formatValue(r.max)}</span>` : ''}
