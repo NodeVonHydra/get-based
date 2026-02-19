@@ -125,16 +125,15 @@ Structured list of things the user wants to solve or improve, each with a severi
 
 ### Interpretive Lens
 
-Combines field experts and scientific paradigms into a single interpretive framework for lab analysis. Lives in Settings (not the card grid) with a dashboard indicator bar:
+Combines field experts and scientific paradigms into a single interpretive framework for lab analysis. Prominent dashboard card above the Focus Card:
 
 - **Storage**: `importedData.interpretiveLens` — string
-- **Settings**: Textarea in Settings → Interpretive Lens section (between AI Provider and PDF Import Privacy). `saveInterpretiveLensFromSettings()`, `clearInterpretiveLensFromSettings()`
-- **Dashboard indicator**: `.lens-indicator` bar between Focus Card and context cards. Shows active lens text (truncated, purple left border) or "No interpretive lens set — configure in Settings". Clicking opens Settings. Functions: `renderLensIndicator()`, `renderLensIndicatorContent()`
-- **Modal editor**: `openInterpretiveLensEditor()`, `saveInterpretiveLens()`, `clearInterpretiveLens()` still exist for programmatic use
+- **Dashboard section**: `renderInterpretiveLensSection()` — full-width card with purple left border above Focus Card. When set: shows full text (not truncated), "INTERPRETIVE LENS" label, pencil edit icon on hover. When empty: dashed border, italic placeholder. Clicking opens modal editor
+- **Modal editor**: `openInterpretiveLensEditor()`, `saveInterpretiveLens()`, `clearInterpretiveLens()` — save/clear call `navigate()` to re-render dashboard
 - **AI context**: `buildLabContext()` adds `## Interpretive Lens` section
 - **System prompt**: AI considers listed experts' published work and frames analysis through specified paradigms
 - **Migration**: Old `fieldExperts` + `fieldLens` fields are auto-merged on profile load
-- **CSS**: `.lens-indicator`, `.lens-indicator-icon`, `.lens-indicator-text`, `.lens-indicator-empty`, `.lens-indicator-link`, `.settings-lens-textarea`
+- **CSS**: `.lens-section`, `.lens-section-icon`, `.lens-section-body`, `.lens-section-label`, `.lens-section-text`, `.lens-section-edit`, `.lens-section-empty`
 
 ### Menstrual Cycle Tracking
 
@@ -211,8 +210,8 @@ All sections are always visible (flat layout, no collapsible toggles). Section t
 |---|---------|----------|
 | 1 | Dashboard header + drop zone | inline in `showDashboard()` |
 | 2 | Onboarding Step 1 (empty) / Step 2 banner (data) | conditional |
-| 3 | Focus Card (data + API key) | `renderFocusCard()` + `loadFocusCard()` |
-| 3b | Interpretive Lens Indicator | `renderLensIndicator()` |
+| 3 | Interpretive Lens | `renderInterpretiveLensSection()` |
+| 3b | Focus Card (data + API key) | `renderFocusCard()` + `loadFocusCard()` |
 | 4 | Profile Context Cards ("What your GP won't ask you") | `renderProfileContextCards()` + `loadContextHealthDots()` |
 | 5 | Menstrual Cycle (female only) | `renderMenstrualCycleSection(data)` |
 | 6 | Supplements & Medications | `renderSupplementsSection()` |
@@ -316,7 +315,7 @@ Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama
 
 ### Settings Modal
 
-Grouped into 5 sections: **Profile** (sex, DOB, location), **Display** (units, range, theme, time format), **AI Provider** (toggle + conditional panel), **Interpretive Lens** (textarea), **PDF Import Privacy** (status card + collapsible configure).
+Grouped into 4 sections: **Profile** (sex, DOB, location), **Display** (units, range, theme, time format), **AI Provider** (toggle + conditional panel), **PDF Import Privacy** (status card + collapsible configure).
 
 - **Profile location**: Country dropdown + ZIP input with auto-detected latitude band. `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries mapped to 5 bands), `LATITUDE_BANDS`, `getLatitudeFromLocation()`, `updateLocationLat()` (live update on input)
 - **Time format**: 24h/12h toggle (`.time-toggle-btn`). `getTimeFormat()`, `setTimeFormat()`, `formatTime()`, `parseTimeInput()`, `getTimePlaceholder()`. Stored in `labcharts-time-format`

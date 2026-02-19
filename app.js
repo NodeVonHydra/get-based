@@ -818,7 +818,7 @@ function openSettingsModal() {
       <label class="settings-label">Location <span style="font-weight:400;color:var(--text-muted);font-size:11px">(for latitude / circadian context)</span></label>
       <div class="loc-inputs">
         <input class="ctx-note-input" id="loc-country" placeholder="Country" value="${escapeHTML(getProfileLocation().country)}" oninput="updateLocationLat()">
-        <input class="ctx-note-input loc-zip-input" id="loc-zip" placeholder="ZIP / postal code" value="${escapeHTML(getProfileLocation().zip)}" oninput="updateLocationLat()">
+        <input class="ctx-note-input loc-zip-input" id="loc-zip" placeholder="ZIP / postal code (refines latitude)" value="${escapeHTML(getProfileLocation().zip)}" oninput="updateLocationLat()">
       </div>
       <div id="loc-lat-display" style="font-size:11px;margin-top:4px"></div>
     </div>
@@ -863,22 +863,11 @@ function openSettingsModal() {
     <div class="settings-section">
       <div class="ai-provider-desc" style="margin-bottom:10px">For medical data like blood work, state-of-the-art models give the most accurate analysis. Claude is recommended — fastest and best results.</div>
       <div class="ai-provider-toggle">
-        <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')">&#9729;&#65039; Claude</button>
-        <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')">&#127914; Venice</button>
-        <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')">&#128187; Local AI</button>
+        <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></svg> Claude</button>
+        <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M2 4l10 18L22 4h-4.5L12 14.5 6.5 4z"/></svg> Venice</button>
+        <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"/></svg> Ollama</button>
       </div>
       <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
-    </div>
-
-    <div class="settings-group-title">Interpretive Lens</div>
-
-    <div class="settings-section">
-      <div class="settings-label" style="margin-bottom:6px;color:var(--text-muted);font-size:13px">Name researchers, clinicians, or paradigms whose frameworks the AI should use when interpreting your results.</div>
-      <textarea class="settings-lens-textarea" id="settings-lens-textarea" placeholder="e.g. Peter Attia (longevity), Jack Kruse (quantum biology), Functional Endocrinology framework..." rows="3">${escapeHTML(importedData.interpretiveLens || '')}</textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="import-btn import-btn-primary" onclick="saveInterpretiveLensFromSettings()">Save</button>
-        ${(importedData.interpretiveLens || '').trim() ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearInterpretiveLensFromSettings()">Clear</button>` : ''}
-      </div>
     </div>
 
     <div class="settings-group-title">PDF Import Privacy</div>
@@ -1530,32 +1519,83 @@ const COUNTRY_LATITUDES = {
   // Tropical (<25°)
   'singapore':0,'malaysia':0,'indonesia':0,'thailand':0,'philippines':0,'colombia':0,'ecuador':0,'peru':0,'venezuela':0,'kenya':0,'nigeria':0,'ghana':0,'cameroon':0,'tanzania':0,'uganda':0,'costa rica':0,'panama':0,'cuba':0,'dominican republic':0,'jamaica':0,'puerto rico':0,'hawaii':0,'india':0,'vietnam':0,'myanmar':0,'cambodia':0,'sri lanka':0,'bangladesh':0,'brazil':0,
   // Subtropical (25-40°)
-  'mexico':1,'egypt':1,'morocco':1,'tunisia':1,'israel':1,'jordan':1,'saudi arabia':1,'uae':1,'iran':1,'pakistan':1,'nepal':1,'japan':1,'south korea':1,'taiwan':1,'china':1,'australia':1,'new zealand':1,'south africa':1,'argentina':1,'chile':1,'greece':1,'turkey':1,'spain':1,'portugal':1,'italy':1,'croatia':1,'serbia':1,'bulgaria':1,'romania':1,'cyprus':1,'malta':1,
+  'mexico':1,'egypt':1,'morocco':1,'tunisia':1,'israel':1,'jordan':1,'saudi arabia':1,'uae':1,'iran':1,'pakistan':1,'nepal':1,'japan':1,'south korea':1,'taiwan':1,'china':1,'australia':1,'new zealand':1,'south africa':1,'argentina':1,'chile':1,'greece':1,'turkey':1,'spain':1,'españa':1,'espana':1,'portugal':1,'cyprus':1,'malta':1,
   // Temperate (40-50°)
-  'france':2,'austria':2,'switzerland':2,'hungary':2,'slovenia':2,'slovakia':2,'usa':2,'united states':2,'canada':2,
+  'france':2,'austria':2,'switzerland':2,'hungary':2,'slovenia':2,'slovakia':2,'slovensko':2,'usa':2,'us':2,'united states':2,'america':2,'canada':2,'ca':2,'italy':2,'italia':2,'croatia':2,'serbia':2,'bulgaria':2,'romania':2,'bosnia':2,'bosnia and herzegovina':2,'montenegro':2,'north macedonia':2,'albania':2,'moldova':2,'georgia':2,
   // Northern (50-60°)
-  'uk':3,'united kingdom':3,'ireland':3,'germany':3,'netherlands':3,'belgium':3,'luxembourg':3,'poland':3,'czech republic':3,'czechia':3,'denmark':3,'lithuania':3,'latvia':3,'estonia':3,'belarus':3,'ukraine':3,'russia':3,
+  'uk':3,'united kingdom':3,'ireland':3,'germany':3,'deutschland':3,'netherlands':3,'belgium':3,'luxembourg':3,'poland':3,'czech republic':3,'czechia':3,'česko':3,'denmark':3,'lithuania':3,'latvia':3,'estonia':3,'belarus':3,'ukraine':3,'russia':3,'россия':3,'rossiya':3,
   // Subarctic (>60°)
-  'sweden':4,'norway':4,'finland':4,'iceland':4,'alaska':4,'greenland':4
+  'sweden':4,'sverige':4,'norway':4,'norge':4,'finland':4,'suomi':4,'iceland':4,'alaska':4,'greenland':4
 };
 const LATITUDE_BANDS = ['<25° latitude (tropical)', '25-40° (subtropical)', '40-50° (temperate)', '50-60° (northern)', '>60° (subarctic)'];
 
+// AI-powered latitude detection with hardcoded fallback
+function getLocationCache() { try { return JSON.parse(localStorage.getItem('labcharts-location-cache') || '{}'); } catch(e) { return {}; } }
+function setLocationCache(key, lat) { var c = getLocationCache(); c[key] = lat; try { localStorage.setItem('labcharts-location-cache', JSON.stringify(c)); } catch(e) {} }
+function latitudeToBand(lat) { var a = Math.abs(lat); if (a < 25) return 0; if (a < 40) return 1; if (a < 50) return 2; if (a < 60) return 3; return 4; }
+
+var _locationDebounceTimer = null;
 function updateLocationLat() {
   const country = (document.getElementById('loc-country') || {}).value || '';
   const zip = (document.getElementById('loc-zip') || {}).value || '';
   setProfileLocation(currentProfile, country, zip);
-  const lat = getLatitudeFromLocation();
   const el = document.getElementById('loc-lat-display');
-  if (el) {
-    if (lat) {
-      el.style.color = 'var(--green)';
-      el.textContent = '✓ Detected: ' + lat;
-    } else if (country.trim()) {
-      el.style.color = 'var(--text-muted)';
-      el.textContent = 'Country not recognized — try the full name';
-    } else {
-      el.textContent = '';
+  if (!el) return;
+  const ct = country.trim(), zt = zip.trim();
+  if (!ct) { el.textContent = ''; return; }
+
+  // Check AI cache first (most accurate)
+  var cacheKey = (ct + '|' + zt).toLowerCase();
+  var cached = getLocationCache()[cacheKey];
+  if (cached !== undefined) {
+    var band = latitudeToBand(cached);
+    el.style.color = 'var(--green)';
+    el.textContent = '\u2713 ' + Math.abs(Math.round(cached)) + '\u00b0' + (cached >= 0 ? 'N' : 'S') + ' \u2014 ' + LATITUDE_BANDS[band];
+    return;
+  }
+
+  // Hardcoded fallback (instant)
+  var lat = getLatitudeFromLocation();
+  if (lat) {
+    el.style.color = 'var(--green)';
+    el.textContent = '\u2713 ' + lat;
+  } else if (hasAIProvider()) {
+    el.style.color = 'var(--text-muted)';
+    el.textContent = 'Detecting\u2026';
+  } else {
+    el.style.color = 'var(--text-muted)';
+    el.textContent = 'Country not recognized \u2014 try the full name';
+  }
+
+  // Debounced AI refinement
+  if (_locationDebounceTimer) clearTimeout(_locationDebounceTimer);
+  if (hasAIProvider()) {
+    _locationDebounceTimer = setTimeout(function() { detectLatitudeWithAI(ct, zt); }, 1500);
+  }
+}
+
+async function detectLatitudeWithAI(country, zip) {
+  var cacheKey = (country + '|' + zip).toLowerCase();
+  if (getLocationCache()[cacheKey] !== undefined) return;
+  try {
+    var locationStr = zip ? country + ' ' + zip : country;
+    var response = await callClaudeAPI({
+      system: 'You are a geography assistant. Reply with ONLY a number \u2014 the approximate latitude in decimal degrees (positive for North, negative for South). No text, no degree symbol, just the number.',
+      messages: [{ role: 'user', content: 'Latitude of: ' + locationStr }],
+      maxTokens: 10
+    });
+    var lat = parseFloat((response || '').trim());
+    if (!isNaN(lat) && lat >= -90 && lat <= 90) {
+      setLocationCache(cacheKey, lat);
+      var el = document.getElementById('loc-lat-display');
+      if (el) {
+        var band = latitudeToBand(lat);
+        el.style.color = 'var(--green)';
+        el.textContent = '\u2713 ' + Math.abs(Math.round(lat)) + '\u00b0' + (lat >= 0 ? 'N' : 'S') + ' \u2014 ' + LATITUDE_BANDS[band];
+      }
     }
+  } catch(e) {
+    if (isDebugMode()) console.warn('[Location] AI detection failed:', e);
   }
 }
 
@@ -1563,9 +1603,84 @@ function getLatitudeFromLocation() {
   const loc = getProfileLocation();
   if (!loc.country) return null;
   const c = loc.country.toLowerCase().trim();
+  const zip = (loc.zip || '').trim();
+
+  // AI cache (most accurate — covers any country/ZIP worldwide)
+  var cacheKey = (c + '|' + zip).toLowerCase();
+  var aiCached = getLocationCache()[cacheKey];
+  if (aiCached !== undefined) return LATITUDE_BANDS[latitudeToBand(aiCached)];
+
+  var zn = zip.replace(/\s/g, '');
+  // ZIP refinement for USA (first digit = region, special prefixes for HI/AK/PR)
+  if (zn && (c === 'usa' || c === 'us' || c === 'united states' || c === 'america')) {
+    var p3 = zn.substring(0, 3);
+    if (p3 >= '006' && p3 <= '009') return LATITUDE_BANDS[0]; // PR/VI → tropical
+    if (p3 >= '967' && p3 <= '968') return LATITUDE_BANDS[0]; // Hawaii → tropical
+    if (p3 >= '995') return LATITUDE_BANDS[4]; // Alaska → subarctic
+    var d = zn.charAt(0);
+    var usb = { '0':2, '1':2, '2':2, '3':1, '4':2, '5':2, '6':2, '7':1, '8':2, '9':2 };
+    if (usb[d] !== undefined) return LATITUDE_BANDS[usb[d]];
+  }
+
+  // ZIP refinement for Canada (first letter = province/territory)
+  if (zn && (c === 'canada' || c === 'ca')) {
+    var letter = zn.charAt(0).toUpperCase();
+    var cab = { 'A':3,'B':2,'C':2,'E':2, 'G':2,'H':2,'J':2,'K':2,'L':2,'M':2,'N':2, 'P':3,'R':3,'S':3,'T':3, 'V':2, 'X':4,'Y':4 };
+    if (cab[letter] !== undefined) return LATITUDE_BANDS[cab[letter]];
+  }
+
+  // ZIP refinement for European countries
+  var zd = zn.charAt(0);
+  // Norway (4-digit): 0-5 southern ~58-60°N → northern, 6-9 central/north ~62-71°N → subarctic
+  if (zn && (c === 'norway' || c === 'norge')) {
+    if (zd >= '0' && zd <= '5') return LATITUDE_BANDS[3];
+    return LATITUDE_BANDS[4];
+  }
+  // Sweden (5-digit): 1-6 southern/central ~55-60°N → northern, 7-9 north ~62-69°N → subarctic
+  if (zn && (c === 'sweden' || c === 'sverige')) {
+    if (zd >= '1' && zd <= '6') return LATITUDE_BANDS[3];
+    if (zd >= '7') return LATITUDE_BANDS[4];
+  }
+  // Finland (5-digit): 00-39 southern ~60°N → northern, 40-99 central/north ~62-70°N → subarctic
+  if (zn && (c === 'finland' || c === 'suomi')) {
+    var f2 = parseInt(zn.substring(0, 2));
+    if (!isNaN(f2)) return LATITUDE_BANDS[f2 < 40 ? 3 : 4];
+  }
+  // Germany (5-digit): 0-6 northern/central ~50-54°N → northern, 7-9 southern ~48-50°N → temperate
+  if (zn && (c === 'germany' || c === 'deutschland')) {
+    if (zd >= '7') return LATITUDE_BANDS[2];
+    return LATITUDE_BANDS[3];
+  }
+  // Italy (5-digit): 00-79 central/north ~41-47°N → temperate, 80-98 south/islands ~36-41°N → subtropical
+  if (zn && (c === 'italy' || c === 'italia')) {
+    var i2 = parseInt(zn.substring(0, 2));
+    if (!isNaN(i2)) return LATITUDE_BANDS[i2 >= 80 ? 1 : 2];
+  }
+  // Spain (5-digit): northern provinces ~43°N → temperate, rest → subtropical
+  if (zn && (c === 'spain' || c === 'españa' || c === 'espana')) {
+    var s2 = parseInt(zn.substring(0, 2));
+    if (!isNaN(s2) && (s2 >= 15 && s2 <= 16 || s2 >= 20 && s2 <= 24 || s2 >= 26 && s2 <= 28 || s2 >= 31 && s2 <= 34 || s2 >= 39 && s2 <= 50)) return LATITUDE_BANDS[2];
+    return LATITUDE_BANDS[1];
+  }
+  // France (5-digit): mostly temperate, northern departments ~50°N → borderline northern
+  if (zn && (c === 'france')) {
+    var fr2 = parseInt(zn.substring(0, 2));
+    if (!isNaN(fr2) && (fr2 >= 59 && fr2 <= 62 || fr2 === 80 || fr2 === 2)) return LATITUDE_BANDS[3];
+    return LATITUDE_BANDS[2];
+  }
+  // Russia (6-digit): default northern, 350-385 south → temperate, 163/183-184 Murmansk → subarctic
+  if (zn && (c === 'russia' || c === 'россия' || c === 'rossiya')) {
+    var r3 = parseInt(zn.substring(0, 3));
+    if (!isNaN(r3)) {
+      if (r3 >= 350 && r3 <= 385) return LATITUDE_BANDS[2];
+      if (r3 >= 163 && r3 <= 164 || r3 >= 183 && r3 <= 184) return LATITUDE_BANDS[4];
+    }
+    return LATITUDE_BANDS[3];
+  }
+
+  // Country-level lookup
   const band = COUNTRY_LATITUDES[c];
   if (band !== undefined) return LATITUDE_BANDS[band];
-  // Partial match
   for (const [key, val] of Object.entries(COUNTRY_LATITUDES)) {
     if (c.includes(key) || key.includes(c)) return LATITUDE_BANDS[val];
   }
@@ -2100,11 +2215,11 @@ function showDashboard(data) {
   // ── 2. Onboarding Banner (Step 2) ──
   html += renderOnboardingBanner();
 
-  // ── 3. Focus Card ──
-  if (hasAIProvider()) html += renderFocusCard();
+  // ── 3. Interpretive Lens ──
+  html += renderInterpretiveLensSection();
 
-  // ── 3b. Interpretive Lens Indicator ──
-  html += renderLensIndicator();
+  // ── 3b. Focus Card ──
+  if (hasAIProvider()) html += renderFocusCard();
 
   // ── 4. Profile Context Cards ──
   html += renderProfileContextCards();
@@ -5446,40 +5561,10 @@ function clearInterpretiveLens() {
   showNotification('Interpretive lens cleared', 'info');
 }
 
-function saveInterpretiveLensFromSettings() {
-  const ta = document.getElementById('settings-lens-textarea');
-  const text = ta ? ta.value.trim() : '';
-  importedData.interpretiveLens = text || '';
-  saveImportedData();
-  showNotification(text ? 'Interpretive lens saved' : 'Interpretive lens cleared', 'success');
-  // Update the dashboard lens indicator if visible
-  const indicator = document.getElementById('lens-indicator');
-  if (indicator) {
-    indicator.innerHTML = renderLensIndicatorContent();
-  }
-}
-
-function clearInterpretiveLensFromSettings() {
-  importedData.interpretiveLens = '';
-  saveImportedData();
-  const ta = document.getElementById('settings-lens-textarea');
-  if (ta) ta.value = '';
-  showNotification('Interpretive lens cleared', 'info');
-  const indicator = document.getElementById('lens-indicator');
-  if (indicator) {
-    indicator.innerHTML = renderLensIndicatorContent();
-  }
-}
-
-function renderLensIndicatorContent() {
+function renderInterpretiveLensSection() {
   const lens = (importedData.interpretiveLens || '').trim();
-  if (!lens) return `<span class="lens-indicator-icon">&#128300;</span><span class="lens-indicator-text lens-indicator-empty">No interpretive lens set — <span class="lens-indicator-link">configure in Settings</span></span>`;
-  const display = lens.length > 100 ? lens.slice(0, 100) + '…' : lens;
-  return `<span class="lens-indicator-icon">&#128300;</span><span class="lens-indicator-text">${escapeHTML(display)}</span>`;
-}
-
-function renderLensIndicator() {
-  return `<div class="lens-indicator" id="lens-indicator" onclick="openSettingsModal()" title="Interpretive Lens — click to edit in Settings">${renderLensIndicatorContent()}</div>`;
+  if (!lens) return `<div class="lens-section lens-section-empty" onclick="openInterpretiveLensEditor()" title="Set your interpretive lens"><span class="lens-section-icon">&#129694;</span><span class="lens-section-text">Set your interpretive lens — name researchers, paradigms, or frameworks the AI should use…</span></div>`;
+  return `<div class="lens-section" onclick="openInterpretiveLensEditor()" title="Interpretive Lens — click to edit"><span class="lens-section-icon">&#129694;</span><span class="lens-section-body"><span class="lens-section-label">Interpretive Lens</span><span class="lens-section-text">${escapeHTML(lens)}</span></span><span class="lens-section-edit">&#9998;</span></div>`;
 }
 
 // ═══════════════════════════════════════════════
