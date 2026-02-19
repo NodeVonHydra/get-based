@@ -167,13 +167,242 @@ const MARKER_SCHEMA = {
       omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0, desc: "EPA + DHA as percentage of red blood cell membranes; values above 8% are associated with lowest cardiovascular risk." },
       omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0, desc: "Balance between pro-inflammatory omega-6 and anti-inflammatory omega-3 fats; lower ratios indicate less systemic inflammation." },
       membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0, desc: "Index of cell membrane flexibility based on fatty acid composition; optimal fluidity supports nutrient transport and cell signaling." },
-      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, desc: "Composite index derived from omega-3 levels reflecting neuronal membrane health and cognitive stress resilience." }
+      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, desc: "Composite index derived from omega-3 levels reflecting neuronal membrane health and cognitive stress resilience." },
+      nervonicC24_1: { name: "Nervonic Acid C24:1", unit: "%", refMin: 1.1, refMax: 1.8, desc: "Long-chain monounsaturated fatty acid essential for brain myelin synthesis; low levels associated with demyelinating conditions." },
+      arachidicC20_0: { name: "Arachidic Acid C20:0", unit: "%", refMin: 0.24, refMax: 0.40, desc: "Very-long-chain saturated fatty acid from peanut oil; reflects peroxisomal fatty acid metabolism." },
+      behenicC22_0: { name: "Behenic Acid C22:0", unit: "%", refMin: 0.88, refMax: 1.61, desc: "Very-long-chain saturated fatty acid found in seeds and legumes; marker of peroxisomal beta-oxidation capacity." },
+      tricosanoicC23_0: { name: "Tricosanoic Acid C23:0", unit: "%", refMin: 0.19, refMax: 0.26, desc: "Odd-chain very-long-chain saturated fatty acid; reflects peroxisomal fatty acid elongation and metabolism." },
+      lignocericC24_0: { name: "Lignoceric Acid C24:0", unit: "%", refMin: 1.1, refMax: 1.9, desc: "Very-long-chain saturated fatty acid in brain sphingolipids; elevated in adrenoleukodystrophy and peroxisomal disorders." },
+      pentadecanoicC15_0: { name: "Pentadecanoic Acid C15:0", unit: "%", refMin: 0.14, refMax: 0.30, desc: "Odd-chain saturated fatty acid primarily from dairy fat; a biomarker of dairy intake with emerging metabolic health benefits." },
+      margaricC17_0: { name: "Margaric Acid C17:0", unit: "%", refMin: 0.24, refMax: 0.45, desc: "Odd-chain saturated fatty acid from ruminant fat; biomarker of dairy and ruminant meat consumption." },
+      palmitoleicC16_1n7: { name: "Palmitoleic Acid C16:1n7", unit: "%", refMin: null, refMax: 2.58, desc: "Omega-7 monounsaturated fatty acid produced by de novo lipogenesis; elevated levels indicate increased hepatic fat synthesis." },
+      vaccenicC18_1n7: { name: "Vaccenic Acid C18:1n7", unit: "%", refMin: null, refMax: 1.65, desc: "Natural trans fatty acid from ruminant fat; converts to conjugated linoleic acid (CLA) with anti-inflammatory properties." },
+      elaidicC18_1n9t: { name: "Elaidic Acid C18:1n9t", unit: "%", refMin: null, refMax: 0.59, desc: "Industrial trans fatty acid from partially hydrogenated oils; strongly associated with cardiovascular disease and inflammation." },
+      docosatetraenoicC22_4n6: { name: "Docosatetraenoic Acid C22:4n6", unit: "%", refMin: 0.45, refMax: 1.25, desc: "Omega-6 long-chain fatty acid derived from arachidonic acid; reflects elongase activity and omega-6 metabolism." },
+      eicosadienoicC20_2n6: { name: "Eicosadienoic Acid C20:2n6", unit: "%", refMin: null, refMax: 0.26, desc: "Minor omega-6 fatty acid from linoleic acid elongation; elevated levels may indicate impaired delta-5 desaturase activity." },
+      aaEpaRatio: { name: "AA/EPA Ratio", unit: "", refMin: 10, refMax: 86, desc: "Arachidonic acid to EPA ratio; reflects the balance between pro-inflammatory omega-6 and anti-inflammatory omega-3 pathways." },
+      linoleicDglaRatio: { name: "Linoleic/DGLA Ratio", unit: "", refMin: 12.6, refMax: 31.5, desc: "Ratio of linoleic acid to DGLA; reflects delta-6 desaturase enzyme activity converting omega-6 to anti-inflammatory DGLA." }
     }
   },
   boneMetabolism: {
     label: "Bone Metabolism", icon: "\uD83E\uDDB4",
     markers: {
       osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0, desc: "A protein secreted by bone-forming cells; reflects bone turnover rate and also influences glucose metabolism." }
+    }
+  },
+  oatMicrobial: {
+    label: "OAT: Microbial Overgrowth", icon: "\uD83E\uDDA0",
+    markers: {
+      citramalic: { name: "Citramalic Acid", unit: "mmol/mol creatinine", refMin: 0.11, refMax: 2.0, desc: "Elevated by yeast (Aspergillus, Candida) and certain bacteria; a key indicator of gastrointestinal fungal overgrowth." },
+      hydroxymethylfuroic: { name: "5-Hydroxymethyl-2-furoic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 18, desc: "Marker of yeast metabolism and sugar degradation; elevated levels suggest intestinal fungal overgrowth." },
+      oxoglutaric3: { name: "3-Oxoglutaric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.11, desc: "Produced by Aspergillus and other molds; elevation may indicate fungal colonization in the GI tract." },
+      furandicarboxylic: { name: "Furan-2,5-dicarboxylic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 13, desc: "A furan derivative linked to yeast metabolism; elevated in candidiasis and fungal overgrowth." },
+      furancarbonylglycine: { name: "Furancarbonylglycine", unit: "mmol/mol creatinine", refMin: null, refMax: 2.3, desc: "Glycine conjugate of a furan compound; reflects fungal metabolic activity in the gut." },
+      tartaric: { name: "Tartaric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 5.3, desc: "Produced primarily by yeast; one of the most specific urinary markers for Candida overgrowth." },
+      arabinose: { name: "Arabinose", unit: "mmol/mol creatinine", refMin: null, refMax: 20, desc: "A five-carbon sugar produced by intestinal yeast; elevated levels suggest significant Candida colonization." },
+      carboxycitric: { name: "Carboxycitric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 20, desc: "Produced by Aspergillus species; elevation indicates possible mold colonization in the GI tract." },
+      tricarballylic: { name: "Tricarballylic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.58, desc: "Found in corn and produced by gut bacteria; may chelate magnesium and other minerals when elevated." },
+      hippuric: { name: "Hippuric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 241, desc: "Produced from benzoic acid by gut bacteria and diet; very high levels suggest bacterial overgrowth or high benzoate intake." },
+      hydroxyphenylacetic2: { name: "2-Hydroxyphenylacetic Acid", unit: "mmol/mol creatinine", refMin: 0.03, refMax: 0.47, desc: "Marker of abnormal phenylalanine metabolism by GI bacteria; elevation suggests small intestinal bacterial overgrowth." },
+      hydroxybenzoic4: { name: "4-Hydroxybenzoic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.73, desc: "Produced by intestinal bacteria from polyphenols; elevation may indicate bacterial overgrowth or impaired hepatic conjugation." },
+      hydroxyhippuric4: { name: "4-Hydroxyhippuric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 14, desc: "Derived from bacterial metabolism of dietary polyphenols; elevated levels suggest increased bacterial activity in the gut." },
+      dhppa: { name: "DHPPA (Beneficial Bacteria)", unit: "mmol/mol creatinine", refMin: null, refMax: 0.23, desc: "Produced by beneficial Clostridia species from chlorogenic acid; reflects healthy bacterial diversity in the colon." },
+      hydroxyphenylacetic4: { name: "4-Hydroxyphenylacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 18, desc: "Product of tyrosine metabolism by gut bacteria; elevation may indicate bacterial overgrowth or impaired liver detox." },
+      hphpa: { name: "HPHPA", unit: "mmol/mol creatinine", refMin: null, refMax: 102, desc: "Produced by pathogenic Clostridia species; strongly associated with behavioral and neurological symptoms when elevated." },
+      cresol4: { name: "4-Cresol", unit: "mmol/mol creatinine", refMin: null, refMax: 39, desc: "Toxic metabolite produced by C. difficile and other Clostridia; inhibits dopamine metabolism and is neurotoxic." },
+      indoleacetic3: { name: "3-Indoleacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 6.8, desc: "Tryptophan metabolite produced by gut bacteria; elevation suggests bacterial overgrowth affecting serotonin precursors." },
+      urineCreatinine: { name: "Creatinine (Urine)", unit: "mg/dL", refMin: 20, refMax: 300, desc: "Used to normalize other urine analytes; reflects muscle mass and hydration status of the urine sample." },
+      phenylacetic: { name: "Phenylacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.12, desc: "Produced by anaerobic bacteria from phenylalanine; elevated levels indicate gastrointestinal bacterial overgrowth." },
+      hydroxyphenylacetic3: { name: "3-Hydroxyphenylacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 8.1, desc: "Bacterial metabolite of phenylalanine via hydroxylation; elevation suggests intestinal bacterial overgrowth or impaired liver conjugation." },
+      benzoic: { name: "Benzoic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.05, desc: "Precursor to hippuric acid from gut bacteria and diet; high levels indicate bacterial overgrowth or impaired glycine conjugation." },
+      dArabinitol: { name: "D-Arabinitol", unit: "mmol/mol creatinine", refMin: null, refMax: 36, desc: "Sugar alcohol produced by Candida species; elevated D-arabinitol is a specific marker for invasive candidiasis." }
+    }
+  },
+  oatMetabolic: {
+    label: "OAT: Metabolic", icon: "\u2697\uFE0F",
+    markers: {
+      glyceric: { name: "Glyceric Acid", unit: "mmol/mol creatinine", refMin: 0.21, refMax: 4.9, desc: "Intermediate in serine and fructose metabolism; elevation may indicate glyceric aciduria or fructose intolerance." },
+      glycolic: { name: "Glycolic Acid", unit: "mmol/mol creatinine", refMin: 18, refMax: 81, desc: "Produced from glyoxylate metabolism; very high levels can indicate primary hyperoxaluria or vitamin B6 deficiency." },
+      oxalic: { name: "Oxalic Acid", unit: "mmol/mol creatinine", refMin: 8.9, refMax: 67, desc: "Forms calcium oxalate kidney stones; elevated by high-oxalate diet, yeast overgrowth, or genetic hyperoxaluria." },
+      lactic: { name: "Lactic Acid", unit: "mmol/mol creatinine", refMin: 0.74, refMax: 19, desc: "End product of anaerobic glycolysis; elevation indicates mitochondrial dysfunction, poor tissue oxygenation, or intense exercise." },
+      pyruvic: { name: "Pyruvic Acid", unit: "mmol/mol creatinine", refMin: 0.28, refMax: 6.7, desc: "Gateway metabolite between glycolysis and the Krebs cycle; elevated when thiamine (B1) or lipoic acid is insufficient." },
+      succinic: { name: "Succinic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 5.3, desc: "Krebs cycle intermediate at complex II; elevation suggests CoQ10 deficiency or mitochondrial electron transport dysfunction." },
+      fumaric: { name: "Fumaric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.49, desc: "Krebs cycle intermediate; elevation may indicate fumarase deficiency or mitochondrial energy production impairment." },
+      malic: { name: "Malic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.1, desc: "Krebs cycle intermediate; elevated levels suggest a block in the malate-to-oxaloacetate conversion step of the cycle." },
+      oxoglutaric2: { name: "2-Oxoglutaric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 18, desc: "Key Krebs cycle intermediate linking energy metabolism to amino acid synthesis; elevated in B-vitamin deficiencies." },
+      aconitic: { name: "Aconitic Acid", unit: "mmol/mol creatinine", refMin: 4.1, refMax: 23, desc: "Krebs cycle intermediate between citrate and isocitrate; elevation may reflect glutathione depletion or toxic metal burden." },
+      citric: { name: "Citric Acid", unit: "mmol/mol creatinine", refMin: 2.2, refMax: 260, desc: "First metabolite of the Krebs cycle; low levels suggest overall mitochondrial dysfunction or ammonia toxicity." },
+      methylglutaric3: { name: "3-Methylglutaric Acid", unit: "mmol/mol creatinine", refMin: 0.02, refMax: 0.38, desc: "Marker of leucine metabolism and HMG-CoA lyase activity; elevation can indicate CoQ10 synthesis impairment." },
+      hydroxyglutaric3: { name: "3-Hydroxyglutaric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 4.6, desc: "Linked to lysine metabolism; elevated in glutaric aciduria type I and may indicate riboflavin (B2) deficiency." },
+      methylglutaconic3: { name: "3-Methylglutaconic Acid", unit: "mmol/mol creatinine", refMin: 0.38, refMax: 2.0, desc: "Produced in leucine catabolism; elevation suggests mitochondrial membrane dysfunction or CoQ10 depletion." },
+      isocitric: { name: "Isocitric Acid", unit: "mmol/mol creatinine", refMin: 22, refMax: 65, desc: "Krebs cycle intermediate between citrate and alpha-ketoglutarate; abnormal levels reflect aconitase activity and mitochondrial function." }
+    }
+  },
+  oatNeuro: {
+    label: "OAT: Neurotransmitters", icon: "\uD83E\uDDE0",
+    markers: {
+      hva: { name: "HVA (Homovanillic Acid)", unit: "mmol/mol creatinine", refMin: 0.39, refMax: 2.2, desc: "Primary dopamine metabolite; reflects central and peripheral dopamine turnover and catecholamine pathway activity." },
+      vma: { name: "VMA (Vanillylmandelic Acid)", unit: "mmol/mol creatinine", refMin: 0.53, refMax: 2.2, desc: "End metabolite of norepinephrine and epinephrine; marker of adrenal catecholamine production and sympathetic tone." },
+      hvaVmaRatio: { name: "HVA/VMA Ratio", unit: "", refMin: 0.32, refMax: 1.4, desc: "Ratio of dopamine to norepinephrine metabolites; abnormal values indicate neurotransmitter pathway imbalances." },
+      dopac: { name: "DOPAC (Dihydroxyphenylacetic)", unit: "mmol/mol creatinine", refMin: 0.27, refMax: 1.9, desc: "Direct dopamine metabolite via MAO; low levels suggest reduced dopamine synthesis or increased COMT activity." },
+      hvaDopacRatio: { name: "HVA/DOPAC Ratio", unit: "", refMin: 0.17, refMax: 1.6, desc: "Reflects the balance between COMT and MAO dopamine metabolism pathways; indicates enzymatic processing preference." },
+      hiaa5: { name: "5-HIAA (5-Hydroxyindoleacetic)", unit: "mmol/mol creatinine", refMin: null, refMax: 2.9, desc: "Primary serotonin metabolite; reflects serotonin synthesis and turnover in the gut and central nervous system." },
+      quinolinic: { name: "Quinolinic Acid", unit: "mmol/mol creatinine", refMin: 0.52, refMax: 2.4, desc: "Neurotoxic tryptophan metabolite and NMDA receptor agonist; elevated in neuroinflammation and immune activation." },
+      kynurenic: { name: "Kynurenic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.8, desc: "Neuroprotective tryptophan metabolite and NMDA receptor antagonist; counterbalances quinolinic acid neurotoxicity." },
+      uracil: { name: "Uracil", unit: "mmol/mol creatinine", refMin: null, refMax: 6.9, desc: "Pyrimidine base involved in RNA metabolism; elevated levels may indicate folate deficiency or dihydropyrimidine dehydrogenase issues." },
+      thymine: { name: "Thymine", unit: "mmol/mol creatinine", refMin: null, refMax: 0.36, desc: "Pyrimidine base from DNA turnover; elevation suggests folate cycle disruption or increased cellular turnover." },
+      xanthurenic: { name: "Xanthurenic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.96, desc: "Tryptophan metabolite via kynurenine pathway; elevated in vitamin B6 deficiency as B6 is required for its further metabolism." },
+      mhpg: { name: "MHPG (3-Methyl-4-OH-Phenylglycol)", unit: "mmol/mol creatinine", refMin: 0.02, refMax: 0.22, desc: "Primary norepinephrine metabolite in the CNS; reflects central noradrenergic activity and sympathetic nervous system tone." },
+      kynurenicQuinolinicRatio: { name: "Kynurenic/Quinolinic Ratio", unit: "", refMin: 0.44, refMax: null, desc: "Balance between neuroprotective kynurenic acid and neurotoxic quinolinic acid; low ratio indicates neuroinflammation risk." }
+    }
+  },
+  oatNutritional: {
+    label: "OAT: Nutritional & Detox", icon: "\uD83C\uDF3F",
+    markers: {
+      methylmalonic: { name: "Methylmalonic Acid (B12)", unit: "mmol/mol creatinine", refMin: null, refMax: 2.3, desc: "The most sensitive functional marker for vitamin B12 deficiency; elevated before serum B12 drops below range." },
+      pyridoxic: { name: "Pyridoxic Acid (B6)", unit: "mmol/mol creatinine", refMin: null, refMax: 26, desc: "Primary vitamin B6 metabolite; elevated levels suggest adequate B6 intake or rapid B6 catabolism." },
+      pantothenic: { name: "Pantothenic Acid (B5)", unit: "mmol/mol creatinine", refMin: null, refMax: 5.4, desc: "Essential component of coenzyme A; low levels impair fatty acid oxidation and adrenal hormone synthesis." },
+      glutaric: { name: "Glutaric Acid (B2)", unit: "mmol/mol creatinine", refMin: null, refMax: 0.43, desc: "Accumulates in riboflavin (B2) deficiency due to impaired electron transfer flavoprotein activity." },
+      ascorbic: { name: "Ascorbic Acid (Vitamin C)", unit: "mmol/mol creatinine", refMin: 10, refMax: 200, desc: "Reflects vitamin C status; essential antioxidant for collagen synthesis, iron absorption, and immune function." },
+      hmg: { name: "3-Hydroxy-3-methylglutaric (CoQ10)", unit: "mmol/mol creatinine", refMin: null, refMax: 26, desc: "Precursor in CoQ10 and cholesterol synthesis; elevation may indicate impaired CoQ10 production or need for supplementation." },
+      nac: { name: "N-Acetylcysteine (NAC)", unit: "mmol/mol creatinine", refMin: null, refMax: 0.13, desc: "Glutathione precursor reflecting cysteine availability; low levels suggest oxidative stress and depleted antioxidant reserves." },
+      methylcitric: { name: "Methylcitric Acid (Biotin)", unit: "mmol/mol creatinine", refMin: 0.15, refMax: 1.7, desc: "Marker of biotin-dependent carboxylase activity; elevated in biotin deficiency or propionic acid metabolism disorders." },
+      pyroglutamic: { name: "Pyroglutamic Acid", unit: "mmol/mol creatinine", refMin: 5.7, refMax: 25, desc: "Reflects glutathione turnover; elevation indicates glutathione depletion, often from acetaminophen use or oxidative stress." },
+      hydroxybutyric2: { name: "2-Hydroxybutyric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.2, desc: "Early marker of insulin resistance and oxidative stress; reflects cysteine catabolism under glutathione demand." },
+      orotic: { name: "Orotic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.46, desc: "Pyrimidine synthesis intermediate; elevated in urea cycle disorders, ammonia excess, or arginine deficiency." },
+      hydroxyhippuric2: { name: "2-Hydroxyhippuric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.86, desc: "Aspirin and salicylate metabolite; elevation indicates salicylate intake or impaired phase II detoxification." },
+      figlu: { name: "FIGLU (Formiminoglutamic Acid)", unit: "mmol/mol creatinine", refMin: null, refMax: 1.5, desc: "Histidine metabolite requiring folate for further processing; elevated in folate deficiency or impaired one-carbon metabolism." },
+      hydroxypropionic3: { name: "3-Hydroxypropionic Acid", unit: "mmol/mol creatinine", refMin: 5, refMax: 22, desc: "Propionic acid metabolite; elevated in biotin deficiency, bacterial overgrowth, or propionic acidemia." },
+      hydroxyisovaleric3: { name: "3-Hydroxyisovaleric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 29, desc: "Leucine metabolite and functional marker of biotin status; elevated when biotin-dependent carboxylases are impaired." },
+      ketophenylacetic: { name: "\u03b1-Ketophenylacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.46, desc: "Phenylalanine transamination product; elevated in PKU, bacterial overgrowth, or impaired phenylalanine hydroxylase activity." },
+      hydroxyisobutyric: { name: "\u03b1-Hydroxyisobutyric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 6.7, desc: "Valine metabolite reflecting BCAA catabolism; elevated in methylmalonic aciduria, lead exposure, or ketoacidosis." }
+    }
+  },
+  oatAminoFatty: {
+    label: "OAT: Amino Acids & Lipids", icon: "\uD83D\uDD2C",
+    markers: {
+      hydroxybutyric3: { name: "3-Hydroxybutyric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.9, desc: "Primary ketone body indicating fatty acid oxidation; elevated in fasting, ketogenic diets, or diabetic ketoacidosis." },
+      acetoacetic: { name: "Acetoacetic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 10, desc: "Ketone body produced during fat metabolism; elevated with fasting, low-carb diets, or impaired glucose utilization." },
+      ethylmalonic: { name: "Ethylmalonic Acid", unit: "mmol/mol creatinine", refMin: 0.13, refMax: 2.7, desc: "Marker of short-chain fatty acid oxidation; elevation suggests carnitine deficiency or mitochondrial fatty acid handling issues." },
+      methylsuccinic: { name: "Methylsuccinic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.3, desc: "Produced from isoleucine and odd-chain fatty acids; elevation indicates impaired mitochondrial beta-oxidation." },
+      adipic: { name: "Adipic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.9, desc: "Medium-chain dicarboxylic acid; elevated in carnitine deficiency or medium-chain acyl-CoA dehydrogenase deficiency." },
+      suberic: { name: "Suberic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.9, desc: "Dicarboxylic acid from omega-oxidation of fatty acids; elevation suggests impaired mitochondrial beta-oxidation." },
+      sebacic: { name: "Sebacic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 0.14, desc: "Long-chain dicarboxylic acid; elevated when mitochondrial fatty acid oxidation is significantly impaired." },
+      hydroxyisovaleric2: { name: "2-Hydroxyisovaleric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Branched-chain amino acid metabolite from valine; elevation suggests impaired BCKDH complex or biotin deficiency." },
+      oxoisovaleric2: { name: "2-Oxoisovaleric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Valine catabolism intermediate; accumulates in maple syrup urine disease or thiamine/lipoic acid insufficiency." },
+      methyl2oxovaleric3: { name: "3-Methyl-2-oxovaleric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Isoleucine catabolism intermediate; elevated in BCKDH deficiency or maple syrup urine disease variants." },
+      hydroxyisocaproic2: { name: "2-Hydroxyisocaproic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Leucine metabolite; elevation indicates impaired branched-chain amino acid catabolism or lactic acidosis." },
+      oxoisocaproic2: { name: "2-Oxoisocaproic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Leucine catabolism intermediate; elevated in BCKDH deficiency, suggesting impaired branched-chain amino acid processing." },
+      oxo4methiolbutyric2: { name: "2-Oxo-4-methiolbutyric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Methionine transamination product; elevated levels may indicate impaired methionine recycling or B6 deficiency." },
+      mandelic: { name: "Mandelic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Phenylalanine metabolite from gut bacteria and environmental exposure; reflects bacterial aromatic amino acid metabolism." },
+      phenyllactic: { name: "Phenyllactic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Phenylalanine metabolite elevated in phenylketonuria and bacterial overgrowth; indicates impaired phenylalanine handling." },
+      phenylpyruvic: { name: "Phenylpyruvic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Phenylalanine transamination product; strongly elevated in phenylketonuria (PKU) and BH4 cofactor deficiency." },
+      homogentisic: { name: "Homogentisic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Tyrosine catabolism intermediate; markedly elevated in alkaptonuria due to homogentisate 1,2-dioxygenase deficiency." },
+      hydroxyphenyllactic4: { name: "4-Hydroxyphenyllactic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 2.0, desc: "Tyrosine metabolite; elevated in liver disease, vitamin C deficiency, or tyrosinemia affecting tyrosine catabolism." },
+      nAcetylaspartic: { name: "N-Acetylaspartic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 38, desc: "Concentrated in brain neurons; elevated urinary levels may indicate Canavan disease or increased neuronal turnover." },
+      malonic: { name: "Malonic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 9.9, desc: "Inhibitor of succinate dehydrogenase (complex II); elevation impairs mitochondrial energy production." },
+      hydroxybutyric4: { name: "4-Hydroxybutyric Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 4.3, desc: "GABA metabolite (GHB); elevated in succinic semialdehyde dehydrogenase deficiency affecting GABA catabolism." },
+      phosphoric: { name: "Phosphoric Acid", unit: "mmol/mol creatinine", refMin: 1000, refMax: 4900, desc: "Reflects phosphate metabolism and renal handling; abnormal values may indicate dietary excess or tubular dysfunction." },
+      isovalerylglycine: { name: "Isovalerylglycine", unit: "mmol/mol creatinine", refMin: null, refMax: 3.7, desc: "Leucine metabolite conjugated with glycine; elevated in isovaleric acidemia or impaired leucine catabolism." },
+      ketoadipic: { name: "\u03b1-Ketoadipic Acid", unit: "mmol/mol creatinine", refMin: null, refMax: 1.7, desc: "Lysine and tryptophan catabolism intermediate; elevated in alpha-ketoadipic aciduria or B-vitamin cofactor deficiencies." }
+    }
+  },
+  oxidativeStress: {
+    label: "Oxidative Stress", icon: "\uD83D\uDD25",
+    markers: {
+      lipidPeroxides: { name: "Lipid Peroxides (Urine)", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 10.0, desc: "Marker of lipid oxidation damage to cell membranes; elevated levels indicate systemic oxidative stress and free radical activity." },
+      ohdg8: { name: "8-OHdG (Urine)", unit: "mcg/g creatinine", refMin: null, refMax: 15, desc: "Oxidized DNA base excreted in urine; a direct marker of oxidative DNA damage and genomic instability." }
+    }
+  },
+  urineAmino: {
+    label: "Urine Amino Acids", icon: "\uD83E\uDDEC",
+    markers: {
+      arginine: { name: "Arginine", unit: "\u00b5mol/g creatinine", refMin: 3, refMax: 33, desc: "Semi-essential amino acid and nitric oxide precursor; low levels impair vasodilation, immune function, and wound healing." },
+      histidine: { name: "Histidine", unit: "\u00b5mol/g creatinine", refMin: 127, refMax: 800, desc: "Essential amino acid and histamine precursor; low levels associated with rheumatoid arthritis and impaired antioxidant capacity." },
+      isoleucine: { name: "Isoleucine", unit: "\u00b5mol/g creatinine", refMin: 3, refMax: 28, desc: "Branched-chain amino acid essential for muscle protein synthesis, energy production, and immune function." },
+      leucine: { name: "Leucine", unit: "\u00b5mol/g creatinine", refMin: 4, refMax: 46, desc: "Key BCAA that activates mTOR signaling for muscle protein synthesis; the most potent anabolic amino acid." },
+      lysine: { name: "Lysine", unit: "\u00b5mol/g creatinine", refMin: 11, refMax: 175, desc: "Essential amino acid required for collagen synthesis, carnitine production, and calcium absorption." },
+      methionine: { name: "Methionine", unit: "\u00b5mol/g creatinine", refMin: 2, refMax: 18, desc: "Essential sulfur amino acid and SAMe precursor; critical for methylation, detoxification, and glutathione synthesis." },
+      phenylalanine: { name: "Phenylalanine", unit: "\u00b5mol/g creatinine", refMin: 8, refMax: 71, desc: "Essential amino acid converted to tyrosine; precursor for dopamine, norepinephrine, and thyroid hormones." },
+      taurine: { name: "Taurine", unit: "\u00b5mol/g creatinine", refMin: 21, refMax: 424, desc: "Conditionally essential amino acid concentrated in heart, brain, and retina; supports bile acid conjugation and antioxidant defense." },
+      threonine: { name: "Threonine", unit: "\u00b5mol/g creatinine", refMin: 12, refMax: 123, desc: "Essential amino acid important for mucin production, gut barrier integrity, and glycine/serine metabolism." },
+      tryptophan: { name: "Tryptophan", unit: "\u00b5mol/g creatinine", refMin: 5, refMax: 53, desc: "Essential amino acid and serotonin/melatonin precursor; diverted to kynurenine pathway during inflammation." },
+      valine: { name: "Valine", unit: "\u00b5mol/g creatinine", refMin: 7, refMax: 49, desc: "Branched-chain amino acid involved in muscle metabolism and gluconeogenesis; competes with tryptophan for brain uptake." },
+      alanine: { name: "Alanine", unit: "\u00b5mol/g creatinine", refMin: 63, refMax: 295, desc: "Nonessential amino acid central to glucose-alanine cycle; carries nitrogen from muscle to liver for gluconeogenesis." },
+      asparagine: { name: "Asparagine", unit: "\u00b5mol/g creatinine", refMin: 25, refMax: 119, desc: "Nonessential amino acid involved in nitrogen transport and nervous system function; supports ammonia detoxification." },
+      asparticAcid: { name: "Aspartic Acid", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 14, desc: "Nonessential amino acid involved in the urea cycle and Krebs cycle; participates in neurotransmission as excitatory amino acid." },
+      cysteine: { name: "Cysteine", unit: "\u00b5mol/g creatinine", refMin: 8, refMax: 74, desc: "Semi-essential sulfur amino acid and glutathione precursor; rate-limiting for the body's master antioxidant synthesis." },
+      cystine: { name: "Cystine", unit: "\u00b5mol/g creatinine", refMin: 10, refMax: 104, desc: "Oxidized dimer of cysteine; elevated urinary cystine may indicate cystinuria or impaired renal tubular reabsorption." },
+      gaba: { name: "GABA", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 5, desc: "Primary inhibitory neurotransmitter; urinary levels reflect peripheral GABA metabolism and GABAergic system activity." },
+      glutamicAcid: { name: "Glutamic Acid", unit: "\u00b5mol/g creatinine", refMin: 4, refMax: 27, desc: "Excitatory neurotransmitter and metabolic hub amino acid; elevated levels may indicate blood-brain barrier permeability." },
+      glutamine: { name: "Glutamine", unit: "\u00b5mol/g creatinine", refMin: 110, refMax: 528, desc: "Most abundant amino acid in the body; critical fuel for enterocytes and immune cells, depleted during stress and illness." },
+      proline: { name: "Proline", unit: "\u00b5mol/g creatinine", refMin: 1, refMax: 13, desc: "Nonessential amino acid concentrated in collagen; important for joint, tendon, and skin structural integrity." },
+      tyrosine: { name: "Tyrosine", unit: "\u00b5mol/g creatinine", refMin: 11, refMax: 135, desc: "Nonessential amino acid (from phenylalanine) and precursor to dopamine, norepinephrine, epinephrine, and thyroid hormones." }
+    }
+  },
+  urineAminoMetab: {
+    label: "Urine Amino Metabolites", icon: "\uD83D\uDD04",
+    markers: {
+      aminoadipic: { name: "\u03b1-Aminoadipic Acid", unit: "\u00b5mol/g creatinine", refMin: 2, refMax: 47, desc: "Lysine catabolism intermediate and early biomarker of diabetes risk; elevated levels predict insulin resistance development." },
+      aminoNbutyric: { name: "\u03b1-Amino-N-butyric Acid", unit: "\u00b5mol/g creatinine", refMin: 2, refMax: 25, desc: "Threonine and methionine catabolism marker; reflects methylation pathway activity and one-carbon metabolism status." },
+      aminoisobutyric: { name: "\u03b2-Aminoisobutyric Acid", unit: "\u00b5mol/g creatinine", refMin: 11, refMax: 160, desc: "Thymine catabolism product and myokine; promotes fatty acid oxidation and browning of white adipose tissue." },
+      cystathionine: { name: "Cystathionine", unit: "\u00b5mol/g creatinine", refMin: 2, refMax: 68, desc: "Transsulfuration pathway intermediate; elevated in vitamin B6 deficiency or CBS enzyme dysfunction." },
+      citrulline: { name: "Citrulline", unit: "\u00b5mol/g creatinine", refMin: 0.6, refMax: 3.9, desc: "Urea cycle intermediate and marker of intestinal enterocyte mass; low levels indicate small bowel damage or loss." },
+      ornithine: { name: "Ornithine", unit: "\u00b5mol/g creatinine", refMin: 2, refMax: 21, desc: "Urea cycle amino acid; elevated in urea cycle enzyme deficiencies, low in arginine deficiency or excessive ammonia clearance." },
+      urea: { name: "Urea", unit: "mg/g creatinine", refMin: 168, refMax: 465, desc: "End product of protein catabolism via urea cycle; reflects protein intake, liver synthetic function, and renal excretion capacity." },
+      glycine: { name: "Glycine", unit: "\u00b5mol/g creatinine", refMin: 95, refMax: 683, desc: "Simplest amino acid with major roles in collagen, glutathione, creatine, and heme synthesis; also an inhibitory neurotransmitter." },
+      serine: { name: "Serine", unit: "\u00b5mol/g creatinine", refMin: 40, refMax: 163, desc: "Nonessential amino acid central to one-carbon metabolism, phospholipid synthesis, and glycine/cysteine production." },
+      ethanolamine: { name: "Ethanolamine", unit: "\u00b5mol/g creatinine", refMin: 50, refMax: 235, desc: "Component of phosphatidylethanolamine in cell membranes; reflects phospholipid turnover and membrane integrity." },
+      phosphoethanolamine: { name: "Phosphoethanolamine", unit: "\u00b5mol/g creatinine", refMin: 1, refMax: 13, desc: "Phospholipid precursor involved in cell membrane synthesis; elevated in hypophosphatasia or bone metabolism disorders." },
+      phosphoserine: { name: "Phosphoserine", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 13, desc: "Phosphorylated serine involved in cell signaling and one-carbon metabolism; elevated in certain metabolic disorders." },
+      sarcosine: { name: "Sarcosine", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 1.2, desc: "N-methylglycine involved in methionine metabolism; elevated in folate deficiency or sarcosine dehydrogenase deficiency." },
+      anserine: { name: "Anserine", unit: "\u00b5mol/g creatinine", refMin: 0.4, refMax: 105.1, desc: "Methylated carnosine dipeptide from dietary meat and fish; reflects animal protein intake and histidine metabolism." },
+      carnosine: { name: "Carnosine", unit: "\u00b5mol/g creatinine", refMin: 1, refMax: 28, desc: "Dipeptide concentrated in muscle and brain; acts as intracellular buffer, antioxidant, and anti-glycation agent." },
+      methylhistidine1: { name: "1-Methylhistidine", unit: "\u00b5mol/g creatinine", refMin: 38, refMax: 988, desc: "Dietary meat marker from anserine metabolism; reflects recent animal protein consumption rather than endogenous muscle breakdown." },
+      methylhistidine3: { name: "3-Methylhistidine", unit: "\u00b5mol/g creatinine", refMin: 44, refMax: 281, desc: "Marker of myofibrillar protein breakdown from actin and myosin; reflects skeletal muscle turnover rate." },
+      betaAlanine: { name: "\u03b2-Alanine", unit: "\u00b5mol/g creatinine", refMin: null, refMax: 22, desc: "Rate-limiting precursor for carnosine synthesis; supplementation increases muscle carnosine and high-intensity exercise capacity." }
+    }
+  },
+  toxicElements: {
+    label: "Toxic Elements", icon: "\u2620\uFE0F",
+    markers: {
+      lead: { name: "Lead", unit: "\u00b5g/g creatinine", refMin: null, refMax: 1.4, desc: "Neurotoxic heavy metal from paint, water pipes, and industrial exposure; impairs cognitive function and causes anemia." },
+      mercury: { name: "Mercury", unit: "\u00b5g/g creatinine", refMin: null, refMax: 2.19, desc: "Toxic metal from fish, dental amalgams, and industrial sources; damages nervous system, kidneys, and immune function." },
+      aluminum: { name: "Aluminum", unit: "\u00b5g/g creatinine", refMin: null, refMax: 22.3, desc: "Neurotoxic metal from cookware, antacids, and water treatment; accumulates in brain tissue and disrupts phosphate metabolism." },
+      antimony: { name: "Antimony", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.149, desc: "Toxic metalloid from flame retardants and industrial exposure; causes cardiac, hepatic, and respiratory toxicity." },
+      arsenic: { name: "Arsenic", unit: "\u00b5g/g creatinine", refMin: null, refMax: 50, desc: "Carcinogenic metalloid from contaminated water and rice; causes skin lesions, neuropathy, and increased cancer risk." },
+      barium: { name: "Barium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 6.7, desc: "Alkaline earth metal from drinking water and industrial exposure; can cause hypokalemia, muscle weakness, and cardiac arrhythmias." },
+      bismuth: { name: "Bismuth", unit: "\u00b5g/g creatinine", refMin: null, refMax: 2.28, desc: "Metal from medications (Pepto-Bismol) and cosmetics; generally low toxicity but high levels may cause encephalopathy." },
+      cadmium: { name: "Cadmium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.64, desc: "Highly toxic metal from cigarette smoke and industrial exposure; accumulates in kidneys and causes renal tubular dysfunction." },
+      cesium: { name: "Cesium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 10.5, desc: "Alkali metal absorbed from diet and environment; high levels may compete with potassium at cellular channels." },
+      gadolinium: { name: "Gadolinium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.019, desc: "Rare earth metal from MRI contrast agents; retained in brain and bones, may cause nephrogenic systemic fibrosis." },
+      gallium: { name: "Gallium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.028, desc: "Metal from semiconductor industry and medical imaging; elevated levels reflect occupational or environmental exposure." },
+      nickel: { name: "Nickel", unit: "\u00b5g/g creatinine", refMin: null, refMax: 3.88, desc: "Metal allergen from jewelry, dental work, and food; excess causes dermatitis, respiratory issues, and potential carcinogenesis." },
+      platinum: { name: "Platinum", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.033, desc: "Noble metal from catalytic converters and chemotherapy drugs; occupational or medical exposure can cause nephrotoxicity." },
+      rubidium: { name: "Rubidium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 2263, desc: "Alkali metal that substitutes for potassium; reflects dietary intake and potassium channel function." },
+      thallium: { name: "Thallium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.298, desc: "Highly toxic heavy metal from industrial sources; causes painful neuropathy, hair loss, and multi-organ failure." },
+      tin: { name: "Tin", unit: "\u00b5g/g creatinine", refMin: null, refMax: 2.04, desc: "Metal from canned foods and dental alloys; elevated levels may impair zinc and copper metabolism." },
+      tungsten: { name: "Tungsten", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.211, desc: "Refractory metal from mining and manufacturing; emerging concern for disruption of purine metabolism and molybdenum pathways." },
+      uranium: { name: "Uranium", unit: "\u00b5g/g creatinine", refMin: null, refMax: 0.026, desc: "Radioactive and chemically toxic metal from contaminated water; primarily damages renal proximal tubules." }
+    }
+  },
+  nutrientElements: {
+    label: "Nutrient Elements", icon: "\u2699\uFE0F",
+    markers: {
+      chromium: { name: "Chromium", unit: "\u00b5g/g creatinine", refMin: 0.6, refMax: 9.4, desc: "Essential trace element that enhances insulin signaling; deficiency impairs glucose tolerance and lipid metabolism." },
+      cobalt: { name: "Cobalt", unit: "\u00b5g/g creatinine", refMin: 0.01, refMax: 2.60, desc: "Core component of vitamin B12; excess from metal implants or supplements causes cardiomyopathy and thyroid dysfunction." },
+      copper: { name: "Copper (Urine)", unit: "\u00b5g/g creatinine", refMin: 4.0, refMax: 11.4, desc: "Essential trace element for ceruloplasmin and cytochrome c oxidase; urinary copper elevated in Wilson's disease." },
+      iron: { name: "Iron (Urine)", unit: "\u00b5g/g creatinine", refMin: 5, refMax: 64, desc: "Essential element for oxygen transport; urinary iron reflects renal handling and is elevated in hemolysis or iron overload." },
+      lithium: { name: "Lithium", unit: "\u00b5g/g creatinine", refMin: 9, refMax: 129, desc: "Trace element with neuroprotective properties at low doses; supports mood stability and gray matter volume preservation." },
+      manganese: { name: "Manganese", unit: "\u00b5g/g creatinine", refMin: 0.03, refMax: 1.16, desc: "Essential cofactor for MnSOD antioxidant enzyme and bone formation; excess causes manganism (Parkinson-like symptoms)." },
+      molybdenum: { name: "Molybdenum", unit: "\u00b5g/g creatinine", refMin: 15, refMax: 175, desc: "Essential trace element cofactor for xanthine oxidase and sulfite oxidase; deficiency impairs sulfur amino acid metabolism." },
+      selenium: { name: "Selenium", unit: "\u00b5g/g creatinine", refMin: 32, refMax: 333, desc: "Essential for glutathione peroxidase and thyroid hormone conversion; urinary levels reflect selenium intake and status." },
+      strontium: { name: "Strontium", unit: "\u00b5g/g creatinine", refMin: 47, refMax: 346, desc: "Bone-seeking element that stimulates osteoblasts; used therapeutically for osteoporosis, reflects calcium metabolism." },
+      vanadium: { name: "Vanadium", unit: "\u00b5g/g creatinine", refMin: 0.1, refMax: 3.2, desc: "Trace element with insulin-mimetic properties; excess from industrial or supplement sources may cause GI and renal toxicity." },
+      zinc: { name: "Zinc (Urine)", unit: "\u00b5g/g creatinine", refMin: 63, refMax: 688, desc: "Essential element for 300+ enzymes including immune function and wound healing; urinary zinc reflects zinc status and renal handling." },
+      calcium: { name: "Calcium (Urine)", unit: "mg/g creatinine", refMin: 37, refMax: 313, desc: "Urinary calcium reflects intestinal absorption, bone turnover, and renal handling; elevated in hypercalciuria and bone loss." },
+      magnesiumUrine: { name: "Magnesium (Urine)", unit: "mg/g creatinine", refMin: 41, refMax: 267, desc: "Urinary magnesium reflects dietary intake and renal conservation; low levels may indicate whole-body magnesium depletion." },
+      sulfur: { name: "Sulfur", unit: "mg/g creatinine", refMin: 367, refMax: 1328, desc: "Reflects sulfur amino acid metabolism and detoxification capacity; low levels suggest impaired methylation or transsulfuration." }
     }
   },
   calculatedRatios: {
@@ -248,9 +477,77 @@ const CORRELATION_PRESETS = [
   { label: "Iron Panel", markers: ["iron.iron", "iron.ferritin", "iron.transferrin"] },
   { label: "Lipid Panel", markers: ["lipids.cholesterol", "lipids.hdl", "lipids.ldl", "lipids.triglycerides"] },
   { label: "Vitamin D vs Calcium", markers: ["vitamins.vitaminD", "electrolytes.calciumTotal"] },
-  { label: "TSH vs T3 vs T4", markers: ["thyroid.tsh", "thyroid.ft3", "thyroid.ft4"] }
+  { label: "TSH vs T3 vs T4", markers: ["thyroid.tsh", "thyroid.ft3", "thyroid.ft4"] },
+  { label: "OAT: Krebs Cycle", markers: ["oatMetabolic.succinic", "oatMetabolic.fumaric", "oatMetabolic.malic", "oatMetabolic.citric"] },
+  { label: "OAT: Neurotransmitters", markers: ["oatNeuro.hva", "oatNeuro.vma", "oatNeuro.hiaa5"] },
+  { label: "OAT: Yeast Markers", markers: ["oatMicrobial.arabinose", "oatMicrobial.citramalic", "oatMicrobial.tartaric"] },
+  { label: "OAT: Oxidative Stress", markers: ["oxidativeStress.lipidPeroxides", "oxidativeStress.ohdg8"] },
+  { label: "Amino: Branched-Chain", markers: ["urineAmino.isoleucine", "urineAmino.leucine", "urineAmino.valine"] },
+  { label: "Elements: Heavy Metals", markers: ["toxicElements.lead", "toxicElements.mercury", "toxicElements.cadmium", "toxicElements.arsenic"] }
 ];
 const CHIP_COLORS = ['#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa','#f472b6','#38bdf8','#fb923c'];
+
+// ── Model pricing ($/M tokens) ──
+const MODEL_PRICING = {
+  anthropic: {
+    'claude-opus-4-6':   { input: 5.00,  output: 25.00 },
+    'claude-opus-4-5':   { input: 5.00,  output: 25.00 },
+    'claude-sonnet-4-6': { input: 3.00,  output: 15.00 },
+    'claude-sonnet-4-5': { input: 3.00,  output: 15.00 },
+    'claude-haiku-4-5':  { input: 1.00,  output: 5.00  },
+    'claude-haiku-3-5':  { input: 0.80,  output: 4.00  },
+    '_default':          { input: 3.00,  output: 15.00, approx: true },
+  },
+  venice: {
+    'claude-opus-4-6':      { input: 6.00,  output: 30.00 },
+    'claude-opus-4-5':      { input: 6.00,  output: 30.00 },
+    'claude-sonnet-4-6':    { input: 3.75,  output: 18.75 },
+    'claude-sonnet-4-5':    { input: 3.75,  output: 18.75 },
+    'claude-sonnet':        { input: 3.75,  output: 18.75 },
+    'gpt-5':                { input: 2.19,  output: 17.50 },
+    'gemini-3-pro':         { input: 2.50,  output: 15.00 },
+    'hermes-3-llama-3.1-405b': { input: 1.10, output: 3.00 },
+    'qwen-3-coder':         { input: 0.75,  output: 3.00  },
+    'kimi-k2':              { input: 0.75,  output: 3.20  },
+    'llama-3.3-70b':        { input: 0.70,  output: 2.80  },
+    'gemini-3-flash':       { input: 0.70,  output: 3.75  },
+    'glm-4':                { input: 0.55,  output: 2.65  },
+    'venice-medium':        { input: 0.50,  output: 2.00  },
+    'grok-4':               { input: 0.50,  output: 1.25  },
+    'qwen-3-235b':          { input: 0.15,  output: 0.75  },
+    'qwen3':                { input: 0.15,  output: 0.75  },
+    'deepseek-v3':          { input: 0.40,  output: 1.00  },
+    'minimax':              { input: 0.40,  output: 1.60  },
+    'grok-code':            { input: 0.25,  output: 1.87  },
+    'qwen-3-vl':            { input: 0.25,  output: 1.50  },
+    'venice-uncensored':    { input: 0.20,  output: 0.90  },
+    'llama-3.2':            { input: 0.15,  output: 0.60  },
+    'google-gemma':         { input: 0.12,  output: 0.20  },
+    'venice-small':         { input: 0.05,  output: 0.15  },
+    'openai-gpt-oss':       { input: 0.07,  output: 0.30  },
+    '_default':             { input: 0.50,  output: 2.00, approx: true },
+  }
+};
+function getModelPricing(provider, modelId) {
+  if (!MODEL_PRICING[provider]) return { input: 0, output: 0 };
+  const table = MODEL_PRICING[provider];
+  const stripped = (modelId || '').replace(/-\d{8}$/, '');
+  if (table[stripped]) return table[stripped];
+  const prefix = Object.keys(table).filter(k => k !== '_default' && stripped.startsWith(k)).sort((a, b) => b.length - a.length)[0];
+  if (prefix) return table[prefix];
+  const fallback = table['_default'] || { input: 0, output: 0 };
+  return { ...fallback, approx: true };
+}
+function calculateCost(provider, modelId, inputTokens, outputTokens) {
+  const p = getModelPricing(provider, modelId);
+  return (p.input * (inputTokens || 0) + p.output * (outputTokens || 0)) / 1_000_000;
+}
+function formatCost(usd) {
+  if (usd === 0) return 'Free';
+  if (usd < 0.0001) return '<$0.0001';
+  if (usd < 0.01) return '$' + usd.toFixed(4);
+  return '$' + usd.toFixed(3);
+}
 
 // ── Profile context card option arrays ──
 const COMMON_CONDITIONS = [
@@ -524,6 +821,13 @@ function getVeniceModelDisplay() {
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
+function renderModelPricingHint(provider, modelId) {
+  if (provider === 'ollama') return '<span style="font-size:11px;color:var(--green)">Free (local)</span>';
+  const p = getModelPricing(provider, modelId);
+  if (p.input === 0 && p.output === 0) return '';
+  const pre = p.approx ? '~' : '';
+  return `<span style="font-size:11px;color:var(--text-muted)">${pre}$${p.input.toFixed(2)}/M in \u00b7 ${pre}$${p.output.toFixed(2)}/M out</span>`;
+}
 async function fetchVeniceModels(key) {
   try {
     const res = await fetch('https://api.venice.ai/api/v1/models', {
@@ -605,6 +909,7 @@ async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
+    let inputTokens = 0, outputTokens = 0;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -620,14 +925,19 @@ async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
           if (event.type === 'content_block_delta' && event.delta?.text) {
             fullText += event.delta.text;
             onStream(fullText);
+          } else if (event.type === 'message_start' && event.message?.usage) {
+            inputTokens = event.message.usage.input_tokens || 0;
+          } else if (event.type === 'message_delta' && event.usage) {
+            outputTokens = event.usage.output_tokens || 0;
           }
         } catch {}
       }
     }
-    return fullText;
+    return { text: fullText, usage: { inputTokens, outputTokens } };
   } else {
     const data = await res.json();
-    return data.content?.[0]?.text || '';
+    const usage = data.usage || {};
+    return { text: data.content?.[0]?.text || '', usage: { inputTokens: usage.input_tokens || 0, outputTokens: usage.output_tokens || 0 } };
   }
 }
 
@@ -672,6 +982,7 @@ async function callOllamaChat({ system, messages, maxTokens, onStream }) {
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
+    let inputTokens = 0, outputTokens = 0;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -686,13 +997,17 @@ async function callOllamaChat({ system, messages, maxTokens, onStream }) {
             fullText += event.message.content;
             onStream(fullText);
           }
+          if (event.done === true) {
+            inputTokens = event.prompt_eval_count || 0;
+            outputTokens = event.eval_count || 0;
+          }
         } catch {}
       }
     }
-    return fullText;
+    return { text: fullText, usage: { inputTokens, outputTokens } };
   } else {
     const data = await res.json();
-    return data.message?.content || '';
+    return { text: data.message?.content || '', usage: { inputTokens: data.prompt_eval_count || 0, outputTokens: data.eval_count || 0 } };
   }
 }
 
@@ -705,7 +1020,7 @@ async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
 
   const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096 };
-  if (onStream) body.stream = true;
+  if (onStream) { body.stream = true; body.stream_options = { include_usage: true }; }
 
   let res;
   try {
@@ -736,6 +1051,7 @@ async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
+    let inputTokens = 0, outputTokens = 0;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -752,13 +1068,18 @@ async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
             fullText += event.choices[0].delta.content;
             onStream(fullText);
           }
+          if (event.usage) {
+            inputTokens = event.usage.prompt_tokens || inputTokens;
+            outputTokens = event.usage.completion_tokens || outputTokens;
+          }
         } catch {}
       }
     }
-    return fullText;
+    return { text: fullText, usage: { inputTokens, outputTokens } };
   } else {
     const data = await res.json();
-    return data.choices?.[0]?.message?.content || '';
+    const usage = data.usage || {};
+    return { text: data.choices?.[0]?.message?.content || '', usage: { inputTokens: usage.prompt_tokens || 0, outputTokens: usage.completion_tokens || 0 } };
   }
 }
 
@@ -878,6 +1199,7 @@ function openSettingsModal() {
   overlay.classList.add('show');
   updateLocationLat();
   initSettingsOllamaCheck();
+  initSettingsAnthropicModels();
 }
 
 function renderAIProviderPanel(provider) {
@@ -893,7 +1215,8 @@ function renderAIProviderPanel(provider) {
       }).join('');
       modelHtml = `<div style="margin-top:12px" id="anthropic-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value)">${opts}</select>
+        <select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">${opts}</select>
+        <div id="anthropic-model-pricing" style="margin-top:4px">${renderModelPricingHint('anthropic', currentModel)}</div>
       </div>`;
     } else {
       modelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="anthropic-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getAnthropicModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
@@ -924,7 +1247,8 @@ function renderAIProviderPanel(provider) {
       }).join('');
       veniceModelHtml = `<div style="margin-top:12px" id="venice-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">${opts}</select>
+        <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">${opts}</select>
+        <div id="venice-model-pricing" style="margin-top:4px">${renderModelPricingHint('venice', veniceModel)}</div>
       </div>`;
     } else {
       veniceModelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="venice-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getVeniceModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
@@ -961,6 +1285,7 @@ function renderAIProviderPanel(provider) {
     <div id="ollama-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
       <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
+      <div style="margin-top:4px">${renderModelPricingHint('ollama', '')}</div>
     </div>
     <div class="api-key-notice" style="margin-top:12px">
       Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.
@@ -1221,6 +1546,15 @@ async function testPIIOllamaConnection() {
   }
 }
 
+function updateAnthropicModelPricing(modelId) {
+  const el = document.getElementById('anthropic-model-pricing');
+  if (el) el.innerHTML = renderModelPricingHint('anthropic', modelId || getAnthropicModel());
+}
+function updateVeniceModelPricing(modelId) {
+  const el = document.getElementById('venice-model-pricing');
+  if (el) el.innerHTML = renderModelPricingHint('venice', modelId || getVeniceModel());
+}
+
 async function handleSaveApiKey() {
   const input = document.getElementById('api-key-input');
   const btn = document.getElementById('save-api-key-btn');
@@ -1262,7 +1596,9 @@ function renderAnthropicModelDropdown(models) {
     const label = m.display_name || m.id;
     return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + label + '</option>';
   }).join('');
-  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label><select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value)">' + opts + '</select>';
+  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
+    '<select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">' + opts + '</select>' +
+    '<div id="anthropic-model-pricing" style="margin-top:4px">' + renderModelPricingHint('anthropic', currentModel) + '</div>';
 }
 
 async function handleSaveVeniceKey() {
@@ -1306,7 +1642,9 @@ function renderVeniceModelDropdown(models) {
     const label = m.name || m.id;
     return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
   }).join('');
-  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label><select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value)">' + opts + '</select>';
+  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
+    '<select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">' + opts + '</select>' +
+    '<div id="venice-model-pricing" style="margin-top:4px">' + renderModelPricingHint('venice', currentModel) + '</div>';
 }
 
 // ═══════════════════════════════════════════════
@@ -1585,7 +1923,7 @@ async function detectLatitudeWithAI(country, zip) {
   if (getLocationCache()[cacheKey] !== undefined) return;
   try {
     var locationStr = zip ? country + ' ' + zip : country;
-    var response = await callClaudeAPI({
+    var { text: response } = await callClaudeAPI({
       system: 'You are a geography assistant. Reply with ONLY a number \u2014 the approximate latitude in decimal degrees (positive for North, negative for South). No text, no degree symbol, just the number.',
       messages: [{ role: 'user', content: 'Latitude of: ' + locationStr }],
       maxTokens: 10
@@ -2132,8 +2470,9 @@ function buildSidebar(data) {
   html += `<div class="sidebar-title">Categories</div>`;
   for (const [key, cat] of Object.entries(data.categories)) {
     const markers = Object.values(cat.markers);
-    const flagged = countFlagged(markers);
     const withData = markers.filter(m => m.values && m.values.some(v => v !== null)).length;
+    if (withData === 0) continue;
+    const flagged = countFlagged(markers);
     const flagHtml = flagged > 0
       ? `<span class="flag-count">${flagged}</span>`
       : `<span class="count">${withData}</span>`;
@@ -2401,7 +2740,8 @@ async function loadFocusCard() {
       maxTokens: 100
     });
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
-    const text = await Promise.race([apiCall, timeout]);
+    const result = await Promise.race([apiCall, timeout]);
+    const text = (result && typeof result === 'object') ? result.text : (result || '');
     const trimmed = (text || '').trim();
     if (trimmed) {
       localStorage.setItem(cacheKey, JSON.stringify({ fingerprint: fp, text: trimmed }));
@@ -2740,7 +3080,7 @@ Tips should reference specific markers or trends when possible (e.g. "Low vitami
       callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 500 }),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
     ]);
-    const text = typeof result === 'string' ? result : '';
+    const text = (result && typeof result === 'object') ? (result.text || '') : (typeof result === 'string' ? result : '');
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -3475,12 +3815,12 @@ async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   if (cache[markerId]) return cache[markerId];
   if (!hasAIProvider()) return null;
   try {
-    const resp = await callClaudeAPI({
+    const { text: resp } = await callClaudeAPI({
       system: 'You are a concise medical reference. Reply with exactly one sentence (max 30 words) explaining what this blood biomarker measures and why it matters clinically. No preamble.',
       messages: [{ role: 'user', content: `${markerName} (${unit})` }],
       maxTokens: 100
     });
-    const text = typeof resp === 'string' ? resp.trim() : (resp.content?.[0]?.text?.trim() || '');
+    const text = (resp || '').trim();
     if (text) {
       cache[markerId] = text;
       localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -4664,6 +5004,11 @@ async function extractPDFText(file) {
 
 function tryParseJSON(str) {
   try { return JSON.parse(str); } catch {}
+  // Try trimming to last complete object (handles truncated output)
+  const lastBrace = str.lastIndexOf('}');
+  if (lastBrace > 0 && lastBrace < str.length - 1) {
+    try { return JSON.parse(str.slice(0, lastBrace + 1)); } catch {}
+  }
   // Attempt to repair truncated JSON from local models
   let s = str;
   // Close any unterminated string
@@ -4699,7 +5044,7 @@ async function parseLabPDFWithAI(pdfText, fileName) {
   const system = `You are a lab report data extraction assistant. You extract biomarker results from lab report text and map them to a known set of marker keys.
 
 Here is the complete list of known markers with their keys, expected units, and reference ranges:
-${JSON.stringify(markerRef, null, 1)}
+${JSON.stringify(markerRef)}
 
 Your task:
 1. Find the sample collection date in the text. Return it as YYYY-MM-DD. Look for dates near keywords like "collection", "collected", "date", "odběr", "datum", or similar in any language.
@@ -4731,14 +5076,14 @@ Return ONLY valid JSON in this exact format, no other text:
 }`;
 
   const provider = getAIProvider();
-  const response = await callClaudeAPI({
+  const { text: response, usage } = await callClaudeAPI({
     system,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report:\n\n${pdfText}` }],
-    maxTokens: provider === 'anthropic' ? 4096 : 8192
+    maxTokens: 8192
   });
 
   // Parse JSON from response (handle markdown code blocks, truncated output)
-  let jsonStr = response.trim();
+  let jsonStr = (response || '').trim();
   const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
   // Strip any leading text before the JSON object
@@ -4759,7 +5104,9 @@ Return ONLY valid JSON in this exact format, no other text:
       refMin: m.refMin != null ? m.refMin : null,
       refMax: m.refMax != null ? m.refMax : null
     })),
-    fileName
+    fileName,
+    usage,
+    provider
   };
 }
 
@@ -4785,11 +5132,9 @@ function showImportPreview(parseResult) {
       New: <span style="color:var(--accent)">${newMarkers.length}</span> \u00b7
       Unmatched: <span style="color:var(--yellow)">${unmatched.length}</span></p>`;
   if (!date) {
-    html += `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--red)">
-      Could not extract collection date from PDF. Import cannot proceed.</div>`;
-    modal.innerHTML = html;
-    overlay.classList.add("show");
-    return;
+    html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--yellow)">
+      Could not extract collection date from PDF. Please enter it manually:
+      <input type="date" id="import-manual-date" style="margin-left:8px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-family:var(--font-mono)" onchange="applyManualImportDate(this.value)"></div>`;
   }
   html += `<table class="import-table"><thead><tr><th>Status</th><th>Test Name</th><th>Value</th><th>Maps To</th></tr></thead><tbody>`;
   for (const m of matched) {
@@ -4807,12 +5152,39 @@ function showImportPreview(parseResult) {
   }
   html += `</tbody></table>`;
 
+  // Specialty test warning
+  const SPECIALTY_PREFIXES = ['oat', 'urineAmino', 'urineAminoMetab', 'toxicElements', 'nutrientElements', 'oxidativeStress'];
+  const importHasSpecialty = markers.some(m => {
+    const key = (m.mappedKey || m.suggestedKey || '').split('.')[0];
+    return SPECIALTY_PREFIXES.some(p => key === p || key.startsWith(p));
+  });
+  if (importHasSpecialty) {
+    const existingHasSpecialty = (importedData.entries || []).some(entry =>
+      Object.keys(entry.markers || {}).some(k => {
+        const cat = k.split('.')[0];
+        return SPECIALTY_PREFIXES.some(p => cat === p || cat.startsWith(p));
+      })
+    );
+    if (existingHasSpecialty) {
+      html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--yellow);font-size:13px;line-height:1.5">\u26A0 You already have specialty test data. Different labs use different reference ranges for the same markers \u2014 status colors may not match your new lab's stated ranges.</div>`;
+    } else {
+      html += `<div style="background:rgba(79,140,255,0.10);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--accent);font-size:13px;line-height:1.5">\u2139 Reference ranges for specialty tests vary between laboratories \u2014 the ranges in this app may differ from your lab's stated ranges.</div>`;
+    }
+  }
+
   // Privacy notice
   if (parseResult.privacyMethod === 'ollama') {
     html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information scrubbed by local AI</div>`;
   } else if (parseResult.privacyMethod === 'regex') {
     html += `<div class="privacy-notice privacy-notice-warning">&#128274; ${parseResult.privacyReplacements} personal detail${parseResult.privacyReplacements !== 1 ? 's' : ''} replaced with fake data`;
     html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Set up Local AI in Settings for comprehensive language-aware protection</span></div>`;
+  }
+  // Cost info (always visible)
+  if (parseResult.costInfo) {
+    const ci = parseResult.costInfo;
+    const totalTokens = (ci.inputTokens || 0) + (ci.outputTokens || 0);
+    const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : getAnthropicModelDisplay();
+    html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">\ud83d\udcca ${escapeHTML(modelLabel)} \u00b7 ${totalTokens.toLocaleString()} tokens \u00b7 ${formatCost(ci.cost)}</div>`;
   }
   // Debug: timings and diff button
   if (isDebugMode()) {
@@ -4829,12 +5201,20 @@ function showImportPreview(parseResult) {
   }
 
   const cancelLabel = batchCtx ? 'Skip' : 'Cancel';
+  const importDisabled = !date ? ' disabled style="opacity:0.5;cursor:not-allowed"' : '';
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">${cancelLabel}</button>
-    <button class="import-btn import-btn-primary" onclick="confirmImport()">Import ${importCount} Markers</button></div>`;
+    <button class="import-btn import-btn-primary" id="import-confirm-btn" onclick="confirmImport()"${importDisabled}>Import ${importCount} Markers</button></div>`;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
+}
+
+function applyManualImportDate(dateStr) {
+  if (!window._pendingImport || !dateStr) return;
+  window._pendingImport.date = dateStr;
+  const btn = document.getElementById('import-confirm-btn');
+  if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
 }
 
 function closeImportModal() {
@@ -6103,6 +6483,14 @@ async function handlePDFFile(file) {
     result.privacyMethod = privacyMethod;
     result.privacyReplacements = privacyReplacements;
     result.timings = { pii: piiTime, analysis: analysisTime };
+    const prov = result.provider || getAIProvider();
+    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : getOllamaMainModel();
+    result.costInfo = {
+      provider: prov, modelId: mid,
+      inputTokens: result.usage?.inputTokens || 0,
+      outputTokens: result.usage?.outputTokens || 0,
+      cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
+    };
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
@@ -6184,6 +6572,14 @@ async function handleBatchPDFs(pdfFiles) {
       result.privacyMethod = privacyMethod;
       result.privacyReplacements = privacyReplacements;
       result.timings = { pii: piiTime, analysis: analysisTime };
+      const prov = result.provider || getAIProvider();
+      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : getOllamaMainModel();
+      result.costInfo = {
+        provider: prov, modelId: mid,
+        inputTokens: result.usage?.inputTokens || 0,
+        outputTokens: result.usage?.outputTokens || 0,
+        cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
+      };
       if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
       if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
       await showBatchImportProgress(3, file.name, i + 1, pdfFiles.length);
@@ -7384,7 +7780,7 @@ async function sendChatMessage() {
         }
     };
 
-    const fullText = await callClaudeAPI({
+    const { text: fullText, usage } = await callClaudeAPI({
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 4096,
@@ -7399,6 +7795,17 @@ async function sendChatMessage() {
     if (typingEl.parentNode) typingEl.remove();
     if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
     aiMsgEl.innerHTML = renderMarkdown(fullText);
+    // Cost footnote
+    if (usage && (usage.inputTokens || usage.outputTokens)) {
+      const provider = getAIProvider();
+      const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : getOllamaMainModel();
+      const cost = calculateCost(provider, modelId, usage.inputTokens, usage.outputTokens);
+      const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
+      const footnote = document.createElement('div');
+      footnote.className = 'chat-cost-footnote';
+      footnote.textContent = `${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+      aiMsgEl.appendChild(footnote);
+    }
     container.scrollTop = container.scrollHeight;
 
     chatHistory.push({ role: 'assistant', content: fullText });
