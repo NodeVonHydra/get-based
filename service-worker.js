@@ -3,7 +3,6 @@ const CACHE_NAME = 'labcharts-v18';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/app.html',
   '/styles.css',
   '/js/main.js',
   '/js/schema.js',

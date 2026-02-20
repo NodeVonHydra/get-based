@@ -6,16 +6,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Lab Charts is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files.
 
-**Branch: `ai-powered`** — This branch uses the Claude API for PDF parsing and includes an AI chat panel for interpreting results. The `main` branch has the original rule-based Spadia parser.
+Uses the Claude API for AI-powered PDF import and an AI chat panel for interpreting results.
 
 ## Architecture
 
-No build system, no bundler, no package manager. Three source files:
+No build system, no bundler, no package manager. Native ES modules (`<script type="module">`).
 
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
-- **`app.js`** — all JavaScript: `MARKER_SCHEMA` (biomarker definitions), `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, API key management, `callClaudeAPI()` (central AI router), Settings modal, core utilities (`getStatus`, `getActiveData`, `applyUnitConversion`), UI rendering (sidebar, dashboard, category views, detail modals), focus card, onboarding flow, correlation chart, AI PDF import pipeline, standalone notes, 9 profile context editors with shared helpers (`renderSelectField`/`selectCtxOption`/`getSelectedOption`, `renderTagsField`/`toggleCtxTag`/`getSelectedTags`, `renderNoteField`, `contextEditorActions`), Chart.js plugins, JSON export/import, chat personalities, AI chat panel with markdown rendering, per-marker AI
+- **`js/`** — 22 ES modules loaded via `js/main.js`:
+  - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
+  - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
+  - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
+  - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
+  - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
+  - `api.js` — all 3 AI providers + `callClaudeAPI` router, key/model management, dynamic model lists
+  - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, profile dropdown
+  - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
+  - `pii.js` — regex + Ollama PII obfuscation, diff viewer
+  - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
+  - `notes.js` — note editor (open/save/delete)
+  - `supplements.js` — supplement editor + render section
+  - `cycle.js` — menstrual cycle helpers + editor + render section
+  - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
+  - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone
+  - `export.js` — JSON export/import, PDF report, `clearAllData`
+  - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
+  - `settings.js` — settings modal, provider panels, privacy section
+  - `glossary.js` — marker glossary modal
+  - `nav.js` — sidebar, date range filter, chart layers
+  - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
+  - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
 - **`seed-data.json`** — baseline lab data in importable JSON format (4 entries across 4 dates)
+
+Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
 ### Data Flow
 
@@ -196,7 +220,7 @@ There are no tests, linters, or build steps. An Anthropic API key is required fo
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v14` (bump to bust). Strategies: API → network-only, Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate. Ollama (localhost) → network-only.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v18` (bump to bust). Strategies: API/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ## Key Patterns
 
