@@ -435,4 +435,15 @@ export function clearAllData() {
   });
 }
 
-Object.assign(window, { exportPDFReport, exportDataJSON, importDataJSON, clearAllData });
+export async function loadDemoData() {
+  try {
+    const resp = await fetch('demo-male.json');
+    if (!resp.ok) throw new Error('Failed to load');
+    const blob = await resp.blob();
+    importDataJSON(new File([blob], 'demo-male.json', { type: 'application/json' }));
+  } catch (err) {
+    showNotification('Could not load demo data: ' + err.message, 'error');
+  }
+}
+
+Object.assign(window, { exportPDFReport, exportDataJSON, importDataJSON, clearAllData, loadDemoData });
