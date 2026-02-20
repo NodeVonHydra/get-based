@@ -296,4 +296,4 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
   });
 }
 
-Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama });
+Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, showPIIDiffViewer });
