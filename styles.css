@@ -1661,6 +1661,8 @@ body {
 }
 .onboarding-import-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79, 140, 255, 0.25); }
 .onboarding-hint { color: var(--text-muted); font-size: 12px; margin-top: 10px; }
+.onboarding-demo-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; margin-top: 10px; text-decoration: underline; text-underline-offset: 2px; transition: color 0.2s; }
+.onboarding-demo-btn:hover { color: var(--accent); }
 .onboarding-steps {
   display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 4px;
 }

@@ -67,7 +67,7 @@ export function showDashboard(data) {
       <h3>Welcome to LabCharts</h3>
       <p>Import your first lab results to get started.</p>
       <button class="onboarding-import-btn" onclick="document.getElementById('pdf-input').click()">Choose PDF or JSON file</button>
-      <div class="onboarding-hint">or drag and drop onto the area above</div>
+      <button class="onboarding-demo-btn" onclick="loadDemoData()">or try with demo data</button>
     </div>`;
     html += renderProfileContextCards();
     if (state.profileSex === 'female') html += renderMenstrualCycleSection(data);

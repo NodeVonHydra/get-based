@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v20';
+const CACHE_NAME = 'labcharts-v21';
 
 const APP_SHELL = [
   '/',
@@ -27,6 +27,7 @@ const APP_SHELL = [
   '/js/nav.js',
   '/js/views.js',
   '/js/crypto.js',
+  '/site.html',
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
