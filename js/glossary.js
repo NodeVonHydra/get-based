@@ -68,44 +68,4 @@ export function filterGlossary() {
   });
 }
 
-
-export function askAIAboutMarker(markerId) {
-  const marker = state.markerRegistry[markerId];
-  if (!marker) return;
-  const data = getActiveData();
-  const dates = marker.singlePoint ? [marker.singleDateLabel || 'N/A'] : data.dateLabels;
-  const valuesText = marker.values
-    .map((v, i) => v !== null ? `${dates[i]}: ${formatValue(v)} ${marker.unit}` : null)
-    .filter(Boolean).join(', ');
-  const latestIdx = getLatestValueIndex(marker.values);
-  const mr = getEffectiveRange(marker);
-  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
-  const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}–${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}–${marker.optimalMax}` : ''}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
-  window.closeModal();
-  window.openChatPanel(prompt);
-}
-
-export function askAIAboutCorrelations() {
-  if (state.selectedCorrelationMarkers.length < 2) return;
-  const data = getActiveData();
-  const parts = state.selectedCorrelationMarkers.map(key => {
-    const [catKey, markerKey] = key.split('.');
-    const marker = data.categories[catKey]?.markers[markerKey];
-    if (!marker) return null;
-    const valuesText = marker.values
-      .map((v, i) => v !== null ? `${data.dateLabels[i]}: ${formatValue(v)} ${marker.unit}` : null)
-      .filter(Boolean).join(', ');
-    const mr = getEffectiveRange(marker);
-    const latestIdx = getLatestValueIndex(marker.values);
-    const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
-    return `- ${marker.name}: ${valuesText} (ref: ${marker.refMin}–${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `, optimal: ${marker.optimalMin}–${marker.optimalMax}` : ''}, status: ${status})`;
-  }).filter(Boolean);
-  const names = state.selectedCorrelationMarkers.map(key => {
-    const [catKey, markerKey] = key.split('.');
-    return data.categories[catKey]?.markers[markerKey]?.name || key;
-  });
-  const prompt = `Analyze the correlation between these biomarkers: ${names.join(', ')}.\n\nHere are my values:\n${parts.join('\n')}\n\nHow do these markers relate to each other? Are there any patterns, imbalances, or concerns based on their combined trends?`;
-  window.openChatPanel(prompt);
-}
-
 Object.assign(window, { openGlossary, closeGlossary, filterGlossary });
