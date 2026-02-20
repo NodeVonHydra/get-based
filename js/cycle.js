@@ -1,0 +1,303 @@
+// cycle.js — Menstrual cycle tracking, phase calculation, editor
+import { state } from './state.js';
+import { escapeHTML, showNotification, showConfirmDialog } from './utils.js';
+import { saveImportedData } from './data.js';
+
+export function getCyclePhase(dateStr, mc) {
+  if (!mc || !mc.periods || mc.periods.length === 0) return null;
+  const target = new Date(dateStr + 'T00:00:00');
+  const sorted = mc.periods.slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  let periodStart = null;
+  for (const p of sorted) {
+    if (new Date(p.startDate + 'T00:00:00') <= target) {
+      periodStart = p.startDate;
+      break;
+    }
+  }
+  if (!periodStart) return null;
+  const startDate = new Date(periodStart + 'T00:00:00');
+  const cycleDay = Math.floor((target - startDate) / 86400000) + 1;
+  const cycleLen = mc.cycleLength || 28;
+  if (cycleDay > cycleLen + 7) return null; // too far from any known period
+  const periodLen = mc.periodLength || 5;
+  const ovulationDay = cycleLen - 14;
+  let phase, phaseName;
+  if (cycleDay <= periodLen) {
+    phase = 'menstrual'; phaseName = 'Menstrual';
+  } else if (cycleDay < ovulationDay - 1) {
+    phase = 'follicular'; phaseName = 'Follicular';
+  } else if (cycleDay <= ovulationDay + 1) {
+    phase = 'ovulatory'; phaseName = 'Ovulatory';
+  } else {
+    phase = 'luteal'; phaseName = 'Luteal';
+  }
+  return { cycleDay, phase, phaseName };
+}
+
+export function getNextBestDrawDate(mc) {
+  if (!mc || !mc.periods || mc.periods.length === 0) return null;
+  const sorted = mc.periods.slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const lastStart = new Date(sorted[0].startDate + 'T00:00:00');
+  const cycleLen = mc.cycleLength || 28;
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Find the most recent predicted period start (on or before today)
+  let currentPeriodStart = new Date(lastStart.getTime());
+  while (currentPeriodStart.getTime() + cycleLen * 86400000 <= today.getTime()) {
+    currentPeriodStart = new Date(currentPeriodStart.getTime() + cycleLen * 86400000);
+  }
+  // Check if today falls within the current cycle's draw window (days 3-5)
+  const currentDrawStart = new Date(currentPeriodStart.getTime() + 2 * 86400000);
+  const currentDrawEnd = new Date(currentPeriodStart.getTime() + 4 * 86400000);
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (today >= currentDrawStart && today <= currentDrawEnd) {
+    const dayInCycle = Math.floor((today - currentPeriodStart) / 86400000) + 1;
+    return {
+      startDate: currentDrawStart.toISOString().slice(0, 10),
+      endDate: currentDrawEnd.toISOString().slice(0, 10),
+      description: `Now is ideal! Today is day ${dayInCycle} (early follicular)`
+    };
+  }
+  // Otherwise recommend the next cycle's window
+  if (today > currentDrawEnd) {
+    currentPeriodStart = new Date(currentPeriodStart.getTime() + cycleLen * 86400000);
+  }
+  const drawStart = new Date(currentPeriodStart.getTime() + 2 * 86400000);
+  const drawEnd = new Date(currentPeriodStart.getTime() + 4 * 86400000);
+  return {
+    startDate: drawStart.toISOString().slice(0, 10),
+    endDate: drawEnd.toISOString().slice(0, 10),
+    description: `~${fmt(drawStart)}-${fmt(drawEnd)} (days 3-5, early follicular)`
+  };
+}
+
+export function getBloodDrawPhases(mc, dates) {
+  if (!mc || !dates) return {};
+  const phases = {};
+  for (const d of dates) {
+    const p = getCyclePhase(d, mc);
+    if (p) phases[d] = p;
+  }
+  return phases;
+}
+
+export function openMenstrualCycleEditor() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const mc = state.importedData.menstrualCycle || {};
+  const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  let html = `<button class="modal-close" onclick="window.closeModal()">&times;</button>
+    <h3>Menstrual Cycle</h3>
+    <div class="modal-unit">Track your cycle so AI can interpret hormone, iron, and inflammation markers in context of cycle phase.</div>
+    <div class="cycle-editor-form">
+      <div class="supp-form-row">
+        <div class="supp-form-field">
+          <label>Average Cycle Length (days)</label>
+          <input type="number" id="mc-cycle-length" value="${mc.cycleLength || 28}" min="20" max="45">
+        </div>
+        <div class="supp-form-field">
+          <label>Average Period Length (days)</label>
+          <input type="number" id="mc-period-length" value="${mc.periodLength || 5}" min="2" max="10">
+        </div>
+      </div>
+      <div class="supp-form-row">
+        <div class="supp-form-field">
+          <label>Regularity</label>
+          <select id="mc-regularity">
+            <option value="regular"${mc.regularity === 'regular' || !mc.regularity ? ' selected' : ''}>Regular</option>
+            <option value="irregular"${mc.regularity === 'irregular' ? ' selected' : ''}>Irregular</option>
+            <option value="very_irregular"${mc.regularity === 'very_irregular' ? ' selected' : ''}>Very Irregular</option>
+          </select>
+        </div>
+        <div class="supp-form-field">
+          <label>Flow Strength</label>
+          <select id="mc-flow">
+            <option value="light"${mc.flow === 'light' ? ' selected' : ''}>Light</option>
+            <option value="moderate"${mc.flow === 'moderate' || !mc.flow ? ' selected' : ''}>Moderate</option>
+            <option value="heavy"${mc.flow === 'heavy' ? ' selected' : ''}>Heavy</option>
+          </select>
+        </div>
+      </div>
+      <div class="supp-form-row">
+        <div class="supp-form-field">
+          <label>Contraceptive</label>
+          <input type="text" id="mc-contraceptive" value="${escapeHTML(mc.contraceptive || '')}" placeholder="e.g. IUD (Mirena), OCP, none">
+        </div>
+        <div class="supp-form-field">
+          <label>Conditions</label>
+          <input type="text" id="mc-conditions" value="${escapeHTML(mc.conditions || '')}" placeholder="e.g. PCOS, endometriosis, fibroids">
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px">
+      <div class="supp-form-title">Period Log</div>`;
+  if (periods.length > 0) {
+    html += `<div class="supp-list">`;
+    for (let i = 0; i < periods.length; i++) {
+      const p = periods[i];
+      const flowCls = p.flow === 'heavy' ? 'severity-major' : p.flow === 'light' ? 'severity-minor' : 'severity-mild';
+      html += `<div class="supp-list-item">
+        <span class="supp-list-icon">\uD83D\uDD34</span>
+        <div class="supp-list-info">
+          <div class="supp-list-name">${fmtDate(p.startDate)} \u2013 ${fmtDate(p.endDate)}</div>
+          <div class="supp-list-meta"><span class="goals-severity-badge ${flowCls}">${p.flow || 'moderate'}</span>${p.notes ? ' ' + escapeHTML(p.notes) : ''}</div>
+        </div>
+        <div class="supp-list-actions">
+          <button class="delete" onclick="deletePeriodEntry('${p.startDate}')">\u2715</button>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const defaultEnd = new Date(Date.now() + ((mc.periodLength || 5) - 1) * 86400000).toISOString().slice(0, 10);
+  html += `<div class="supp-form-row">
+        <div class="supp-form-field">
+          <label>Start Date</label>
+          <input type="date" id="mc-period-start" value="${today}">
+        </div>
+        <div class="supp-form-field">
+          <label>End Date</label>
+          <input type="date" id="mc-period-end" value="${defaultEnd}">
+        </div>
+        <div class="supp-form-field">
+          <label>Flow</label>
+          <select id="mc-period-flow">
+            <option value="light">Light</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="heavy">Heavy</option>
+          </select>
+        </div>
+      </div>
+      <div class="supp-form-row">
+        <div class="supp-form-field" style="flex:2">
+          <label>Notes (optional)</label>
+          <input type="text" id="mc-period-notes" placeholder="e.g. cramps, spotting">
+        </div>
+        <div class="supp-form-field" style="flex:0;align-self:flex-end">
+          <button class="import-btn import-btn-primary" style="padding:8px 16px" onclick="addPeriodEntry()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="note-editor-actions" style="margin-top:16px">
+      <button class="import-btn import-btn-primary" onclick="saveMenstrualCycle()">Save</button>
+      <button class="import-btn import-btn-secondary" onclick="window.closeModal()">Cancel</button>
+      ${state.importedData.menstrualCycle ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearMenstrualCycle()">Clear All</button>` : ''}
+    </div>`;
+  modal.innerHTML = html;
+  overlay.classList.add("show");
+}
+
+export function saveMenstrualCycle() {
+  syncMenstrualCycleProfileFromForm();
+  saveImportedData();
+  window.closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  showNotification('Menstrual cycle profile saved', 'success');
+}
+
+export function clearMenstrualCycle() {
+  showConfirmDialog('Clear all menstrual cycle data? This cannot be undone.', () => {
+    state.importedData.menstrualCycle = null;
+    saveImportedData();
+    window.closeModal();
+    const activeNav = document.querySelector(".nav-item.active");
+    window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
+    showNotification('Menstrual cycle data cleared', 'info');
+  });
+}
+
+export function syncMenstrualCycleProfileFromForm() {
+  const cycleLength = Math.max(20, Math.min(45, parseInt(document.getElementById('mc-cycle-length').value) || 28));
+  const periodLength = Math.max(2, Math.min(10, parseInt(document.getElementById('mc-period-length').value) || 5));
+  const regularity = document.getElementById('mc-regularity').value;
+  const flow = document.getElementById('mc-flow').value;
+  const contraceptive = document.getElementById('mc-contraceptive').value.trim();
+  const conditions = document.getElementById('mc-conditions').value.trim();
+  if (!state.importedData.menstrualCycle) {
+    state.importedData.menstrualCycle = { cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods: [] };
+  } else {
+    Object.assign(state.importedData.menstrualCycle, { cycleLength, periodLength, regularity, flow, contraceptive, conditions });
+  }
+}
+
+export function addPeriodEntry() {
+  const startDate = document.getElementById('mc-period-start').value;
+  const endDate = document.getElementById('mc-period-end').value;
+  const flow = document.getElementById('mc-period-flow').value;
+  const notes = document.getElementById('mc-period-notes').value.trim();
+  if (!startDate) { showNotification('Start date is required', 'error'); return; }
+  if (!endDate) { showNotification('End date is required', 'error'); return; }
+  if (endDate < startDate) { showNotification('End date must be on or after start date', 'error'); return; }
+  syncMenstrualCycleProfileFromForm();
+  const exists = state.importedData.menstrualCycle.periods.some(p => p.startDate === startDate);
+  if (exists) { showNotification('A period entry with this start date already exists', 'error'); return; }
+  state.importedData.menstrualCycle.periods.push({ startDate, endDate, flow, notes });
+  saveImportedData();
+  openMenstrualCycleEditor();
+}
+
+export function deletePeriodEntry(startDate) {
+  if (!state.importedData.menstrualCycle || !state.importedData.menstrualCycle.periods) return;
+  syncMenstrualCycleProfileFromForm();
+  state.importedData.menstrualCycle.periods = state.importedData.menstrualCycle.periods.filter(p => p.startDate !== startDate);
+  saveImportedData();
+  openMenstrualCycleEditor();
+}
+
+export function renderMenstrualCycleSection(data) {
+  const mc = state.importedData.menstrualCycle;
+  let html = `<div class="cycle-section">
+    <div class="supp-timeline-header">
+      <span class="context-section-title">Menstrual Cycle</span>
+      <button class="supp-add-btn" onclick="openMenstrualCycleEditor()">${mc ? 'Edit' : '+ Set Up'}</button>
+    </div>`;
+  if (!mc) {
+    html += `<div class="cycle-prompt" onclick="openMenstrualCycleEditor()">
+      <span class="cycle-prompt-icon">\uD83D\uDD34</span>
+      <div><strong>Track your cycle for better lab interpretation</strong><br>
+      <span style="color:var(--text-muted);font-size:12px">Hormone, iron, and inflammation markers vary significantly by cycle phase. Set up cycle tracking so AI can factor this in.</span></div>
+    </div>`;
+  } else {
+    const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
+    let summary = `${mc.cycleLength || 28}-day cycle, ${regLabel}, ${mc.flow || 'moderate'} flow`;
+    if (mc.contraceptive) summary += ` \u2022 ${escapeHTML(mc.contraceptive)}`;
+    if (mc.conditions) summary += ` \u2022 ${escapeHTML(mc.conditions)}`;
+    html += `<div class="cycle-summary">${summary}</div>`;
+    const drawRec = getNextBestDrawDate(mc);
+    if (drawRec) {
+      html += `<div class="cycle-draw-date">
+        <span class="cycle-draw-icon">\uD83D\uDCC5</span>
+        <div><strong>Next best blood draw:</strong> ${escapeHTML(drawRec.description)}
+        <div class="cycle-draw-explain">Early follicular phase gives the most stable baseline for hormones, iron, and inflammation markers.</div></div>
+      </div>`;
+    }
+    if (data.dates.length > 0) {
+      const phases = getBloodDrawPhases(mc, data.dates);
+      const phaseDates = Object.entries(phases);
+      if (phaseDates.length > 0) {
+        html += `<div class="cycle-draw-phases">`;
+        const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        for (const [date, p] of phaseDates) {
+          html += `<span class="cycle-draw-tag"><span class="cycle-phase-badge phase-${p.phase}">${p.phaseName}</span> ${fmtDate(date)} \u2014 Day ${p.cycleDay}</span>`;
+        }
+        html += `</div>`;
+      }
+    }
+    const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate)).slice(0, 6);
+    if (periods.length > 0) {
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      html += `<div class="cycle-period-log">`;
+      for (const p of periods) {
+        const flowCls = p.flow === 'heavy' ? 'severity-major' : p.flow === 'light' ? 'severity-minor' : 'severity-mild';
+        html += `<span class="cycle-period-entry">${fmtDate(p.startDate)}\u2013${fmtDate(p.endDate)} <span class="goals-severity-badge ${flowCls}">${p.flow}</span>${p.notes ? ` <span class="cycle-period-note">${escapeHTML(p.notes)}</span>` : ''}</span>`;
+      }
+      html += `</div>`;
+    }
+  }
+  html += `</div>`;
+  return html;
+}
+
+Object.assign(window, { getCyclePhase, getNextBestDrawDate, getBloodDrawPhases, renderMenstrualCycleSection, openMenstrualCycleEditor, saveMenstrualCycle, clearMenstrualCycle, syncMenstrualCycleProfileFromForm, addPeriodEntry, deletePeriodEntry });
