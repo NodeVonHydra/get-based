@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v17';
+const CACHE_NAME = 'labcharts-v18';
 
 const APP_SHELL = [
   '/',
@@ -58,9 +58,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only: Anthropic/Venice API calls and Ollama (never cache)
+  // Network-only: Anthropic/Venice API calls and Ollama — do NOT intercept so
+  // streaming ReadableStream goes directly to the page without SW IPC buffering
   if (url.hostname === 'api.anthropic.com' || url.hostname === 'api.venice.ai' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-    event.respondWith(fetch(event.request).catch(() => new Response('Network error', { status: 503, statusText: 'Service Unavailable' })));
     return;
   }
 

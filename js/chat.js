@@ -558,36 +558,33 @@ export async function sendChatMessage() {
     // Create AI message placeholder
     const aiMsgEl = document.createElement('div');
     aiMsgEl.className = 'chat-msg chat-ai';
-    aiMsgEl.innerHTML = '';
+    aiMsgEl.style.whiteSpace = 'pre-wrap';
 
-    // Throttle rendering to avoid O(n²) DOM thrashing on long streams
+    // Throttle plain-text updates during streaming (markdown only on completion)
     let _streamLatest = '';
-    let _streamRafId = null;
-    const flushStream = () => {
-      _streamRafId = null;
-      try {
-        if (typingEl.parentNode) typingEl.remove();
-        if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
-        aiMsgEl.innerHTML = renderMarkdown(_streamLatest);
-        container.scrollTop = container.scrollHeight;
-      } catch (e) {
-          if (isDebugMode()) console.error('Stream render error:', e);
-          showNotification('Display error — try resending your message.', 'error');
-        }
-    };
+    let _streamRaf = null;
 
     const { text: fullText, usage } = await callClaudeAPI({
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 4096,
-      onStream: (text) => {
+      onStream(text) {
         _streamLatest = text;
-        if (!_streamRafId) _streamRafId = requestAnimationFrame(flushStream);
+        if (!_streamRaf) {
+          _streamRaf = requestAnimationFrame(() => {
+            _streamRaf = null;
+            if (typingEl.parentNode) typingEl.remove();
+            if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
+            aiMsgEl.textContent = _streamLatest;
+            container.scrollTop = container.scrollHeight;
+          });
+        }
       }
     });
 
-    // Final render with complete text
-    if (_streamRafId) { cancelAnimationFrame(_streamRafId); _streamRafId = null; }
+    // Final render with full markdown
+    if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+    aiMsgEl.style.whiteSpace = '';
     if (typingEl.parentNode) typingEl.remove();
     if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
     aiMsgEl.innerHTML = renderMarkdown(fullText);
@@ -607,7 +604,7 @@ export async function sendChatMessage() {
     state.chatHistory.push({ role: 'assistant', content: fullText });
     saveChatHistory();
   } catch (err) {
-    if (typeof _streamRafId !== 'undefined' && _streamRafId) { cancelAnimationFrame(_streamRafId); _streamRafId = null; }
+    if (typeof _streamRaf !== 'undefined' && _streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
     if (typingEl.parentNode) typingEl.remove();
     const errEl = document.createElement('div');
     errEl.className = 'chat-msg chat-ai';

@@ -103,4 +103,4 @@ export function showConfirmDialog(message, onConfirm) {
   document.getElementById("confirm-cancel").focus();
 }
 
-Object.assign(window, { showNotification, showConfirmDialog });
+Object.assign(window, { showNotification, showConfirmDialog, setDebugMode, setPIIReviewEnabled });
