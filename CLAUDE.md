@@ -14,30 +14,7 @@ No build system, no bundler, no package manager. Three source files:
 
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
-- **`app.js`** — all JavaScript, organized into sections:
-  - `MARKER_SCHEMA` — biomarker definitions (categories, names, units, reference ranges, descriptions) with no personal data
-  - `UNIT_CONVERSIONS` — EU (SI) to US unit conversion factors
-  - `CORRELATION_PRESETS` — predefined marker combinations for the correlation view
-  - API key management (`getApiKey`, `saveApiKey`, `hasApiKey`, `validateApiKey`)
-  - `callClaudeAPI()` — central API helper with streaming support
-  - Settings modal (`openSettingsModal`, `closeSettingsModal`, `handleSaveApiKey`, `updateSettingsUI`) — contains API key, sex, DOB, unit system, range mode, and theme controls
-  - `updateHeaderRangeToggle()` — renders range mode toggle (Optimal/Reference/Both) in header, synced with settings modal
-  - Core utilities and initialization (`getStatus`, `getActiveData`, `applyUnitConversion`, `recalculateHOMAIR`)
-  - UI rendering (sidebar, dashboard with onboarding flow, category views, chart/table toggle, detail modals, flagged marker alerts)
-  - Focus card (`hashString`, `getFocusCardFingerprint`, `renderFocusCard`, `loadFocusCard`, `refreshFocusCard` — AI-generated one-sentence insight)
-  - Onboarding flow (`renderOnboardingBanner`, `completeOnboardingSex`, `completeOnboardingProfile`, `dismissOnboarding` — 3-step guided setup)
-  - Correlation chart feature (multi-marker overlay with % normalization)
-  - AI PDF import pipeline (`extractPDFText`, `parseLabPDFWithAI`, `buildMarkerReference`, import preview modal, drag-and-drop)
-  - Standalone notes (`openNoteEditor`, `saveNote`, `deleteNote` — date-independent annotations)
-  - Profile context editors: 9 structured editors (`openDiagnosesEditor`, `openDietEditor`, `openExerciseEditor`, `openSleepRestEditor`, `openLightCircadianEditor`, `openStressEditor`, `openLoveLifeEditor`, `openEnvironmentEditor`, `openHealthGoalsEditor`) with shared helpers (`renderSelectField`, `selectCtxOption`, `getSelectedOption`, `renderTagsField`, `toggleCtxTag`, `getSelectedTags`, `renderNoteField`, `contextEditorActions`). Interpretive Lens editor (`openInterpretiveLensEditor`) in Settings
-  - DOB management (`getProfileDob`, `setProfileDob`, `switchDob`)
-  - Chart annotation plugin (`noteAnnotationPlugin` — subtle dots at note dates with hover tooltips)
-  - Marker descriptions (`getMarkerDescription` — reads hardcoded `desc` from schema, falls back to localStorage for custom markers)
-  - JSON export/import (`exportDataJSON`, `importDataJSON`, `clearAllData`)
-  - Chat personalities (`CHAT_PERSONALITIES`, `setChatPersonality`, `getActivePersonality`, `loadChatPersonality`, `updatePersonalityBar`)
-  - AI chat panel (`buildLabContext`, `sendChatMessage`, `openChatPanel`, chat history management)
-  - Markdown rendering (`renderMarkdown` — block-aware parser, `applyInlineMarkdown` — inline formatting helper)
-  - Per-marker AI (`askAIAboutMarker` — opens chat with pre-filled marker-specific prompt)
+- **`app.js`** — all JavaScript: `MARKER_SCHEMA` (biomarker definitions), `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, API key management, `callClaudeAPI()` (central AI router), Settings modal, core utilities (`getStatus`, `getActiveData`, `applyUnitConversion`), UI rendering (sidebar, dashboard, category views, detail modals), focus card, onboarding flow, correlation chart, AI PDF import pipeline, standalone notes, 9 profile context editors with shared helpers (`renderSelectField`/`selectCtxOption`/`getSelectedOption`, `renderTagsField`/`toggleCtxTag`/`getSelectedTags`, `renderNoteField`, `contextEditorActions`), Chart.js plugins, JSON export/import, chat personalities, AI chat panel with markdown rendering, per-marker AI
 - **`seed-data.json`** — baseline lab data in importable JSON format (4 entries across 4 dates)
 
 ### Data Flow
@@ -62,38 +39,21 @@ The PDF parser uses Claude API to extract markers from any lab PDF (any language
 
 ### Custom Markers
 
-When a PDF contains markers not in the hardcoded `MARKER_SCHEMA`, the AI extracts their metadata and imports them automatically:
-
-- **Storage**: `importedData.customMarkers` — object keyed by `category.markerKey`, each value: `{ name, unit, refMin, refMax, categoryLabel }`
-- **Merge in `getActiveData()`**: Before sex-specific ref adjustments, custom marker definitions are injected into `data.categories`. If the category exists in schema, the marker is added to it; if not, a new category is created with a 🔖 icon
-- **AI reference**: `buildMarkerReference()` includes custom markers so subsequent PDF imports match to them instead of creating duplicates
-- **Import preview**: Three groups — green "✓ Matched" (known), blue "✚ New" (custom with suggested key), yellow "? Unmatched" (truly unknown)
-- **No overwrite**: Once a custom marker definition is saved, it won't be overwritten by later imports
-- **JSON export/import**: `customMarkers` is included in export and merged on import (existing definitions preserved)
-- **Clear**: `clearAllData()` resets `customMarkers` to `{}`
-- **Rendering**: No special rendering code needed — all UI iterates `data.categories` dynamically
+Markers not in `MARKER_SCHEMA` are auto-imported from PDFs. Storage: `importedData.customMarkers` keyed by `category.markerKey` → `{ name, unit, refMin, refMax, categoryLabel }`. Merged into `data.categories` in `getActiveData()` (new category created with 🔖 if needed). `buildMarkerReference()` includes them for dedup. Import preview: green "Matched", blue "New", yellow "Unmatched". Won't overwrite existing definitions.
 
 ### Standalone Notes
 
-Notes are independent of lab entries — they support any date and are stored in `importedData.notes` as `[{ date, text }]`:
-
-- Dashboard shows notes interleaved chronologically with lab entries, distinguished by a yellow left border
-- `openNoteEditor(date?, existingIdx?)` opens a modal with date picker + textarea; defaults to today for new notes
-- `noteAnnotationPlugin` (Chart.js plugin) draws small filled yellow dots at the top edge of charts at note dates; on hover, shows a tooltip with note date and truncated text. Uses `afterDatasetsDraw` for rendering and `afterEvent` for hover detection. Interpolates position for notes falling between data points
-- Notes appear in the detail modal as a clickable memo icon on date cards; clicking toggles an inline expanded note text panel (`.mv-note-text`) below the date
-- `buildLabContext()` appends a `## User Notes` section so the AI chat considers notes
+Notes are independent of lab entries — stored in `importedData.notes` as `[{ date, text }]`. Dashboard shows notes interleaved chronologically (yellow left border). `noteAnnotationPlugin` draws yellow dots on charts at note dates with hover tooltips. Notes appear in detail modals as memo icons. `buildLabContext()` includes notes in AI context.
 
 ### Profile Context Cards
 
 Nine profile context cards stored as structured objects in `importedData`. All editors use styled button-group selectors (`.ctx-btn-group` / `.ctx-btn-option`) instead of native `<select>` dropdowns, with multi-select tag pills (`.ctx-tags` / `.ctx-tag`) for array fields.
 
 - Dashboard renders nine cards in a `.profile-context-cards` grid (3-col on wide, 2-col on medium, 1-col on mobile) under a "What your GP won't ask you" section title with filled count (e.g., "5/9 filled"). Rendered by `renderProfileContextCards()` using a `cardDefs` array. Always visible. Ordered: Health Goals, Medical Conditions, Diet, Exercise, Sleep & Rest, Light & Circadian, Stress, Love Life & Relationships, Environment
-- Each card has a **health status dot** (`.ctx-health-dot`) — AI-rated green/yellow/red/gray indicating how that area impacts labs. Loaded async via `loadContextHealthDots()` with **per-card caching** — only stale cards are re-fetched from AI. Cache in `labcharts-{profileId}-contextHealth` stores `{ dots, summaries, fingerprints }` per key. `getCardFingerprint(key)` hashes lab data + card data + sex + DOB. Red dots pulse with `dotPulse` animation
-- Each card has an **AI-generated tip** (`.ctx-ai-summary`) — a brief color-coded insight (max 12 words) linking the card's content to actual lab markers. Appears below the card body with a smooth reveal animation. Color matches the dot (green/yellow/red). Cached alongside dots
-- Each card has an info icon (i) with a hover tooltip explaining why that context matters for lab interpretation
-- Each card shows a summary (via per-card `summaryFn`, includes structured data + freetext note) or a dashed-border placeholder; clicking opens a modal editor
-- **Empty cards** have `border-style: dashed` and reduced opacity via `:has(.context-card-placeholder)` CSS. Card height is `min-height: 90px` to accommodate the AI tip
-- **Additional Notes textarea** (`.ctx-notes-textarea`) below cards for free-form AI context, auto-saved via `debounceContextNotes()`
+- Each card has a **health status dot** — AI-rated green/yellow/red/gray. Loaded async via `loadContextHealthDots()` with **per-card caching** — only stale cards re-fetched. Cache: `labcharts-{profileId}-contextHealth` → `{ dots, summaries, fingerprints }`. `getCardFingerprint(key)` hashes lab data + card data + sex + DOB
+- Each card has an **AI-generated tip** — brief color-coded insight (max 12 words), cached alongside dots
+- Each card shows a summary (via `summaryFn`) or dashed-border placeholder; clicking opens modal editor
+- **Additional Notes textarea** below cards for free-form AI context, auto-saved via `debounceContextNotes()`
 - **Data structures**:
   - `diagnoses` = `{ conditions: [{ name, severity, since? }], note }` — `syncDiagnosesNote()` preserves note on condition add/delete
   - `diet` = `{ type, restrictions[], pattern, breakfast, breakfastTime, lunch, lunchTime, dinner, dinnerTime, snacks, snacksTime, note }` — meal times stored as 24h format via `parseTimeInput()`, displayed via `formatTime()`
@@ -104,251 +64,123 @@ Nine profile context cards stored as structured objects in `importedData`. All e
   - `loveLife` = `{ status, relationship, satisfaction, libido, frequency, orgasm, concerns[], note }` — relationship quality, sexual health details
   - `environment` = `{ setting, climate, water, waterConcerns[], emf[], emfMitigation[], homeLight, air[], toxins[], building, note }` — Kruse-informed: water quality (spring, DDW, RO), EMF sources + mitigation, home lighting, air quality, toxin exposure, building materials
   - All nullable — `null` means not filled
-- **Option arrays**: `COMMON_CONDITIONS`, `DIET_TYPES`, `DIET_RESTRICTIONS`, `DIET_PATTERNS`, `EXERCISE_FREQ`, `EXERCISE_TYPES`, `EXERCISE_INTENSITY`, `DAILY_MOVEMENT`, `SLEEP_DURATIONS`, `SLEEP_QUALITY`, `SLEEP_SCHEDULE`, `SLEEP_ROOM_TEMP`, `SLEEP_ISSUES`, `SLEEP_ENVIRONMENT`, `SLEEP_PRACTICES`, `LIGHT_AM`, `LIGHT_DAYTIME`, `LIGHT_UV`, `LIGHT_EVENING`, `LIGHT_SCREEN_TIME`, `LIGHT_TECH_ENV`, `LIGHT_COLD`, `LIGHT_GROUNDING`, `LIGHT_MEAL_TIMING`, `STRESS_LEVELS`, `STRESS_SOURCES`, `STRESS_MGMT`, `LOVE_STATUS`, `LOVE_RELATIONSHIP`, `LOVE_SATISFACTION`, `LOVE_LIBIDO`, `LOVE_FREQUENCY`, `LOVE_ORGASM`, `LOVE_CONCERNS`, `ENV_SETTING`, `ENV_CLIMATE`, `ENV_WATER`, `ENV_WATER_CONCERNS`, `ENV_EMF`, `ENV_EMF_MITIGATION`, `ENV_HOME_LIGHT`, `ENV_AIR`, `ENV_TOXINS`, `ENV_BUILDING`
-- **Editor helpers**: `renderSelectField()` renders `.ctx-btn-group` pill buttons, `selectCtxOption()` toggles selection, `getSelectedOption()` reads value. `renderTagsField()` renders `.ctx-tags`, `toggleCtxTag()` toggles, `getSelectedTags()` reads. `renderNoteField()` renders `.ctx-note-input`. `contextEditorActions()` renders Save/Cancel/Clear with `.ctx-editor-actions` (top-bordered action bar)
-- **Migration**: `migrateProfileData()` converts legacy string fields to structured objects. Handles: old `sleepCircadian` → `sleepRest` + `lightCircadian` split, old `circadian` + `sleep` → merged, old `fieldExperts` + `fieldLens` → `interpretiveLens`, old `lightCircadian` format (timing/practices) → new format (amLight/evening/etc.). Initializes missing fields: `healthGoals`, `sleepRest`, `lightCircadian`, `stress`, `loveLife`, `environment`, `interpretiveLens`, `contextNotes`, `customMarkers`
-- `buildLabContext()` serializes all 9 context areas plus interpretiveLens and contextNotes to the AI context. Each context area has a dedicated `CHAT_SYSTEM_PROMPT` bullet explaining how to interpret it
-- All fields are included in JSON export/import and PDF report; import handles both old and new field names
-- **CSS**: `.ctx-ai-summary` (hidden by default, `.ctx-ai-summary-visible` for reveal), `.ctx-ai-summary-green`/`-yellow`/`-red` color classes
+- **Option arrays**: Named constants per card (e.g., `SLEEP_DURATIONS`, `ENV_WATER`, `LOVE_CONCERNS`) — search code for full list
+- **Migration**: `migrateProfileData()` converts legacy fields to structured objects (old `sleepCircadian` → split, old `fieldExperts`+`fieldLens` → `interpretiveLens`). Initializes missing fields
+- `buildLabContext()` serializes all 9 areas + interpretiveLens + contextNotes to AI context. Each has a `CHAT_SYSTEM_PROMPT` bullet
+- All fields included in JSON export/import and PDF report
 
 ### Health Goals
 
-Structured list of things the user wants to solve or improve, each with a severity level:
-
-- **Storage**: `importedData.healthGoals` — array of `{ text, severity }` where severity is `major`, `mild`, or `minor`
-- **Dashboard card** (🎯): Shows first 3 goal texts (e.g. "Improve insulin sensitivity, Lower inflammation +1 more") or placeholder. Opens `openHealthGoalsEditor()`
-- **Editor**: Modal with live list of goals (severity badge + text + delete button), add form (text input + pill-button severity selector + Add button), Done/Clear All buttons. Enter key in text input triggers add. Changes persist immediately on add/delete. Severity uses `ctx-btn-group` pill buttons (not native `<select>`)
-- **AI context**: `buildLabContext()` adds `## Health Goals (Things to Solve)` section grouped by severity (major → mild → minor)
-- **System prompt**: AI prioritizes analysis around stated goals, focusing on major priorities first
-- **Export/import**: Included in JSON export; import merges array, deduplicating by text content
-- **CSS**: `.goals-list`, `.goals-severity-badge` with `.severity-major` (red), `.severity-mild` (yellow), `.severity-minor` (green)
+- **Storage**: `importedData.healthGoals` — array of `{ text, severity }` (major/mild/minor)
+- **Dashboard card**: Shows first 3 goals or placeholder. Editor: modal with live list + add form + severity pill buttons
+- **AI context**: Grouped by severity (major → mild → minor). AI prioritizes major goals first
+- **Export/import**: Merges array, deduplicates by text content
 
 ### Interpretive Lens
 
-Combines field experts and scientific paradigms into a single interpretive framework for lab analysis. Prominent dashboard card above the Focus Card:
-
-- **Storage**: `importedData.interpretiveLens` — string
-- **Dashboard section**: `renderInterpretiveLensSection()` — full-width card with purple left border above Focus Card. When set: shows full text (not truncated), "INTERPRETIVE LENS" label, pencil edit icon on hover. When empty: dashed border, italic placeholder. Clicking opens modal editor
-- **Modal editor**: `openInterpretiveLensEditor()`, `saveInterpretiveLens()`, `clearInterpretiveLens()` — save/clear call `navigate()` to re-render dashboard
-- **AI context**: `buildLabContext()` adds `## Interpretive Lens` section
-- **System prompt**: AI considers listed experts' published work and frames analysis through specified paradigms
-- **Migration**: Old `fieldExperts` + `fieldLens` fields are auto-merged on profile load
-- **CSS**: `.lens-section`, `.lens-section-icon`, `.lens-section-body`, `.lens-section-label`, `.lens-section-text`, `.lens-section-edit`, `.lens-section-empty`
+- **Storage**: `importedData.interpretiveLens` — string combining field experts and scientific paradigms
+- **Dashboard**: Full-width card with purple left border above Focus Card. Click opens modal editor
+- **AI context**: AI considers listed experts' work and frames analysis through specified paradigms
+- **Migration**: Old `fieldExperts` + `fieldLens` auto-merged on profile load
 
 ### Menstrual Cycle Tracking
 
-Cycle-aware lab interpretation for female profiles — tracks cycle profile, period log, and maps blood draw dates to cycle phases:
+Cycle-aware lab interpretation for female profiles (`profileSex === 'female'` only):
 
-- **Visibility**: Only renders when `profileSex === 'female'`
-- **Storage**: `importedData.menstrualCycle` — `null` (not set up) or object with `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`
-- **Period log**: `periods` array of `{ startDate, endDate, flow, notes }`, most recent first
-- **Helpers**:
-  - `getCyclePhase(dateStr, mc)` — returns `{ cycleDay, phase, phaseName }` or `null`. Phases: menstrual (1–periodLength), follicular, ovulatory (ovulationDay±1), luteal. Ovulation estimated at `cycleLength - 14`
-  - `getNextBestDrawDate(mc)` — predicts next early follicular window (days 3-5) from most recent period + cycle length
-  - `getBloodDrawPhases(mc, dates)` — maps each lab date to its cycle phase
-- **Dashboard section**: Between profile context cards and supplements. Setup prompt when `null`; when configured shows cycle summary, next draw recommendation (accent box), blood draw phase badges, and compact period log (last 6)
-- **Editor**: `openMenstrualCycleEditor()` — structured form (not textarea) with cycle profile fields + period log management
-- **AI context**: `buildLabContext()` adds `## Menstrual Cycle` section with profile summary, recent periods, blood draw phase context, and next draw recommendation
-- **System prompt**: AI considers cycle phase for hormones (estrogen, progesterone, LH, FSH), iron/ferritin, inflammatory markers, insulin sensitivity. Flags suboptimal draw timing
-- **Export/import**: Included in JSON export; import overwrites profile fields, merges periods by startDate
-- **PDF report**: Adds cycle context section with summary and blood draw phases
-- **CSS**: `.cycle-section`, `.cycle-summary`, `.cycle-draw-date` (accent box), `.cycle-phase-badge` with `.phase-menstrual` (red), `.phase-follicular` (blue), `.phase-ovulatory` (green), `.phase-luteal` (purple), `.cycle-period-log`, `.cycle-editor-form`
+- **Storage**: `importedData.menstrualCycle` — `null` or `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`. Periods: `[{ startDate, endDate, flow, notes }]`
+- **Helpers**: `getCyclePhase(dateStr, mc)` → `{ cycleDay, phase, phaseName }`. Phases: menstrual, follicular, ovulatory (cycleLength-14 ±1), luteal. `getNextBestDrawDate(mc)` → next early follicular window (days 3-5). `getBloodDrawPhases(mc, dates)` → maps lab dates to phases
+- **Dashboard**: Between context cards and supplements. Shows cycle summary, next draw recommendation, phase badges, period log
+- **AI context**: Cycle phase considered for hormones, iron/ferritin, inflammatory markers. Flags suboptimal draw timing
+- **Export/import**: Import overwrites profile, merges periods by startDate
 
 ### Free Water Deficit
 
-Free Water Deficit is a calculated marker in `calculatedRatios` that estimates hydration status from serum sodium:
-
-- **Required biomarker**: Sodium (`electrolytes.sodium`) in mmol/L
-- **Formula**: `FWD = TBW × (Na / 140 − 1)`, where TBW = 70kg × TBW factor (0.6 for males, 0.5 for females)
-- **Sex-aware**: Uses `profileSex` to select TBW factor; defaults to 0.6 (male) when sex is not set
-- **Assumes 70kg body weight** — output is in liters (L)
-- **Interpretation**: Positive = water deficit (hypernatremia), negative = water excess (hyponatremia), ~0 = euhydrated
-- **Reference range**: -1.5 to 1.5 L (corresponds approximately to normal sodium 136–145 mmol/L)
-- **Null handling**: Returns `null` if sodium is missing or ≤ 0
+Calculated marker: `FWD = TBW × (Na / 140 − 1)`, TBW = 70kg × factor (0.6 male, 0.5 female). Requires `electrolytes.sodium` (mmol/L). Ref range: -1.5 to 1.5 L. Positive = deficit, negative = excess.
 
 ### PhenoAge (Biological Age)
 
-PhenoAge (Levine et al. 2018) is a calculated marker in `calculatedRatios` that estimates biological age from 9 blood biomarkers + chronological age:
-
-- **Required biomarkers**: Albumin (`proteins.albumin`), Creatinine (`biochemistry.creatinine`), Glucose (`biochemistry.glucose`), hs-CRP (`proteins.hsCRP`), Lymphocytes % (`differential.lymphocytesPct`), MCV (`hematology.mcv`), RDW-CV (`hematology.rdwcv`), ALP (`biochemistry.alp`), WBC (`hematology.wbc`)
-- **Date of Birth**: Required for chronological age; stored per-profile via `getProfileDob`/`setProfileDob`, set via header date input
-- **Calculation**: Performed in `getActiveData()` after ratio calculations. All 9 biomarkers are used in their native SI units (g/L, µmol/L, mmol/L, etc.) — the Levine coefficients were fitted to SI-unit data. Formula: `xb → mortality_score → PhenoAge`
-- **Null handling**: Returns `null` if any of the 9 biomarkers is missing for a date, DOB is not set, CRP ≤ 0, or age ≤ 0
-- **No reference range**: `refMin: null, refMax: null` — PhenoAge is meaningful relative to chronological age, not absolute bounds. `getStatus()` returns `"normal"` for null refs; `refBandPlugin` skips drawing; chart/table/modal UI omit ref range text
-- **Chronological age line**: `createLineChart()` detects PhenoAge and adds a second dataset — gray dashed line showing chronological age at each date, with a legend distinguishing both lines
-- **Unit system**: PhenoAge outputs years regardless of EU/US setting — no `UNIT_CONVERSIONS` entry needed
+Levine et al. 2018 — calculated from 9 biomarkers (albumin, creatinine, glucose, hsCRP, lymphocytesPct, MCV, RDW-CV, ALP, WBC) + chronological age (DOB required). Computed in `getActiveData()` using SI units. `refMin: null, refMax: null` — meaningful relative to chronological age. Chart adds gray dashed chronological age line. Returns `null` if any input missing.
 
 ### Focus Card
 
-AI-generated one-sentence insight at the top of the dashboard (after drop zone, before context cards):
-
-- **Visibility**: Only renders when data exists AND `hasApiKey()` is true
-- **Shimmer skeleton**: Shows animated placeholder while fetching, then the sentence
-- **Cache**: `labcharts-{profileId}-focusCard` — `{ fingerprint, text }`. Fingerprint is a djb2 hash of entries+sex+DOB+all 9 context cards+interpretiveLens. Auto-invalidates when any card or lab data changes
-- **Refresh button**: Manual regenerate via `refreshFocusCard()` (clears cache, re-fetches)
-- **Non-blocking**: `loadFocusCard()` called async after DOM render
-- **AI prompt**: System instructs one sentence, max 40 words, naming marker+direction+clinical relevance. `maxTokens: 100`, non-streaming
-- **Functions**: `hashString(str)`, `getFocusCardFingerprint()`, `renderFocusCard()`, `loadFocusCard()`, `refreshFocusCard()`
-- **CSS**: `.focus-card`, `.focus-card-icon`, `.focus-card-body`, `.focus-card-text`, `.focus-card-refresh`, `.focus-card-shimmer` (animated gradient)
+AI-generated one-sentence insight at the top of the dashboard (after drop zone, before context cards). Only renders when data exists AND `hasAIProvider()`. Cache: `labcharts-{profileId}-focusCard` — `{ fingerprint, text }`. Fingerprint is djb2 hash of entries+sex+DOB+all 9 cards+interpretiveLens. Shimmer skeleton while loading, 15s timeout. `maxTokens: 100`, non-streaming.
 
 ### Onboarding Flow
 
-3-step guided setup replacing the bland empty state:
-
-- **Step 1 (Import)**: Shows when `!hasData`. Step indicator (1-2-3), "Choose PDF or JSON file" button, drag-and-drop hint. Context cards/cycle/supplements still render below
-- **Step 2 (Profile Banner)**: Shows at top when data exists AND `labcharts-{profileId}-onboarded` not set AND (sex OR DOB unset). Inline form with sex toggle buttons + DOB date input. "Save & Continue" or "Skip for now"
-- **Step 3 (Completion)**: `showNotification("Profile set up — you're all set!", "success")` toast only
-- **State key**: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped. Auto-sets to `profile-set` if sex+DOB already present
-- **Functions**: `renderOnboardingBanner()`, `completeOnboardingSex(sex)`, `completeOnboardingProfile()`, `dismissOnboarding()`
-- **CSS**: `.onboarding-step1`, `.onboarding-steps`, `.onboarding-step` (`.active`/`.completed`), `.onboarding-step-line`, `.onboarding-step-labels`, `.onboarding-banner`, `.onboarding-form`, `.onboarding-sex-toggle`, `.onboarding-sex-btn`, `.onboarding-dob-input`, `.onboarding-save-btn`, `.onboarding-skip-btn`
+3-step guided setup: Step 1 (Import) when `!hasData`, Step 2 (Profile Banner) when data exists but sex/DOB unset, Step 3 (Completion toast). State: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped.
 
 ### Dashboard Section Order
 
-All sections are always visible (flat layout, no collapsible toggles). Section titles use `.context-section-title`.
+Flat layout (no collapsible toggles): 1) Drop zone, 2) Onboarding, 3) Interpretive Lens, 3b) Focus Card, 4) Context Cards, 5) Menstrual Cycle (female), 6) Supplements, 7) Key Trends + charts, 8) Trends & Alerts, 9) Data & Notes + Export.
 
-| # | Section | Renderer |
-|---|---------|----------|
-| 1 | Dashboard header + drop zone | inline in `showDashboard()` |
-| 2 | Onboarding Step 1 (empty) / Step 2 banner (data) | conditional |
-| 3 | Interpretive Lens | `renderInterpretiveLensSection()` |
-| 3b | Focus Card (data + API key) | `renderFocusCard()` + `loadFocusCard()` |
-| 4 | Profile Context Cards ("What your GP won't ask you") | `renderProfileContextCards()` + `loadContextHealthDots()` |
-| 5 | Menstrual Cycle (female only) | `renderMenstrualCycleSection(data)` |
-| 6 | Supplements & Medications | `renderSupplementsSection()` |
-| 7 | Key Trends + charts | inline (8 key markers with date range filter + layers dropdown) |
-| 8 | Trends & Alerts | inline — trend alerts first, then critical flags |
-| 9 | Data & Notes + Export | inline (entries + notes interleaved + export/clear buttons) |
-
-- **Trends & Alerts**: Merged section. Trend alerts from `detectTrendAlerts()` shown first (all types: approaching yellow, past red). Below that, critical flags from `getAllFlaggedMarkers()` — only markers >50% of **reference** range width past the boundary (always uses reference range, never optimal — critical is a medical concept). Excludes markers already in trends. Based on clinical critical value literature where tightest panic thresholds sit ~40-50% of range past boundary
-- **Empty state**: When no data, shows onboarding Step 1 (step indicator + import button) then sections 4-6 (context/tracking — user input, not derived)
-- **No Category Overview**: Removed — duplicated by sidebar category list
+- **Trends & Alerts**: Trend alerts first (from `detectTrendAlerts()`), then critical flags from `getAllFlaggedMarkers()` — only markers >50% of **reference** range width past boundary. Excludes markers already in trends
+- **Empty state**: Onboarding Step 1 then sections 4-6 (user-input content)
 
 ### Chart Layers Dropdown
 
-A single "Layers" dropdown controlling note dots and supplement bars on charts. Appears in category view and dashboard toolbars alongside the date range filter. Hidden when the profile has no notes/supplements.
-
-- **`renderChartLayersDropdown()`**: Renders a dropdown trigger button with checkbox rows for Notes and Supplements
-- **`toggleChartLayersDropdown(e)`**: Opens/closes dropdown with click-outside listener
-- **Notes**: `noteOverlayMode` variable, persisted in `labcharts-{profileId}-noteOverlay`. `getNotesForChart(chartDates)` returns `[]` when off. `setNoteOverlay(mode)`
-- **Supplements**: `suppOverlayMode` variable, persisted in `labcharts-{profileId}-suppOverlay`. `getSupplementsForChart(chartDates)` returns `[]` when off. `setSuppOverlay(mode)`
-- **Default**: Both off
-- **CSS**: `.chart-layers-wrapper`, `.chart-layers-dropdown`, `.chart-layers-row`
+Single "Layers" dropdown controlling note dots and supplement bars on charts. Persisted per-profile: `noteOverlayMode` in `labcharts-{profileId}-noteOverlay`, `suppOverlayMode` in `labcharts-{profileId}-suppOverlay`. Both default off. Hidden when profile has no notes/supplements.
 
 ### Trend Alerts on Dashboard
 
-Detects markers drifting toward or past reference boundaries using linear regression and sudden change detection:
+`detectTrendAlerts(data)` — two methods per marker:
+1. **Sudden change** (2+ values): latest-to-previous jump >25% of ref range AND outside range → `sudden_high`/`sudden_low` (priority over regression)
+2. **Linear regression** (3+ values): normalized slope >±0.02, R²>0.5 for 4+ points → `past_high`/`past_low`/`approaching_high`/`approaching_low` (within 15% of boundary)
 
-- **`linearRegression(points)`**: Standard least-squares returning `{ slope, intercept, r2 }` over indexed data points
-- **`detectTrendAlerts(data)`**: Two detection methods per marker:
-  1. **Sudden change** (2+ values): If latest-to-previous jump exceeds 25% of reference range AND latest value is outside range → `sudden_high` or `sudden_low` (takes priority, skips regression)
-  2. **Linear regression** (3+ values): Computes slope over all non-null values. Normalized slope (`slope / range`) must exceed ±0.02. R² > 0.5 required only for 4+ data points. Classifies as `past_high`, `past_low`, `approaching_high`, or `approaching_low` (within 15% of boundary)
-- **Dashboard rendering**: Merged into "Trends & Alerts" section. Sudden = orange with lightning bolt, past = red, approaching = yellow. Sorted: sudden first, then past, then approaching. Trend markers are deduplicated from the critical flags below
-- **Click-through**: Cards open `showDetailModal(id)` for the trending marker
-- **Respects date range filter**: Uses `filterDatesByRange(data)` before detection
-- **CSS**: `.trend-alert-sudden` border-left + `.trend-alert-sudden .trend-alert-arrow` color, both orange (#fb923c)
+Dashboard: sudden=orange, past=red, approaching=yellow. Sorted by severity. Respects date range filter. Deduplicated from critical flags.
 
 ### Marker Glossary
 
-Searchable modal listing all markers grouped by category:
-
-- **Header button**: Book icon (&#128214;) between settings and Ask AI buttons
-- **`openGlossary()`**: Renders full marker inventory from `getActiveData()` with collapsible category headers, marker cards showing name, latest value (color-coded), unit, ref range, optimal range, and hardcoded description
-- **`filterGlossary()`**: Real-time search by marker name, hides empty categories
-- **Click-through**: Clicking a marker closes glossary and opens `showDetailModal(id)`
-- **CSS**: `.glossary-modal` (max-width 800px, max-height 85vh), collapsible categories, hover-highlighted marker cards
+Searchable modal (book icon in header) listing all markers grouped by category with collapsible headers, latest values, ref/optimal ranges, descriptions. Click-through to `showDetailModal(id)`.
 
 ### Batch PDF Import
 
-Process multiple PDF files sequentially with individual confirm/skip for each:
-
-- **File input**: `multiple` attribute on `#pdf-input`; drop zone and file picker both handle multiple files
-- **`handleBatchPDFs(pdfFiles)`**: Sequential loop — extract, parse, preview each PDF. Shows summary notification at end with imported/skipped/failed counts
-- **`showBatchImportProgress(step, fileName, current, total)`**: Enhanced progress display with "Processing file X of Y" counter
-- **`showImportPreviewAsync(result, fileName, current, total)`**: Promise wrapper for import preview; resolves when user confirms (→ 'import') or skips (→ 'skip')
-- **Batch context**: `window._batchImportContext` stores `{ current, total }`; `showImportPreview` shows "File X of Y" counter and changes Cancel to "Skip" during batch mode
-- **`confirmImport()`**: Resolves batch promise with 'import' before closing modal; `closeImportModal()` resolves with 'skip'
+Multiple PDF files processed sequentially via `handleBatchPDFs(pdfFiles)` with per-file confirm/skip. `window._batchImportContext` tracks `{ current, total }`. Summary notification at end with imported/skipped/failed counts.
 
 ### PII Obfuscation (PDF Import Privacy)
 
-Personal information in lab PDFs is replaced with fake data before sending to AI. Two-path architecture:
+Two-path architecture replacing personal info with fake data before sending to AI:
 
-- **Ollama path** (preferred): Local LLM replaces PII with plausible fake data, understands any language/format. Uses dedicated PII model (`getOllamaPIIModel()`) which can differ from the main AI model — allows a small fast model (e.g. `gemma3:1b`) for PII while a larger model handles analysis. Config stored in `labcharts-ollama` as `{ url, model }`, PII model in `labcharts-ollama-pii-model`. Functions: `getOllamaConfig()`, `saveOllamaConfig()`, `checkOllama()` (GET `/api/tags`), `sanitizeWithOllama(pdfText)` (POST `/api/generate`), `unloadOllamaPIIModel()`
-- **Regex fallback**: Pattern-based detection when Ollama unavailable. `obfuscatePDFText(pdfText)` returns `{ obfuscated, original, replacements }`. Two phases:
-  1. **Label-based**: Detects PII-label lines (name, address, DOB, doctor, ID, insurance) → replaces value with matching fake data
-  2. **Pattern-based**: Czech birth numbers, SSNs, emails, phones, long digit sequences → replaced with fake equivalents
-  - Collection date lines and result lines (containing unit keywords) are protected from modification
-- **Fake data generators**: `FAKE_NAMES`, `FAKE_STREETS`, `FAKE_CITIES`, `FAKE_DOCTORS` arrays + `randomPick()`, `randomDigits()`, `fakeBirthNumber()`, `fakePhone()`, `fakeEmail()`, `fakeDate()`, `fakePatientId()`
-- **UX flow**: Ollama auto-detected → used silently. No Ollama → one-time warning dialog per session (`sessionStorage` key `labcharts-pii-choice`), offers "Continue with basic mode" or "Setup Ollama"
-- **Import pipeline**: `IMPORT_STEPS` has 4 steps (extract → obfuscate → AI analyze → preview). `handlePDFFile`/`handleBatchPDFs` insert obfuscation between extraction and API call. Parse result carries `privacyMethod` ('ollama'|'regex'), `privacyReplacements`, and optionally `privacyOriginal`/`privacyObfuscated` (when debug mode on)
-- **Import preview**: Green lock "scrubbed by local AI" for Ollama, yellow lock with count for regex. Regex fallback suggests "Set up Local AI in Settings". Debug mode adds "View privacy details" button showing before/after diff
-- **Settings**: "PDF Import Privacy" section with auto-detected status card (green "Enhanced protection" when Ollama available, yellow "Basic protection" for regex fallback). Collapsible "Configure" panel with server URL, test button, model dropdown, and "Show privacy details in import preview" checkbox. Functions: `togglePrivacyConfigure()`, `updatePrivacyStatusCard(enhanced?)` (accepts optional boolean to skip redundant fetch)
-- **Debug mode**: `labcharts-debug` localStorage flag. Console logs `[PII] Original:` and `[PII] Obfuscated:` on every import. Diff viewer in import preview
-- **Service worker**: Ollama (localhost/127.0.0.1) requests are network-only (never cached). Cache bumped to v14
-- **CSS**: `.privacy-notice` (`.privacy-notice-success`, `.privacy-notice-warning`), `.privacy-status-card` (`.privacy-status-enhanced`, `.privacy-status-basic`), `.privacy-status-icon`, `.privacy-status-body`, `.privacy-status-title`, `.privacy-status-detail`, `.privacy-configure-toggle`, `.privacy-configure-arrow`, `.privacy-configure-body`, `.ollama-settings`, `.ollama-status`, `.ollama-status-dot`, `.pii-warning-overlay`, `.pii-warning-dialog`, `.ollama-setup-guide`, `.setup-step`, `.pii-diff-modal`, `.pii-diff-viewer`
+- **Ollama path** (preferred): `sanitizeWithOllama(pdfText)` via `/api/generate`. Dedicated PII model (`getOllamaPIIModel()`, stored in `labcharts-ollama-pii-model`) can differ from main AI model
+- **Regex fallback**: `obfuscatePDFText(pdfText)` → `{ obfuscated, original, replacements }`. Label-based (name/address/DOB/etc.) + pattern-based (birth numbers, SSNs, emails, phones). Collection dates and result lines protected
+- **Pipeline**: 4 steps (extract → obfuscate → AI analyze → preview). Result carries `privacyMethod` ('ollama'|'regex')
+- **UX**: Ollama auto-detected silently. No Ollama → one-time warning per session (`sessionStorage` key `labcharts-pii-choice`)
+- **Settings**: "PDF Import Privacy" section with status card + collapsible configure panel. `labcharts-debug` enables diff viewer
 
 ### AI Chat Panel
 
-- Slide-out panel on the right side with streaming responses
-- **Responsive width**: Scales across 5 breakpoints — 560px default, 640px at 1400px+, 740px at 1600px+, 880px at 2000px+, 1060px at 3000px+. Font sizes, padding, gaps, and input area scale proportionally. Backdrop dims less on large screens (0.15 at 1400px+, 0.08 at 2000px+)
-- **Markdown rendering**: `renderMarkdown()` is a block-aware parser supporting headings (`#`/`##`/`###`), unordered/ordered lists, fenced code blocks, horizontal rules, and paragraphs. `applyInlineMarkdown()` handles bold, italic, inline code, and links. `.chat-msg` uses `white-space: normal` — HTML elements handle all spacing. Streaming-compatible (re-parses full accumulated text on each chunk)
-- **Personalities**: `CHAT_PERSONALITIES` array defines 4 presets (default, House, Kruse, custom). Personality selector bar in panel header with collapsible options. Selected personality stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality text stored in `labcharts-{profileId}-chatPersonalityCustom`. Personality prompt is appended to `CHAT_SYSTEM_PROMPT` via `getActivePersonality()`. Switching personalities preserves chat history. Profiles with removed personalities (Murphy, Robby) gracefully fall back to default
-- `buildLabContext()` serializes full profile data for the system prompt, including all 9 context areas (diagnoses, diet, exercise, sleep & rest, light & circadian, stress, love life, environment, health goals), interpretive lens, contextNotes, lab values, flagged results, and notes. Each area has a dedicated `CHAT_SYSTEM_PROMPT` bullet (sleep and light/circadian have separate bullets)
-- Chat history stored per-profile in `labcharts-{profileId}-chat` (last 20 messages, last 10 sent to API)
-- `CHAT_SYSTEM_PROMPT` defines the lab analyst role with medical disclaimer
-- Per-marker "Ask AI" button in detail modals pre-fills the chat input
-- Marker descriptions: Each marker in `MARKER_SCHEMA` has a `desc` field with a one-sentence explanation. `getMarkerDescription(id)` reads from `marker.desc` in the registry, falling back to `localStorage` key `labcharts-marker-desc` for custom markers. For custom markers without a cached description, `fetchCustomMarkerDescription()` calls Claude API (one-time, then cached in localStorage). Displayed between the unit/reference line and the chart in the detail modal
+- Slide-out panel with streaming responses. Responsive width across 5 breakpoints (560px–1060px)
+- **Markdown**: `renderMarkdown()` block-aware parser (headings, lists, code blocks, HR, paragraphs) + `applyInlineMarkdown()` (bold, italic, code, links). Streaming-compatible
+- **Personalities**: 4 presets (default, House, Kruse, custom). Stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom text in `labcharts-{profileId}-chatPersonalityCustom`. Removed personalities (Murphy, Robby) fall back to default
+- **Context**: `buildLabContext()` serializes all 9 context areas + interpretiveLens + contextNotes + lab values + notes. Chat history: last 20 stored, last 10 sent to API (`labcharts-{profileId}-chat`)
+- **Marker descriptions**: `MARKER_SCHEMA` `desc` field, `localStorage` `labcharts-marker-desc` fallback for custom markers. `fetchCustomMarkerDescription()` one-time API call
 
 ### AI Provider System
 
-Three AI backends: Anthropic (cloud), Venice (privacy-focused cloud), and Ollama (local). User picks in Settings → AI Provider toggle (labeled "Claude" / "Venice" / "Local AI").
+Three backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'venice'`/`'ollama'`).
 
-- **Provider storage**: `labcharts-ai-provider` — `'anthropic'` (default), `'venice'`, or `'ollama'`
-- **Functions**: `getAIProvider()`, `setAIProvider(provider)`, `hasAIProvider()` (returns `hasApiKey()` for Anthropic, `hasVeniceKey()` for Venice, `true` for Ollama)
-- **Routing**: `callClaudeAPI(opts)` is the router — delegates to `callAnthropicAPI(opts)`, `callVeniceAPI(opts)`, or `callOllamaChat(opts)` based on provider. All 4 call sites (focus card, marker desc, PDF parsing, chat) use `callClaudeAPI` unchanged
-- **`callAnthropicAPI`**: Anthropic Messages API with SSE streaming. Model: `claude-sonnet-4-5-20250929` (displayed as "Claude Sonnet 4.5" via `getAnthropicModelDisplay()`). Requires `labcharts-api-key`
-- **`callVeniceAPI`**: OpenAI-compatible API with SSE streaming. Endpoint: `https://api.venice.ai/api/v1/chat/completions`. Auth: Bearer token. Model from `getVeniceModel()`. Requires `labcharts-venice-key`. 300s timeout
-- **`callOllamaChat`**: Ollama `/api/chat` endpoint with newline-delimited JSON streaming. Model from `getOllamaMainModel()`. System message prepended as `{ role: 'system' }`. `maxTokens` → `options.num_predict`. 120s timeout
-- **Venice key/model storage**: `labcharts-venice-key` (API key), `labcharts-venice-model` (default `llama-3.3-70b`). Functions: `getVeniceKey()`, `saveVeniceKey()`, `hasVeniceKey()`, `getVeniceModel()`, `setVeniceModel()`. Hardcoded model list (~29 models including Venice Uncensored, Llama, Qwen, DeepSeek, Mistral, Gemma, GLM, Kimi, MiniMax, Grok, Gemini, Claude, GPT)
-- **Ollama model storage**: `labcharts-ollama-model` (main AI model), `labcharts-ollama-pii-model` (PII obfuscation model, can differ). Functions: `getOllamaMainModel()`, `setOllamaMainModel()`, `getOllamaPIIModel()`, `setOllamaPIIModel()`
-- **Guard points**: `hasAIProvider()` replaces `hasApiKey()` at all 7 AI feature gates (focus card render/load, marker desc fetch/display, PDF import single/batch, chat panel open)
-- **Error handling**: Ollama not running → `"Ollama is not running. Start it or switch to Anthropic in Settings."`
+- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
+- **Anthropic**: Messages API + SSE streaming. Model from `getAnthropicModel()`. Key: `labcharts-api-key`
+- **Venice**: OpenAI-compatible API (`https://api.venice.ai/api/v1/chat/completions`). Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
+- **Ollama**: `/api/chat` + newline-delimited JSON streaming. Model from `getOllamaMainModel()`. `maxTokens` → `options.num_predict`. 120s timeout
+- **Guard**: `hasAIProvider()` gates all 7 AI features (focus card, marker desc, PDF import, chat)
 
 ### Settings Modal
 
-Grouped into 4 sections: **Profile** (sex, DOB, location), **Display** (units, range, theme, time format), **AI Provider** (toggle + conditional panel), **PDF Import Privacy** (status card + collapsible configure).
+4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format), **AI Provider** (3-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
 
-- **Profile location**: Country dropdown + ZIP input with auto-detected latitude band. `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries mapped to 5 bands), `LATITUDE_BANDS`, `getLatitudeFromLocation()`, `updateLocationLat()` (live update on input)
-- **Time format**: 24h/12h toggle (`.time-toggle-btn`). `getTimeFormat()`, `setTimeFormat()`, `formatTime()`, `parseTimeInput()`, `getTimePlaceholder()`. Stored in `labcharts-time-format`
-
-- **AI Provider description**: Recommendation text above toggle — for medical data, state-of-the-art models recommended, Claude is fastest and best results
-- **AI Provider toggle**: Three buttons — `☁️ Claude` / `🎭 Venice` / `💻 Local AI`. Internal values unchanged (`'anthropic'`, `'venice'`, `'ollama'`). `switchAIProvider(provider)` re-renders the panel without reloading the full modal
-- **Claude panel**: "Claude Sonnet 4.5" model display (`getAnthropicModelDisplay()`), "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, privacy notice
-- **Venice panel**: "✓ Connected" / "No key set" status (no masked key hash), API key input, save/validate, remove, model selector, link to venice.ai/settings/api, privacy notice
-- **Local AI panel**: "Server address" label, status dot with connection check, model dropdown, notice about requiring Ollama installed
-- **PDF Import Privacy section**: Explanation of what happens (personal info replaced with fake data, only lab results reach AI). Auto-detected status card: green "Enhanced protection" (local AI — context-aware, handles all languages/formats) or yellow "Basic protection" (regex — common formats only, may miss unusual layouts; includes Ollama install link nudging user to upgrade). Collapsible "Configure Local AI" with server URL + test, model dropdown, privacy details checkbox
-- **CSS**: `.settings-group-title` (section dividers), `.ai-provider-toggle`, `.ai-provider-btn`, `.ai-provider-panel`, `.ai-provider-desc`
-
-### API Key Management
-
-- Anthropic key stored globally in `labcharts-api-key` (not per-profile — belongs to user's Anthropic account). Only used when AI Provider is Anthropic
-- Venice key stored globally in `labcharts-venice-key`. Only used when AI Provider is Venice
-- Settings modal accessible from gear button in header
+- **Location**: `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries → 5 bands), `getLatitudeFromLocation()`
+- **Time**: `getTimeFormat()`/`setTimeFormat()`, `formatTime()`, `parseTimeInput()`. Stored in `labcharts-time-format`
+- **Provider panels**: Each shows connection status + key input (Anthropic/Venice) or server config (Ollama) + model selector
 
 ### JSON Export/Import
 
-- Export format: `{ version: 2, exportedAt, entries: [...], notes: [...], diagnoses: {...}, diet: {...}, exercise: {...}, sleepRest: {...}, lightCircadian: {...}, stress: {...}, loveLife: {...}, environment: {...}, interpretiveLens: "...", healthGoals: [...], contextNotes: "...", menstrualCycle: {...}, customMarkers: {...}, supplements: [...] }`
-- Import merges entries by date, deduplicates notes by date+text, overwrites context fields if present, merges healthGoals by text. Handles legacy fields: old `sleepCircadian` → `sleepRest` + `lightCircadian` split, old `circadian`+`sleep` → merged, old `fieldExperts`+`fieldLens` → `interpretiveLens`, old string-format context → structured objects
-- Drop zone accepts both PDF and JSON files
+- Export: `{ version: 2, exportedAt, entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`
+- Import merges entries by date, deduplicates notes, overwrites context fields, merges healthGoals by text. Handles legacy field migration. Drop zone accepts PDF and JSON
 
 ### External Dependencies (CDN)
-- **Chart.js 4.4.7** — all chart rendering (SRI integrity hash verified)
-- **pdf.js 3.11.174** — client-side PDF text extraction (SRI integrity hash verified)
-- **Inter font** (Google Fonts) — body text
-- **Outfit font** (Google Fonts) — display/headings (`--font-display`)
-- **JetBrains Mono font** (Google Fonts) — data values and monospace (`--font-mono`)
-- **Anthropic API** — Claude Sonnet for PDF parsing and chat (when Anthropic provider selected, requires user's API key)
-- **Venice AI API** — OpenAI-compatible cloud API for all AI features (when Venice provider selected, requires user's API key from venice.ai)
-- **Ollama** — local LLM for all AI features and PII obfuscation (when Ollama provider selected, runs on user's machine)
+- **Chart.js 4.4.7**, **pdf.js 3.11.174** (both SRI-verified)
+- **Google Fonts**: Inter (body), Outfit (headings/`--font-display`), JetBrains Mono (data/`--font-mono`)
+- **AI APIs**: Anthropic (Claude), Venice AI (OpenAI-compatible), Ollama (local)
 
 ### Marker Key Convention
 Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `hormones.testosterone`). This format is used in `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, the imported data store, and AI prompt marker references.
@@ -364,39 +196,19 @@ There are no tests, linters, or build steps. An Anthropic API key is required fo
 
 ### PWA (Progressive Web App)
 
-The app is installable and works offline via a service worker:
-
-- **`manifest.json`** — PWA manifest with app name, theme colors (`#1a1d27`/`#0f1117`), and icons
-- **`service-worker.js`** — caching with route-based strategies:
-  - **Anthropic API** (`api.anthropic.com`) → network-only (never cached)
-  - **Google Fonts** → stale-while-revalidate
-  - **CDN libraries** (`cdn.jsdelivr.net`) → cache-first (versioned URLs are immutable)
-  - **App shell** (local files) → stale-while-revalidate (serve cached, update in background)
-- **Cache name**: `labcharts-v14` — bump version to bust cache on deploy
-- **Icons**: `icon.svg` (vector, also serves as favicon), `icon-192.png`, `icon-512.png` (rasterized for Android/iOS)
-- **`index.html`** includes `<link rel="manifest">`, `<meta name="theme-color">`, Apple mobile web app meta tags, and SW registration script
-- **Offline**: After first visit, the entire app shell loads from cache; only AI features (PDF parsing, chat) require network
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v14` (bump to bust). Strategies: API → network-only, Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate. Ollama (localhost) → network-only.
 
 ## Key Patterns
 
-- **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"` — used for CSS class assignment throughout. Returns `"normal"` when `refMin`/`refMax` are `null` (e.g., PhenoAge)
-- **Theme system**: Dark (default) and light modes. `setTheme(theme)` sets `data-theme` attribute on `<html>`, updates toggle button icon (sun/moon), and meta theme-color. Theme stored in `labcharts-theme` localStorage key. CSS uses `[data-theme="light"]` selector to override `:root` variables. `getChartColors()` reads live CSS variable values for Chart.js configs. Canvas plugins read CSS variables directly via `getComputedStyle` for theme-aware rendering
-- **Performance**: UI rendering functions (`buildSidebar`, `navigate`, `showDashboard`, `showCategory`, `showCompare`, `showCorrelations`, `updateHeaderDates`) accept optional `data` parameter. Toggle functions (`switchDob`, `switchSex`, `switchUnitSystem`, `switchRangeMode`) compute `getActiveData()` once and pass it through, avoiding redundant pipeline calls
-- **Chart lifecycle**: All Chart.js instances are tracked in `chartInstances` object and destroyed via `destroyAllCharts()` before re-rendering to prevent memory leaks
-- **Custom Chart.js plugins**: `refBandPlugin` draws reference range bands on charts; `optimalBandPlugin` draws green dashed optimal range bands; `noteAnnotationPlugin` draws yellow dots at note dates with hover tooltips; `supplementBarPlugin` draws supplement/medication timeline bars
-- **Correlation normalization**: Values are converted to percentage of reference range (`0% = refMin`, `100% = refMax`) to overlay markers with different scales
-- **Fatty acids category** has `singlePoint: true` at category level in `MARKER_SCHEMA` — single-date results rendered differently (grid cards instead of trend charts)
-- **Empty state**: When no data is loaded, dashboard shows welcome message with import instructions; category views show "No data available"
-- **Streaming**: Chat uses SSE streaming via `callClaudeAPI({ onStream })` for real-time response display
-- **HTML escaping**: Single `escapeHTML(str)` function for all user-facing string interpolation in innerHTML. Markdown link URLs validated to `http/https/mailto` schemes only
-- **localStorage safety**: All data saves go through `saveImportedData()` which wraps `localStorage.setItem()` in try/catch with user-facing quota error notification
-- **Debug logging**: All `console.warn`/`console.error` in production paths are gated behind `isDebugMode()`. Debug mode toggled in Settings → Privacy
-- **Focus card timeout**: `loadFocusCard()` races the API call against a 15s timeout to prevent indefinite shimmer
-- **Accessibility**: Global `:focus-visible` outline on all focusable elements. Modals have `role="dialog"` and `aria-modal="true"`. Icon-only buttons have `aria-label`. `@media (prefers-reduced-motion)` disables all animations/transitions
-- **CSS color system**: All UI colors use CSS variables from `:root` — including `--orange`, `--purple`, `--cyan` for supplement bars, trend alerts, and cycle phases. Light theme overrides all variables in `[data-theme="light"]`
-- **Chat panel animation**: Uses `transform: translateX(100%)` (GPU-accelerated) instead of `right` property for smooth slide-in on mobile
-- **SEO**: `<meta name="description">` and Open Graph tags (`og:title`, `og:description`, `og:type`) in `<head>`
-- **Design system**: `--accent-gradient` (blue→indigo) applied to primary buttons, active states, and accent elements. `--shadow-lg` and `--shadow-glow` for elevated/interactive elements. `--font-display` (Outfit) for headings, `--font-mono` (JetBrains Mono) for data values. Light theme uses shadows instead of borders for cards (`border-color: transparent`)
-- **Modal transitions**: Modals animate in via `transform: scale(0.96) translateY(8px)` → `scale(1) translateY(0)` with `opacity` fade on `.modal-overlay.show`
-- **Button-group selector**: Reusable pattern replacing native `<select>` dropdowns. `.ctx-btn-group` contains `.ctx-btn-option` pill buttons; `selectCtxOption()` toggles active, `getSelectedOption()` reads value. Multi-select variant uses `.ctx-tags`/`.ctx-tag` with `toggleCtxTag()`/`getSelectedTags()`
-- **CSS animations**: `statusPulse` (status badge throb), `dotPulse` (red health dot glow), `dropBounce` (drop zone icon), `trendUp`/`trendDown` (trend arrows slide-in), `toastProgress` (notification progress bar), `focusShimmer` (focus card loading)
+- **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"`. Returns `"normal"` when refs are `null` (e.g., PhenoAge)
+- **Theme**: Dark (default) / light. `setTheme()` sets `data-theme` on `<html>`. CSS vars in `:root`, overridden in `[data-theme="light"]`. `getChartColors()` reads live CSS vars for Chart.js
+- **Performance**: Rendering functions accept optional `data` param. Toggle functions compute `getActiveData()` once and pass through
+- **Chart lifecycle**: `chartInstances` object + `destroyAllCharts()` prevents memory leaks
+- **Chart.js plugins**: `refBandPlugin` (ref range bands), `optimalBandPlugin` (green dashed), `noteAnnotationPlugin` (yellow dots), `supplementBarPlugin` (timeline bars)
+- **Correlation normalization**: Values → percentage of ref range (0%=refMin, 100%=refMax)
+- **`singlePoint` categories**: `singlePoint: true` in schema → grid cards instead of trend charts (fattyAcids)
+- **Streaming**: SSE via `callClaudeAPI({ onStream })`
+- **Security**: `escapeHTML(str)` for all innerHTML interpolation. Markdown URLs validated to http/https/mailto. `saveImportedData()` wraps localStorage in try/catch
+- **Debug**: `isDebugMode()` gates all console.warn/error. Toggled in Settings → Privacy
+- **Accessibility**: `:focus-visible` outlines, `role="dialog"` + `aria-modal`, `aria-label` on icon buttons, `prefers-reduced-motion`
+- **Design system**: `--accent-gradient` (blue→indigo), `--shadow-lg`/`--shadow-glow`, `.ctx-btn-group`/`.ctx-btn-option` pill buttons with `selectCtxOption()`/`getSelectedOption()`
