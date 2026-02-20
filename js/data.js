@@ -4,6 +4,7 @@ import { state } from './state.js';
 import { MARKER_SCHEMA, UNIT_CONVERSIONS, OPTIMAL_RANGES } from './schema.js';
 import { hashString, getStatus, formatValue, linearRegression, showNotification } from './utils.js';
 import { profileStorageKey } from './profile.js';
+import { encryptedSetItem, broadcastDataChanged, getEncryptionEnabled, scheduleAutoBackup } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // REFRESH CALLBACK
@@ -14,9 +15,17 @@ export function registerRefreshCallback(fn) { _refreshCallback = fn; }
 // ═══════════════════════════════════════════════
 // STORAGE
 // ═══════════════════════════════════════════════
-export function saveImportedData() {
+export async function saveImportedData() {
   try {
-    localStorage.setItem(profileStorageKey(state.currentProfile, 'imported'), JSON.stringify(state.importedData));
+    const key = profileStorageKey(state.currentProfile, 'imported');
+    const value = JSON.stringify(state.importedData);
+    if (getEncryptionEnabled()) {
+      await encryptedSetItem(key, value);
+    } else {
+      localStorage.setItem(key, value);
+    }
+    broadcastDataChanged(state.currentProfile);
+    scheduleAutoBackup();
   } catch (e) {
     showNotification('Storage limit reached — clear old data or profiles to free space.', 'error');
   }

@@ -7,6 +7,7 @@ export const state = {
   unitSystem: 'EU',
   selectedCorrelationMarkers: [],
   currentProfile: 'default',
+  profiles: null,
   profileSex: null,
   profileDob: null,
   chatHistory: [],

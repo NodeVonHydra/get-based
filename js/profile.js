@@ -3,18 +3,33 @@
 import { state } from './state.js';
 import { COUNTRY_LATITUDES, LATITUDE_BANDS } from './constants.js';
 import { showNotification } from './utils.js';
+import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // PROFILE MANAGEMENT
 // ═══════════════════════════════════════════════
 export function getProfiles() {
+  // Read from in-memory cache (populated at init via initProfilesCache)
+  if (state.profiles) return state.profiles;
   try { return JSON.parse(localStorage.getItem('labcharts-profiles')) || []; }
   catch(e) { return []; }
 }
 
-export function saveProfiles(profiles) {
+export async function initProfilesCache() {
+  const raw = await encryptedGetItem('labcharts-profiles');
+  try { state.profiles = raw ? JSON.parse(raw) : []; }
+  catch(e) { state.profiles = []; }
+}
+
+export async function saveProfiles(profiles) {
+  state.profiles = profiles;
   try {
-    localStorage.setItem('labcharts-profiles', JSON.stringify(profiles));
+    const value = JSON.stringify(profiles);
+    if (getEncryptionEnabled()) {
+      await encryptedSetItem('labcharts-profiles', value);
+    } else {
+      localStorage.setItem('labcharts-profiles', value);
+    }
   } catch (e) {
     showNotification('Storage limit reached — could not save profile changes.', 'error');
   }
@@ -106,10 +121,10 @@ export function migrateProfileData(data) {
   return data;
 }
 
-export function loadProfile(profileId) {
+export async function loadProfile(profileId) {
   state.currentProfile = profileId;
   setActiveProfileId(profileId);
-  const savedImported = localStorage.getItem(profileStorageKey(profileId, 'imported'));
+  const savedImported = await encryptedGetItem(profileStorageKey(profileId, 'imported'));
   const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, customMarkers: {} };
   state.importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return defaultData; } })() : defaultData;
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
@@ -402,6 +417,7 @@ Object.assign(window, {
   profileStorageKey,
   getProfiles,
   saveProfiles,
+  initProfilesCache,
   createProfile,
   deleteProfile,
   renameProfile,
