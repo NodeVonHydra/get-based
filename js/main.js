@@ -6,7 +6,7 @@ import './constants.js';
 import './utils.js';
 import { getTheme, setTheme } from './theme.js';
 import './api.js';
-import { saveProfiles, getActiveProfileId, setActiveProfileId, getProfileSex, getProfileDob, profileStorageKey, migrateProfileData } from './profile.js';
+import { saveProfiles, getActiveProfileId, setActiveProfileId, getProfileSex, getProfileDob, profileStorageKey, migrateProfileData, initProfilesCache } from './profile.js';
 import { updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback } from './data.js';
 import './pii.js';
 import './charts.js';
@@ -21,15 +21,21 @@ import './settings.js';
 import './glossary.js';
 import { buildSidebar, renderProfileDropdown } from './nav.js';
 import './views.js';
+import { initEncryption, initBroadcastChannel, encryptedGetItem } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize encryption (shows passphrase modal if enabled, blocks until unlocked)
+  await initEncryption();
+  // Initialize cross-tab sync
+  initBroadcastChannel();
+
   // Migrate legacy data to profile system on first load
   if (!localStorage.getItem('labcharts-profiles')) {
     const profiles = [{ id: 'default', name: 'Default' }];
-    saveProfiles(profiles);
+    await saveProfiles(profiles);
     setActiveProfileId('default');
     const oldImported = localStorage.getItem('labcharts-imported');
     if (oldImported) {
@@ -42,9 +48,11 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem('labcharts-units');
     }
   }
+  // Populate profiles cache from (possibly encrypted) storage
+  await initProfilesCache();
   // Load active profile
   state.currentProfile = getActiveProfileId();
-  const savedImported = localStorage.getItem(profileStorageKey(state.currentProfile, 'imported'));
+  const savedImported = await encryptedGetItem(profileStorageKey(state.currentProfile, 'imported'));
   if (savedImported) { try { state.importedData = JSON.parse(savedImported); if (!state.importedData.notes) state.importedData.notes = []; migrateProfileData(state.importedData); } catch(e) {} }
   const savedUnits = localStorage.getItem(profileStorageKey(state.currentProfile, 'units'));
   if (savedUnits === 'US') state.unitSystem = 'US';
@@ -102,6 +110,9 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
+    // Passphrase overlay should not be dismissible via Escape
+    const passphraseOverlay = document.getElementById("passphrase-overlay");
+    if (passphraseOverlay && passphraseOverlay.style.display === 'flex') return;
     const confirmOverlay = document.getElementById("confirm-dialog-overlay");
     if (confirmOverlay && confirmOverlay.classList.contains("show")) { confirmOverlay.classList.remove("show"); return; }
     const chatPanel = document.getElementById("chat-panel");

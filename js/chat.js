@@ -6,6 +6,7 @@ import { calculateCost, formatCost } from './schema.js';
 import { escapeHTML, showNotification, isDebugMode, formatValue, getStatus } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
+import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOllamaMainModel } from './api.js';
 import { getBloodDrawPhases, getNextBestDrawDate } from './cycle.js';
@@ -328,18 +329,24 @@ export function saveCustomPersonality() {
   }
 }
 
-export function loadChatHistory() {
+export async function loadChatHistory() {
   try {
-    const stored = localStorage.getItem(getChatStorageKey());
+    const stored = await encryptedGetItem(getChatStorageKey());
     state.chatHistory = stored ? JSON.parse(stored) : [];
   } catch { state.chatHistory = []; }
   renderChatMessages();
 }
 
-export function saveChatHistory() {
+export async function saveChatHistory() {
   // Keep last 20 messages
   if (state.chatHistory.length > 20) state.chatHistory = state.chatHistory.slice(-20);
-  localStorage.setItem(getChatStorageKey(), JSON.stringify(state.chatHistory));
+  const key = getChatStorageKey();
+  const value = JSON.stringify(state.chatHistory);
+  if (getEncryptionEnabled()) {
+    await encryptedSetItem(key, value);
+  } else {
+    localStorage.setItem(key, value);
+  }
 }
 
 export function clearChatHistory() {

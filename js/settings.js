@@ -6,6 +6,7 @@ import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, fetchAnthropicModels, fetchVeniceModels, renderModelPricingHint, getAnthropicModelDisplay, getVeniceModelDisplay } from './api.js';
 import { getProfileLocation, updateLocationLat } from './profile.js';
 import { getOllamaConfig, checkOllama, saveOllamaConfig } from './pii.js';
+import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // SETTINGS MODAL
@@ -96,11 +97,24 @@ export function openSettingsModal() {
 
     <div class="settings-section" id="privacy-section">
       ${renderPrivacySection()}
+    </div>
+
+    <div class="settings-group-title">Security</div>
+
+    <div class="settings-section" id="encryption-section">
+      ${renderEncryptionSection()}
+    </div>
+
+    <div class="settings-group-title">Backup &amp; Restore</div>
+
+    <div class="settings-section" id="backup-section">
+      ${renderBackupSection()}
     </div>`;
   overlay.classList.add('show');
   updateLocationLat();
   initSettingsOllamaCheck();
   initSettingsAnthropicModels();
+  loadBackupSnapshots();
 }
 
 export function renderAIProviderPanel(provider) {
