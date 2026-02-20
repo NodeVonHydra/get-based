@@ -1,0 +1,400 @@
+// charts.js — Chart.js plugins, chart creation, marker descriptions
+
+import { state } from './state.js';
+import { getStatus, formatValue } from './utils.js';
+import { getChartColors } from './theme.js';
+import { getEffectiveRange } from './data.js';
+
+// Chart.js plugin for reference range band
+export const refBandPlugin = {
+  id: "refBand",
+  beforeDraw(chart) {
+    const opts = chart.options.plugins.refBand;
+    if (!opts || !chart.chartArea || opts.refMin == null || opts.refMax == null) return;
+    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+    if (!y) return;
+    const yMin = y.getPixelForValue(opts.refMin);
+    const yMax = y.getPixelForValue(opts.refMax);
+    const cs = getComputedStyle(document.documentElement);
+    ctx.save();
+    ctx.fillStyle = cs.getPropertyValue('--ref-band').trim();
+    ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
+    ctx.strokeStyle = cs.getPropertyValue('--ref-border').trim();
+    ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Chart.js plugin for optimal range band (green dashed, inside ref band)
+export const optimalBandPlugin = {
+  id: "optimalBand",
+  beforeDraw(chart) {
+    const opts = chart.options.plugins.optimalBand;
+    if (!opts || !chart.chartArea || opts.optimalMin == null || opts.optimalMax == null) return;
+    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+    if (!y) return;
+    const yMin = y.getPixelForValue(opts.optimalMin);
+    const yMax = y.getPixelForValue(opts.optimalMax);
+    ctx.save();
+    ctx.fillStyle = "rgba(52, 211, 153, 0.06)";
+    ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
+    ctx.strokeStyle = "rgba(52, 211, 153, 0.3)";
+    ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Chart.js plugin for note annotation dots with hover tooltip
+export const noteAnnotationPlugin = {
+  id: "noteAnnotations",
+  _getNoteDots(chart) {
+    const opts = chart.options.plugins.noteAnnotations;
+    if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return [];
+    const { chartArea: { top }, scales: { x } } = chart;
+    if (!x) return [];
+    const chartLabels = chart.data.labels || [];
+    const dots = [];
+    const DOT_RADIUS = window.innerWidth <= 768 ? 8 : 5;
+    const DOT_Y = top + DOT_RADIUS + 2;
+    for (const note of opts.notes) {
+      let pixelX = null;
+      const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const idx = chartLabels.indexOf(noteDateLabel);
+      if (idx !== -1) {
+        pixelX = x.getPixelForValue(idx);
+      } else {
+        const chartDates = opts.chartDates || [];
+        if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
+          for (let i = 0; i < chartDates.length - 1; i++) {
+            if (note.date >= chartDates[i] && note.date <= chartDates[i + 1]) {
+              const d0 = new Date(chartDates[i]).getTime();
+              const d1 = new Date(chartDates[i + 1]).getTime();
+              const dn = new Date(note.date).getTime();
+              const frac = (dn - d0) / (d1 - d0);
+              const px0 = x.getPixelForValue(i);
+              const px1 = x.getPixelForValue(i + 1);
+              pixelX = px0 + frac * (px1 - px0);
+              break;
+            }
+          }
+        }
+      }
+      if (pixelX === null) continue;
+      dots.push({ x: pixelX, y: DOT_Y, radius: DOT_RADIUS, note });
+    }
+    return dots;
+  },
+  afterDatasetsDraw(chart) {
+    const dots = this._getNoteDots(chart);
+    if (!dots.length) return;
+    const { ctx } = chart;
+    ctx.save();
+    for (const dot of dots) {
+      ctx.fillStyle = dot === chart._hoveredNoteDot
+        ? "rgba(251, 191, 36, 1)"
+        : "rgba(251, 191, 36, 0.7)";
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Draw tooltip for hovered dot
+    if (chart._hoveredNoteDot) {
+      const dot = chart._hoveredNoteDot;
+      const dateStr = new Date(dot.note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const text = dot.note.text.length > 60 ? dot.note.text.slice(0, 60) + '...' : dot.note.text;
+      ctx.font = "12px Inter, sans-serif";
+      const dateWidth = ctx.measureText(dateStr).width;
+      const textWidth = ctx.measureText(text).width;
+      const boxWidth = Math.max(dateWidth, textWidth) + 16;
+      const boxHeight = 42;
+      const boxPad = 8;
+      // Position tooltip below the dot
+      let tooltipX = dot.x - boxWidth / 2;
+      let tooltipY = dot.y + dot.radius + 6;
+      // Clamp to chart area
+      const { left, right } = chart.chartArea;
+      if (tooltipX < left) tooltipX = left;
+      if (tooltipX + boxWidth > right) tooltipX = right - boxWidth;
+      // Background
+      const cs = getComputedStyle(document.documentElement);
+      ctx.fillStyle = cs.getPropertyValue('--chart-tooltip-bg').trim();
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tooltipX, tooltipY, boxWidth, boxHeight, 6);
+      ctx.fill();
+      ctx.stroke();
+      // Date label (bold)
+      ctx.fillStyle = "rgba(251, 191, 36, 1)";
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(dateStr, tooltipX + boxPad, tooltipY + 15);
+      // Note text
+      ctx.fillStyle = cs.getPropertyValue('--text-primary').trim();
+      ctx.font = "11px Inter, sans-serif";
+      ctx.fillText(text, tooltipX + boxPad, tooltipY + 31);
+    }
+    ctx.restore();
+  },
+  afterEvent(chart, args) {
+    const { event } = args;
+    if (event.type !== 'mousemove') return;
+    const dots = this._getNoteDots(chart);
+    let hovered = null;
+    for (const dot of dots) {
+      const dx = event.x - dot.x;
+      const dy = event.y - dot.y;
+      if (dx * dx + dy * dy <= (dot.radius + 3) * (dot.radius + 3)) {
+        hovered = dot;
+        break;
+      }
+    }
+    const prev = chart._hoveredNoteDot;
+    chart._hoveredNoteDot = hovered;
+    if (prev !== hovered) {
+      chart.canvas.style.cursor = hovered ? 'pointer' : '';
+      args.changed = true;
+    }
+  }
+};
+
+export function getNotesForChart(chartDates) {
+  if (state.noteOverlayMode === 'off') return [];
+  const notes = (state.importedData.notes || []);
+  if (!notes.length || !chartDates.length) return [];
+  const minDate = chartDates[0];
+  const maxDate = chartDates[chartDates.length - 1];
+  return notes.filter(n => n.date >= minDate && n.date <= maxDate);
+}
+
+export function getSupplementsForChart(chartDates) {
+  if (state.suppOverlayMode === 'off') return [];
+  const supps = (state.importedData.supplements || []);
+  if (!supps.length || !chartDates.length) return [];
+  const minDate = chartDates[0];
+  const maxDate = chartDates[chartDates.length - 1];
+  const today = new Date().toISOString().slice(0, 10);
+  return supps.filter(s => {
+    const end = s.endDate || today;
+    return s.startDate <= maxDate && end >= minDate;
+  });
+}
+
+export const supplementBarPlugin = {
+  id: 'supplementBars',
+  _dateToPixelX(dateStr, chart) {
+    const x = chart.scales.x;
+    const labels = chart.data.labels;
+    const chartDates = chart.options.plugins.supplementBars?.chartDates || [];
+    // Exact label match
+    const idx = chartDates.indexOf(dateStr);
+    if (idx !== -1) return x.getPixelForValue(idx);
+    // Interpolate between dates
+    for (let i = 0; i < chartDates.length - 1; i++) {
+      if (dateStr > chartDates[i] && dateStr < chartDates[i + 1]) {
+        const d0 = new Date(chartDates[i] + 'T00:00:00').getTime();
+        const d1 = new Date(chartDates[i + 1] + 'T00:00:00').getTime();
+        const dt = new Date(dateStr + 'T00:00:00').getTime();
+        const frac = (dt - d0) / (d1 - d0);
+        const px0 = x.getPixelForValue(i);
+        const px1 = x.getPixelForValue(i + 1);
+        return px0 + frac * (px1 - px0);
+      }
+    }
+    // Before first date or after last date — clamp
+    if (dateStr <= chartDates[0]) return x.getPixelForValue(0);
+    return x.getPixelForValue(chartDates.length - 1);
+  },
+  _getBarRects(chart) {
+    const cfg = chart.options.plugins.supplementBars;
+    if (!cfg || !cfg.supplements || !cfg.supplements.length) return [];
+    const { left, right, top } = chart.chartArea;
+    const BAR_H = 12, GAP = 2, TOP_PAD = 4;
+    const today = new Date().toISOString().slice(0, 10);
+    const rects = [];
+    cfg.supplements.forEach((s, i) => {
+      const startX = this._dateToPixelX(s.startDate, chart);
+      const endDate = s.endDate || today;
+      const endX = this._dateToPixelX(endDate, chart);
+      const clampedLeft = Math.max(startX, left);
+      const clampedRight = Math.min(endX, right);
+      if (clampedRight <= clampedLeft) return;
+      const y = top + TOP_PAD + i * (BAR_H + GAP);
+      rects.push({
+        x: clampedLeft, y, w: clampedRight - clampedLeft, h: BAR_H,
+        supplement: s, ongoing: !s.endDate
+      });
+    });
+    return rects;
+  },
+  afterDatasetsDraw(chart) {
+    const rects = this._getBarRects(chart);
+    if (!rects.length) return;
+    const { ctx } = chart;
+    ctx.save();
+    for (const r of rects) {
+      const isMed = r.supplement.type === 'medication';
+      ctx.fillStyle = isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)';
+      if (r.ongoing) {
+        // Gradient fade for ongoing
+        const grad = ctx.createLinearGradient(r.x, 0, r.x + r.w, 0);
+        grad.addColorStop(0, isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)');
+        grad.addColorStop(0.7, isMed ? 'rgba(167, 139, 250, 0.7)' : 'rgba(56, 189, 248, 0.6)');
+        grad.addColorStop(1, isMed ? 'rgba(167, 139, 250, 0)' : 'rgba(56, 189, 248, 0)');
+        ctx.fillStyle = grad;
+      }
+      ctx.beginPath();
+      ctx.roundRect(r.x, r.y, r.w, r.h, 3);
+      ctx.fill();
+      // Label inside bar if wide enough
+      const label = r.supplement.name;
+      ctx.font = '10px Inter, sans-serif';
+      const textW = ctx.measureText(label).width;
+      if (r.w > textW + 8) {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, r.x + 4, r.y + r.h / 2);
+      }
+    }
+    // Draw tooltip for hovered bar
+    if (chart._hoveredSuppBar) {
+      const r = chart._hoveredSuppBar;
+      const s = r.supplement;
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const line1 = `${s.name}${s.dosage ? ' — ' + s.dosage : ''}`;
+      const line2 = `${fmtDate(s.startDate)} → ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      ctx.font = '12px Inter, sans-serif';
+      const w1 = ctx.measureText(line1).width;
+      const w2 = ctx.measureText(line2).width;
+      const boxW = Math.max(w1, w2) + 16;
+      const boxH = 38;
+      let tx = r.x + r.w / 2 - boxW / 2;
+      let ty = r.y + r.h + 6;
+      const { left, right } = chart.chartArea;
+      if (tx < left) tx = left;
+      if (tx + boxW > right) tx = right - boxW;
+      const isMed = s.type === 'medication';
+      const cs = getComputedStyle(document.documentElement);
+      ctx.fillStyle = cs.getPropertyValue('--chart-tooltip-bg').trim();
+      ctx.strokeStyle = isMed ? 'rgba(167, 139, 250, 0.6)' : 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tx, ty, boxW, boxH, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = isMed ? 'rgba(167, 139, 250, 1)' : 'rgba(56, 189, 248, 1)';
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(line1, tx + 8, ty + 6);
+      ctx.fillStyle = cs.getPropertyValue('--text-primary').trim();
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(line2, tx + 8, ty + 22);
+    }
+    ctx.restore();
+  },
+  afterEvent(chart, args) {
+    const { event } = args;
+    if (event.type !== 'mousemove') return;
+    const rects = this._getBarRects(chart);
+    let hovered = null;
+    for (const r of rects) {
+      if (event.x >= r.x && event.x <= r.x + r.w && event.y >= r.y && event.y <= r.y + r.h) {
+        hovered = r;
+        break;
+      }
+    }
+    const prev = chart._hoveredSuppBar;
+    chart._hoveredSuppBar = hovered;
+    if (prev !== hovered) {
+      if (!chart._hoveredNoteDot) {
+        chart.canvas.style.cursor = hovered ? 'pointer' : '';
+      }
+      args.changed = true;
+    }
+  }
+};
+
+export function createLineChart(id, marker, dateLabels, chartDates) {
+  const canvas = document.getElementById("chart-" + id);
+  if (!canvas) return;
+  const tc = getChartColors();
+  const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
+  const values = marker.values;
+  const valid = values.filter(v => v !== null);
+  if (valid.length === 0) return;
+
+  // PhenoAge: add chronological age line for comparison
+  const isPhenoAge = marker.name && marker.name.startsWith('PhenoAge');
+  let chronoAgeValues = null;
+  if (isPhenoAge && state.profileDob && chartDates && chartDates.length) {
+    const dobDate = new Date(state.profileDob + 'T00:00:00');
+    chronoAgeValues = chartDates.map(d => {
+      const draw = new Date(d + 'T00:00:00');
+      const age = (draw - dobDate) / (365.25 * 24 * 60 * 60 * 1000);
+      return age > 0 ? Math.round(age * 10) / 10 : null;
+    });
+  }
+  const allValid = chronoAgeValues ? [...valid, ...chronoAgeValues.filter(v => v !== null)] : valid;
+  const refMinSafe = marker.refMin != null ? marker.refMin : Infinity;
+  const refMaxSafe = marker.refMax != null ? marker.refMax : -Infinity;
+  const optMinSafe = marker.optimalMin != null ? marker.optimalMin : Infinity;
+  const optMaxSafe = marker.optimalMax != null ? marker.optimalMax : -Infinity;
+  const minV = Math.min(...allValid, refMinSafe, optMinSafe);
+  const maxV = Math.max(...allValid, refMaxSafe, optMaxSafe);
+  const pad = (maxV - minV) * 0.15 || 1;
+  const chartRange = getEffectiveRange(marker);
+  const ptColors = values.map(v => {
+    if (v === null) return "transparent";
+    const s = getStatus(v, chartRange.min, chartRange.max);
+    return s==="normal"?tc.green:s==="high"?tc.red:tc.yellow;
+  });
+  const rawDates = chartDates || [];
+  const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
+  const chartSupps = marker.singlePoint ? [] : getSupplementsForChart(rawDates);
+  const datasets = [{
+    data: values, borderColor: tc.lineColor, backgroundColor: tc.lineFill,
+    borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
+    pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
+    label: isPhenoAge ? 'Biological Age' : ''
+  }];
+  if (chronoAgeValues) {
+    datasets.push({
+      data: chronoAgeValues, borderColor: tc.chronoLineColor, backgroundColor: "transparent",
+      borderWidth: 2, borderDash: [6, 4], pointRadius: 0, pointHoverRadius: 4,
+      tension: 0.3, fill: false, spanGaps: true, label: 'Chronological Age'
+    });
+  }
+  state.chartInstances[id] = new Chart(canvas, {
+    type: "line",
+    data: { labels: dates, datasets },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: tc.legendColor, font: { size: 11 }, boxWidth: 20, padding: 10 } },
+        tooltip:{ backgroundColor:tc.tooltipBg, titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, borderColor:tc.tooltipBorder, borderWidth:1,
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const rl = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'; return chartRange.min != null && chartRange.max != null ? `${rl}: ${formatValue(chartRange.min)} \u2013 ${formatValue(chartRange.max)}` : ''; } }},
+        refBand: state.rangeMode === 'both' ? { refMin:marker.refMin, refMax:marker.refMax } : { refMin:chartRange.min, refMax:chartRange.max },
+        optimalBand: state.rangeMode === 'both' && marker.optimalMin != null ? { optimalMin: marker.optimalMin, optimalMax: marker.optimalMax } : false,
+        noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,
+        supplementBars: chartSupps.length ? { supplements: chartSupps, chartDates: rawDates } : false},
+      layout: { padding: { top: chartSupps.length ? chartSupps.length * 14 + 6 : 0 } },
+      scales: { x:{ticks:{color:tc.tickColor,font:{size:11}},grid:{display:false}},
+        y:{min:minV-pad, max:maxV+pad, ticks:{color:tc.tickColor,font:{size:10}}, grid:{color:tc.gridColor}}}
+    },
+    plugins: [refBandPlugin, optimalBandPlugin, noteAnnotationPlugin, supplementBarPlugin]
+  });
+}
+
+export function getMarkerDescription(markerId) {
+  const marker = state.markerRegistry[markerId];
+  if (marker && marker.desc) return marker.desc;
+  // Fallback to localStorage cache for custom markers
+  const cache = JSON.parse(localStorage.getItem('labcharts-marker-desc') || '{}');
+  return cache[markerId] || null;
+}
+
+Object.assign(window, { refBandPlugin, optimalBandPlugin, noteAnnotationPlugin, supplementBarPlugin, getNotesForChart, getSupplementsForChart, createLineChart, getMarkerDescription });
