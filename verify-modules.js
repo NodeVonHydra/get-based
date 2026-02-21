@@ -174,7 +174,7 @@
     'renderAIProviderPanel','renderPrivacySection',
     'togglePrivacyConfigure','updatePrivacyStatusCard',
     'switchAIProvider',
-    'initSettingsAnthropicModels','initSettingsOllamaCheck','updateSettingsUI',
+    'initSettingsModelFetch','initSettingsOllamaCheck','updateSettingsUI',
     'testOllamaConnection','testPIIOllamaConnection',
     'updateAnthropicModelPricing','updateVeniceModelPricing',
     'handleSaveApiKey','handleRemoveApiKey',
