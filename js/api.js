@@ -88,6 +88,17 @@ export function getOpenRouterModelDisplay() {
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
+// Curated: latest-gen medically capable models only (prefixes matched against IDs)
+const OPENROUTER_CURATED = [
+  'anthropic/claude-sonnet-4.6', 'anthropic/claude-opus-4.6',
+  'openai/gpt-5.2',
+  'google/gemini-3.1-pro', 'google/gemini-3-flash',
+  'deepseek/deepseek-v3.2',
+  'qwen/qwen3.5', 'qwen/qwen3-max',
+  'x-ai/grok-4',
+];
+// Exclude specialized variants not suited for medical analysis
+const OPENROUTER_EXCLUDE = ['codex', 'audio', 'image', 'oss', 'safeguard', 'coder'];
 export async function fetchOpenRouterModels(key) {
   try {
     const res = await fetch('https://openrouter.ai/api/v1/models', {
@@ -95,13 +106,27 @@ export async function fetchOpenRouterModels(key) {
     });
     if (!res.ok) return [];
     const json = await res.json();
+    // Filter to curated medically capable models, exclude specialized variants
     const all = (json.data || []).filter(function(m) {
-      return m.id && m.architecture && m.architecture.modality === 'text->text';
+      if (!m.id) return false;
+      if (OPENROUTER_EXCLUDE.some(function(ex) { return m.id.includes(ex); })) return false;
+      return OPENROUTER_CURATED.some(function(prefix) { return m.id.startsWith(prefix); });
     }).sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
     // Deduplicate: strip date/size suffixes after provider/ prefix
     const models = deduplicateModels(all, function(id) {
       return id.replace(/:\d{4}-\d{2}-\d{2}$/, '').replace(/-\d{8}$/, '');
     });
+    // Extract per-million-token pricing from API response
+    const pricingCache = {};
+    for (const m of models) {
+      if (m.pricing && m.pricing.prompt && m.pricing.completion) {
+        pricingCache[m.id] = {
+          input: parseFloat(m.pricing.prompt) * 1_000_000,
+          output: parseFloat(m.pricing.completion) * 1_000_000
+        };
+      }
+    }
+    localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify(pricingCache));
     localStorage.setItem('labcharts-openrouter-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-openrouter-model') && models.length) {
       const claude = models.find(function(m) { return m.id === 'anthropic/claude-sonnet-4-6'; });
@@ -109,6 +134,10 @@ export async function fetchOpenRouterModels(key) {
     }
     return models;
   } catch (e) { return []; }
+}
+export function getOpenRouterPricing(modelId) {
+  const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
+  return cached[modelId] || null;
 }
 export async function validateOpenRouterKey(key) {
   try {
@@ -440,7 +469,7 @@ Object.assign(window, {
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
-  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, deduplicateModels,
+  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing, deduplicateModels,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   validateApiKey, validateVeniceKey, validateOpenRouterKey,

@@ -32,16 +32,44 @@
   assert('OpenRouter API endpoint', apiSrc.includes('openrouter.ai/api/v1/chat/completions'));
   assert('OpenRouter models endpoint', apiSrc.includes('openrouter.ai/api/v1/models'));
 
-  // ─── 2. schema.js source inspection ───
-  console.log('\n2. schema.js source inspection');
+  // ─── 2. schema.js + api.js: curated models + dynamic pricing ───
+  console.log('\n2. Curated models + dynamic pricing');
   const schemaSrc = await fetch('js/schema.js').then(r => r.text());
   assert('MODEL_PRICING has openrouter block', schemaSrc.includes('openrouter:'));
-  assert('Has anthropic/claude-sonnet-4-6 pricing', schemaSrc.includes("'anthropic/claude-sonnet-4-6'"));
-  assert('Has openai/gpt-4o pricing', schemaSrc.includes("'openai/gpt-4o'"));
-  assert('Has google/gemini-2.5-pro pricing', schemaSrc.includes("'google/gemini-2.5-pro'"));
-  assert('Has meta-llama pricing', schemaSrc.includes("'meta-llama/llama-3.3-70b-instruct'"));
-  assert('Has deepseek pricing', schemaSrc.includes("'deepseek/deepseek-chat-v3'"));
-  assert('Has openrouter _default', schemaSrc.includes("'_default':") && schemaSrc.includes('approx: true'));
+  assert('Has openrouter _default fallback', schemaSrc.includes("'_default':") && schemaSrc.includes('approx: true'));
+  assert('getModelPricing checks openrouter-pricing cache', schemaSrc.includes('labcharts-openrouter-pricing'));
+  // Curated whitelist in api.js
+  assert('OPENROUTER_CURATED whitelist exists', apiSrc.includes('OPENROUTER_CURATED'));
+  assert('Curated: anthropic/claude-sonnet-4.6', apiSrc.includes("'anthropic/claude-sonnet-4.6'"));
+  assert('Curated: anthropic/claude-opus-4.6', apiSrc.includes("'anthropic/claude-opus-4.6'"));
+  assert('Curated: openai/gpt-5.2', apiSrc.includes("'openai/gpt-5.2'"));
+  assert('Curated: google/gemini-3.1-pro', apiSrc.includes("'google/gemini-3.1-pro'"));
+  assert('Curated: google/gemini-3-flash', apiSrc.includes("'google/gemini-3-flash'"));
+  assert('Curated: deepseek/deepseek-v3.2', apiSrc.includes("'deepseek/deepseek-v3.2'"));
+  assert('Curated: qwen/qwen3.5', apiSrc.includes("'qwen/qwen3.5'"));
+  assert('Curated: x-ai/grok-4', apiSrc.includes("'x-ai/grok-4'"));
+  // Exclusion list
+  assert('OPENROUTER_EXCLUDE exists', apiSrc.includes('OPENROUTER_EXCLUDE'));
+  assert('Excludes codex variants', apiSrc.includes("'codex'"));
+  assert('Excludes audio variants', apiSrc.includes("'audio'"));
+  assert('Excludes image variants', apiSrc.includes("'image'"));
+  assert('Exclude filter applied in fetch', apiSrc.includes('OPENROUTER_EXCLUDE.some'));
+  // Dynamic pricing extraction
+  assert('fetchOpenRouterModels extracts pricing.prompt', apiSrc.includes('m.pricing.prompt'));
+  assert('fetchOpenRouterModels converts to per-million', apiSrc.includes('* 1_000_000'));
+  assert('fetchOpenRouterModels caches pricing', apiSrc.includes("'labcharts-openrouter-pricing'"));
+  assert('getOpenRouterPricing function exists', apiSrc.includes('function getOpenRouterPricing('));
+  assert('window.getOpenRouterPricing is function', typeof window.getOpenRouterPricing === 'function');
+  // Dynamic pricing localStorage integration
+  const oldPricing = localStorage.getItem('labcharts-openrouter-pricing');
+  localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify({
+    'anthropic/claude-sonnet-4-6': { input: 3.00, output: 15.00 }
+  }));
+  const dynResult = window.getOpenRouterPricing('anthropic/claude-sonnet-4-6');
+  assert('getOpenRouterPricing reads cached pricing', dynResult && dynResult.input === 3.00 && dynResult.output === 15.00);
+  assert('getOpenRouterPricing returns null for unknown', window.getOpenRouterPricing('unknown/model') === null);
+  if (oldPricing) localStorage.setItem('labcharts-openrouter-pricing', oldPricing);
+  else localStorage.removeItem('labcharts-openrouter-pricing');
 
   // ─── 3. settings.js source inspection ───
   console.log('\n3. settings.js source inspection');
@@ -65,6 +93,10 @@
   assert('openrouter-model-pricing element', settingsSrc.includes('openrouter-model-pricing'));
   assert('OpenRouter link to openrouter.ai/keys', settingsSrc.includes('openrouter.ai/keys'));
   assert('initSettingsModelFetch fetches OpenRouter', settingsSrc.includes('fetchOpenRouterModels(orKey)'));
+  // Ordering: OpenRouter panel check before Venice in renderAIProviderPanel
+  const orPanelIdx = settingsSrc.indexOf("provider === 'openrouter'");
+  const venicePanelIdx = settingsSrc.indexOf("provider === 'venice'");
+  assert('renderAIProviderPanel: openrouter before venice', orPanelIdx < venicePanelIdx, `openrouter@${orPanelIdx}, venice@${venicePanelIdx}`);
   assert('window exports handleSaveOpenRouterKey', settingsSrc.includes('handleSaveOpenRouterKey,'));
   assert('window exports handleRemoveOpenRouterKey', settingsSrc.includes('handleRemoveOpenRouterKey,'));
   assert('window exports renderOpenRouterModelDropdown', settingsSrc.includes('renderOpenRouterModelDropdown,'));
@@ -90,7 +122,8 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v30', swSrc.includes("labcharts-v30'"));
+  assert('SW cache is v32', swSrc.includes("labcharts-v32'"));
+  assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. site.html ───
   console.log('\n7. site.html');
@@ -100,6 +133,9 @@
   assert('site.html grid is 4-col', siteSrc.includes('repeat(4,1fr)'));
   assert('site.html has 4 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 4);
   assert('site.html heading says Four backends', siteSrc.includes('Four backends'));
+  const orCardIdx = siteSrc.indexOf('<h3>OpenRouter</h3>');
+  const veniceCardIdx = siteSrc.indexOf('<h3>Venice AI</h3>');
+  assert('site.html: OpenRouter card before Venice card', orCardIdx < veniceCardIdx, `OpenRouter@${orCardIdx}, Venice@${veniceCardIdx}`);
 
   // ─── 8. Window function exports ───
   console.log('\n8. Window function exports');
@@ -168,6 +204,7 @@
   assert('provider buttons include venice', providerValues.includes('venice'));
   assert('provider buttons include ollama', providerValues.includes('ollama'));
   assert('provider buttons include openrouter', providerValues.includes('openrouter'));
+  assert('button order: OpenRouter before Venice', providerValues.indexOf('openrouter') < providerValues.indexOf('venice'), `openrouter@${providerValues.indexOf('openrouter')}, venice@${providerValues.indexOf('venice')}`);
   // Switch to OpenRouter panel
   window.switchAIProvider('openrouter');
   await new Promise(r => setTimeout(r, 100));
@@ -181,11 +218,28 @@
 
   // ─── 12. Model pricing ───
   console.log('\n12. Model pricing');
+  // Seed dynamic pricing so hint shows exact values
+  const savedPr = localStorage.getItem('labcharts-openrouter-pricing');
+  localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify({
+    'anthropic/claude-sonnet-4-6': { input: 3.00, output: 15.00 }
+  }));
   const pricing = window.renderModelPricingHint('openrouter', 'anthropic/claude-sonnet-4-6');
   assert('renderModelPricingHint returns content for openrouter', pricing.length > 0);
   assert('pricing includes dollar amounts', pricing.includes('$'));
+  assert('pricing is not approximate with cached data', !pricing.includes('~'));
+  // Unknown model falls back to _default (approximate)
+  const unknownPricing = window.renderModelPricingHint('openrouter', 'unknown/model-xyz');
+  assert('unknown model pricing is approximate', unknownPricing.includes('~'));
+  // Restore
+  if (savedPr) localStorage.setItem('labcharts-openrouter-pricing', savedPr);
+  else localStorage.removeItem('labcharts-openrouter-pricing');
   const ollamaPricing = window.renderModelPricingHint('ollama', '');
   assert('ollama pricing still says Free', ollamaPricing.includes('Free'));
+
+  // ─── 13. Key removal clears pricing cache ───
+  console.log('\n13. Key removal clears pricing cache');
+  const rmSrc = await fetch('js/settings.js').then(r => r.text());
+  assert('handleRemoveOpenRouterKey clears pricing cache', rmSrc.includes("removeItem('labcharts-openrouter-pricing')"));
 
   // ═══ SUMMARY ═══
   console.log('\n' + results.join('\n'));
