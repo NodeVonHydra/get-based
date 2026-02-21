@@ -1,0 +1,195 @@
+// test-openrouter.js — Verify OpenRouter as 4th AI provider
+// Run: fetch('test-openrouter.js').then(r=>r.text()).then(s=>Function(s)())
+(async function() {
+  const results = [];
+  let passed = 0, failed = 0;
+  function assert(name, condition, detail) {
+    if (condition) { passed++; results.push(`  PASS: ${name}`); }
+    else { failed++; results.push(`  FAIL: ${name}${detail ? ' — ' + detail : ''}`); }
+  }
+
+  console.log('=== OpenRouter Integration Tests ===\n');
+
+  // ─── 1. api.js source inspection ───
+  console.log('1. api.js source inspection');
+  const apiSrc = await fetch('js/api.js').then(r => r.text());
+  assert('getOpenRouterKey exists', apiSrc.includes('function getOpenRouterKey()'));
+  assert('saveOpenRouterKey exists', apiSrc.includes('function saveOpenRouterKey('));
+  assert('hasOpenRouterKey exists', apiSrc.includes('function hasOpenRouterKey()'));
+  assert('getOpenRouterModel exists', apiSrc.includes('function getOpenRouterModel()'));
+  assert('setOpenRouterModel exists', apiSrc.includes('function setOpenRouterModel('));
+  assert('getOpenRouterModelDisplay exists', apiSrc.includes('function getOpenRouterModelDisplay()'));
+  assert('fetchOpenRouterModels exists', apiSrc.includes('function fetchOpenRouterModels('));
+  assert('validateOpenRouterKey exists', apiSrc.includes('function validateOpenRouterKey('));
+  assert('callOpenRouterAPI exists', apiSrc.includes('function callOpenRouterAPI('));
+  assert('extraHeaders in helper signature', apiSrc.includes('extraHeaders = {}'));
+  assert('extraHeaders spread in fetch headers', apiSrc.includes('...extraHeaders'));
+  assert('hasAIProvider handles openrouter', apiSrc.includes("provider === 'openrouter') return hasOpenRouterKey()"));
+  assert('callClaudeAPI handles openrouter', apiSrc.includes("provider === 'openrouter') return callOpenRouterAPI("));
+  assert('callOpenRouterAPI sends HTTP-Referer', apiSrc.includes("'HTTP-Referer'"));
+  assert('callOpenRouterAPI sends X-Title', apiSrc.includes("'X-Title': 'Lab Charts'"));
+  assert('OpenRouter default model is claude-sonnet-4-6', apiSrc.includes("'anthropic/claude-sonnet-4-6'"));
+  assert('OpenRouter API endpoint', apiSrc.includes('openrouter.ai/api/v1/chat/completions'));
+  assert('OpenRouter models endpoint', apiSrc.includes('openrouter.ai/api/v1/models'));
+
+  // ─── 2. schema.js source inspection ───
+  console.log('\n2. schema.js source inspection');
+  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  assert('MODEL_PRICING has openrouter block', schemaSrc.includes('openrouter:'));
+  assert('Has anthropic/claude-sonnet-4-6 pricing', schemaSrc.includes("'anthropic/claude-sonnet-4-6'"));
+  assert('Has openai/gpt-4o pricing', schemaSrc.includes("'openai/gpt-4o'"));
+  assert('Has google/gemini-2.5-pro pricing', schemaSrc.includes("'google/gemini-2.5-pro'"));
+  assert('Has meta-llama pricing', schemaSrc.includes("'meta-llama/llama-3.3-70b-instruct'"));
+  assert('Has deepseek pricing', schemaSrc.includes("'deepseek/deepseek-chat-v3'"));
+  assert('Has openrouter _default', schemaSrc.includes("'_default':") && schemaSrc.includes('approx: true'));
+
+  // ─── 3. settings.js source inspection ───
+  console.log('\n3. settings.js source inspection');
+  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
+  assert('imports getOpenRouterKey', settingsSrc.includes('getOpenRouterKey'));
+  assert('imports saveOpenRouterKey', settingsSrc.includes('saveOpenRouterKey'));
+  assert('imports getOpenRouterModel', settingsSrc.includes('getOpenRouterModel'));
+  assert('imports setOpenRouterModel', settingsSrc.includes('setOpenRouterModel'));
+  assert('imports getOpenRouterModelDisplay', settingsSrc.includes('getOpenRouterModelDisplay'));
+  assert('imports validateOpenRouterKey', settingsSrc.includes('validateOpenRouterKey'));
+  assert('imports fetchOpenRouterModels', settingsSrc.includes('fetchOpenRouterModels'));
+  assert('4th provider button with data-provider="openrouter"', settingsSrc.includes('data-provider="openrouter"'));
+  assert('switchAIProvider(\'openrouter\') in onclick', settingsSrc.includes("switchAIProvider('openrouter')"));
+  assert('renderAIProviderPanel handles openrouter', settingsSrc.includes("provider === 'openrouter'"));
+  assert('handleSaveOpenRouterKey exists', settingsSrc.includes('function handleSaveOpenRouterKey()'));
+  assert('handleRemoveOpenRouterKey exists', settingsSrc.includes('function handleRemoveOpenRouterKey()'));
+  assert('renderOpenRouterModelDropdown exists', settingsSrc.includes('function renderOpenRouterModelDropdown('));
+  assert('updateOpenRouterModelPricing exists', settingsSrc.includes('function updateOpenRouterModelPricing('));
+  assert('openrouter-key-input element', settingsSrc.includes('openrouter-key-input'));
+  assert('openrouter-model-area element', settingsSrc.includes('openrouter-model-area'));
+  assert('openrouter-model-pricing element', settingsSrc.includes('openrouter-model-pricing'));
+  assert('OpenRouter link to openrouter.ai/keys', settingsSrc.includes('openrouter.ai/keys'));
+  assert('initSettingsModelFetch fetches OpenRouter', settingsSrc.includes('fetchOpenRouterModels(orKey)'));
+  assert('window exports handleSaveOpenRouterKey', settingsSrc.includes('handleSaveOpenRouterKey,'));
+  assert('window exports handleRemoveOpenRouterKey', settingsSrc.includes('handleRemoveOpenRouterKey,'));
+  assert('window exports renderOpenRouterModelDropdown', settingsSrc.includes('renderOpenRouterModelDropdown,'));
+  assert('window exports updateOpenRouterModelPricing', settingsSrc.includes('updateOpenRouterModelPricing,'));
+
+  // ─── 4. chat.js source inspection ───
+  console.log('\n4. chat.js source inspection');
+  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  assert('chat.js imports getOpenRouterModel', chatSrc.includes('getOpenRouterModel'));
+  assert('chat.js has openrouter model-ID case', chatSrc.includes("provider === 'openrouter' ? getOpenRouterModel()"));
+
+  // ─── 5. pdf-import.js source inspection ───
+  console.log('\n5. pdf-import.js source inspection');
+  const pdfSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  assert('pdf-import imports getOpenRouterModel', pdfSrc.includes('getOpenRouterModel'));
+  assert('pdf-import imports getOpenRouterModelDisplay', pdfSrc.includes('getOpenRouterModelDisplay'));
+  assert('pdf-import has openrouter model-label case (costInfo display)', pdfSrc.includes("ci.provider === 'openrouter' ? getOpenRouterModelDisplay()"));
+  assert('pdf-import has openrouter debug model-label', pdfSrc.includes("provider === 'openrouter' ? getOpenRouterModelDisplay()"));
+  // Count OpenRouter model-ID ternaries (should be at least 2 for mid = prov === ...)
+  const orModelCount = (pdfSrc.match(/prov === 'openrouter' \? getOpenRouterModel\(\)/g) || []).length;
+  assert('pdf-import has 2 openrouter model-ID ternaries', orModelCount === 2, `found ${orModelCount}`);
+
+  // ─── 6. service-worker.js ───
+  console.log('\n6. service-worker.js');
+  const swSrc = await fetch('service-worker.js').then(r => r.text());
+  assert('SW cache is v30', swSrc.includes("labcharts-v30'"));
+
+  // ─── 7. site.html ───
+  console.log('\n7. site.html');
+  const siteSrc = await fetch('site.html').then(r => r.text());
+  assert('site.html has OpenRouter card', siteSrc.includes('OpenRouter'));
+  assert('site.html mentions 200+ models', siteSrc.includes('200+ models'));
+  assert('site.html grid is 4-col', siteSrc.includes('repeat(4,1fr)'));
+  assert('site.html has 4 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 4);
+  assert('site.html heading says Four backends', siteSrc.includes('Four backends'));
+
+  // ─── 8. Window function exports ───
+  console.log('\n8. Window function exports');
+  assert('window.getOpenRouterKey is function', typeof window.getOpenRouterKey === 'function');
+  assert('window.saveOpenRouterKey is function', typeof window.saveOpenRouterKey === 'function');
+  assert('window.hasOpenRouterKey is function', typeof window.hasOpenRouterKey === 'function');
+  assert('window.getOpenRouterModel is function', typeof window.getOpenRouterModel === 'function');
+  assert('window.setOpenRouterModel is function', typeof window.setOpenRouterModel === 'function');
+  assert('window.getOpenRouterModelDisplay is function', typeof window.getOpenRouterModelDisplay === 'function');
+  assert('window.fetchOpenRouterModels is function', typeof window.fetchOpenRouterModels === 'function');
+  assert('window.validateOpenRouterKey is function', typeof window.validateOpenRouterKey === 'function');
+  assert('window.callOpenRouterAPI is function', typeof window.callOpenRouterAPI === 'function');
+  assert('window.handleSaveOpenRouterKey is function', typeof window.handleSaveOpenRouterKey === 'function');
+  assert('window.handleRemoveOpenRouterKey is function', typeof window.handleRemoveOpenRouterKey === 'function');
+  assert('window.renderOpenRouterModelDropdown is function', typeof window.renderOpenRouterModelDropdown === 'function');
+  assert('window.updateOpenRouterModelPricing is function', typeof window.updateOpenRouterModelPricing === 'function');
+
+  // ─── 9. Key/model management (localStorage) ───
+  console.log('\n9. Key/model management');
+  // Save and retrieve key
+  const oldKey = localStorage.getItem('labcharts-openrouter-key');
+  window.saveOpenRouterKey('test-key-123');
+  assert('saveOpenRouterKey stores to localStorage', localStorage.getItem('labcharts-openrouter-key') === 'test-key-123');
+  assert('getOpenRouterKey returns saved key', window.getOpenRouterKey() === 'test-key-123');
+  assert('hasOpenRouterKey returns true with key', window.hasOpenRouterKey() === true);
+  // Remove key
+  localStorage.removeItem('labcharts-openrouter-key');
+  assert('hasOpenRouterKey returns false without key', window.hasOpenRouterKey() === false);
+  assert('getOpenRouterKey returns empty without key', window.getOpenRouterKey() === '');
+  // Restore original
+  if (oldKey) localStorage.setItem('labcharts-openrouter-key', oldKey);
+
+  // Model defaults
+  const oldModel = localStorage.getItem('labcharts-openrouter-model');
+  localStorage.removeItem('labcharts-openrouter-model');
+  assert('getOpenRouterModel defaults to anthropic/claude-sonnet-4-6', window.getOpenRouterModel() === 'anthropic/claude-sonnet-4-6');
+  window.setOpenRouterModel('openai/gpt-4o');
+  assert('setOpenRouterModel persists', window.getOpenRouterModel() === 'openai/gpt-4o');
+  // Restore
+  if (oldModel) localStorage.setItem('labcharts-openrouter-model', oldModel);
+  else localStorage.removeItem('labcharts-openrouter-model');
+
+  // ─── 10. hasAIProvider with openrouter ───
+  console.log('\n10. hasAIProvider integration');
+  const oldProvider = localStorage.getItem('labcharts-ai-provider');
+  const oldORKey = localStorage.getItem('labcharts-openrouter-key');
+  window.setAIProvider('openrouter');
+  localStorage.removeItem('labcharts-openrouter-key');
+  assert('hasAIProvider false for openrouter without key', window.hasAIProvider() === false);
+  window.saveOpenRouterKey('sk-or-test');
+  assert('hasAIProvider true for openrouter with key', window.hasAIProvider() === true);
+  // Restore
+  if (oldProvider) localStorage.setItem('labcharts-ai-provider', oldProvider);
+  else localStorage.removeItem('labcharts-ai-provider');
+  if (oldORKey) localStorage.setItem('labcharts-openrouter-key', oldORKey);
+  else localStorage.removeItem('labcharts-openrouter-key');
+
+  // ─── 11. Settings modal DOM ───
+  console.log('\n11. Settings modal DOM');
+  window.openSettingsModal('ai');
+  await new Promise(r => setTimeout(r, 100));
+  const providerBtns = document.querySelectorAll('.ai-provider-btn');
+  assert('4 provider buttons in settings', providerBtns.length === 4, `found ${providerBtns.length}`);
+  const providerValues = Array.from(providerBtns).map(b => b.dataset.provider);
+  assert('provider buttons include anthropic', providerValues.includes('anthropic'));
+  assert('provider buttons include venice', providerValues.includes('venice'));
+  assert('provider buttons include ollama', providerValues.includes('ollama'));
+  assert('provider buttons include openrouter', providerValues.includes('openrouter'));
+  // Switch to OpenRouter panel
+  window.switchAIProvider('openrouter');
+  await new Promise(r => setTimeout(r, 100));
+  assert('openrouter-key-input exists in DOM', !!document.getElementById('openrouter-key-input'));
+  assert('openrouter-key-status exists in DOM', !!document.getElementById('openrouter-key-status'));
+  assert('openrouter-model-area exists in DOM', !!document.getElementById('openrouter-model-area'));
+  assert('save-openrouter-key-btn exists in DOM', !!document.getElementById('save-openrouter-key-btn'));
+  // Restore provider and close settings
+  if (oldProvider) window.setAIProvider(oldProvider);
+  window.closeSettingsModal();
+
+  // ─── 12. Model pricing ───
+  console.log('\n12. Model pricing');
+  const pricing = window.renderModelPricingHint('openrouter', 'anthropic/claude-sonnet-4-6');
+  assert('renderModelPricingHint returns content for openrouter', pricing.length > 0);
+  assert('pricing includes dollar amounts', pricing.includes('$'));
+  const ollamaPricing = window.renderModelPricingHint('ollama', '');
+  assert('ollama pricing still says Free', ollamaPricing.includes('Free'));
+
+  // ═══ SUMMARY ═══
+  console.log('\n' + results.join('\n'));
+  console.log(`\n=== ${passed} passed, ${failed} failed, ${passed + failed} total ===`);
+  if (failed === 0) console.log('ALL TESTS PASSED');
+  else console.warn(`${failed} test(s) failed`);
+})();

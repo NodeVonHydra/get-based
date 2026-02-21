@@ -6,7 +6,7 @@ import { calculateCost } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOllamaPIIModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, getOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
 // ═══════════════════════════════════════════════
@@ -257,7 +257,7 @@ export function showImportPreview(parseResult) {
   if (parseResult.costInfo) {
     const ci = parseResult.costInfo;
     const totalTokens = (ci.inputTokens || 0) + (ci.outputTokens || 0);
-    const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : getAnthropicModelDisplay();
+    const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : ci.provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
     html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">\ud83d\udcca ${escapeHTML(modelLabel)} \u00b7 ${totalTokens.toLocaleString()} tokens \u00b7 ${formatCost(ci.cost)}</div>`;
   }
   // Debug: timings and diff button
@@ -266,7 +266,7 @@ export function showImportPreview(parseResult) {
     if (t) {
       const piiLabel = parseResult.privacyMethod === 'ollama' ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
       const provider = getAIProvider();
-      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : getAnthropicModelDisplay();
+      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
       html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
     }
     if (parseResult.privacyOriginal && parseResult.privacyObfuscated) {
@@ -500,7 +500,7 @@ export async function handlePDFFile(file) {
     result.privacyReplacements = privacyReplacements;
     result.timings = { pii: piiTime, analysis: analysisTime };
     const prov = result.provider || getAIProvider();
-    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : getOllamaMainModel();
+    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
     result.costInfo = {
       provider: prov, modelId: mid,
       inputTokens: result.usage?.inputTokens || 0,
@@ -589,7 +589,7 @@ export async function handleBatchPDFs(pdfFiles) {
       result.privacyReplacements = privacyReplacements;
       result.timings = { pii: piiTime, analysis: analysisTime };
       const prov = result.provider || getAIProvider();
-      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : getOllamaMainModel();
+      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
       result.costInfo = {
         provider: prov, modelId: mid,
         inputTokens: result.usage?.inputTokens || 0,

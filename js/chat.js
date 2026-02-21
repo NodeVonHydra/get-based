@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOllamaMainModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, getOllamaMainModel } from './api.js';
 import { getBloodDrawPhases, getNextBestDrawDate } from './cycle.js';
 
 // ═══════════════════════════════════════════════
@@ -1179,7 +1179,7 @@ export async function sendChatMessage() {
     // Cost footnote
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       const provider = getAIProvider();
-      const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : getOllamaMainModel();
+      const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
       const cost = calculateCost(provider, modelId, usage.inputTokens, usage.outputTokens);
       const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
       const footnote = document.createElement('div');
