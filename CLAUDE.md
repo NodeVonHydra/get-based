@@ -14,7 +14,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries, modals, notifications, correlation view, chat panel, empty state)
-- **`js/`** — 22 ES modules loaded via `js/main.js`:
+- **`js/`** — 24 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
@@ -34,6 +34,8 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
   - `settings.js` — settings modal, provider panels, privacy section
   - `glossary.js` — marker glossary modal
+  - `feedback.js` — feedback modal (bug reports, feature requests)
+  - `tour.js` — first-visit guided tour (spotlight walkthrough)
   - `nav.js` — sidebar, date range filter, chart layers
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
@@ -133,6 +135,18 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 3-step guided setup: Step 1 (Import) when `!hasData`, Step 2 (Profile Banner) when data exists but sex/DOB unset, Step 3 (Completion toast). State: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped.
 
+### Guided Tour (Spotlight)
+
+7-step spotlight walkthrough for first-time users. Dims the page and highlights one element at a time with an explanatory tooltip.
+
+- **Steps**: 1) Welcome (centered, no target), 2) `#drop-zone` — Import, 3) `#sidebar-nav` — Category Navigation, 4) `.profile-context-cards` — Lifestyle Context, 5) `.settings-btn` — Settings, 6) `.feedback-btn` — Send Feedback, 7) `.chat-toggle-btn` — Ask AI
+- **Auto-trigger**: `startTour(true)` called at end of `showDashboard()`. Checks `labcharts-{profileId}-tour` in localStorage — skips if `'completed'`
+- **Re-trigger**: Settings → Display → "Take a Tour" button calls `startTour(false)` (skips completion check)
+- **DOM**: Three fixed elements created dynamically — `#tour-overlay` (z-index 500, click-to-dismiss), `#tour-spotlight` (z-index 501, `box-shadow: 0 0 0 9999px` dimming technique), `#tour-tooltip` (z-index 502, card with title/text/dots/nav buttons)
+- **Positioning**: `positionTooltip(rect, position)` places tooltip bottom/right/left/top of spotlight with viewport bounds clamping. Falls back if tooltip would overflow
+- **Navigation**: Skip/Back/Next/Done buttons. Progress dots show current step. Escape key dismisses via `endTour()`
+- **Cleanup**: `endTour()` removes all three DOM elements and stores completion flag
+
 ### Dashboard Section Order
 
 Flat layout (no collapsible toggles): 1) Drop zone, 2) Onboarding, 3) Interpretive Lens, 3b) Focus Card, 4) Context Cards, 5) Menstrual Cycle (female), 6) Supplements, 7) Key Trends + charts, 8) Trends & Alerts, 9) Data & Notes + Export.
@@ -192,7 +206,7 @@ Four backends: Anthropic (cloud), OpenRouter (model marketplace), Venice (privac
 
 ### Settings Modal
 
-4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format), **AI Provider** (4-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
+4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format, guided tour), **AI Provider** (4-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
 
 - **Location**: `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries → 5 bands), `getLatitudeFromLocation()`
 - **Time**: `getTimeFormat()`/`setTimeFormat()`, `formatTime()`, `parseTimeInput()`. Stored in `labcharts-time-format`
@@ -222,7 +236,7 @@ There are no tests, linters, or build steps. An AI provider API key (Anthropic, 
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v32` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v34` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
