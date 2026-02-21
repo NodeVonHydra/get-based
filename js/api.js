@@ -54,6 +54,7 @@ export function hasAIProvider() {
   const provider = getAIProvider();
   if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();
+  if (provider === 'openrouter') return hasOpenRouterKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -74,6 +75,55 @@ export function getVeniceModelDisplay() {
   const cached = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]');
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
+}
+
+export function getOpenRouterKey() { return localStorage.getItem('labcharts-openrouter-key') || ''; }
+export function saveOpenRouterKey(key) { localStorage.setItem('labcharts-openrouter-key', key); }
+export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
+export function getOpenRouterModel() { return localStorage.getItem('labcharts-openrouter-model') || 'anthropic/claude-sonnet-4-6'; }
+export function setOpenRouterModel(model) { localStorage.setItem('labcharts-openrouter-model', model); }
+export function getOpenRouterModelDisplay() {
+  const id = getOpenRouterModel();
+  const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]');
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
+export async function fetchOpenRouterModels(key) {
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + (key || getOpenRouterKey()) }
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const all = (json.data || []).filter(function(m) {
+      return m.id && m.architecture && m.architecture.modality === 'text->text';
+    }).sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    // Deduplicate: strip date/size suffixes after provider/ prefix
+    const models = deduplicateModels(all, function(id) {
+      return id.replace(/:\d{4}-\d{2}-\d{2}$/, '').replace(/-\d{8}$/, '');
+    });
+    localStorage.setItem('labcharts-openrouter-models', JSON.stringify(models));
+    if (!localStorage.getItem('labcharts-openrouter-model') && models.length) {
+      const claude = models.find(function(m) { return m.id === 'anthropic/claude-sonnet-4-6'; });
+      if (claude) setOpenRouterModel(claude.id);
+    }
+    return models;
+  } catch (e) { return []; }
+}
+export async function validateOpenRouterKey(key) {
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (res.ok) return { valid: true };
+    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
+    if (res.status === 429) return { valid: true };
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach OpenRouter API: ' + e.message };
+  }
 }
 
 export function renderModelPricingHint(provider, modelId) {
@@ -270,7 +320,7 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream }) 
 // ═══════════════════════════════════════════════
 // SHARED OPENAI-COMPATIBLE API HELPER
 // ═══════════════════════════════════════════════
-async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream }) {
+async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream }, extraHeaders = {}) {
   const apiMessages = [];
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
@@ -284,7 +334,8 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`
+        'Authorization': `Bearer ${key}`,
+        ...extraHeaders
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(300000)
@@ -345,6 +396,16 @@ export async function callVeniceAPI(opts) {
   return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, getVeniceModel(), 'Venice', opts);
 }
 
+export async function callOpenRouterAPI(opts) {
+  const key = getOpenRouterKey();
+  if (!key) throw new Error('No OpenRouter API key configured. Add your key in Settings.');
+  return callOpenAICompatibleAPI(
+    'https://openrouter.ai/api/v1/chat/completions',
+    key, getOpenRouterModel(), 'OpenRouter', opts,
+    { 'HTTP-Referer': window.location.origin, 'X-Title': 'Lab Charts' }
+  );
+}
+
 export async function validateVeniceKey(key) {
   try {
     const res = await fetch('https://api.venice.ai/api/v1/models', {
@@ -365,6 +426,7 @@ export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
   if (provider === 'ollama') return callOllamaChat(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
+  if (provider === 'openrouter') return callOpenRouterAPI(opts);
   return callAnthropicAPI(opts);
 }
 
@@ -373,12 +435,14 @@ Object.assign(window, {
   getAnthropicModel, setAnthropicModel, getAnthropicModelDisplay,
   getVeniceKey, saveVeniceKey, hasVeniceKey,
   getVeniceModel, setVeniceModel, getVeniceModelDisplay,
+  getOpenRouterKey, saveOpenRouterKey, hasOpenRouterKey,
+  getOpenRouterModel, setOpenRouterModel, getOpenRouterModelDisplay,
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
-  fetchAnthropicModels, fetchVeniceModels, deduplicateModels,
+  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, deduplicateModels,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
-  validateApiKey, validateVeniceKey,
-  callAnthropicAPI, callOllamaChat, callVeniceAPI, callClaudeAPI
+  validateApiKey, validateVeniceKey, validateOpenRouterKey,
+  callAnthropicAPI, callOllamaChat, callVeniceAPI, callOpenRouterAPI, callClaudeAPI
 });

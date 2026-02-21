@@ -526,6 +526,18 @@ export const MODEL_PRICING = {
     'venice-small':         { input: 0.05,  output: 0.15  },
     'openai-gpt-oss':       { input: 0.07,  output: 0.30  },
     '_default':             { input: 0.50,  output: 2.00, approx: true },
+  },
+  openrouter: {
+    'anthropic/claude-opus-4-6':       { input: 5.00,  output: 25.00 },
+    'anthropic/claude-sonnet-4-6':     { input: 3.00,  output: 15.00 },
+    'anthropic/claude-haiku-4-5':      { input: 1.00,  output: 5.00  },
+    'openai/gpt-4o':                   { input: 2.50,  output: 10.00 },
+    'openai/gpt-4o-mini':              { input: 0.15,  output: 0.60  },
+    'google/gemini-2.5-pro':           { input: 1.25,  output: 10.00 },
+    'google/gemini-2.5-flash':         { input: 0.15,  output: 0.60  },
+    'meta-llama/llama-3.3-70b-instruct': { input: 0.39, output: 0.39 },
+    'deepseek/deepseek-chat-v3':       { input: 0.30,  output: 0.88  },
+    '_default':                        { input: 1.00,  output: 3.00, approx: true },
   }
 };
 export function getModelPricing(provider, modelId) {
