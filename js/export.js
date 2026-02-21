@@ -435,12 +435,20 @@ export function clearAllData() {
   });
 }
 
-export async function loadDemoData() {
+export async function loadDemoData(sex = 'male') {
   try {
-    const resp = await fetch('demo-male.json');
+    const file = sex === 'female' ? 'demo-female.json' : 'demo-male.json';
+    const resp = await fetch(file);
     if (!resp.ok) throw new Error('Failed to load');
     const blob = await resp.blob();
-    importDataJSON(new File([blob], 'demo-male.json', { type: 'application/json' }));
+    const { setProfileSex, setProfileDob } = await import('./profile.js');
+    const dob = sex === 'female' ? '1991-08-15' : '1987-11-22';
+    state.profileSex = sex;
+    setProfileSex(state.currentProfile, sex);
+    state.profileDob = dob;
+    setProfileDob(state.currentProfile, dob);
+    localStorage.setItem(profileStorageKey(state.currentProfile, 'onboarded'), 'profile-set');
+    importDataJSON(new File([blob], file, { type: 'application/json' }));
   } catch (err) {
     showNotification('Could not load demo data: ' + err.message, 'error');
   }

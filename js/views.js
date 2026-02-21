@@ -67,7 +67,23 @@ export function showDashboard(data) {
       <h3>Welcome to LabCharts</h3>
       <p>Import your first lab results to get started.</p>
       <button class="onboarding-import-btn" onclick="document.getElementById('pdf-input').click()">Choose PDF or JSON file</button>
-      <button class="onboarding-demo-btn" onclick="loadDemoData()">or try with demo data</button>
+      <div class="onboarding-divider">
+        <span class="onboarding-divider-line"></span>
+        <span class="onboarding-divider-text">or try with demo data</span>
+        <span class="onboarding-divider-line"></span>
+      </div>
+      <div class="demo-cards">
+        <button class="demo-card" onclick="loadDemoData('female')">
+          <span class="demo-card-avatar">\uD83D\uDC69</span>
+          <span class="demo-card-name">Sarah, 34</span>
+          <span class="demo-card-desc">Iron & hormones story</span>
+        </button>
+        <button class="demo-card" onclick="loadDemoData('male')">
+          <span class="demo-card-avatar">\uD83D\uDC68</span>
+          <span class="demo-card-name">Alex, 38</span>
+          <span class="demo-card-desc">Metabolic health journey</span>
+        </button>
+      </div>
     </div>`;
     html += renderProfileContextCards();
     if (state.profileSex === 'female') html += renderMenstrualCycleSection(data);
