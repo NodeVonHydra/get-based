@@ -139,6 +139,8 @@ export async function loadProfile(profileId) {
   state.profileDob = getProfileDob(profileId);
   state.selectedCorrelationMarkers = [];
   state.chatHistory = [];
+  state.chatThreads = [];
+  state.currentThreadId = null;
   state.markerRegistry = {};
   window.loadChatPersonality();
   window.destroyAllCharts();
@@ -175,6 +177,18 @@ export function deleteProfile(profileId) {
     localStorage.removeItem(profileStorageKey(profileId, 'noteOverlay'));
     localStorage.removeItem(profileStorageKey(profileId, 'rangeMode'));
     localStorage.removeItem(`labcharts-${profileId}-chat`);
+    // Remove thread index + all per-thread message keys
+    const threadIndexRaw = localStorage.getItem(`labcharts-${profileId}-chat-threads`);
+    if (threadIndexRaw) {
+      try {
+        const threads = JSON.parse(threadIndexRaw);
+        for (const t of threads) {
+          localStorage.removeItem(`labcharts-${profileId}-chat-t_${t.id}`);
+        }
+      } catch {}
+      localStorage.removeItem(`labcharts-${profileId}-chat-threads`);
+    }
+    localStorage.removeItem(`labcharts-${profileId}-chatRailOpen`);
     localStorage.removeItem(`labcharts-${profileId}-chatPersonality`);
     localStorage.removeItem(`labcharts-${profileId}-chatPersonalityCustom`);
     localStorage.removeItem(`labcharts-${profileId}-focusCard`);

@@ -10,6 +10,7 @@ import { profileStorageKey } from './profile.js';
 const SENSITIVE_PATTERNS = [
   /^labcharts-[^-]+-imported$/,
   /^labcharts-[^-]+-chat$/,
+  /^labcharts-[^-]+-chat-t_.+$/,
   /^labcharts-profiles$/
 ];
 
@@ -459,7 +460,7 @@ const GLOBAL_SETTINGS_KEYS = [
 
 const PER_PROFILE_PREF_SUFFIXES = [
   'units', 'rangeMode', 'suppOverlay', 'noteOverlay',
-  'chatPersonality', 'chatPersonalityCustom'
+  'chatPersonality', 'chatPersonalityCustom', 'chatRailOpen'
 ];
 
 export function buildBackupSnapshot() {
@@ -481,6 +482,18 @@ export function buildBackupSnapshot() {
       if (imported) keys.imported = imported;
       const chat = localStorage.getItem(`labcharts-${p.id}-chat`);
       if (chat) keys.chat = chat;
+      const threadIndex = localStorage.getItem(`labcharts-${p.id}-chat-threads`);
+      if (threadIndex) {
+        keys['chat-threads'] = threadIndex;
+        try {
+          const threads = JSON.parse(threadIndex);
+          for (const t of threads) {
+            const tk = `labcharts-${p.id}-chat-t_${t.id}`;
+            const tv = localStorage.getItem(tk);
+            if (tv !== null) keys[`chat-t_${t.id}`] = tv;
+          }
+        } catch {}
+      }
       for (const suffix of PER_PROFILE_PREF_SUFFIXES) {
         const v = localStorage.getItem(`labcharts-${p.id}-${suffix}`);
         if (v !== null) keys[suffix] = v;
@@ -500,6 +513,18 @@ export function buildBackupSnapshot() {
       if (imported) keys.imported = imported;
       const chat = localStorage.getItem(`labcharts-${pid}-chat`);
       if (chat) keys.chat = chat;
+      const threadIndex = localStorage.getItem(`labcharts-${pid}-chat-threads`);
+      if (threadIndex) {
+        keys['chat-threads'] = threadIndex;
+        try {
+          const threads = JSON.parse(threadIndex);
+          for (const t of threads) {
+            const tk = `labcharts-${pid}-chat-t_${t.id}`;
+            const tv = localStorage.getItem(tk);
+            if (tv !== null) keys[`chat-t_${t.id}`] = tv;
+          }
+        } catch {}
+      }
       for (const suffix of PER_PROFILE_PREF_SUFFIXES) {
         const v = localStorage.getItem(`labcharts-${pid}-${suffix}`);
         if (v !== null) keys[suffix] = v;
