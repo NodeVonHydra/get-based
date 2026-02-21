@@ -8,6 +8,7 @@ import { getProfileLocation, updateLocationLat } from './profile.js';
 import { getOllamaConfig, checkOllama, saveOllamaConfig } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
 
+
 // ═══════════════════════════════════════════════
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════

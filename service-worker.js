@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v21';
+const CACHE_NAME = 'labcharts-v24';
 
 const APP_SHELL = [
   '/',
@@ -61,7 +61,7 @@ self.addEventListener('fetch', (event) => {
 
   // Network-only: Anthropic/Venice API calls and Ollama — do NOT intercept so
   // streaming ReadableStream goes directly to the page without SW IPC buffering
-  if (url.hostname === 'api.anthropic.com' || url.hostname === 'api.venice.ai' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  if (url.hostname === 'api.anthropic.com' || url.hostname === 'api.venice.ai' || url.hostname === 'api.openalex.org' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
     return;
   }
 

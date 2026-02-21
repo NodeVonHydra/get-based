@@ -11,6 +11,8 @@ export const state = {
   profileSex: null,
   profileDob: null,
   chatHistory: [],
+  chatThreads: [],
+  currentThreadId: null,
   currentChatPersonality: 'default',
   dateRangeFilter: 'all',
   rangeMode: 'optimal',
@@ -19,3 +21,5 @@ export const state = {
   compareDate1: null,
   compareDate2: null,
 };
+
+window._labState = state;
