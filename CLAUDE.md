@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Lab Charts is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files.
 
-Uses AI APIs (Anthropic Claude, Venice, OpenRouter, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results.
+Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results.
 
 ## Architecture
 
@@ -180,13 +180,13 @@ Two-path architecture replacing personal info with fake data before sending to A
 
 ### AI Provider System
 
-Four backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local), OpenRouter (model marketplace). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'venice'`/`'ollama'`/`'openrouter'`).
+Four backends: Anthropic (cloud), OpenRouter (model marketplace), Venice (privacy cloud), Ollama (local). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'openrouter'`/`'venice'`/`'ollama'`).
 
-- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callVeniceAPI`, `callOpenRouterAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
-- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders = {})` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). Venice and OpenRouter delegate to it. `extraHeaders` merged into fetch headers (OpenRouter uses `HTTP-Referer` + `X-Title` for attribution)
+- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callOpenRouterAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
+- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders = {})` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). OpenRouter and Venice delegate to it. `extraHeaders` merged into fetch headers (OpenRouter uses `HTTP-Referer` + `X-Title` for attribution)
 - **Anthropic**: Messages API + SSE streaming. Model from `getAnthropicModel()`. Key: `labcharts-api-key`
+- **OpenRouter**: OpenAI-compatible API marketplace (CORS-enabled) routing to 200+ models. Via `callOpenAICompatibleAPI` with attribution headers. Model from `getOpenRouterModel()` (default: `anthropic/claude-sonnet-4-6`). Key: `labcharts-openrouter-key`. Model IDs use `provider/model-name` format (e.g., `anthropic/claude-sonnet-4-6`). **Curated model list**: `OPENROUTER_CURATED` whitelist of latest-gen medically capable models (Claude 4.6, GPT-5.2, Gemini 3.1 Pro/3 Flash, DeepSeek v3.2, Qwen 3.5/3 Max, Grok 4) — prefix-matched against model IDs. `OPENROUTER_EXCLUDE` blocklist filters codex/audio/image/oss/safeguard/coder variants. **Dynamic pricing**: `fetchOpenRouterModels()` extracts `pricing.prompt`/`pricing.completion` (per-token strings → per-million-token floats) from API response, cached in `labcharts-openrouter-pricing`. `getOpenRouterPricing(modelId)` reads cache; `getModelPricing()` in schema.js checks dynamic cache first for OpenRouter, falls back to `_default: { input: 1.00, output: 3.00, approx: true }`. Models cached in `labcharts-openrouter-models`
 - **Venice**: OpenAI-compatible API via `callOpenAICompatibleAPI`. Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
-- **OpenRouter**: OpenAI-compatible API marketplace (CORS-enabled) routing to 200+ models. Via `callOpenAICompatibleAPI` with attribution headers. Model from `getOpenRouterModel()` (default: `anthropic/claude-sonnet-4-6`). Key: `labcharts-openrouter-key`. Model IDs use `provider/model-name` format (e.g., `anthropic/claude-sonnet-4-6`, `openai/gpt-4o`). `fetchOpenRouterModels()` filters text-capable models, deduplicates by stripping date suffixes. Models cached in `labcharts-openrouter-models`
 - **Ollama**: `/api/chat` + newline-delimited JSON streaming. Model from `getOllamaMainModel()`. `maxTokens` → `options.num_predict`. 120s timeout
 - **Guard**: `hasAIProvider()` gates all 7 AI features (focus card, marker desc, PDF import, chat)
 
@@ -196,7 +196,7 @@ Four backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local), OpenRo
 
 - **Location**: `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries → 5 bands), `getLatitudeFromLocation()`
 - **Time**: `getTimeFormat()`/`setTimeFormat()`, `formatTime()`, `parseTimeInput()`. Stored in `labcharts-time-format`
-- **Provider panels**: Each shows connection status + key input (Anthropic/Venice/OpenRouter) or server config (Ollama) + model selector
+- **Provider panels**: Each shows connection status + key input (Anthropic/OpenRouter/Venice) or server config (Ollama) + model selector
 
 ### JSON Export/Import
 
@@ -206,7 +206,7 @@ Four backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local), OpenRo
 ### External Dependencies (CDN)
 - **Chart.js 4.4.7**, **pdf.js 3.11.174** (both SRI-verified)
 - **Google Fonts**: Inter (body), Outfit (headings/`--font-display`), JetBrains Mono (data/`--font-mono`)
-- **AI APIs**: Anthropic (Claude), Venice AI (OpenAI-compatible), Ollama (local), OpenRouter (OpenAI-compatible marketplace)
+- **AI APIs**: Anthropic (Claude), OpenRouter (OpenAI-compatible marketplace), Venice AI (OpenAI-compatible), Ollama (local)
 
 ### Marker Key Convention
 Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `hormones.testosterone`). This format is used in `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, the imported data store, and AI prompt marker references.
@@ -218,7 +218,7 @@ Open `index.html` in a browser. Since it loads external CSS/JS files, you need a
 python3 -m http.server 8000
 ```
 
-There are no tests, linters, or build steps. An AI provider API key (Anthropic, Venice, or OpenRouter) or local Ollama is required for PDF import and chat features.
+There are no tests, linters, or build steps. An AI provider API key (Anthropic, OpenRouter, or Venice) or local Ollama is required for PDF import and chat features.
 
 ### PWA (Progressive Web App)
 
