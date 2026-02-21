@@ -526,7 +526,7 @@ export function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
 export function renderFattyAcidsView(cat) {
   let html = `<div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;border:1px solid var(--border)">
     <h3 style="margin-bottom:16px;font-size:16px">Fatty Acid Profile${cat.singleDate ? ' \u2014 ' + new Date(cat.singleDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</h3>
-    <div style="height:400px"><canvas id="chart-fa-bar"></canvas></div></div>`;
+    <div class="fa-bar-chart-container"><canvas id="chart-fa-bar"></canvas></div></div>`;
   html += `<div class="fatty-acids-grid">`;
   for (const [key, marker] of Object.entries(cat.markers)) {
     const r = getEffectiveRange(marker);
