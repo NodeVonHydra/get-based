@@ -19,6 +19,8 @@ import './export.js';
 import './chat.js';
 import './settings.js';
 import './glossary.js';
+import './feedback.js';
+import './tour.js';
 import { buildSidebar, renderProfileDropdown } from './nav.js';
 import './views.js';
 import { initEncryption, initBroadcastChannel, encryptedGetItem } from './crypto.js';
@@ -104,6 +106,7 @@ document.addEventListener("click", e => {
   if (e.target.id === "import-modal-overlay") window.closeImportModal();
   if (e.target.id === "settings-modal-overlay") window.closeSettingsModal();
   if (e.target.id === "glossary-modal-overlay") window.closeGlossary();
+  if (e.target.id === "feedback-modal-overlay") window.closeFeedbackModal();
   const dd = document.getElementById("corr-options");
   const si = document.getElementById("corr-search");
   if (dd && si && !dd.contains(e.target) && e.target !== si) dd.classList.remove("show");
@@ -113,12 +116,16 @@ document.addEventListener("keydown", e => {
     // Passphrase overlay should not be dismissible via Escape
     const passphraseOverlay = document.getElementById("passphrase-overlay");
     if (passphraseOverlay && passphraseOverlay.style.display === 'flex') return;
+    const tourOverlay = document.getElementById("tour-overlay");
+    if (tourOverlay) { window.endTour(); return; }
     const confirmOverlay = document.getElementById("confirm-dialog-overlay");
     if (confirmOverlay && confirmOverlay.classList.contains("show")) { confirmOverlay.classList.remove("show"); return; }
     const chatPanel = document.getElementById("chat-panel");
     if (chatPanel && chatPanel.classList.contains("open")) { window.closeChatPanel(); return; }
     const importOverlay = document.getElementById("import-modal-overlay");
     if (importOverlay && importOverlay.classList.contains("show")) { window.closeImportModal(); return; }
+    const feedbackOverlay = document.getElementById("feedback-modal-overlay");
+    if (feedbackOverlay && feedbackOverlay.classList.contains("show")) { window.closeFeedbackModal(); return; }
     const glossaryOverlay = document.getElementById("glossary-modal-overlay");
     if (glossaryOverlay && glossaryOverlay.classList.contains("show")) { window.closeGlossary(); return; }
     const settingsOverlay = document.getElementById("settings-modal-overlay");

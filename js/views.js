@@ -239,6 +239,9 @@ export function showDashboard(data) {
   // Non-blocking: load focus card and health dots after DOM is ready
   if (hasData && hasAIProvider()) loadFocusCard();
   loadContextHealthDots();
+
+  // Auto-trigger guided tour on first visit
+  if (window.startTour) window.startTour(true);
 }
 
 // ── Focus Card ──

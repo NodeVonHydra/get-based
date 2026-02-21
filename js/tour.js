@@ -1,0 +1,177 @@
+// tour.js — First-visit guided tour (spotlight walkthrough)
+
+import { state } from './state.js';
+import { profileStorageKey } from './profile.js';
+
+const TOUR_STEPS = [
+  { target: null, title: 'Welcome to Lab Charts', text: 'Your personal blood work dashboard. Let\'s take a quick look around.', position: 'center' },
+  { target: '#drop-zone', title: 'Import Your Results', text: 'Drag a PDF lab report or JSON file here \u2014 the AI extracts your markers automatically.', position: 'bottom' },
+  { target: '#sidebar-nav', title: 'Category Navigation', text: 'Browse marker categories \u2014 biochemistry, hormones, lipids, and more. On mobile this becomes a horizontal bar.', position: 'right' },
+  { target: '.profile-context-cards', title: 'Lifestyle Context', text: 'Tell the AI about your diet, sleep, exercise, and more. The more you fill in, the better your insights.', position: 'bottom' },
+  { target: '.settings-btn', title: 'Settings', text: 'Configure your profile, display preferences, and connect an AI provider.', position: 'bottom' },
+  { target: '.feedback-btn', title: 'Send Feedback', text: 'Found a bug or have a feature idea? Report it here.', position: 'bottom' },
+  { target: '.chat-toggle-btn', title: 'Ask AI', text: 'Chat with an AI analyst about your lab results. Requires an AI provider in Settings.', position: 'left' },
+];
+
+let currentStep = 0;
+
+function isTourCompleted() {
+  return localStorage.getItem(profileStorageKey(state.currentProfile, 'tour')) === 'completed';
+}
+
+export function startTour(auto) {
+  if (auto && isTourCompleted()) return;
+
+  // Create overlay elements if not already in DOM
+  if (!document.getElementById('tour-overlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'tour-overlay';
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) endTour();
+    });
+    document.body.appendChild(overlay);
+
+    const spotlight = document.createElement('div');
+    spotlight.id = 'tour-spotlight';
+    document.body.appendChild(spotlight);
+
+    const tooltip = document.createElement('div');
+    tooltip.id = 'tour-tooltip';
+    document.body.appendChild(tooltip);
+  }
+
+  document.getElementById('tour-overlay').style.display = 'block';
+  document.getElementById('tour-spotlight').style.display = 'block';
+  document.getElementById('tour-tooltip').style.display = 'block';
+
+  currentStep = 0;
+  goToStep(0);
+}
+
+function goToStep(index) {
+  currentStep = index;
+  const step = TOUR_STEPS[index];
+  const spotlight = document.getElementById('tour-spotlight');
+  const tooltip = document.getElementById('tour-tooltip');
+  if (!spotlight || !tooltip) return;
+
+  const isFirst = index === 0;
+  const isLast = index === TOUR_STEPS.length - 1;
+
+  // Build tooltip content
+  let dotsHtml = '<div class="tour-dots">';
+  for (let i = 0; i < TOUR_STEPS.length; i++) {
+    dotsHtml += `<div class="tour-dot${i === index ? ' active' : ''}"></div>`;
+  }
+  dotsHtml += '</div>';
+
+  const backBtn = isFirst
+    ? `<button class="tour-btn tour-btn-secondary" onclick="endTour()">Skip</button>`
+    : `<button class="tour-btn tour-btn-secondary" onclick="window._tourGoToStep(${index - 1})">Back</button>`;
+  const nextBtn = isLast
+    ? `<button class="tour-btn tour-btn-primary" onclick="endTour()">Done</button>`
+    : `<button class="tour-btn tour-btn-primary" onclick="window._tourGoToStep(${index + 1})">Next</button>`;
+
+  tooltip.innerHTML = `<h4>${step.title}</h4><p>${step.text}</p>
+    <div class="tour-nav">${dotsHtml}<div class="tour-btns">${backBtn}${nextBtn}</div></div>`;
+
+  if (step.target === null) {
+    // Welcome step — no spotlight, center tooltip
+    spotlight.style.display = 'none';
+    tooltip.style.left = '50%';
+    tooltip.style.top = '50%';
+    tooltip.style.transform = 'translate(-50%, -50%)';
+    return;
+  }
+
+  // Find target element
+  const el = document.querySelector(step.target);
+  if (!el) {
+    // Target not found — skip to next or end
+    if (!isLast) goToStep(index + 1);
+    else endTour();
+    return;
+  }
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Position after scroll settles
+  requestAnimationFrame(() => {
+    const rect = el.getBoundingClientRect();
+    const pad = 8;
+
+    // Position spotlight
+    spotlight.style.display = 'block';
+    spotlight.style.left = (rect.left - pad) + 'px';
+    spotlight.style.top = (rect.top - pad) + 'px';
+    spotlight.style.width = (rect.width + pad * 2) + 'px';
+    spotlight.style.height = (rect.height + pad * 2) + 'px';
+
+    // Position tooltip
+    tooltip.style.transform = 'none';
+    positionTooltip(rect, step.position);
+  });
+}
+
+function positionTooltip(rect, position) {
+  const tooltip = document.getElementById('tour-tooltip');
+  if (!tooltip) return;
+  const gap = 12;
+  const pad = 8;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Temporarily make tooltip visible to measure it
+  tooltip.style.left = '0';
+  tooltip.style.top = '0';
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+
+  let left, top;
+  const spotLeft = rect.left - pad;
+  const spotTop = rect.top - pad;
+  const spotRight = rect.right + pad;
+  const spotBottom = rect.bottom + pad;
+
+  if (position === 'bottom' && spotBottom + gap + th <= vh) {
+    top = spotBottom + gap;
+    left = spotLeft + (rect.width + pad * 2 - tw) / 2;
+  } else if (position === 'right' && spotRight + gap + tw <= vw) {
+    left = spotRight + gap;
+    top = spotTop + (rect.height + pad * 2 - th) / 2;
+  } else if (position === 'left' && spotLeft - gap - tw >= 0) {
+    left = spotLeft - gap - tw;
+    top = spotTop + (rect.height + pad * 2 - th) / 2;
+  } else if (position === 'top' && spotTop - gap - th >= 0) {
+    top = spotTop - gap - th;
+    left = spotLeft + (rect.width + pad * 2 - tw) / 2;
+  } else {
+    // Fallback: place below
+    top = spotBottom + gap;
+    left = spotLeft + (rect.width + pad * 2 - tw) / 2;
+    // If still doesn't fit below, place above
+    if (top + th > vh) top = spotTop - gap - th;
+  }
+
+  // Clamp within viewport
+  left = Math.max(12, Math.min(left, vw - tw - 12));
+  top = Math.max(12, Math.min(top, vh - th - 12));
+
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+
+export function endTour() {
+  localStorage.setItem(profileStorageKey(state.currentProfile, 'tour'), 'completed');
+  const overlay = document.getElementById('tour-overlay');
+  const spotlight = document.getElementById('tour-spotlight');
+  const tooltip = document.getElementById('tour-tooltip');
+  if (overlay) overlay.remove();
+  if (spotlight) spotlight.remove();
+  if (tooltip) tooltip.remove();
+}
+
+// Internal navigation helper exposed for onclick
+window._tourGoToStep = goToStep;
+
+Object.assign(window, { startTour, endTour });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v32';
+const CACHE_NAME = 'labcharts-v34';
 
 const APP_SHELL = [
   '/index.html',
@@ -23,6 +23,8 @@ const APP_SHELL = [
   '/js/chat.js',
   '/js/settings.js',
   '/js/glossary.js',
+  '/js/feedback.js',
+  '/js/tour.js',
   '/js/nav.js',
   '/js/views.js',
   '/js/crypto.js',
