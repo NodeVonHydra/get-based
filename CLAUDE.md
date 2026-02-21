@@ -13,14 +13,14 @@ Uses the Claude API for AI-powered PDF import and an AI chat panel for interpret
 No build system, no bundler, no package manager. Native ES modules (`<script type="module">`).
 
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
-- **`styles.css`** — all CSS (dark/light themes, responsive layout, modals, notifications, correlation view, chat panel, empty state)
+- **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries, modals, notifications, correlation view, chat panel, empty state)
 - **`js/`** — 22 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
-  - `api.js` — all 3 AI providers + `callClaudeAPI` router, key/model management, dynamic model lists
+  - `api.js` — all 3 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists
   - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, profile dropdown
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + Ollama PII obfuscation, diff viewer
@@ -183,8 +183,9 @@ Two-path architecture replacing personal info with fake data before sending to A
 Three backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'venice'`/`'ollama'`).
 
 - **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
+- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts)` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). Venice delegates to it
 - **Anthropic**: Messages API + SSE streaming. Model from `getAnthropicModel()`. Key: `labcharts-api-key`
-- **Venice**: OpenAI-compatible API (`https://api.venice.ai/api/v1/chat/completions`). Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
+- **Venice**: OpenAI-compatible API via `callOpenAICompatibleAPI`. Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
 - **Ollama**: `/api/chat` + newline-delimited JSON streaming. Model from `getOllamaMainModel()`. `maxTokens` → `options.num_predict`. 120s timeout
 - **Guard**: `hasAIProvider()` gates all 7 AI features (focus card, marker desc, PDF import, chat)
 
@@ -220,7 +221,11 @@ There are no tests, linters, or build steps. An Anthropic API key is required fo
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v18` (bump to bust). Strategies: API/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v27` (bump to bust). Strategies: API/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+
+### Responsive Layout
+
+Breakpoints: 3000/2000/1600/1400px (chat panel scaling up), 1200px (context cards 3→2 col), 1024px (sidebar collapses to horizontal pill nav, charts single-col), 768px (4-col grids→1-col, header compact), 600px (settings tabs scroll, trend spark hidden), 480px (compact padding, hide header dates, full-width toasts, alert cards wrap), 375px (tightest padding for smallest phones). Grid items use `min-width: 0; overflow: hidden` to prevent content from overflowing grid cells. Charts grid uses `minmax(min(440px, 100%), 1fr)` for safe sizing. Touch: `@media (pointer: coarse)` sets 44px minimum tap targets; `@media (hover: none)` reveals hover-only elements (delete buttons, profile actions, thread actions). Chat thread rail has a back button (`.chat-rail-back`) visible only on mobile. Fatty acids chart uses `.fa-bar-chart-container` class (400px desktop, 280px mobile) instead of inline styles.
 
 ## Key Patterns
 
