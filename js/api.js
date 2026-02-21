@@ -75,6 +75,7 @@ export function getVeniceModelDisplay() {
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
+
 export function renderModelPricingHint(provider, modelId) {
   if (provider === 'ollama') return '<span style="font-size:11px;color:var(--green)">Free (local)</span>';
   const p = getModelPricing(provider, modelId);
@@ -266,10 +267,10 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream }) 
   }
 }
 
-export async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
-  const key = getVeniceKey();
-  if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
-  const model = getVeniceModel();
+// ═══════════════════════════════════════════════
+// SHARED OPENAI-COMPATIBLE API HELPER
+// ═══════════════════════════════════════════════
+async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream }) {
   const apiMessages = [];
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
@@ -279,7 +280,7 @@ export async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
 
   let res;
   try {
-    res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+    res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -289,14 +290,14 @@ export async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
       signal: AbortSignal.timeout(300000)
     });
   } catch (e) {
-    if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error('Venice API timed out after 5 min.');
-    throw new Error(`Cannot reach Venice API: ${e.message}`);
+    if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error(`${providerName} API timed out after 5 min.`);
+    throw new Error(`Cannot reach ${providerName} API: ${e.message}`);
   }
 
   if (!res.ok) {
-    if (res.status === 401) throw new Error('Invalid Venice API key. Check your settings.');
+    if (res.status === 401) throw new Error(`Invalid ${providerName} API key. Check your settings.`);
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
-    let errMsg = `Venice API error (${res.status})`;
+    let errMsg = `${providerName} API error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
     throw new Error(errMsg);
   }
@@ -338,6 +339,12 @@ export async function callVeniceAPI({ system, messages, maxTokens, onStream }) {
   }
 }
 
+export async function callVeniceAPI(opts) {
+  const key = getVeniceKey();
+  if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
+  return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, getVeniceModel(), 'Venice', opts);
+}
+
 export async function validateVeniceKey(key) {
   try {
     const res = await fetch('https://api.venice.ai/api/v1/models', {
@@ -345,7 +352,7 @@ export async function validateVeniceKey(key) {
     });
     if (res.ok) return { valid: true };
     if (res.status === 401) return { valid: false, error: 'Invalid API key' };
-    if (res.status === 429) return { valid: true }; // Rate limited but key works
+    if (res.status === 429) return { valid: true };
     const errBody = await res.json().catch(() => null);
     const errMsg = errBody?.error?.message || `status ${res.status}`;
     return { valid: false, error: `API error: ${errMsg}` };
