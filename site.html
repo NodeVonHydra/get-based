@@ -130,6 +130,19 @@ section{position:relative;z-index:1;padding:120px 32px}
   background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
 .stat-label{font-size:13px;color:var(--text3);margin-top:4px}
 
+/* ═══ WHY SECTION ═══ */
+.why{padding:120px 32px}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start;margin-top:56px}
+.why-story p{font-size:16px;color:var(--text2);line-height:1.8;margin-bottom:16px}
+.why-story p strong{color:var(--text);font-weight:600}
+.who-cards{display:flex;flex-direction:column;gap:12px}
+.who-card{display:flex;align-items:flex-start;gap:16px;padding:18px 20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;transition:all 0.3s}
+.who-card:hover{border-color:var(--border2);transform:translateX(4px)}
+.who-icon{font-size:24px;flex-shrink:0;line-height:1}
+.who-card h4{font-family:'Outfit',sans-serif;font-weight:600;font-size:15px;margin-bottom:2px}
+.who-card p{font-size:13px;color:var(--text2);line-height:1.5}
+
 /* ═══ HOW IT WORKS ═══ */
 .steps{padding:120px 32px}
 .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px;position:relative}
@@ -223,16 +236,6 @@ section{position:relative;z-index:1;padding:120px 32px}
 .provider-badge.privacy{background:rgba(167,139,250,0.1);color:var(--purple)}
 .provider-badge.local{background:rgba(52,211,153,0.1);color:var(--green)}
 
-/* ═══ MARKERS SECTION ═══ */
-.markers{padding:80px 32px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.markers-scroll{display:flex;gap:12px;overflow:hidden;margin-top:32px;
-  mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
-.marker-chip{flex-shrink:0;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  font-size:13px;color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:6px}
-.marker-chip-icon{font-size:15px}
-.markers-scroll-inner{display:flex;gap:12px;animation:scrollMarkers 40s linear infinite}
-@keyframes scrollMarkers{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-
 /* ═══ CTA ═══ */
 .cta{padding:120px 32px;text-align:center;position:relative}
 .cta::before{content:'';position:absolute;inset:0;
@@ -265,6 +268,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   .bento-card.span-4,.bento-card.span-5,.bento-card.span-6{grid-column:span 6}
   .mockup-body{grid-template-columns:1fr}.mockup-sidebar{display:none}
   .privacy-inner{grid-template-columns:1fr;gap:40px}
+  .why-grid{grid-template-columns:1fr;gap:40px}
 }
 @media(max-width:768px){
   section{padding:80px 20px}
@@ -300,6 +304,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
 <nav id="nav">
   <a href="#" class="nav-logo">Lab<span>Charts</span></a>
   <div class="nav-links">
+    <a href="#why">Why</a>
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
     <a href="#privacy">Privacy</a>
@@ -312,10 +317,10 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   <div class="container">
     <div class="hero-badge reveal">
       <span class="hero-badge-dot"></span>
-      Offline-first &middot; No account required &middot; v2.0
+      Open source &middot; No account required &middot; Your data stays yours
     </div>
-    <h1 class="reveal reveal-delay-1">Your blood work,<br><span class="gradient">decoded by AI</span></h1>
-    <p class="hero-sub reveal reveal-delay-2">Drop any lab PDF and watch 109+ biomarkers come alive as interactive charts, trend alerts, and personalized health insights. Everything stays on your device.</p>
+    <h1 class="reveal reveal-delay-1">Your lab results deserve<br><span class="gradient">better than a PDF</span></h1>
+    <p class="hero-sub reveal reveal-delay-2">Drop any lab report and get interactive charts, trend detection, and AI that understands your full health context &mdash; not just reference ranges. No sign-up. Everything stays on your device.</p>
     <div class="hero-actions reveal reveal-delay-3">
       <a href="/app" class="btn-primary">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2v10m0 0l-4-4m4 4l4-4M3 15h12"/></svg>
@@ -393,6 +398,51 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   </div>
 </div>
 
+<!-- WHY -->
+<section class="why" id="why">
+  <div class="container">
+    <div class="section-label reveal">Why this exists</div>
+    <h2 class="section-title reveal reveal-delay-1">Because your doctor<br>has 7 minutes</h2>
+    <div class="why-grid">
+      <div class="why-story reveal reveal-delay-2">
+        <p>You get your blood work back as a PDF. Some numbers are flagged. Your doctor glances at it, says <strong>&ldquo;everything looks fine,&rdquo;</strong> and moves on.</p>
+        <p>But nobody&rsquo;s tracking your ferritin dropping for two years straight. Nobody&rsquo;s connecting your fasting insulin to your sleep. Nobody asks about your light exposure, your water quality, your stress.</p>
+        <p>I built Lab Charts because <strong>health data shouldn&rsquo;t live in a drawer.</strong> I wanted trends, not snapshots. AI that knows my full context &mdash; diet, sleep, exercise, environment, goals &mdash; not one that just compares numbers to ranges. And I wanted to own my data completely.</p>
+      </div>
+      <div class="who-cards">
+        <div class="who-card reveal reveal-delay-2">
+          <span class="who-icon">&#127919;</span>
+          <div>
+            <h4>The optimizer</h4>
+            <p>Tracking protocols, comparing interventions, pushing for optimal &mdash; not just &ldquo;normal&rdquo;</p>
+          </div>
+        </div>
+        <div class="who-card reveal reveal-delay-3">
+          <span class="who-icon">&#128154;</span>
+          <div>
+            <h4>The patient</h4>
+            <p>Managing a condition, watching trends, tired of being told &ldquo;it&rsquo;s fine&rdquo;</p>
+          </div>
+        </div>
+        <div class="who-card reveal reveal-delay-4">
+          <span class="who-icon">&#129658;</span>
+          <div>
+            <h4>The doctor who cares</h4>
+            <p>Wants full context, values patient autonomy, needs better tools than 7 minutes allow</p>
+          </div>
+        </div>
+        <div class="who-card reveal reveal-delay-5">
+          <span class="who-icon">&#128161;</span>
+          <div>
+            <h4>Anyone who&rsquo;s been dismissed</h4>
+            <p>You know something&rsquo;s off. Now you can see the data yourself and stop guessing</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- HOW IT WORKS -->
 <section class="steps" id="how">
   <div class="container">
@@ -442,12 +492,6 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
         <span class="feature-tag purple">Any format</span>
       </div>
       <div class="feature-card reveal reveal-delay-2">
-        <span class="feature-icon">&#128273;</span>
-        <h3>PII Scrubbing</h3>
-        <p>Personal info is replaced with fake data before reaching any AI. Local Ollama model for context-aware scrubbing, regex fallback for offline use.</p>
-        <span class="feature-tag green">Privacy</span>
-      </div>
-      <div class="feature-card reveal reveal-delay-1">
         <span class="feature-icon">&#129518;</span>
         <h3>Biological Age</h3>
         <p>PhenoAge calculation from 9 blood biomarkers estimates your biological age. Compare it to chronological age on an interactive chart.</p>
@@ -476,12 +520,6 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
         <h3>Trend Alerts</h3>
         <p>Automatic detection of markers approaching or exceeding boundaries. Sudden changes flagged with priority. Critical values highlighted.</p>
         <span class="feature-tag orange">Alerts</span>
-      </div>
-      <div class="feature-card reveal reveal-delay-4">
-        <span class="feature-icon">&#128274;</span>
-        <h3>Encryption &amp; Auto-Backup</h3>
-        <p>AES-256-GCM encryption with your passphrase. Automatic snapshots after every change, rolling 5-backup history, one-click restore.</p>
-        <span class="feature-tag green">Security</span>
       </div>
     </div>
   </div>
@@ -574,50 +612,6 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   </div>
 </section>
 
-<!-- MARKERS SCROLL -->
-<div class="markers">
-  <div class="container" style="text-align:center">
-    <div class="section-label reveal">15 Categories</div>
-    <h2 class="section-title reveal reveal-delay-1" style="margin-bottom:0">109+ biomarkers and counting</h2>
-    <p class="section-sub reveal reveal-delay-2" style="margin:12px auto 0">Plus unlimited custom markers &mdash; AI automatically adds unknown markers from your PDFs.</p>
-  </div>
-  <div class="markers-scroll">
-    <div class="markers-scroll-inner">
-      <div class="marker-chip"><span class="marker-chip-icon">&#129514;</span> Biochemistry</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9889;</span> Hormones</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9881;&#65039;</span> Electrolytes</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128167;</span> Lipid Panel</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128308;</span> Iron Metabolism</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128737;&#65039;</span> Proteins</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129419;</span> Thyroid</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9728;&#65039;</span> Vitamins</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128202;</span> Diabetes</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128300;</span> Tumor Markers</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129656;</span> Coagulation</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129504;</span> Hematology</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129515;</span> WBC Differential</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128031;</span> Fatty Acids</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129460;</span> Bone Metabolism</div>
-      <!-- duplicate for infinite scroll -->
-      <div class="marker-chip"><span class="marker-chip-icon">&#129514;</span> Biochemistry</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9889;</span> Hormones</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9881;&#65039;</span> Electrolytes</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128167;</span> Lipid Panel</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128308;</span> Iron Metabolism</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128737;&#65039;</span> Proteins</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129419;</span> Thyroid</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#9728;&#65039;</span> Vitamins</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128202;</span> Diabetes</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128300;</span> Tumor Markers</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129656;</span> Coagulation</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129504;</span> Hematology</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129515;</span> WBC Differential</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#128031;</span> Fatty Acids</div>
-      <div class="marker-chip"><span class="marker-chip-icon">&#129460;</span> Bone Metabolism</div>
-    </div>
-  </div>
-</div>
-
 <!-- PRIVACY -->
 <section class="privacy" id="privacy">
   <div class="privacy-inner">
@@ -692,7 +686,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
 <section class="cta">
   <div class="container">
     <h2 class="reveal">Stop guessing.<br><span class="gradient">Start understanding.</span></h2>
-    <p class="reveal reveal-delay-1">Import your first lab report in 30 seconds. No sign-up, no credit card. Install as an app or use it in your browser.</p>
+    <p class="reveal reveal-delay-1">Import your first lab report in 30 seconds. No account, no credit card, no data leaves your device.</p>
     <div class="cta-actions reveal reveal-delay-2">
       <a href="/app" class="btn-primary">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2v10m0 0l-4-4m4 4l4-4M3 15h12"/></svg>
@@ -713,6 +707,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
     <div class="footer-links">
       <a href="/app">Open App</a>
       <a href="https://github.com/elkimek/lab-charts" target="_blank" rel="noopener">GitHub</a>
+      <a href="#why">Why</a>
       <a href="#features">Features</a>
       <a href="#privacy">Privacy</a>
     </div>
