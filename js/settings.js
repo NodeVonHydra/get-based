@@ -105,6 +105,11 @@ export function openSettingsModal(tab) {
           <button class="time-toggle-btn${getTimeFormat() === '12h' ? ' active' : ''}" data-timefmt="12h" onclick="setTimeFormat('12h');updateSettingsUI()">12h (AM/PM)</button>
         </div>
       </div>
+
+      <div class="settings-section">
+        <label class="settings-label">Guided Tour</label>
+        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Take a Tour</button>
+      </div>
     </div>
 
     <!-- AI Tab -->
