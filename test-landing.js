@@ -57,6 +57,7 @@
   // Repetition removed
   assert('No PII Scrubbing feature card', !siteSrc.includes('<h3>PII Scrubbing</h3>'));
   assert('No Encryption feature card in features', !/<h3>Encryption &amp; Auto-Backup<\/h3>/.test(siteSrc));
+  assert('No Biological Age feature card', !siteSrc.includes('<h3>Biological Age</h3>'));
   assert('No markers scroll section', !siteSrc.includes('markers-scroll'));
   assert('No marker-chip CSS', !siteSrc.includes('.marker-chip'));
   assert('PII still in Privacy section', siteSrc.includes('PII Obfuscation'));
@@ -64,7 +65,7 @@
 
   // Feature count
   const featureCards = (siteSrc.match(/class="feature-card/g) || []).length;
-  assert('7 feature cards (removed PII + Encryption)', featureCards === 7, `found ${featureCards}`);
+  assert('6 feature cards (removed PII, Encryption, BioAge)', featureCards === 6, `found ${featureCards}`);
 
   // Nav/footer
   assert('Nav has Why link', siteSrc.includes('<a href="#why">Why</a>'));
@@ -95,7 +96,7 @@
     assert('No .markers in DOM', !document.querySelector('.markers'));
 
     const domFeatureCards = document.querySelectorAll('.feature-card');
-    assert('7 feature cards in DOM', domFeatureCards.length === 7, `found ${domFeatureCards.length}`);
+    assert('6 feature cards in DOM', domFeatureCards.length === 6, `found ${domFeatureCards.length}`);
 
     if (whyGrid) {
       const style = getComputedStyle(whyGrid);
@@ -107,8 +108,8 @@
 
   // ── 6. Link integrity ──
   console.log('\n%c6. Link integrity', 'font-weight:bold');
-  const appLinks = (siteSrc.match(/href="\/app"/g) || []).length;
-  assert('/app links present (CTAs)', appLinks >= 3, `found ${appLinks}`);
+  const appLinks = (siteSrc.match(/href="index\.html"/g) || []).length;
+  assert('index.html links present (CTAs)', appLinks >= 3, `found ${appLinks}`);
   assert('No /landing links', !siteSrc.includes('href="/landing"'));
 
   // ── Summary ──
