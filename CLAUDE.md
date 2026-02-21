@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Lab Charts is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files.
 
-Uses the Claude API for AI-powered PDF import and an AI chat panel for interpreting results.
+Uses AI APIs (Anthropic Claude, Venice, OpenRouter, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results.
 
 ## Architecture
 
@@ -20,7 +20,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
-  - `api.js` — all 3 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists
+  - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper (with `extraHeaders`), key/model management, dynamic model lists
   - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, profile dropdown
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + Ollama PII obfuscation, diff viewer
@@ -180,22 +180,23 @@ Two-path architecture replacing personal info with fake data before sending to A
 
 ### AI Provider System
 
-Three backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'venice'`/`'ollama'`).
+Four backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local), OpenRouter (model marketplace). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'venice'`/`'ollama'`/`'openrouter'`).
 
-- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
-- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts)` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). Venice delegates to it
+- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callVeniceAPI`, `callOpenRouterAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
+- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders = {})` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). Venice and OpenRouter delegate to it. `extraHeaders` merged into fetch headers (OpenRouter uses `HTTP-Referer` + `X-Title` for attribution)
 - **Anthropic**: Messages API + SSE streaming. Model from `getAnthropicModel()`. Key: `labcharts-api-key`
 - **Venice**: OpenAI-compatible API via `callOpenAICompatibleAPI`. Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
+- **OpenRouter**: OpenAI-compatible API marketplace (CORS-enabled) routing to 200+ models. Via `callOpenAICompatibleAPI` with attribution headers. Model from `getOpenRouterModel()` (default: `anthropic/claude-sonnet-4-6`). Key: `labcharts-openrouter-key`. Model IDs use `provider/model-name` format (e.g., `anthropic/claude-sonnet-4-6`, `openai/gpt-4o`). `fetchOpenRouterModels()` filters text-capable models, deduplicates by stripping date suffixes. Models cached in `labcharts-openrouter-models`
 - **Ollama**: `/api/chat` + newline-delimited JSON streaming. Model from `getOllamaMainModel()`. `maxTokens` → `options.num_predict`. 120s timeout
 - **Guard**: `hasAIProvider()` gates all 7 AI features (focus card, marker desc, PDF import, chat)
 
 ### Settings Modal
 
-4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format), **AI Provider** (3-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
+4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format), **AI Provider** (4-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
 
 - **Location**: `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries → 5 bands), `getLatitudeFromLocation()`
 - **Time**: `getTimeFormat()`/`setTimeFormat()`, `formatTime()`, `parseTimeInput()`. Stored in `labcharts-time-format`
-- **Provider panels**: Each shows connection status + key input (Anthropic/Venice) or server config (Ollama) + model selector
+- **Provider panels**: Each shows connection status + key input (Anthropic/Venice/OpenRouter) or server config (Ollama) + model selector
 
 ### JSON Export/Import
 
@@ -205,7 +206,7 @@ Three backends: Anthropic (cloud), Venice (privacy cloud), Ollama (local). Provi
 ### External Dependencies (CDN)
 - **Chart.js 4.4.7**, **pdf.js 3.11.174** (both SRI-verified)
 - **Google Fonts**: Inter (body), Outfit (headings/`--font-display`), JetBrains Mono (data/`--font-mono`)
-- **AI APIs**: Anthropic (Claude), Venice AI (OpenAI-compatible), Ollama (local)
+- **AI APIs**: Anthropic (Claude), Venice AI (OpenAI-compatible), Ollama (local), OpenRouter (OpenAI-compatible marketplace)
 
 ### Marker Key Convention
 Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `hormones.testosterone`). This format is used in `UNIT_CONVERSIONS`, `CORRELATION_PRESETS`, the imported data store, and AI prompt marker references.
@@ -217,11 +218,11 @@ Open `index.html` in a browser. Since it loads external CSS/JS files, you need a
 python3 -m http.server 8000
 ```
 
-There are no tests, linters, or build steps. An Anthropic API key is required for PDF import and chat features.
+There are no tests, linters, or build steps. An AI provider API key (Anthropic, Venice, or OpenRouter) or local Ollama is required for PDF import and chat features.
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v27` (bump to bust). Strategies: API/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v30` (bump to bust). Strategies: API/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
