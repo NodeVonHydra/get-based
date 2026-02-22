@@ -41,6 +41,10 @@
 
   // Meta tags
   assert('og:description has 287+', siteSrc.includes('track 287+ biomarkers'));
+  assert('og:url present', siteSrc.includes('og:url'));
+  assert('og:image present', siteSrc.includes('og:image'));
+  assert('canonical link present', siteSrc.includes('rel="canonical"'));
+  assert('apple-touch-icon present', siteSrc.includes('apple-touch-icon'));
 
   // Hero copy
   assert('Hero: "better than a PDF"', siteSrc.includes('better than a PDF'));
@@ -139,17 +143,31 @@
 
   // CTA updated
   assert('CTA: "nothing to install"', siteSrc.includes('nothing to install'));
+  assert('CTA: "Stop guessing"', /cta[\s\S]*?Stop guessing/i.test(siteSrc));
   assert('CTA: no "No account needed"', !siteSrc.includes('No account needed, your data stored locally'));
 
   // Nav/footer
   assert('Nav has Why link', siteSrc.includes('<a href="#why">Why</a>'));
+  assert('Nav has Support link', siteSrc.includes('<a href="#support">Support</a>'));
   assert('Footer has Why link', /footer[\s\S]*#why/.test(siteSrc));
+  assert('Footer has Support link', /footer[\s\S]*#support/.test(siteSrc));
 
   // CSS: responsive rules
   assert('CSS: features-section-top responsive at 768px', /768px[\s\S]*?\.features-section-top/.test(siteSrc));
   assert('CSS: features-section-bento responsive at 1024px', /1024px[\s\S]*?\.features-section-bento/.test(siteSrc));
   assert('Why-grid responsive in 1024px', siteSrc.includes('.why-grid{grid-template-columns:1fr'));
   assert('CSS: .feature-tag.cyan exists', siteSrc.includes('.feature-tag.cyan'));
+  assert('CSS: providers-grid responsive at 1024px', /1024px[\s\S]*?\.providers-grid/.test(siteSrc));
+  assert('CSS: bg layers hidden at 480px', /480px[\s\S]*?\.bg-grid/.test(siteSrc));
+
+  // Support section
+  assert('Has #support section', siteSrc.includes('id="support"'));
+  assert('Has #providers section', siteSrc.includes('id="providers"'));
+  assert('Share on X intent URL', siteSrc.includes('x.com/intent/tweet'));
+
+  // Provider cards use flexbox alignment
+  assert('Provider cards use flex column', /\.provider-card\{[^}]*flex-direction:column/.test(siteSrc));
+  assert('Provider badge margin-top auto', /\.provider-badge\{[^}]*margin-top:auto/.test(siteSrc));
 
   // ── 5. DOM checks (if on site.html) ──
   console.log('\n%c5. DOM checks', 'font-weight:bold');
