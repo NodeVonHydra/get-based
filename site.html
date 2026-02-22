@@ -8,7 +8,11 @@
 <meta property="og:title" content="Lab Charts — Your Blood Work, Decoded">
 <meta property="og:description" content="AI-powered blood work dashboard. Import any lab PDF, track 287+ biomarkers, get personalized insights. Local-first, no account needed.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://labcharts.app/">
+<meta property="og:image" content="https://labcharts.app/icon-512.png">
+<link rel="canonical" href="https://labcharts.app/">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -299,6 +303,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   .mockup-body{grid-template-columns:1fr}.mockup-sidebar{display:none}
   .privacy-inner{grid-template-columns:1fr;gap:40px}
   .why-grid{grid-template-columns:1fr;gap:40px}
+  .providers-grid{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:768px){
   section{padding:80px 20px}
@@ -321,6 +326,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   .stats-grid{grid-template-columns:1fr}
   .providers-grid{grid-template-columns:1fr}
   .ctx-mock{grid-template-columns:repeat(2,1fr)}
+  .bg-grid,.bg-glow,.bg-noise{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   .who-icon,.step-icon,.bento-icon,.feature-icon{animation:none !important}
@@ -354,7 +360,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
       Open source &middot; No account required &middot; 287+ biomarkers
     </div>
     <h1 class="reveal reveal-delay-1">Your lab results deserve<br><span class="gradient">better than a PDF</span></h1>
-    <p class="hero-sub reveal reveal-delay-2">Drop any lab report and get interactive charts, trend detection, and AI that understands your full health context &mdash; not just reference ranges. No sign-up, no install. Your data stays in your browser.</p>
+    <p class="hero-sub reveal reveal-delay-2">Drop any lab report and get interactive charts, trend detection, and AI that understands your full health context &mdash; not just reference ranges.</p>
     <div class="hero-actions reveal reveal-delay-3">
       <a href="/app" class="btn-primary">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2v10m0 0l-4-4m4 4l4-4M3 15h12"/></svg>
@@ -436,7 +442,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
 <section class="why" id="why">
   <div class="container">
     <div class="section-label reveal">Why this exists</div>
-    <h2 class="section-title reveal reveal-delay-1">Because your doctor<br>has 15 minutes<a href="https://opmed.doximity.com/articles/poll-of-4-500-clinicians-how-much-time-do-you-spend-with-your-patients" target="_blank" rel="noopener" style="font-size:14px;vertical-align:super;color:var(--text2);text-decoration:none;font-weight:400" title="Doximity poll of 4,500 clinicians: over half spend 15 minutes or fewer per patient">*</a></h2>
+    <h2 class="section-title reveal reveal-delay-1">Because your doctor<br>has 15 minutes<a href="https://opmed.doximity.com/articles/poll-of-4-500-clinicians-how-much-time-do-you-spend-with-your-patients" target="_blank" rel="noopener" style="font-size:14px;vertical-align:super;color:var(--blue);text-decoration:none;font-weight:400;opacity:0.7;transition:opacity 0.2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Doximity poll of 4,500 clinicians: over half spend 15 minutes or fewer per patient">*</a></h2>
     <div class="why-grid">
       <div class="why-story reveal reveal-delay-2">
         <p>You get your blood work back as a PDF. Some numbers are flagged. Your doctor glances at it, says <strong>&ldquo;your cholesterol is high,&rdquo;</strong> and moves on.</p>
@@ -541,7 +547,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
       <div class="bento-card span-7 reveal">
         <span class="bento-icon">&#128172;</span>
         <h3>Consult anyone</h3>
-        <p>That specialist who charges $2,000/hour. The researcher whose book changed how you think about health. The doctor on the other side of the planet you&rsquo;ll never get an appointment with. Type a name, and a full analytical persona is generated &mdash; their philosophy, their lens, their approach &mdash; grounded in your actual lab results and lifestyle context.</p>
+        <p>Type a name &mdash; any specialist, researcher, or doctor &mdash; and a full analytical persona is generated: their philosophy, their lens, their approach. Grounded in your actual lab results and lifestyle context.</p>
         <div class="bento-visual">
           <div class="chat-mock">
             <div style="display:grid;grid-template-columns:180px 1fr;gap:0;height:100%">
@@ -649,7 +655,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
 </section>
 
 <!-- AI PROVIDERS -->
-<section class="providers">
+<section class="providers" id="providers">
   <div class="container">
     <div class="section-label reveal">Choose your AI</div>
     <h2 class="section-title reveal reveal-delay-1" style="text-align:center">Five providers,<br>your choice</h2>
@@ -668,7 +674,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
         <span class="provider-badge cloud">Marketplace</span>
       </div>
       <div class="provider-card reveal reveal-delay-4">
-        <span class="provider-logo"><svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
+        <span class="provider-logo"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg></span>
         <h3>Routstr</h3>
         <p>Pay anonymously with eCash or Lightning Bitcoin. No credit card, no account, no trace.</p>
         <span class="provider-badge anon">Anonymous</span>
@@ -729,9 +735,9 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
         </div>
         <h3>Share</h3>
         <p>Know someone who tracks their labs? Tell them about Lab Charts. Word of mouth is the best marketing.</p>
-        <a href="https://x.com/elkimxoc" class="support-btn share-btn" target="_blank" rel="noopener">
+        <a href="https://x.com/intent/tweet?text=Lab%20Charts%20%E2%80%94%20your%20blood%20work%2C%20decoded.%20AI-powered%20PDF%20import%2C%20287%2B%20biomarkers%2C%20trend%20charts.%20Open%20source%2C%20free%2C%20private.&url=https%3A%2F%2Flabcharts.app" class="support-btn share-btn" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          Follow on X
+          Share on X
         </a>
       </div>
     </div>
