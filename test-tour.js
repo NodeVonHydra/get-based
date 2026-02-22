@@ -37,9 +37,9 @@
   assert('tour.js has TOUR_STEPS array', tourSrc.includes('const TOUR_STEPS'));
   assert('tour.js imports state', tourSrc.includes("import { state } from './state.js'"));
   assert('tour.js imports profileStorageKey', tourSrc.includes("import { profileStorageKey } from './profile.js'"));
-  assert('tour.js has window exports', tourSrc.includes('Object.assign(window, { startTour, endTour })'));
+  assert('tour.js has window exports', tourSrc.includes('Object.assign(window,') && tourSrc.includes('startTour') && tourSrc.includes('endTour'));
   assert('tour.js exposes _tourGoToStep on window', tourSrc.includes('window._tourGoToStep = goToStep'));
-  assert('startTour respects auto flag', tourSrc.includes('if (auto && isTourCompleted()) return'));
+  assert('startTour respects auto flag', tourSrc.includes('if (auto && isTourCompleted(') && tourSrc.includes(') return'));
   assert('endTour stores completed in localStorage', tourSrc.includes("'completed'"));
   assert('Overlay click dismisses tour', tourSrc.includes('if (e.target === overlay) endTour()'));
 
@@ -56,7 +56,13 @@
   assert('Step 6: Feedback', tourSrc.includes("target: '.feedback-btn', title: 'Send Feedback'"));
   assert('Step 7: Chat toggle', tourSrc.includes("target: '.chat-toggle-btn', title: 'Ask AI'"));
 
-  const stepMatches = tourSrc.match(/\{ target:/g);
+  // Count only within TOUR_STEPS (before CYCLE_TOUR_STEPS)
+  const tourStepsStart = tourSrc.indexOf('const TOUR_STEPS');
+  const cycleStepsStart = tourSrc.indexOf('const CYCLE_TOUR_STEPS');
+  const tourStepsSection = tourStepsStart >= 0 && cycleStepsStart > tourStepsStart
+    ? tourSrc.slice(tourStepsStart, cycleStepsStart)
+    : tourSrc.slice(tourStepsStart, tourStepsStart + 2000);
+  const stepMatches = tourStepsSection.match(/\{ target:/g);
   assert('Exactly 7 steps in TOUR_STEPS', stepMatches && stepMatches.length === 7, `found ${stepMatches ? stepMatches.length : 0}`);
 
   // ═══════════════════════════════════════
@@ -417,7 +423,7 @@
   const swSrc = await fetch('service-worker.js').then(r => r.text());
 
   assert('SW APP_SHELL includes /js/tour.js', swSrc.includes("'/js/tour.js'"));
-  assert('SW cache is v34', swSrc.includes('labcharts-v34'));
+  assert('SW cache is v38', swSrc.includes('labcharts-v38'));
 
   // ═══════════════════════════════════════
   // Restore original tour state

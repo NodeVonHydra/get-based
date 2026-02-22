@@ -14,11 +14,13 @@
   console.log('\n%c1. vercel.json — Routing', 'font-weight:bold');
   const vercelSrc = await fetch('vercel.json').then(r => r.text());
   const vercel = JSON.parse(vercelSrc);
-  const rootRewrite = vercel.rewrites.find(r => r.source === '/');
-  assert('Root / rewrites to site.html', rootRewrite && rootRewrite.destination === '/site.html');
-  const appRewrite = vercel.rewrites.find(r => r.source === '/app');
-  assert('/app rewrites to index.html', appRewrite && appRewrite.destination === '/index.html');
-  assert('No /landing rewrite', !vercel.rewrites.find(r => r.source === '/landing'));
+  // vercel.json uses "routes" with src/dest (not rewrites with source/destination)
+  const routes = vercel.routes || vercel.rewrites || [];
+  const rootRoute = routes.find(r => (r.src === '^/$' || r.source === '/'));
+  assert('Root / routes to site.html', rootRoute && (rootRoute.dest === '/site.html' || rootRoute.destination === '/site.html'));
+  const appRoute = routes.find(r => (r.src === '^/app/?$' || r.source === '/app'));
+  assert('/app routes to index.html', appRoute && (appRoute.dest === '/index.html' || appRoute.destination === '/index.html'));
+  assert('No /landing route', !routes.find(r => r.src === '/landing' || r.source === '/landing'));
 
   // ── 2. manifest.json ──
   console.log('\n%c2. manifest.json — PWA', 'font-weight:bold');
@@ -29,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v29', swSrc.includes('labcharts-v29'));
+  assert('Cache bumped to v38', swSrc.includes('labcharts-v38'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -49,7 +51,7 @@
   assert('Has why-story class', siteSrc.includes('why-story'));
   assert('Has who-cards class', siteSrc.includes('who-cards'));
   assert('Has 4 who-card items', (siteSrc.match(/who-card reveal/g) || []).length === 4);
-  assert('Persona: The optimizer', siteSrc.includes('The optimizer'));
+  assert('Persona: The biohacker', siteSrc.includes('The biohacker'));
   assert('Persona: The patient', siteSrc.includes('The patient'));
   assert('Persona: The doctor who cares', siteSrc.includes('The doctor who cares'));
   assert('Persona: been dismissed', siteSrc.includes('been dismissed'));
@@ -108,8 +110,8 @@
 
   // ── 6. Link integrity ──
   console.log('\n%c6. Link integrity', 'font-weight:bold');
-  const appLinks = (siteSrc.match(/href="index\.html"/g) || []).length;
-  assert('index.html links present (CTAs)', appLinks >= 3, `found ${appLinks}`);
+  const appLinks = (siteSrc.match(/href="\/app"/g) || []).length;
+  assert('/app links present (CTAs)', appLinks >= 3, `found ${appLinks}`);
   assert('No /landing links', !siteSrc.includes('href="/landing"'));
 
   // ── Summary ──

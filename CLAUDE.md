@@ -240,7 +240,15 @@ Open `index.html` in a browser. Since it loads external CSS/JS files, you need a
 python3 -m http.server 8000
 ```
 
-There are no tests, linters, or build steps. An AI provider API key (Anthropic, OpenRouter, or Venice) or local Ollama is required for PDF import and chat features.
+No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Venice) or local Ollama is required for PDF import and chat features.
+
+### Tests
+
+11 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
+```
+./run-tests.sh
+```
+This auto-starts a server if needed, runs all tests via headless Chrome (Puppeteer), and exits with code 0/1. Requires Puppeteer (`npx puppeteer` or `npm i -g puppeteer`). Alternatively, with a server already running: `NODE_PATH=/path/to/node_modules node run-tests.js`
 
 ### PWA (Progressive Web App)
 
