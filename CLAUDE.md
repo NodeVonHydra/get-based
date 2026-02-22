@@ -115,7 +115,8 @@ Cycle-aware lab interpretation for female profiles (`profileSex === 'female'` on
 
 - **Storage**: `importedData.menstrualCycle` — `null` or `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`. Periods: `[{ startDate, endDate, flow, notes }]`
 - **Helpers**: `getCyclePhase(dateStr, mc)` → `{ cycleDay, phase, phaseName }`. Phases: menstrual, follicular, ovulatory (cycleLength-14 ±1), luteal. `getNextBestDrawDate(mc)` → next early follicular window (days 3-5). `getBloodDrawPhases(mc, dates)` → maps lab dates to phases
-- **Dashboard**: Between context cards and supplements. Shows cycle summary, next draw recommendation, phase badges, period log
+- **Auto-calculated stats**: `calculateCycleStats(periods)` computes `cycleLength` (mean days between starts, 2+ periods, clamped 20–45), `periodLength` (mean days per period, 1+ periods, clamped 2–10), `regularity` (stdev of intervals, 3+ periods: ≤2 regular, ≤7 irregular, >7 very_irregular). Returns `null` for insufficient data. Editor shows read-only auto-calculated values when available, manual inputs as fallback. `syncMenstrualCycleProfileFromForm()` reads auto elements (`#mc-*-auto` `data-value`) when present, falls back to manual inputs
+- **Dashboard**: Between context cards and supplements. Shows cycle summary (clickable to open editor), next draw recommendation, phase badges, period log
 - **AI context**: Cycle phase considered for hormones, iron/ferritin, inflammatory markers. Flags suboptimal draw timing
 - **Export/import**: Import overwrites profile, merges periods by startDate
 
