@@ -80,12 +80,53 @@ export function getBloodDrawPhases(mc, dates) {
   return phases;
 }
 
+export function calculateCycleStats(periods) {
+  const result = { cycleLength: null, periodLength: null, regularity: null };
+  if (!periods || periods.length === 0) return result;
+  const sorted = periods.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+
+  // Average period length (1+ periods)
+  const periodLengths = sorted.map(p => {
+    const start = new Date(p.startDate + 'T00:00:00');
+    const end = new Date(p.endDate + 'T00:00:00');
+    return Math.round((end - start) / 86400000) + 1;
+  });
+  const avgPeriod = Math.round(periodLengths.reduce((a, b) => a + b, 0) / periodLengths.length);
+  result.periodLength = Math.max(2, Math.min(10, avgPeriod));
+
+  // Cycle lengths between consecutive period starts (2+ periods)
+  if (sorted.length >= 2) {
+    const cycleLengths = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1].startDate + 'T00:00:00');
+      const curr = new Date(sorted[i].startDate + 'T00:00:00');
+      cycleLengths.push(Math.round((curr - prev) / 86400000));
+    }
+    const avgCycle = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+    result.cycleLength = Math.max(20, Math.min(45, avgCycle));
+
+    // Regularity (3+ periods = 2+ intervals)
+    if (cycleLengths.length >= 2) {
+      const mean = cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length;
+      const variance = cycleLengths.reduce((sum, v) => sum + (v - mean) ** 2, 0) / cycleLengths.length;
+      const stdev = Math.sqrt(variance);
+      if (stdev <= 2) result.regularity = 'regular';
+      else if (stdev <= 7) result.regularity = 'irregular';
+      else result.regularity = 'very_irregular';
+    }
+  }
+
+  return result;
+}
+
 export function openMenstrualCycleEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
   const mc = state.importedData.menstrualCycle || {};
   const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const stats = calculateCycleStats(mc.periods);
   const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const regLabels = { regular: 'Regular', irregular: 'Irregular', very_irregular: 'Very Irregular' };
   let html = `<button class="modal-close" onclick="window.closeModal()">&times;</button>
     <h3>Menstrual Cycle</h3>
     <div class="modal-unit">Track your cycle so AI can interpret hormone, iron, and inflammation markers in context of cycle phase.</div>
@@ -93,21 +134,27 @@ export function openMenstrualCycleEditor() {
       <div class="supp-form-row">
         <div class="supp-form-field">
           <label>Average Cycle Length (days)</label>
-          <input type="number" id="mc-cycle-length" value="${mc.cycleLength || 28}" min="20" max="45">
+          ${stats.cycleLength != null
+            ? `<div class="mc-auto-value" id="mc-cycle-length-auto" data-value="${stats.cycleLength}">${stats.cycleLength} days</div>`
+            : `<input type="number" id="mc-cycle-length" value="${mc.cycleLength || 28}" min="20" max="45">`}
         </div>
         <div class="supp-form-field">
           <label>Average Period Length (days)</label>
-          <input type="number" id="mc-period-length" value="${mc.periodLength || 5}" min="2" max="10">
+          ${stats.periodLength != null
+            ? `<div class="mc-auto-value" id="mc-period-length-auto" data-value="${stats.periodLength}">${stats.periodLength} days</div>`
+            : `<input type="number" id="mc-period-length" value="${mc.periodLength || 5}" min="2" max="10">`}
         </div>
       </div>
       <div class="supp-form-row">
         <div class="supp-form-field">
           <label>Regularity</label>
-          <select id="mc-regularity">
+          ${stats.regularity != null
+            ? `<div class="mc-auto-value" id="mc-regularity-auto" data-value="${stats.regularity}">${regLabels[stats.regularity]}</div>`
+            : `<select id="mc-regularity">
             <option value="regular"${mc.regularity === 'regular' || !mc.regularity ? ' selected' : ''}>Regular</option>
             <option value="irregular"${mc.regularity === 'irregular' ? ' selected' : ''}>Irregular</option>
             <option value="very_irregular"${mc.regularity === 'very_irregular' ? ' selected' : ''}>Very Irregular</option>
-          </select>
+          </select>`}
         </div>
         <div class="supp-form-field">
           <label>Flow Strength</label>
@@ -209,9 +256,16 @@ export function clearMenstrualCycle() {
 }
 
 export function syncMenstrualCycleProfileFromForm() {
-  const cycleLength = Math.max(20, Math.min(45, parseInt(document.getElementById('mc-cycle-length').value) || 28));
-  const periodLength = Math.max(2, Math.min(10, parseInt(document.getElementById('mc-period-length').value) || 5));
-  const regularity = document.getElementById('mc-regularity').value;
+  const stats = calculateCycleStats(state.importedData.menstrualCycle ? state.importedData.menstrualCycle.periods : []);
+  const cycleLengthEl = document.getElementById('mc-cycle-length');
+  const periodLengthEl = document.getElementById('mc-period-length');
+  const regularityEl = document.getElementById('mc-regularity');
+  const cycleLengthAuto = document.getElementById('mc-cycle-length-auto');
+  const periodLengthAuto = document.getElementById('mc-period-length-auto');
+  const regularityAuto = document.getElementById('mc-regularity-auto');
+  const cycleLength = cycleLengthAuto ? parseInt(cycleLengthAuto.dataset.value) : Math.max(20, Math.min(45, parseInt(cycleLengthEl.value) || 28));
+  const periodLength = periodLengthAuto ? parseInt(periodLengthAuto.dataset.value) : Math.max(2, Math.min(10, parseInt(periodLengthEl.value) || 5));
+  const regularity = regularityAuto ? regularityAuto.dataset.value : regularityEl.value;
   const flow = document.getElementById('mc-flow').value;
   const contraceptive = document.getElementById('mc-contraceptive').value.trim();
   const conditions = document.getElementById('mc-conditions').value.trim();
@@ -264,7 +318,7 @@ export function renderMenstrualCycleSection(data) {
     let summary = `${mc.cycleLength || 28}-day cycle, ${regLabel}, ${mc.flow || 'moderate'} flow`;
     if (mc.contraceptive) summary += ` \u2022 ${escapeHTML(mc.contraceptive)}`;
     if (mc.conditions) summary += ` \u2022 ${escapeHTML(mc.conditions)}`;
-    html += `<div class="cycle-summary">${summary}</div>`;
+    html += `<div class="cycle-summary" onclick="openMenstrualCycleEditor()" style="cursor:pointer">${summary}</div>`;
     const drawRec = getNextBestDrawDate(mc);
     if (drawRec) {
       html += `<div class="cycle-draw-date">
@@ -300,4 +354,4 @@ export function renderMenstrualCycleSection(data) {
   return html;
 }
 
-Object.assign(window, { getCyclePhase, getNextBestDrawDate, getBloodDrawPhases, renderMenstrualCycleSection, openMenstrualCycleEditor, saveMenstrualCycle, clearMenstrualCycle, syncMenstrualCycleProfileFromForm, addPeriodEntry, deletePeriodEntry });
+Object.assign(window, { getCyclePhase, getNextBestDrawDate, getBloodDrawPhases, calculateCycleStats, renderMenstrualCycleSection, openMenstrualCycleEditor, saveMenstrualCycle, clearMenstrualCycle, syncMenstrualCycleProfileFromForm, addPeriodEntry, deletePeriodEntry });
