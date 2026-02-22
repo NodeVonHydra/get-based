@@ -459,7 +459,7 @@ const GLOBAL_SETTINGS_KEYS = [
 ];
 
 const PER_PROFILE_PREF_SUFFIXES = [
-  'units', 'rangeMode', 'suppOverlay', 'noteOverlay',
+  'units', 'rangeMode', 'suppOverlay', 'noteOverlay', 'phaseOverlay',
   'chatPersonality', 'chatPersonalityCustom', 'chatRailOpen'
 ];
 

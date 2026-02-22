@@ -5,11 +5,11 @@ import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT } from './constants.js';
 import { calculateCost, formatCost } from './schema.js';
 import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus } from './utils.js';
 import { formatTime } from './theme.js';
-import { getActiveData, getEffectiveRange, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
+import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, getOllamaMainModel } from './api.js';
-import { getBloodDrawPhases, getNextBestDrawDate } from './cycle.js';
+import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
 // ═══════════════════════════════════════════════
 // THREAD STORAGE HELPERS
@@ -442,7 +442,11 @@ export function buildLabContext() {
     const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
     if (periods.length > 0) {
       const fmtD = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      ctx += `Recent periods: ${periods.slice(0, 6).map(p => `${fmtD(p.startDate)}-${fmtD(p.endDate)} (${p.flow})`).join(', ')}\n`;
+      ctx += `Recent periods: ${periods.slice(0, 6).map(p => {
+        let desc = `${fmtD(p.startDate)}-${fmtD(p.endDate)} (${p.flow})`;
+        if (p.symptoms?.length) desc += ` [${p.symptoms.join(', ')}]`;
+        return desc;
+      }).join(', ')}\n`;
     }
     if (data.dates.length > 0) {
       const phases = getBloodDrawPhases(mc, data.dates);
@@ -458,6 +462,15 @@ export function buildLabContext() {
     const drawRec = getNextBestDrawDate(mc);
     if (drawRec) {
       ctx += `\nNext optimal blood draw window: ${drawRec.description}\n`;
+    }
+    const perimenopause = detectPerimenopausePattern(mc, state.profileDob);
+    if (perimenopause) {
+      ctx += `\nPERIMENOPAUSE ALERT: ${perimenopause.message}\n`;
+    }
+    const ironAlerts = detectCycleIronAlerts(mc, data);
+    if (ironAlerts.length) {
+      ctx += `\nIRON/FLOW ALERTS:\n`;
+      for (const a of ironAlerts) ctx += `- ${a.message}\n`;
     }
     ctx += '\n';
   }
@@ -478,14 +491,28 @@ export function buildLabContext() {
     if (markersWithData.length === 0) continue;
     ctx += `## ${cat.label}\n`;
     for (const [key, m] of markersWithData) {
-      const vals = m.singlePoint
-        ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
-        : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
       const latestIdx = getLatestValueIndex(m.values);
-      const mr = getEffectiveRange(m);
-      const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
-      const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
-      ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+      if (m.phaseRefRanges && m.phaseLabels) {
+        // Phase-aware: show each value with its phase and phase-specific range
+        const parts = m.values.map((v, i) => {
+          if (v === null) return null;
+          const phase = m.phaseLabels[i];
+          const pr = m.phaseRefRanges[i];
+          const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
+          const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
+          const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
+          return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
+        }).filter(Boolean).join(', ');
+        ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
+      } else {
+        const vals = m.singlePoint
+          ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
+          : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
+        const mr = getEffectiveRangeForDate(m, latestIdx);
+        const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
+        const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
+        ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+      }
     }
     ctx += '\n';
   }
@@ -1275,12 +1302,22 @@ export function askAIAboutMarker(markerId) {
   const data = getActiveData();
   const dates = marker.singlePoint ? [marker.singleDateLabel || 'N/A'] : data.dateLabels;
   const valuesText = marker.values
-    .map((v, i) => v !== null ? `${dates[i]}: ${formatValue(v)} ${marker.unit}` : null)
+    .map((v, i) => {
+      if (v === null) return null;
+      let text = `${dates[i]}: ${formatValue(v)} ${marker.unit}`;
+      if (marker.phaseLabels && marker.phaseLabels[i]) {
+        const pr = marker.phaseRefRanges[i];
+        text += ` (${marker.phaseLabels[i]} phase, ref ${formatValue(pr.min)}\u2013${formatValue(pr.max)})`;
+      }
+      return text;
+    })
     .filter(Boolean).join(', ');
   const latestIdx = getLatestValueIndex(marker.values);
-  const mr = getEffectiveRange(marker);
-  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], mr.min, mr.max) : 'no data';
-  const prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}\u2013${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}. What does this mean and should I be concerned about anything?`;
+  const lr = getEffectiveRangeForDate(marker, latestIdx);
+  const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], lr.min, lr.max) : 'no data';
+  let prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}\u2013${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}.`;
+  if (marker.phaseLabels) prompt += ' Note: reference ranges shown are phase-specific for the menstrual cycle.';
+  prompt += ' What does this mean and should I be concerned about anything?';
   window.closeModal();
   openChatPanel(prompt);
 }

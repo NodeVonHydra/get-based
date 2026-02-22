@@ -1,10 +1,36 @@
 // data.js — Data pipeline, unit conversion, date range, trend detection
 
 import { state } from './state.js';
-import { MARKER_SCHEMA, UNIT_CONVERSIONS, OPTIMAL_RANGES } from './schema.js';
+import { MARKER_SCHEMA, UNIT_CONVERSIONS, OPTIMAL_RANGES, PHASE_RANGES } from './schema.js';
 import { hashString, getStatus, formatValue, linearRegression, showNotification } from './utils.js';
 import { profileStorageKey } from './profile.js';
 import { encryptedSetItem, broadcastDataChanged, getEncryptionEnabled, scheduleAutoBackup } from './crypto.js';
+
+// ═══════════════════════════════════════════════
+// PRIVATE CYCLE PHASE HELPER (avoids circular dep with cycle.js)
+// ═══════════════════════════════════════════════
+function _getCyclePhase(dateStr, mc) {
+  if (!mc || !mc.periods || mc.periods.length === 0) return null;
+  const target = new Date(dateStr + 'T00:00:00');
+  const sorted = mc.periods.slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  let periodStart = null;
+  for (const p of sorted) {
+    if (new Date(p.startDate + 'T00:00:00') <= target) { periodStart = p.startDate; break; }
+  }
+  if (!periodStart) return null;
+  const startDate = new Date(periodStart + 'T00:00:00');
+  const cycleDay = Math.floor((target - startDate) / 86400000) + 1;
+  const cycleLen = mc.cycleLength || 28;
+  if (cycleDay > cycleLen + 7) return null;
+  const periodLen = mc.periodLength || 5;
+  const ovulationDay = cycleLen - 14;
+  let phase, phaseName;
+  if (cycleDay <= periodLen) { phase = 'menstrual'; phaseName = 'Menstrual'; }
+  else if (cycleDay < ovulationDay - 1) { phase = 'follicular'; phaseName = 'Follicular'; }
+  else if (cycleDay <= ovulationDay + 1) { phase = 'ovulatory'; phaseName = 'Ovulatory'; }
+  else { phase = 'luteal'; phaseName = 'Luteal'; }
+  return { cycleDay, phase, phaseName };
+}
 
 // ═══════════════════════════════════════════════
 // REFRESH CALLBACK
@@ -149,6 +175,16 @@ export function getActiveData() {
     return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   });
 
+  // Compute top-level phase labels for charts (female + cycle data)
+  const isFemaleForPhase = state.profileSex === 'female';
+  const mcForPhase = state.importedData && state.importedData.menstrualCycle;
+  if (isFemaleForPhase && mcForPhase && mcForPhase.periods && mcForPhase.periods.length > 0) {
+    data.phaseLabels = sortedDates.map(d => {
+      const p = _getCyclePhase(d, mcForPhase);
+      return p ? p.phase : null;
+    });
+  }
+
   // Populate values for each category
   for (const [catKey, cat] of Object.entries(data.categories)) {
     if (cat.singlePoint) {
@@ -185,6 +221,25 @@ export function getActiveData() {
           return null;
         });
       }
+    }
+  }
+
+  // Compute phase-specific reference ranges for cycle-dependent markers
+  const isFemale = state.profileSex === 'female';
+  const mc = state.importedData && state.importedData.menstrualCycle;
+  if (isFemale && mc && mc.periods && mc.periods.length > 0) {
+    for (const [fullKey, phaseMap] of Object.entries(PHASE_RANGES)) {
+      const [catKey, markerKey] = fullKey.split('.');
+      const marker = data.categories[catKey] && data.categories[catKey].markers[markerKey];
+      if (!marker) continue;
+      marker.phaseRefRanges = sortedDates.map(d => {
+        const p = _getCyclePhase(d, mc);
+        return p ? (phaseMap[p.phase] || null) : null;
+      });
+      marker.phaseLabels = sortedDates.map(d => {
+        const p = _getCyclePhase(d, mc);
+        return p ? p.phaseName : null;
+      });
     }
   }
 
@@ -277,6 +332,12 @@ export function applyUnitConversion(data) {
         marker.refMax = parseFloat((marker.refMax * conv.factor).toPrecision(4));
         if (marker.optimalMin != null) marker.optimalMin = parseFloat((marker.optimalMin * conv.factor).toPrecision(4));
         if (marker.optimalMax != null) marker.optimalMax = parseFloat((marker.optimalMax * conv.factor).toPrecision(4));
+        if (marker.phaseRefRanges) {
+          marker.phaseRefRanges = marker.phaseRefRanges.map(r =>
+            r ? { min: parseFloat((r.min * conv.factor).toPrecision(4)),
+                  max: parseFloat((r.max * conv.factor).toPrecision(4)) } : null
+          );
+        }
         marker.unit = conv.usUnit;
       } else if (conv.type === 'hba1c') {
         marker.values = marker.values.map(v => v !== null ? parseFloat(((v / 10.929) + 2.15).toFixed(1)) : null);
@@ -307,6 +368,7 @@ export function filterDatesByRange(data) {
   const filtered = {
     dates: indices.map(i => data.dates[i]),
     dateLabels: indices.map(i => data.dateLabels[i]),
+    ...(data.phaseLabels && { phaseLabels: indices.map(i => data.phaseLabels[i]) }),
     categories: {}
   };
   for (const [catKey, cat] of Object.entries(data.categories)) {
@@ -315,7 +377,12 @@ export function filterDatesByRange(data) {
       if (marker.singlePoint || cat.singlePoint) {
         filteredCat.markers[mKey] = marker;
       } else {
-        filteredCat.markers[mKey] = { ...marker, values: indices.map(i => marker.values[i]) };
+        filteredCat.markers[mKey] = {
+          ...marker,
+          values: indices.map(i => marker.values[i]),
+          ...(marker.phaseRefRanges && { phaseRefRanges: indices.map(i => marker.phaseRefRanges[i]) }),
+          ...(marker.phaseLabels && { phaseLabels: indices.map(i => marker.phaseLabels[i]) }),
+        };
       }
     }
     filtered.categories[catKey] = filteredCat;
@@ -345,7 +412,8 @@ export function setDateRange(range) {
 export function renderChartLayersDropdown() {
   const hasNotes = (state.importedData.notes || []).length > 0;
   const hasSupps = (state.importedData.supplements || []).length > 0;
-  if (!hasNotes && !hasSupps) return '';
+  const hasCycle = state.profileSex === 'female' && state.importedData.menstrualCycle?.periods?.length > 0;
+  if (!hasNotes && !hasSupps && !hasCycle) return '';
   return `<div class="chart-layers-wrapper">
     <button class="view-btn chart-layers-trigger" onclick="toggleChartLayersDropdown(event)">Layers \u25BE</button>
     <div class="chart-layers-dropdown" id="chart-layers-dropdown">
@@ -356,6 +424,10 @@ export function renderChartLayersDropdown() {
       ${hasSupps ? `<label class="chart-layers-row" onclick="event.stopPropagation()">
         <input type="checkbox" ${state.suppOverlayMode === 'on' ? 'checked' : ''} onchange="setSuppOverlay(this.checked?'on':'off')">
         <span>\uD83D\uDC8A Supplements</span>
+      </label>` : ''}
+      ${hasCycle ? `<label class="chart-layers-row" onclick="event.stopPropagation()">
+        <input type="checkbox" ${state.phaseOverlayMode === 'on' ? 'checked' : ''} onchange="setPhaseOverlay(this.checked?'on':'off')">
+        <span>\uD83D\uDD34 Cycle Phases</span>
       </label>` : ''}
     </div>
   </div>`;
@@ -394,6 +466,14 @@ export function setNoteOverlay(mode) {
   window.navigate(activeCat);
 }
 
+export function setPhaseOverlay(mode) {
+  state.phaseOverlayMode = mode === 'off' ? 'off' : 'on';
+  localStorage.setItem(profileStorageKey(state.currentProfile, 'phaseOverlay'), state.phaseOverlayMode);
+  const activeNav = document.querySelector('.nav-item.active');
+  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
+  window.navigate(activeCat);
+}
+
 export function recalculateHOMAIR(entry) {
   const glucose = entry.markers["biochemistry.glucose"];
   const insulin = entry.markers["hormones.insulin"] || entry.markers["diabetes.insulin_d"];
@@ -415,7 +495,7 @@ export function destroyAllCharts() {
 // ═══════════════════════════════════════════════
 export function countFlagged(markers) {
   let c = 0;
-  for (const m of markers) { const i = getLatestValueIndex(m.values); if (i!==-1) { const r = getEffectiveRange(m); if (getStatus(m.values[i],r.min,r.max)!=="normal") c++; } }
+  for (const m of markers) { const i = getLatestValueIndex(m.values); if (i!==-1) { const r = getEffectiveRangeForDate(m, i); if (getStatus(m.values[i],r.min,r.max)!=="normal") c++; } }
   return c;
 }
 
@@ -436,7 +516,7 @@ export function getAllFlaggedMarkers(data) {
   for (const [ck, cat] of Object.entries(data.categories)) {
     for (const [k, m] of Object.entries(cat.markers)) {
       const i = getLatestValueIndex(m.values);
-      if (i!==-1) { const v=m.values[i], r=getEffectiveRange(m), s=getStatus(v,r.min,r.max);
+      if (i!==-1) { const v=m.values[i], r=getEffectiveRangeForDate(m, i), s=getStatus(v,r.min,r.max);
         if (s==="high"||s==="low") flags.push({categoryKey:ck,markerKey:k,id:ck+'_'+k,name:m.name,value:formatValue(v),rawValue:v,unit:m.unit,refMin:m.refMin,refMax:m.refMax,optimalMin:m.optimalMin,optimalMax:m.optimalMax,effectiveMin:r.min,effectiveMax:r.max,status:s});
       }
     }
@@ -462,24 +542,26 @@ export function detectTrendAlerts(data) {
       if (marker.singlePoint) continue;
       const nonNull = marker.values.map((v, i) => ({ v, i })).filter(x => x.v !== null);
       if (nonNull.length < 2) continue;
-      const r = getEffectiveRange(marker);
+      const r = getEffectiveRange(marker); // aggregate range for normalization width
       if (r.min == null || r.max == null) continue;
       const range = r.max - r.min;
       if (range <= 0) continue;
       const id = catKey + '_' + mKey;
-      const latestVal = nonNull[nonNull.length - 1].v;
+      const latestEntry = nonNull[nonNull.length - 1];
+      const latestVal = latestEntry.v;
+      const lr = getEffectiveRangeForDate(marker, latestEntry.i); // phase-aware range for latest
       const prevVal = nonNull[nonNull.length - 2].v;
       const sparkVals = nonNull.slice(-Math.min(5, nonNull.length));
 
       // Sudden change detection (2+ values)
       const jump = Math.abs(latestVal - prevVal);
       if (jump > range * 0.25) {
-        if (latestVal > r.max) {
+        if (latestVal > lr.max) {
           alerts.push({ id, name: marker.name, category: cat.label, concern: 'sudden_high',
             spark: sparkVals.map(x => formatValue(x.v)), direction: 'rising' });
           continue;
         }
-        if (latestVal < r.min) {
+        if (latestVal < lr.min) {
           alerts.push({ id, name: marker.name, category: cat.label, concern: 'sudden_low',
             spark: sparkVals.map(x => formatValue(x.v)), direction: 'falling' });
           continue;
@@ -496,10 +578,10 @@ export function detectTrendAlerts(data) {
       if (nonNull.length >= 4 && reg.r2 < 0.5) continue;
       const rising = normSlope > 0;
       let concern = null;
-      if (rising && latestVal > r.max) concern = 'past_high';
-      else if (!rising && latestVal < r.min) concern = 'past_low';
-      else if (rising && latestVal >= r.max - range * 0.15) concern = 'approaching_high';
-      else if (!rising && latestVal <= r.min + range * 0.15) concern = 'approaching_low';
+      if (rising && latestVal > lr.max) concern = 'past_high';
+      else if (!rising && latestVal < lr.min) concern = 'past_low';
+      else if (rising && latestVal >= lr.max - range * 0.15) concern = 'approaching_high';
+      else if (!rising && latestVal <= lr.min + range * 0.15) concern = 'approaching_low';
       if (!concern) continue;
       alerts.push({ id, name: marker.name, category: cat.label, concern,
         spark: sparkVals.map(x => formatValue(x.v)), direction: rising ? 'rising' : 'falling' });
@@ -584,6 +666,24 @@ export function getEffectiveRange(marker) {
   return { min: marker.refMin, max: marker.refMax };
 }
 
+export function getEffectiveRangeForDate(marker, dateIndex) {
+  if (marker.phaseRefRanges && marker.phaseRefRanges[dateIndex]) {
+    return marker.phaseRefRanges[dateIndex];
+  }
+  return getEffectiveRange(marker);
+}
+
+export function getPhaseRefEnvelope(marker) {
+  if (!marker.phaseRefRanges) return null;
+  let min = Infinity, max = -Infinity;
+  for (const r of marker.phaseRefRanges) {
+    if (!r) continue;
+    if (r.min < min) min = r.min;
+    if (r.max > max) max = r.max;
+  }
+  return min === Infinity ? null : { min, max };
+}
+
 export function switchRangeMode(mode) {
   state.rangeMode = mode;
   localStorage.setItem(profileStorageKey(state.currentProfile, 'rangeMode'), mode);
@@ -618,4 +718,4 @@ export function updateHeaderRangeToggle() {
   ).join('');
 }
 
-Object.assign(window, { saveImportedData, getFocusCardFingerprint, getActiveData, applyUnitConversion, filterDatesByRange, recalculateHOMAIR, renderDateRangeFilter, setDateRange, renderChartLayersDropdown, toggleChartLayersDropdown, setSuppOverlay, setNoteOverlay, destroyAllCharts, countFlagged, countMissing, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, switchUnitSystem, getEffectiveRange, switchRangeMode, updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback });
+Object.assign(window, { saveImportedData, getFocusCardFingerprint, getActiveData, applyUnitConversion, filterDatesByRange, recalculateHOMAIR, renderDateRangeFilter, setDateRange, renderChartLayersDropdown, toggleChartLayersDropdown, setSuppOverlay, setNoteOverlay, setPhaseOverlay, destroyAllCharts, countFlagged, countMissing, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, switchUnitSystem, getEffectiveRange, getEffectiveRangeForDate, getPhaseRefEnvelope, switchRangeMode, updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback });

@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { escapeHTML, getStatus, formatValue } from './utils.js';
-import { getActiveData, getEffectiveRange, getLatestValueIndex } from './data.js';
+import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex } from './data.js';
 import { getMarkerDescription } from './charts.js';
 
 export function openGlossary() {
@@ -27,8 +27,9 @@ export function openGlossary() {
       state.markerRegistry[id] = marker;
       const latestIdx = getLatestValueIndex(marker.values);
       const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
+      const lr = getEffectiveRangeForDate(marker, latestIdx);
+      const status = latestVal !== null ? getStatus(latestVal, lr.min, lr.max) : 'missing';
       const r = getEffectiveRange(marker);
-      const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : 'missing';
       const desc = getMarkerDescription(id) || '';
       html += `<div class="glossary-marker" data-name="${escapeHTML(marker.name.toLowerCase())}" onclick="closeGlossary();showDetailModal('${id}')">
         <div class="glossary-marker-top">

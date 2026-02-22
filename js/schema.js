@@ -631,3 +631,20 @@ export const OPTIMAL_RANGES = {
   // Fatty Acids
   'fattyAcids.omega3Index': { optimalMin: 8.0, optimalMax: 12.0 }
 };
+
+// Phase-specific reference ranges for cycle-dependent hormones (premenopausal female, SI units)
+// Sources: ACOG, Endocrine Society, Quest/LabCorp clinical reference tables
+export const PHASE_RANGES = {
+  'hormones.estradiol': {
+    menstrual:  { min: 45,   max: 130  },
+    follicular: { min: 45,   max: 400  },
+    ovulatory:  { min: 400,  max: 1470 },
+    luteal:     { min: 180,  max: 780  }
+  },
+  'hormones.progesterone': {
+    menstrual:  { min: 0.18, max: 2.5  },
+    follicular: { min: 0.18, max: 2.5  },
+    ovulatory:  { min: 0.18, max: 9.5  },
+    luteal:     { min: 5.7,  max: 75.9 }
+  }
+};

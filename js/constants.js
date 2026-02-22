@@ -55,6 +55,12 @@ export const ENV_AIR = ['HEPA air purifier', 'open windows daily', 'houseplants'
 export const ENV_TOXINS = ['mold exposure', 'heavy metals (lead/mercury)', 'pesticide exposure', 'plastic containers for food', 'non-stick cookware (PFAS)', 'conventional cleaning products', 'new car/furniture off-gassing', 'amalgam dental fillings', 'BPA/phthalate exposure', 'organic food mostly'];
 export const ENV_BUILDING = ['new construction (<5yr)', 'old building (pre-1970)', 'concrete/steel', 'wood frame', 'natural materials', 'carpet (VOCs)', 'hardwood/tile floors'];
 
+// ── Menstrual cycle symptoms ──
+export const PERIOD_SYMPTOMS = [
+  'Cramps', 'Mood swings', 'Fatigue', 'Bloating', 'Headache',
+  'Acne', 'Breast tenderness', 'Insomnia', 'Back pain', 'Nausea'
+];
+
 // ── Country/Latitude data ──
 export const COUNTRY_LATITUDES = {
   // Tropical (<25°)
