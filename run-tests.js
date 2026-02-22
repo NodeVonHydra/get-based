@@ -13,6 +13,7 @@ const TEST_FILES = [
   'test-demo.js',
   'test-landing.js',
   'test-openrouter.js',
+  'test-routstr.js',
   'test-tour.js',
   'test-phase-ranges.js',
   'test-cycle-improvements.js',

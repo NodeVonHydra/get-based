@@ -55,6 +55,7 @@ export function hasAIProvider() {
   if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();
   if (provider === 'openrouter') return hasOpenRouterKey();
+  if (provider === 'routstr') return hasRoutstrKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -139,6 +140,82 @@ export function getOpenRouterPricing(modelId) {
   const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
   return cached[modelId] || null;
 }
+
+// ═══════════════════════════════════════════════
+// ROUTSTR (Decentralized AI — eCash/Lightning)
+// ═══════════════════════════════════════════════
+export function getRoutstrKey() { return localStorage.getItem('labcharts-routstr-key') || ''; }
+export function saveRoutstrKey(key) { localStorage.setItem('labcharts-routstr-key', key); }
+export function hasRoutstrKey() { return !!getRoutstrKey(); }
+export function getRoutstrModel() { return localStorage.getItem('labcharts-routstr-model') || 'anthropic/claude-sonnet-4-6'; }
+export function setRoutstrModel(model) { localStorage.setItem('labcharts-routstr-model', model); }
+export function getRoutstrModelDisplay() {
+  const id = getRoutstrModel();
+  const cached = JSON.parse(localStorage.getItem('labcharts-routstr-models') || '[]');
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
+export async function fetchRoutstrModels(key) {
+  try {
+    const res = await fetch('https://api.routstr.com/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + (key || getRoutstrKey()) }
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    // Filter to text models if type field is present
+    const all = (json.data || []).filter(function(m) {
+      if (!m.id) return false;
+      if (m.type && m.type !== 'text' && m.type !== 'chat') return false;
+      return true;
+    }).sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    // Extract pricing if available
+    const pricingCache = {};
+    for (const m of all) {
+      if (m.pricing && m.pricing.prompt && m.pricing.completion) {
+        pricingCache[m.id] = {
+          input: parseFloat(m.pricing.prompt) * 1_000_000,
+          output: parseFloat(m.pricing.completion) * 1_000_000
+        };
+      }
+    }
+    if (Object.keys(pricingCache).length) {
+      localStorage.setItem('labcharts-routstr-pricing', JSON.stringify(pricingCache));
+    }
+    localStorage.setItem('labcharts-routstr-models', JSON.stringify(all));
+    if (!localStorage.getItem('labcharts-routstr-model') && all.length) {
+      const claude = all.find(function(m) { return m.id.includes('claude-sonnet'); });
+      if (claude) setRoutstrModel(claude.id);
+      else setRoutstrModel(all[0].id);
+    }
+    return all;
+  } catch (e) { return []; }
+}
+export function getRoutstrPricing(modelId) {
+  const cached = JSON.parse(localStorage.getItem('labcharts-routstr-pricing') || '{}');
+  return cached[modelId] || null;
+}
+export async function validateRoutstrKey(key) {
+  try {
+    const res = await fetch('https://api.routstr.com/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (res.ok) return { valid: true };
+    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
+    if (res.status === 429) return { valid: true };
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach Routstr API: ' + e.message };
+  }
+}
+
+export async function callRoutstrAPI(opts) {
+  const key = getRoutstrKey();
+  if (!key) throw new Error('No Routstr API key configured. Add your key in Settings.');
+  return callOpenAICompatibleAPI('https://api.routstr.com/v1/chat/completions', key, getRoutstrModel(), 'Routstr', opts);
+}
+
 export async function validateOpenRouterKey(key) {
   try {
     const res = await fetch('https://openrouter.ai/api/v1/models', {
@@ -456,6 +533,7 @@ export async function callClaudeAPI(opts) {
   if (provider === 'ollama') return callOllamaChat(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
+  if (provider === 'routstr') return callRoutstrAPI(opts);
   return callAnthropicAPI(opts);
 }
 
@@ -466,12 +544,16 @@ Object.assign(window, {
   getVeniceModel, setVeniceModel, getVeniceModelDisplay,
   getOpenRouterKey, saveOpenRouterKey, hasOpenRouterKey,
   getOpenRouterModel, setOpenRouterModel, getOpenRouterModelDisplay,
+  getRoutstrKey, saveRoutstrKey, hasRoutstrKey,
+  getRoutstrModel, setRoutstrModel, getRoutstrModelDisplay,
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
-  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing, deduplicateModels,
+  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing,
+  fetchRoutstrModels, getRoutstrPricing,
+  deduplicateModels,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
-  validateApiKey, validateVeniceKey, validateOpenRouterKey,
-  callAnthropicAPI, callOllamaChat, callVeniceAPI, callOpenRouterAPI, callClaudeAPI
+  validateApiKey, validateVeniceKey, validateOpenRouterKey, validateRoutstrKey,
+  callAnthropicAPI, callOllamaChat, callVeniceAPI, callOpenRouterAPI, callRoutstrAPI, callClaudeAPI
 });
