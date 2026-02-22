@@ -129,10 +129,10 @@
   console.log('\n7. site.html');
   const siteSrc = await fetch('site.html').then(r => r.text());
   assert('site.html has OpenRouter card', siteSrc.includes('OpenRouter'));
-  assert('site.html mentions 200+ models', siteSrc.includes('200+ models'));
+  assert('site.html mentions many models', siteSrc.includes('many models'));
   assert('site.html grid is 5-col', siteSrc.includes('repeat(5,1fr)'));
   assert('site.html has 5 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 5);
-  assert('site.html heading says Five backends', siteSrc.includes('Five backends'));
+  assert('site.html heading says Five providers', siteSrc.includes('Five providers'));
   const orCardIdx = siteSrc.indexOf('<h3>OpenRouter</h3>');
   const veniceCardIdx = siteSrc.indexOf('<h3>Venice AI</h3>');
   assert('site.html: OpenRouter card before Venice card', orCardIdx < veniceCardIdx, `OpenRouter@${orCardIdx}, Venice@${veniceCardIdx}`);
