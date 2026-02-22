@@ -135,6 +135,8 @@ export async function loadProfile(profileId) {
   state.suppOverlayMode = savedSuppOverlay === 'on' ? 'on' : 'off';
   const savedNoteOverlay = localStorage.getItem(profileStorageKey(profileId, 'noteOverlay'));
   state.noteOverlayMode = savedNoteOverlay === 'on' ? 'on' : 'off';
+  const savedPhaseOverlay = localStorage.getItem(profileStorageKey(profileId, 'phaseOverlay'));
+  state.phaseOverlayMode = savedPhaseOverlay === 'on' ? 'on' : 'off';
   state.profileSex = getProfileSex(profileId);
   state.profileDob = getProfileDob(profileId);
   state.selectedCorrelationMarkers = [];
@@ -194,6 +196,9 @@ export function deleteProfile(profileId) {
     localStorage.removeItem(`labcharts-${profileId}-focusCard`);
     localStorage.removeItem(`labcharts-${profileId}-contextHealth`);
     localStorage.removeItem(`labcharts-${profileId}-onboarded`);
+    localStorage.removeItem(`labcharts-${profileId}-tour`);
+    localStorage.removeItem(`labcharts-${profileId}-cycleTour`);
+    localStorage.removeItem(`labcharts-${profileId}-phaseOverlay`);
     if (state.currentProfile === profileId) {
       loadProfile(updated[0].id);
     } else {
