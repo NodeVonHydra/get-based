@@ -87,13 +87,16 @@ export function ensureActiveThread() {
 export function createNewThread() {
   const id = generateThreadId();
   const now = new Date().toISOString();
+  const p = getActivePersonality();
   const thread = {
     id,
     name: 'New Conversation',
     createdAt: now,
     updatedAt: now,
     messageCount: 0,
-    personality: state.currentChatPersonality || 'default'
+    personality: state.currentChatPersonality || 'default',
+    personalityName: p.name,
+    personalityIcon: p.icon
   };
   state.chatThreads.unshift(thread);
   pruneOldThreads();
@@ -218,11 +221,12 @@ export function renderThreadList(filter) {
     const isActive = t.id === state.currentThreadId;
     const date = new Date(t.updatedAt);
     const dateStr = formatThreadDate(date);
-    const icon = personalityMap[t.personality] || personalityMap.default || '';
+    const icon = t.personalityIcon || personalityMap[t.personality] || personalityMap.default || '';
+    const iconTitle = t.personalityName ? ` title="${escapeHTML(t.personalityName)}"` : '';
     return `<div class="chat-thread-item${isActive ? ' active' : ''}" onclick="switchToThread('${escapeHTML(t.id)}')" data-thread-id="${escapeHTML(t.id)}">
       <div class="chat-thread-item-name">${escapeHTML(t.name)}</div>
       <div class="chat-thread-item-meta">
-        <span>${icon}</span>
+        <span${iconTitle}>${icon}</span>
         <span>${dateStr}</span>
         <span>${t.messageCount} msg${t.messageCount !== 1 ? 's' : ''}</span>
       </div>
@@ -753,12 +757,39 @@ export function getChatStorageKey() {
 // ═══════════════════════════════════════════════
 // PERSONALITY
 // ═══════════════════════════════════════════════
+const PERSONA_ICONS = ['🧠', '🎭', '🔮', '🌿', '⚡', '🦊', '🧬', '🌊', '🔥', '🏛️'];
+
+export function pickPersonaIcon(name) {
+  if (!name || !name.trim()) return '✏️';
+  let hash = 5381;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) + hash) + name.charCodeAt(i);
+  return PERSONA_ICONS[Math.abs(hash) % PERSONA_ICONS.length];
+}
+
+export function getCustomPersonality() {
+  const raw = localStorage.getItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`) || '';
+  if (!raw) return { name: 'Custom Personality', icon: '✏️', promptText: '', evidenceBased: false };
+  try {
+    const obj = JSON.parse(raw);
+    if (obj && typeof obj === 'object' && 'promptText' in obj) {
+      return { name: obj.name || 'Custom Personality', icon: obj.icon || '✏️', promptText: obj.promptText || '', evidenceBased: !!obj.evidenceBased };
+    }
+  } catch {}
+  // Legacy plain string
+  return { name: 'Custom Personality', icon: '✏️', promptText: raw, evidenceBased: false };
+}
+
 export function getActivePersonality() {
-  return CHAT_PERSONALITIES.find(p => p.id === state.currentChatPersonality) || CHAT_PERSONALITIES[0];
+  const base = CHAT_PERSONALITIES.find(p => p.id === state.currentChatPersonality) || CHAT_PERSONALITIES[0];
+  if (base.id === 'custom') {
+    const cp = getCustomPersonality();
+    return { ...base, name: cp.name, icon: cp.icon };
+  }
+  return base;
 }
 
 export function getCustomPersonalityText() {
-  return localStorage.getItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`) || '';
+  return getCustomPersonality().promptText;
 }
 
 export async function setChatPersonality(id) {
@@ -785,6 +816,9 @@ export async function setChatPersonality(id) {
     const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
     if (thread) {
       thread.personality = id;
+      const p = getActivePersonality();
+      thread.personalityName = p.name;
+      thread.personalityIcon = p.icon;
       saveChatThreadIndex();
     }
     renderChatMessages(); // re-render empty state with new personality greeting
@@ -822,13 +856,28 @@ export function updatePersonalityBar() {
   document.querySelectorAll('.chat-personality-opt').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.personality === state.currentChatPersonality);
   });
+  // Update custom button display with dynamic name/icon
+  const customBtn = document.querySelector('.chat-personality-opt[data-personality="custom"]');
+  if (customBtn) {
+    const cp = getCustomPersonality();
+    const iconEl = customBtn.querySelector('.chat-personality-opt-icon');
+    const nameEl = customBtn.querySelector('.chat-personality-opt-name');
+    if (iconEl) iconEl.textContent = cp.icon;
+    if (nameEl) nameEl.textContent = cp.name;
+  }
   // Show/hide custom area
   const customArea = document.querySelector('.chat-personality-custom-area');
   if (customArea) {
     customArea.style.display = state.currentChatPersonality === 'custom' ? 'block' : 'none';
     if (state.currentChatPersonality === 'custom') {
+      const cp = getCustomPersonality();
       const textarea = customArea.querySelector('textarea');
-      if (textarea) textarea.value = getCustomPersonalityText();
+      if (textarea) { textarea.value = cp.promptText; autoResizePersonaTextarea(); }
+      const nameInput = document.getElementById('chat-personality-custom-name');
+      if (nameInput) nameInput.value = cp.name !== 'Custom Personality' ? cp.name : '';
+      const ebCheckbox = document.getElementById('chat-personality-evidence-based');
+      if (ebCheckbox) ebCheckbox.checked = cp.evidenceBased;
+      snapshotPersonalityClean();
     }
   }
 }
@@ -841,12 +890,111 @@ export function togglePersonalityBar() {
   }
 }
 
+// Dirty state tracking for custom personality
+let _personaCleanState = null;
+
+function _getPersonaCurrentState() {
+  const nameInput = document.getElementById('chat-personality-custom-name');
+  const textarea = document.querySelector('.chat-personality-custom-textarea');
+  const ebCheckbox = document.getElementById('chat-personality-evidence-based');
+  return {
+    name: nameInput ? nameInput.value : '',
+    text: textarea ? textarea.value : '',
+    eb: ebCheckbox ? ebCheckbox.checked : false
+  };
+}
+
+export function snapshotPersonalityClean() {
+  _personaCleanState = _getPersonaCurrentState();
+  const saveBtn = document.querySelector('.chat-personality-custom-save');
+  if (saveBtn) saveBtn.disabled = true;
+}
+
+export function markPersonalityDirty() {
+  const saveBtn = document.querySelector('.chat-personality-custom-save');
+  if (!saveBtn || !_personaCleanState) { if (saveBtn) saveBtn.disabled = false; return; }
+  const cur = _getPersonaCurrentState();
+  const dirty = cur.name !== _personaCleanState.name || cur.text !== _personaCleanState.text || cur.eb !== _personaCleanState.eb;
+  saveBtn.disabled = !dirty;
+}
+
+export function autoResizePersonaTextarea() {
+  const textarea = document.querySelector('.chat-personality-custom-textarea');
+  if (!textarea) return;
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 300) + 'px';
+}
+
 export function saveCustomPersonality() {
   const textarea = document.querySelector('.chat-personality-custom-textarea');
+  const nameInput = document.getElementById('chat-personality-custom-name');
+  const ebCheckbox = document.getElementById('chat-personality-evidence-based');
   if (textarea) {
-    localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`, textarea.value.trim());
+    const name = (nameInput ? nameInput.value.trim() : '') || 'Custom Personality';
+    const icon = pickPersonaIcon(name);
+    const evidenceBased = ebCheckbox ? ebCheckbox.checked : false;
+    const obj = { name, icon, promptText: textarea.value.trim(), evidenceBased };
+    localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`, JSON.stringify(obj));
+    snapshotPersonalityClean();
+    updatePersonalityBar();
+    updateChatHeaderTitle();
     showNotification('Custom personality saved', 'success');
   }
+}
+
+export async function generateCustomPersonality() {
+  if (!hasAIProvider()) {
+    showNotification('AI provider not configured. Open Settings first.', 'info');
+    return;
+  }
+  const nameInput = document.getElementById('chat-personality-custom-name');
+  const textarea = document.querySelector('.chat-personality-custom-textarea');
+  const genBtn = document.getElementById('chat-personality-generate-btn');
+  if (!nameInput || !textarea) return;
+  const name = nameInput.value.trim();
+  if (!name) {
+    showNotification('Enter a name first (e.g. "Dr. Jack Kruse")', 'info');
+    nameInput.focus();
+    return;
+  }
+  // Loading state
+  if (genBtn) { genBtn.disabled = true; genBtn.textContent = 'Generating\u2026'; }
+  textarea.value = '';
+  textarea.placeholder = `Generating ${name} persona\u2026`;
+
+  try {
+    const systemPrompt = `You are a persona designer for a health/blood work AI chat assistant called LabCharts. The user will give you a name — a real person, fictional character, or archetype. Create a thorough, vivid persona profile that the AI should fully embody when discussing lab results and health data.
+
+Write in second person ("You are..."). Output a rich persona description covering ALL of the following:
+
+1. **Identity & Background**: Who this persona is — their professional history, credentials, intellectual lineage, what shaped their worldview. What are they known for? What's their origin story?
+2. **Communication Style**: Exact tone, vocabulary, formality level. Specific signature phrases, verbal tics, metaphors, or rhetorical patterns they'd use. How do they open conversations? How do they deliver bad news vs good news?
+3. **Medical & Health Philosophy**: Their core framework for interpreting lab data. What do they emphasize that mainstream medicine overlooks? What conventional advice do they challenge or dismiss? What biomarkers excite them and why?
+4. **Analytical Approach**: How they connect dots between markers. Do they focus on ratios, trends, context, root causes? What patterns do they look for first? How do they weigh reference ranges vs optimal ranges?
+5. **Lifestyle & Optimization Lens**: What lifestyle factors do they always ask about? Diet, light exposure, sleep, environment, hormones — what's their hierarchy? What interventions do they champion?
+6. **Character & Personality**: Temperament, humor style, patience level. How they handle disagreement, uncertainty, or when a patient pushes back. What makes them passionate or frustrated?
+7. **Signature Recommendations**: Specific tests, supplements, protocols, or lifestyle changes they'd commonly suggest. What's their go-to advice?
+
+Be extremely specific — include actual phrases, real concepts they'd reference, genuine intellectual positions. This persona should feel unmistakably like talking to the real person, not a generic impression. Aim for 400-500 words. Do NOT include any disclaimers or accuracy warnings — just the pure persona.`;
+
+    const { text } = await callClaudeAPI({
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Create a comprehensive persona for: ${name}` }],
+      maxTokens: 2048,
+      onStream(text) {
+        textarea.value = text;
+        autoResizePersonaTextarea();
+      }
+    });
+    textarea.value = text;
+    autoResizePersonaTextarea();
+    markPersonalityDirty();
+    textarea.placeholder = 'Describe how you want the AI to communicate, or type a name above and click Generate...';
+  } catch (err) {
+    textarea.placeholder = 'Describe how you want the AI to communicate, or type a name above and click Generate...';
+    showNotification(`Generation failed: ${err.message}`, 'error');
+  }
+  if (genBtn) { genBtn.disabled = false; genBtn.textContent = 'Generate'; }
 }
 
 // ═══════════════════════════════════════════════
@@ -883,6 +1031,9 @@ export async function saveChatHistory() {
     thread.updatedAt = new Date().toISOString();
     thread.messageCount = state.chatHistory.length;
     thread.personality = state.currentChatPersonality;
+    const p = getActivePersonality();
+    thread.personalityName = p.name;
+    thread.personalityIcon = p.icon;
     saveChatThreadIndex();
     renderThreadList();
   }
@@ -1140,9 +1291,12 @@ export async function sendChatMessage() {
     const personality = getActivePersonality();
     let personalityPrompt = '';
     if (personality.id === 'custom') {
-      const customText = getCustomPersonalityText();
-      if (customText) {
-        personalityPrompt = `\n\nCommunication style: ${customText}\n\nIMPORTANT: This affects ONLY tone. All medical facts must remain evidence-based.`;
+      const cp = getCustomPersonality();
+      if (cp.promptText) {
+        personalityPrompt = `\n\nPersona: ${cp.promptText}`;
+        if (cp.evidenceBased) {
+          personalityPrompt += '\n\nIMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.';
+        }
       }
     } else if (personality.promptAddition) {
       personalityPrompt = '\n\n' + personality.promptAddition;
@@ -1354,7 +1508,13 @@ Object.assign(window, {
   getChatThreadsKey,
   getChatThreadKey,
   getActivePersonality,
+  getCustomPersonality,
   getCustomPersonalityText,
+  pickPersonaIcon,
+  generateCustomPersonality,
+  autoResizePersonaTextarea,
+  markPersonalityDirty,
+  snapshotPersonalityClean,
   setChatPersonality,
   loadChatPersonality,
   updateChatHeaderTitle,

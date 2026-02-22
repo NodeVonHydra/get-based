@@ -196,7 +196,8 @@ Two-path architecture replacing personal info with fake data before sending to A
 
 - Slide-out panel with streaming responses. Responsive width across 5 breakpoints (560px–1060px)
 - **Markdown**: `renderMarkdown()` block-aware parser (headings, lists, code blocks, HR, paragraphs) + `applyInlineMarkdown()` (bold, italic, code, links). Streaming-compatible
-- **Personalities**: 4 presets (default, House, Kruse, custom). Stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom text in `labcharts-{profileId}-chatPersonalityCustom`. Removed personalities (Murphy, Robby) fall back to default
+- **Personalities**: 3 presets (default, House, custom). Stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality in `labcharts-{profileId}-chatPersonalityCustom` as JSON `{ name, icon, promptText }` (backward-compat with legacy plain strings). Removed personalities (Murphy, Robby, Kruse) fall back to default
+- **Named custom personalities**: `getCustomPersonality()` returns `{ name, icon, promptText }`. `pickPersonaIcon(name)` hashes name into a 10-emoji palette. `generateCustomPersonality()` calls AI to auto-generate a persona profile from a name. `getActivePersonality()` overlays dynamic name/icon onto the static custom entry. Thread metadata stores `personalityName`/`personalityIcon` for history display
 - **Context**: `buildLabContext()` serializes all 9 context areas + interpretiveLens + contextNotes + lab values + notes. Chat history: last 20 stored, last 10 sent to API (`labcharts-{profileId}-chat`)
 - **Marker descriptions**: `MARKER_SCHEMA` `desc` field, `localStorage` `labcharts-marker-desc` fallback for custom markers. `fetchCustomMarkerDescription()` one-time API call
 
@@ -252,7 +253,7 @@ This auto-starts a server if needed, runs all tests via headless Chrome (Puppete
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v38` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v39` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
