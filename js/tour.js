@@ -1,4 +1,4 @@
-// tour.js — First-visit guided tour (spotlight walkthrough)
+// tour.js — Generic spotlight tour engine + app tour + cycle tour
 
 import { state } from './state.js';
 import { profileStorageKey } from './profile.js';
@@ -13,14 +13,36 @@ const TOUR_STEPS = [
   { target: '.chat-toggle-btn', title: 'Ask AI', text: 'Chat with an AI analyst about your lab results. Requires an AI provider in Settings.', position: 'left' },
 ];
 
-let currentStep = 0;
+const CYCLE_TOUR_STEPS = [
+  { target: null, title: 'Cycle-Aware Lab Interpretation', text: 'Lab Charts tracks your menstrual cycle so AI can interpret hormones, iron, and inflammation in the right context. Here\u2019s what\u2019s available.', position: 'center' },
+  { target: '.cycle-summary', title: 'Your Cycle at a Glance', text: 'Cycle length, regularity, flow, and contraceptive info \u2014 auto-calculated from your period log when possible.', position: 'bottom' },
+  { target: '.cycle-draw-date', title: 'Optimal Blood Draw Timing', text: 'Get recommendations for when to schedule blood work \u2014 early follicular phase (days 3\u20135) gives the most stable baseline.', position: 'bottom' },
+  { target: '.cycle-draw-phases', title: 'Phase Labels on Lab Dates', text: 'Each lab date is tagged with its cycle phase so you can see how timing may have affected your results.', position: 'bottom' },
+  { target: '.cycle-period-log', title: 'Period Log & Symptoms', text: 'Log each period with flow, symptoms, and notes. More entries = better auto-calculated stats and smarter alerts.', position: 'bottom' },
+  { target: '.cycle-alert', title: 'Smart Alerts', text: 'Perimenopause pattern detection and heavy-flow iron alerts \u2014 cross-referencing your cycle with your lab results.', position: 'bottom' },
+  { target: '.chart-layers-wrapper', title: 'Phase Bands on Charts', text: 'Toggle cycle phase bands in the Layers dropdown to see menstrual, follicular, ovulatory, and luteal shading on your charts.', position: 'bottom' },
+  { target: '.chat-toggle-btn', title: 'AI Knows Your Cycle', text: 'The AI chat factors in your cycle phase when interpreting every marker \u2014 ask it about any result for phase-aware insights.', position: 'left' },
+];
 
-function isTourCompleted() {
-  return localStorage.getItem(profileStorageKey(state.currentProfile, 'tour')) === 'completed';
+// Active tour state
+let activeTour = null;
+
+function profileKey(suffix) {
+  return profileStorageKey(state.currentProfile, suffix);
 }
 
-export function startTour(auto) {
-  if (auto && isTourCompleted()) return;
+function isTourCompleted(storageKey) {
+  return localStorage.getItem(storageKey) === 'completed';
+}
+
+function runTour(steps, storageKey, auto) {
+  if (auto && isTourCompleted(storageKey)) return;
+
+  // Filter out steps whose target element is missing (except null/center steps)
+  const filteredSteps = steps.filter(s => s.target === null || document.querySelector(s.target));
+  if (filteredSteps.length === 0) return;
+
+  activeTour = { steps: filteredSteps, storageKey, currentStep: 0 };
 
   // Create overlay elements if not already in DOM
   if (!document.getElementById('tour-overlay')) {
@@ -44,23 +66,24 @@ export function startTour(auto) {
   document.getElementById('tour-spotlight').style.display = 'block';
   document.getElementById('tour-tooltip').style.display = 'block';
 
-  currentStep = 0;
   goToStep(0);
 }
 
 function goToStep(index) {
-  currentStep = index;
-  const step = TOUR_STEPS[index];
+  if (!activeTour) return;
+  activeTour.currentStep = index;
+  const steps = activeTour.steps;
+  const step = steps[index];
   const spotlight = document.getElementById('tour-spotlight');
   const tooltip = document.getElementById('tour-tooltip');
   if (!spotlight || !tooltip) return;
 
   const isFirst = index === 0;
-  const isLast = index === TOUR_STEPS.length - 1;
+  const isLast = index === steps.length - 1;
 
   // Build tooltip content
   let dotsHtml = '<div class="tour-dots">';
-  for (let i = 0; i < TOUR_STEPS.length; i++) {
+  for (let i = 0; i < steps.length; i++) {
     dotsHtml += `<div class="tour-dot${i === index ? ' active' : ''}"></div>`;
   }
   dotsHtml += '</div>';
@@ -161,8 +184,19 @@ function positionTooltip(rect, position) {
   tooltip.style.top = top + 'px';
 }
 
+export function startTour(auto) {
+  runTour(TOUR_STEPS, profileKey('tour'), auto);
+}
+
+export function startCycleTour(auto) {
+  runTour(CYCLE_TOUR_STEPS, profileKey('cycleTour'), auto);
+}
+
 export function endTour() {
-  localStorage.setItem(profileStorageKey(state.currentProfile, 'tour'), 'completed');
+  if (activeTour) {
+    localStorage.setItem(activeTour.storageKey, 'completed');
+  }
+  activeTour = null;
   const overlay = document.getElementById('tour-overlay');
   const spotlight = document.getElementById('tour-spotlight');
   const tooltip = document.getElementById('tour-tooltip');
@@ -174,4 +208,4 @@ export function endTour() {
 // Internal navigation helper exposed for onclick
 window._tourGoToStep = goToStep;
 
-Object.assign(window, { startTour, endTour });
+Object.assign(window, { startTour, startCycleTour, endTour });

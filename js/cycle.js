@@ -1,6 +1,7 @@
-// cycle.js — Menstrual cycle tracking, phase calculation, editor
+// cycle.js — Menstrual cycle tracking, phase calculation, editor, alerts
 import { state } from './state.js';
-import { escapeHTML, showNotification, showConfirmDialog } from './utils.js';
+import { PERIOD_SYMPTOMS } from './constants.js';
+import { escapeHTML, showNotification, showConfirmDialog, linearRegression } from './utils.js';
 import { saveImportedData } from './data.js';
 
 export function getCyclePhase(dateStr, mc) {
@@ -119,6 +120,118 @@ export function calculateCycleStats(periods) {
   return result;
 }
 
+export function detectPerimenopausePattern(mc, dob) {
+  if (!mc?.periods || mc.periods.length < 4 || !dob) return null;
+  const age = (Date.now() - new Date(dob + 'T00:00:00').getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  if (age < 35) return null;
+
+  const sorted = mc.periods.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const intervals = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1].startDate + 'T00:00:00');
+    const curr = new Date(sorted[i].startDate + 'T00:00:00');
+    intervals.push(Math.round((curr - prev) / 86400000));
+  }
+  if (intervals.length < 3) return null;
+
+  const indicators = [];
+
+  // 1. Lengthening trend: positive slope on cycle lengths
+  const reg = linearRegression(intervals);
+  if (reg.slope > 0.5 && reg.r2 > 0.3) {
+    indicators.push('lengthening cycles');
+  }
+
+  // 2. Increasing variability: stdev of second half > first half
+  const mid = Math.floor(intervals.length / 2);
+  const firstHalf = intervals.slice(0, mid);
+  const secondHalf = intervals.slice(mid);
+  const stdev = arr => { const m = arr.reduce((a, b) => a + b, 0) / arr.length; return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length); };
+  if (secondHalf.length >= 2 && firstHalf.length >= 2) {
+    if (stdev(secondHalf) > stdev(firstHalf) * 1.5) {
+      indicators.push('increasing variability');
+    }
+  }
+
+  // 3. Any cycle > 38 days (classic perimenopause marker)
+  if (intervals.some(i => i > 38)) {
+    indicators.push('cycles >38 days');
+  }
+
+  // 4. Heavy flow increase
+  const recentPeriods = sorted.slice(-4);
+  const heavyCount = recentPeriods.filter(p => p.flow === 'heavy').length;
+  if (heavyCount >= 3) {
+    indicators.push('predominantly heavy flow');
+  }
+
+  // Need 2+ indicators to flag
+  if (indicators.length < 2) return null;
+
+  return {
+    indicators,
+    age: Math.floor(age),
+    message: `Possible perimenopause pattern detected (age ${Math.floor(age)}): ${indicators.join(', ')}. Consider discussing with your healthcare provider.`
+  };
+}
+
+export function detectCycleIronAlerts(mc, data) {
+  if (!mc?.periods?.length) return [];
+  const alerts = [];
+
+  // Check if any recent periods are heavy flow
+  const sorted = mc.periods.slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const recentHeavy = sorted.slice(0, 3).filter(p => p.flow === 'heavy');
+  if (recentHeavy.length === 0) return [];
+
+  // Check iron-related markers
+  const ironMarkers = [
+    { cat: 'hematology', key: 'ferritin', label: 'Ferritin' },
+    { cat: 'hematology', key: 'hemoglobin', label: 'Hemoglobin' },
+    { cat: 'hematology', key: 'iron', label: 'Iron' }
+  ];
+
+  for (const im of ironMarkers) {
+    const marker = data.categories[im.cat]?.markers[im.key];
+    if (!marker) continue;
+    const latestIdx = marker.values.findLastIndex(v => v !== null);
+    if (latestIdx === -1) continue;
+    const v = marker.values[latestIdx];
+    const r = { min: marker.refMin, max: marker.refMax };
+    if (r.min == null) continue;
+
+    // Alert if low or in bottom 25% of range
+    const threshold = r.min + (r.max - r.min) * 0.25;
+    if (v <= threshold) {
+      const severity = v < r.min ? 'critical' : 'warning';
+      alerts.push({
+        marker: im.label,
+        value: v,
+        unit: marker.unit,
+        severity,
+        message: v < r.min
+          ? `${im.label} is below range (${v} ${marker.unit}) with recent heavy flow \u2014 discuss iron supplementation with your provider`
+          : `${im.label} is in the low range (${v} ${marker.unit}) with recent heavy flow \u2014 monitor closely`
+      });
+    }
+  }
+
+  // Alert if iron markers are missing entirely with heavy flow
+  const hasAnyIron = ironMarkers.some(im => {
+    const m = data.categories[im.cat]?.markers[im.key];
+    return m && m.values.some(v => v !== null);
+  });
+  if (!hasAnyIron && recentHeavy.length >= 2) {
+    alerts.push({
+      marker: null,
+      severity: 'info',
+      message: 'Heavy menstrual flow detected but no iron panel on file \u2014 consider testing ferritin, hemoglobin, and iron'
+    });
+  }
+
+  return alerts;
+}
+
 export function openMenstrualCycleEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
@@ -187,7 +300,7 @@ export function openMenstrualCycleEditor() {
         <span class="supp-list-icon">\uD83D\uDD34</span>
         <div class="supp-list-info">
           <div class="supp-list-name">${fmtDate(p.startDate)} \u2013 ${fmtDate(p.endDate)}</div>
-          <div class="supp-list-meta"><span class="goals-severity-badge ${flowCls}">${p.flow || 'moderate'}</span>${p.notes ? ' ' + escapeHTML(p.notes) : ''}</div>
+          <div class="supp-list-meta"><span class="goals-severity-badge ${flowCls}">${p.flow || 'moderate'}</span>${(p.symptoms && p.symptoms.length) ? p.symptoms.map(s => `<span class="period-symptom-tag">${escapeHTML(s)}</span>`).join('') : ''}${p.notes ? ' ' + escapeHTML(p.notes) : ''}</div>
         </div>
         <div class="supp-list-actions">
           <button class="delete" onclick="deletePeriodEntry('${p.startDate}')">\u2715</button>
@@ -218,8 +331,16 @@ export function openMenstrualCycleEditor() {
       </div>
       <div class="supp-form-row">
         <div class="supp-form-field" style="flex:2">
+          <label>Symptoms</label>
+          <div class="ctx-tags" id="mc-period-symptoms">
+            ${PERIOD_SYMPTOMS.map(s => `<span class="ctx-tag" data-value="${s}" onclick="this.classList.toggle('selected')">${s}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="supp-form-row">
+        <div class="supp-form-field" style="flex:2">
           <label>Notes (optional)</label>
-          <input type="text" id="mc-period-notes" placeholder="e.g. cramps, spotting">
+          <input type="text" id="mc-period-notes" placeholder="e.g. spotting, unusual pain">
         </div>
         <div class="supp-form-field" style="flex:0;align-self:flex-end">
           <button class="import-btn import-btn-primary" style="padding:8px 16px" onclick="addPeriodEntry()">Add</button>
@@ -242,6 +363,8 @@ export function saveMenstrualCycle() {
   const activeNav = document.querySelector(".nav-item.active");
   window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showNotification('Menstrual cycle profile saved', 'success');
+  // Auto-trigger cycle tour after dashboard re-renders
+  setTimeout(() => { if (window.startCycleTour) window.startCycleTour(true); }, 600);
 }
 
 export function clearMenstrualCycle() {
@@ -280,6 +403,8 @@ export function addPeriodEntry() {
   const startDate = document.getElementById('mc-period-start').value;
   const endDate = document.getElementById('mc-period-end').value;
   const flow = document.getElementById('mc-period-flow').value;
+  const symptomTags = document.querySelectorAll('#mc-period-symptoms .ctx-tag.selected');
+  const symptoms = Array.from(symptomTags).map(t => t.dataset.value);
   const notes = document.getElementById('mc-period-notes').value.trim();
   if (!startDate) { showNotification('Start date is required', 'error'); return; }
   if (!endDate) { showNotification('End date is required', 'error'); return; }
@@ -287,7 +412,7 @@ export function addPeriodEntry() {
   syncMenstrualCycleProfileFromForm();
   const exists = state.importedData.menstrualCycle.periods.some(p => p.startDate === startDate);
   if (exists) { showNotification('A period entry with this start date already exists', 'error'); return; }
-  state.importedData.menstrualCycle.periods.push({ startDate, endDate, flow, notes });
+  state.importedData.menstrualCycle.periods.push({ startDate, endDate, flow, symptoms, notes });
   saveImportedData();
   openMenstrualCycleEditor();
 }
@@ -305,7 +430,10 @@ export function renderMenstrualCycleSection(data) {
   let html = `<div class="cycle-section">
     <div class="supp-timeline-header">
       <span class="context-section-title">Menstrual Cycle</span>
-      <button class="supp-add-btn" onclick="openMenstrualCycleEditor()">${mc ? 'Edit' : '+ Set Up'}</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${mc ? `<button class="cycle-tour-btn" onclick="startCycleTour(false)" title="Cycle feature tour">?</button>` : ''}
+        <button class="supp-add-btn" onclick="openMenstrualCycleEditor()">${mc ? 'Edit' : '+ Set Up'}</button>
+      </div>
     </div>`;
   if (!mc) {
     html += `<div class="cycle-prompt" onclick="openMenstrualCycleEditor()">
@@ -345,13 +473,36 @@ export function renderMenstrualCycleSection(data) {
       html += `<div class="cycle-period-log">`;
       for (const p of periods) {
         const flowCls = p.flow === 'heavy' ? 'severity-major' : p.flow === 'light' ? 'severity-minor' : 'severity-mild';
-        html += `<span class="cycle-period-entry">${fmtDate(p.startDate)}\u2013${fmtDate(p.endDate)} <span class="goals-severity-badge ${flowCls}">${p.flow}</span>${p.notes ? ` <span class="cycle-period-note">${escapeHTML(p.notes)}</span>` : ''}</span>`;
+        html += `<span class="cycle-period-entry">${fmtDate(p.startDate)}\u2013${fmtDate(p.endDate)} <span class="goals-severity-badge ${flowCls}">${p.flow}</span>${(p.symptoms && p.symptoms.length) ? p.symptoms.map(s => `<span class="period-symptom-tag">${escapeHTML(s)}</span>`).join('') : ''}${p.notes ? ` <span class="cycle-period-note">${escapeHTML(p.notes)}</span>` : ''}</span>`;
       }
       html += `</div>`;
+    }
+    // Perimenopause pattern detection
+    const perimenopause = detectPerimenopausePattern(mc, state.profileDob);
+    if (perimenopause) {
+      html += `<div class="cycle-alert cycle-alert-perimenopause">
+        <span class="cycle-alert-icon">\u26A0\uFE0F</span>
+        <div>
+          <strong>Possible Perimenopause Pattern</strong>
+          <div class="cycle-alert-detail">${escapeHTML(perimenopause.message)}</div>
+        </div>
+      </div>`;
+    }
+    // Heavy flow + iron alerts
+    const ironAlerts = detectCycleIronAlerts(mc, data);
+    for (const alert of ironAlerts) {
+      const cls = alert.severity === 'critical' ? 'cycle-alert-critical' : alert.severity === 'warning' ? 'cycle-alert-warning' : 'cycle-alert-info';
+      html += `<div class="cycle-alert ${cls}">
+        <span class="cycle-alert-icon">${alert.severity === 'critical' ? '\uD83D\uDEA8' : alert.severity === 'warning' ? '\u26A0\uFE0F' : '\u2139\uFE0F'}</span>
+        <div>
+          <strong>${alert.marker ? escapeHTML(alert.marker) + ' + Heavy Flow' : 'Iron Panel Missing'}</strong>
+          <div class="cycle-alert-detail">${escapeHTML(alert.message)}</div>
+        </div>
+      </div>`;
     }
   }
   html += `</div>`;
   return html;
 }
 
-Object.assign(window, { getCyclePhase, getNextBestDrawDate, getBloodDrawPhases, calculateCycleStats, renderMenstrualCycleSection, openMenstrualCycleEditor, saveMenstrualCycle, clearMenstrualCycle, syncMenstrualCycleProfileFromForm, addPeriodEntry, deletePeriodEntry });
+Object.assign(window, { getCyclePhase, getNextBestDrawDate, getBloodDrawPhases, calculateCycleStats, detectPerimenopausePattern, detectCycleIronAlerts, renderMenstrualCycleSection, openMenstrualCycleEditor, saveMenstrualCycle, clearMenstrualCycle, syncMenstrualCycleProfileFromForm, addPeriodEntry, deletePeriodEntry });

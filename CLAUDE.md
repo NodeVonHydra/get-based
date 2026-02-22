@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries, modals, notifications, correlation view, chat panel, empty state)
 - **`js/`** — 24 ES modules loaded via `js/main.js`:
-  - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
+  - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
@@ -113,11 +113,16 @@ Nine profile context cards stored as structured objects in `importedData`. All e
 
 Cycle-aware lab interpretation for female profiles (`profileSex === 'female'` only):
 
-- **Storage**: `importedData.menstrualCycle` — `null` or `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`. Periods: `[{ startDate, endDate, flow, notes }]`
+- **Storage**: `importedData.menstrualCycle` — `null` or `{ cycleLength, periodLength, regularity, flow, contraceptive, conditions, periods[] }`. Periods: `[{ startDate, endDate, flow, symptoms[], notes }]`. Symptoms from `PERIOD_SYMPTOMS` array (10 items)
 - **Helpers**: `getCyclePhase(dateStr, mc)` → `{ cycleDay, phase, phaseName }`. Phases: menstrual, follicular, ovulatory (cycleLength-14 ±1), luteal. `getNextBestDrawDate(mc)` → next early follicular window (days 3-5). `getBloodDrawPhases(mc, dates)` → maps lab dates to phases
 - **Auto-calculated stats**: `calculateCycleStats(periods)` computes `cycleLength` (mean days between starts, 2+ periods, clamped 20–45), `periodLength` (mean days per period, 1+ periods, clamped 2–10), `regularity` (stdev of intervals, 3+ periods: ≤2 regular, ≤7 irregular, >7 very_irregular). Returns `null` for insufficient data. Editor shows read-only auto-calculated values when available, manual inputs as fallback. `syncMenstrualCycleProfileFromForm()` reads auto elements (`#mc-*-auto` `data-value`) when present, falls back to manual inputs
-- **Dashboard**: Between context cards and supplements. Shows cycle summary (clickable to open editor), next draw recommendation, phase badges, period log
-- **AI context**: Cycle phase considered for hormones, iron/ferritin, inflammatory markers. Flags suboptimal draw timing
+- **Dashboard**: Between context cards and supplements. Shows cycle summary (clickable to open editor), next draw recommendation, phase badges, period log, perimenopause pattern alert (if detected), heavy flow + iron alerts
+- **Phase-aware reference ranges**: `PHASE_RANGES` in schema.js defines per-phase ref ranges for estradiol (pmol/L) and progesterone (nmol/L) across menstrual/follicular/ovulatory/luteal. `getActiveData()` computes `marker.phaseRefRanges[]` and `marker.phaseLabels[]` (arrays aligned with `data.dates[]`) for female profiles with cycle periods via `_getCyclePhase()` (private copy in data.js). `getEffectiveRangeForDate(marker, dateIndex)` returns phase range if available, falls back to `getEffectiveRange()`. `getPhaseRefEnvelope(marker)` returns widest span across phases (for chart ref band). All status consumers (chart point colors, chart cards, detail modal, table, heatmap, compare, glossary, trend alerts, flagged markers, AI context) use per-date ranges. Phase ranges are unit-converted and date-range-filtered alongside other marker data
+- **Cycle phase bands on charts**: `phaseBandPlugin` draws vertical background shading (menstrual=red, follicular=blue, ovulatory=purple, luteal=yellow at 8% opacity) with single-letter labels at top. Toggled via Layers dropdown (`phaseOverlayMode`). `data.phaseLabels[]` computed in `getActiveData()`, filtered by `filterDatesByRange()`, passed as 5th param to `createLineChart()`
+- **Period symptoms**: Multi-select from `PERIOD_SYMPTOMS` (10 items: Cramps, Mood swings, Fatigue, etc.). Stored as `period.symptoms[]`. Displayed as `.period-symptom-tag` pills in editor and dashboard. Included in AI context
+- **Perimenopause detection**: `detectPerimenopausePattern(mc, dob)` — requires age 35+ and 4+ periods. Checks 4 indicators: lengthening cycles (linear regression slope>0.5, R²>0.3), increasing variability (stdev ratio>1.5), cycles >38 days, predominantly heavy flow. Needs 2+ indicators to flag. Dashboard alert + AI context
+- **Heavy flow + iron alerts**: `detectCycleIronAlerts(mc, data)` — cross-references recent heavy flow with ferritin/hemoglobin/iron. Alerts: critical (below range), warning (bottom 25%), info (no iron panel). Dashboard alerts + AI context
+- **AI context**: Cycle phase considered for hormones, iron/ferritin, inflammatory markers. Flags suboptimal draw timing. Phase-specific ranges included per-value in `buildLabContext()` and `askAIAboutMarker()`. Perimenopause + iron/flow alerts included
 - **Export/import**: Import overwrites profile, merges periods by startDate
 
 ### Free Water Deficit
@@ -147,6 +152,8 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 - **Positioning**: `positionTooltip(rect, position)` places tooltip bottom/right/left/top of spotlight with viewport bounds clamping. Falls back if tooltip would overflow
 - **Navigation**: Skip/Back/Next/Done buttons. Progress dots show current step. Escape key dismisses via `endTour()`
 - **Cleanup**: `endTour()` removes all three DOM elements and stores completion flag
+- **Generic engine**: `runTour(steps, storageKey, auto)` — filters out steps whose target element is missing, creates DOM, starts navigation. `activeTour` object holds `{ steps, storageKey, currentStep }`
+- **Cycle tour**: 8-step cycle-specific tour (`CYCLE_TOUR_STEPS`). Steps: Welcome → `.cycle-summary` → `.cycle-draw-date` → `.cycle-draw-phases` → `.cycle-period-log` → `.cycle-alert` → `.chart-layers-wrapper` → `.chat-toggle-btn`. Auto-triggered via `startCycleTour(true)` after `saveMenstrualCycle()` with 600ms delay. Re-trigger via `?` button (`.cycle-tour-btn`) in cycle section header. Storage: `labcharts-{profileId}-cycleTour`
 
 ### Dashboard Section Order
 
@@ -157,7 +164,7 @@ Flat layout (no collapsible toggles): 1) Drop zone, 2) Onboarding, 3) Interpreti
 
 ### Chart Layers Dropdown
 
-Single "Layers" dropdown controlling note dots and supplement bars on charts. Persisted per-profile: `noteOverlayMode` in `labcharts-{profileId}-noteOverlay`, `suppOverlayMode` in `labcharts-{profileId}-suppOverlay`. Both default off. Hidden when profile has no notes/supplements.
+Single "Layers" dropdown controlling note dots, supplement bars, and cycle phase bands on charts. Persisted per-profile: `noteOverlayMode` in `labcharts-{profileId}-noteOverlay`, `suppOverlayMode` in `labcharts-{profileId}-suppOverlay`, `phaseOverlayMode` in `labcharts-{profileId}-phaseOverlay`. All default off. Hidden when profile has no notes/supplements/cycle data.
 
 ### Trend Alerts on Dashboard
 
@@ -237,7 +244,7 @@ There are no tests, linters, or build steps. An AI provider API key (Anthropic, 
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v35` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v38` (bump to bust). Strategies: API/OpenRouter/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

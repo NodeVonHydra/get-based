@@ -351,6 +351,7 @@ body {
   font-family: var(--font-mono); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .modal-value-card .mv-status { font-size: 11px; font-weight: 600; margin-top: 4px; }
+.modal-value-card .mv-phase { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 .modal-ref-info {
   background: var(--bg-card); border-radius: var(--radius-sm);
   padding: 14px 18px; font-size: 13px; color: var(--text-secondary);
@@ -1735,6 +1736,20 @@ body {
   border-radius: 5px; display: inline-flex; align-items: center; gap: 4px;
 }
 .cycle-period-note { color: var(--text-muted); font-style: italic; }
+.period-symptom-tag {
+  display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px;
+  background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); margin-left: 4px;
+}
+.cycle-alert {
+  display: flex; gap: 10px; padding: 10px 14px; border-radius: 8px; margin-top: 8px; border-left: 3px solid;
+}
+.cycle-alert-icon { font-size: 18px; flex-shrink: 0; }
+.cycle-alert strong { font-size: 13px; }
+.cycle-alert-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.cycle-alert-perimenopause { background: rgba(245, 158, 11, 0.08); border-color: var(--yellow); }
+.cycle-alert-critical { background: rgba(239, 68, 68, 0.08); border-color: var(--red); }
+.cycle-alert-warning { background: rgba(245, 158, 11, 0.08); border-color: var(--yellow); }
+.cycle-alert-info { background: rgba(59, 130, 246, 0.08); border-color: var(--accent); }
 .cycle-editor-form { margin-top: 12px; }
 .modal .supp-form-row { flex-wrap: wrap; }
 .modal .supp-form-field { min-width: min(140px, 100%); }
@@ -2266,6 +2281,13 @@ body {
 @media (max-width: 480px) {
   #tour-tooltip { max-width: calc(100vw - 32px); }
 }
+.cycle-tour-btn {
+  width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border);
+  background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;
+}
+.cycle-tour-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,140,255,0.05); }
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
