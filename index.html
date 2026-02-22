@@ -101,15 +101,6 @@
             </div>
             <span class="chat-personality-opt-check">&#10003;</span>
           </button>
-          <div class="chat-personality-divider">Real Practitioners</div>
-          <button class="chat-personality-opt" data-personality="kruse" onclick="setChatPersonality('kruse')">
-            <span class="chat-personality-opt-icon">&#9728;&#65039;</span>
-            <div class="chat-personality-opt-info">
-              <span class="chat-personality-opt-name">Dr. Jack Kruse</span>
-              <span class="chat-personality-opt-desc">Mitochondria, light, water, magnetism</span>
-            </div>
-            <span class="chat-personality-opt-check">&#10003;</span>
-          </button>
           <div class="chat-personality-divider">Fictional Characters</div>
           <button class="chat-personality-opt" data-personality="house" onclick="setChatPersonality('house')">
             <span class="chat-personality-opt-icon">&#129455;</span>
@@ -128,8 +119,15 @@
             <span class="chat-personality-opt-check">&#10003;</span>
           </button>
           <div class="chat-personality-custom-area" style="display:none">
-            <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate (e.g., 'Speak like a surfer dude who happens to be a doctor')..." rows="3"></textarea>
-            <button class="chat-personality-custom-save" onclick="saveCustomPersonality()">Save</button>
+            <div class="chat-personality-custom-header">
+              <input type="text" id="chat-personality-custom-name" class="chat-personality-custom-name-input" placeholder="e.g. Dr. Jack Kruse" maxlength="60" oninput="markPersonalityDirty()">
+              <button id="chat-personality-generate-btn" class="chat-personality-generate-btn" onclick="generateCustomPersonality()">Generate</button>
+            </div>
+            <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
+            <div class="chat-personality-custom-footer">
+              <label class="chat-personality-evidence-label"><input type="checkbox" id="chat-personality-evidence-based" onchange="markPersonalityDirty()"> Enforce evidence-based accuracy</label>
+              <button class="chat-personality-custom-save" onclick="saveCustomPersonality()" disabled>Save</button>
+            </div>
           </div>
         </div>
       </div>

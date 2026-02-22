@@ -1292,16 +1292,46 @@ body {
 .chat-personality-custom-textarea {
   width: 100%; background: var(--bg-primary); border: 1px solid var(--border);
   border-radius: 6px; color: var(--text-primary); font-family: inherit;
-  font-size: 12px; padding: 8px 10px; resize: vertical; box-sizing: border-box;
+  font-size: 13px; line-height: 1.6; padding: 10px 12px; resize: none;
+  box-sizing: border-box; min-height: 80px; max-height: 300px; overflow-y: auto;
 }
-.chat-personality-custom-textarea:focus { border-color: var(--accent); }
+.chat-personality-custom-textarea:focus { border-color: var(--accent); outline: none; }
 .chat-personality-custom-textarea::placeholder { color: var(--text-muted); }
+.chat-personality-custom-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 6px; gap: 8px;
+}
+.chat-personality-evidence-label {
+  display: flex; align-items: center; gap: 5px; font-size: 11px;
+  color: var(--text-muted); cursor: pointer; user-select: none;
+}
+.chat-personality-evidence-label input[type="checkbox"] {
+  accent-color: var(--accent); margin: 0; cursor: pointer;
+}
 .chat-personality-custom-save {
-  margin-top: 6px; padding: 4px 14px; font-size: 11px; font-family: inherit;
+  padding: 4px 14px; font-size: 11px; font-family: inherit;
   background: var(--accent-gradient); color: white; border: none; border-radius: 4px;
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
 }
 .chat-personality-custom-save:hover { box-shadow: 0 2px 8px rgba(79, 140, 255, 0.2); }
+.chat-personality-custom-save:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+.chat-personality-custom-header {
+  display: flex; gap: 6px; margin-bottom: 6px;
+}
+.chat-personality-custom-name-input {
+  flex: 1; background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-primary); font-family: inherit;
+  font-size: 12px; padding: 6px 10px; box-sizing: border-box; min-width: 0;
+}
+.chat-personality-custom-name-input:focus { border-color: var(--accent); outline: none; }
+.chat-personality-custom-name-input::placeholder { color: var(--text-muted); }
+.chat-personality-generate-btn {
+  padding: 6px 12px; font-size: 11px; font-family: inherit;
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 4px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.chat-personality-generate-btn:hover { background: var(--accent); color: white; }
+.chat-personality-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .chat-messages {
   flex: 1; overflow-y: auto; padding: 20px 24px;

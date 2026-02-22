@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v38', swSrc.includes('labcharts-v38'));
+  assert('Cache bumped to v38', swSrc.includes('labcharts-v39'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -39,10 +39,23 @@
   console.log('\n%c4. site.html — Source content', 'font-weight:bold');
   const siteSrc = await fetch('site.html').then(r => r.text());
 
+  // Meta tags
+  assert('og:description has 287+', siteSrc.includes('track 287+ biomarkers'));
+
   // Hero copy
   assert('Hero: "better than a PDF"', siteSrc.includes('better than a PDF'));
   assert('Hero: "Open source"', siteSrc.includes('Open source'));
+  assert('Hero badge: 287+ biomarkers', siteSrc.includes('287+ biomarkers'));
+  assert('Hero sub: no PII explanation', !siteSrc.includes('personal info is stripped before anything reaches AI'));
   assert('Hero sub: no "109+"', !/hero-sub[^<]*109\+/.test(siteSrc));
+
+  // Stats bar
+  assert('Stats: 287+ biomarkers', siteSrc.includes('>287+</div>'));
+  assert('Stats: 26 categories', siteSrc.includes('>26</div>'));
+  assert('Stats: tightened label "Biomarkers"', siteSrc.includes('>Biomarkers</div>'));
+  assert('Stats: tightened label "AI providers"', siteSrc.includes('>AI providers</div>'));
+  assert('Stats: no "tracked" in biomarker label', !siteSrc.includes('Biomarkers tracked'));
+  assert('Stats: no "to choose" in AI label', !siteSrc.includes('AI providers to choose'));
 
   // Why section
   assert('Has #why section', siteSrc.includes('id="why"'));
@@ -55,29 +68,91 @@
   assert('Persona: The patient', siteSrc.includes('The patient'));
   assert('Persona: The doctor who cares', siteSrc.includes('The doctor who cares'));
   assert('Persona: been dismissed', siteSrc.includes('been dismissed'));
+  assert('Why: "not on someone else\'s server"', siteSrc.includes('not on someone else'));
+
+  // How It Works
+  assert('Step 1: batch import mention', siteSrc.includes('Batch-import a stack'));
+  assert('Step 1: custom markers mention', siteSrc.includes('custom markers'));
+  assert('Step 2: cycle phase bands', siteSrc.includes('cycle phase bands'));
+  assert('Step 2: supplement timelines', siteSrc.includes('supplement timelines'));
+  assert('Step 2: correlation viewer', siteSrc.includes('correlation viewer'));
+  assert('Step 3: chat threads', siteSrc.includes('chat threads'));
+  assert('Step 3: per-marker AI', /any marker.*AI/i.test(siteSrc) || siteSrc.includes('marker for a quick AI'));
+
+  // Unified features section (no standalone bento)
+  assert('Has features-section-top', siteSrc.includes('features-section-top'));
+  assert('Has features-section-bento', siteSrc.includes('features-section-bento'));
+  assert('Has features-section-bottom', siteSrc.includes('features-section-bottom'));
+  assert('No standalone .bento section', !/<section class="bento">/.test(siteSrc));
+  assert('No .features-grid class', !siteSrc.includes('features-grid'));
+
+  // Feature cards (top 3 + bottom 3 = 6 feature-card)
+  const featureCards = (siteSrc.match(/class="feature-card/g) || []).length;
+  assert('6 feature-card elements', featureCards === 6, `found ${featureCards}`);
+
+  // Top row feature cards
+  assert('Feature: Interactive Trend Charts', siteSrc.includes('Interactive Trend Charts'));
+  assert('Feature: AI-Powered PDF Import', siteSrc.includes('AI-Powered PDF Import'));
+  assert('Feature: Cycle-Aware Labs', siteSrc.includes('Cycle-Aware Labs'));
+
+  // Bottom row feature cards
+  assert('Feature: Supplement & Med Timeline', siteSrc.includes('Supplement &amp; Med Timeline'));
+  assert('Feature: Persistent Chat History', siteSrc.includes('Persistent Chat History'));
+  assert('Feature: Calculated & Custom Markers', siteSrc.includes('Calculated &amp; Custom Markers'));
+
+  // Bento cards (2 in middle row)
+  const bentoCards = (siteSrc.match(/class="bento-card/g) || []).length;
+  assert('2 bento-card elements', bentoCards === 2, `found ${bentoCards}`);
+
+  // Context cards mockup (9 cards)
+  const ctxCards = (siteSrc.match(/class="ctx-card"/g) || []).length;
+  assert('9 context card mockups', ctxCards === 9, `found ${ctxCards}`);
+
+  // Chat mockup with thread rail
+  assert('Chat mock has thread rail', siteSrc.includes('Threads'));
+  assert('Chat mock overflow hidden', /\.chat-mock\{[^}]*overflow:\s*hidden/.test(siteSrc));
+
+  // Removed standalone cards
+  assert('No standalone Health Goals card', !siteSrc.includes('<h3>Health Goals</h3>'));
+  assert('No standalone Trend Alerts card', !siteSrc.includes('<h3>Trend Alerts</h3>'));
+  assert('No "Multiple views" bento card', !siteSrc.includes('Multiple views for every category'));
+  assert('No "Smart calculated markers" bento card', !siteSrc.includes('Smart calculated markers'));
 
   // Repetition removed
   assert('No PII Scrubbing feature card', !siteSrc.includes('<h3>PII Scrubbing</h3>'));
-  assert('No Encryption feature card in features', !/<h3>Encryption &amp; Auto-Backup<\/h3>/.test(siteSrc));
+  assert('No Encryption feature card', !/<h3>Encryption &amp; Auto-Backup<\/h3>/.test(siteSrc));
   assert('No Biological Age feature card', !siteSrc.includes('<h3>Biological Age</h3>'));
   assert('No markers scroll section', !siteSrc.includes('markers-scroll'));
   assert('No marker-chip CSS', !siteSrc.includes('.marker-chip'));
   assert('PII still in Privacy section', siteSrc.includes('PII Obfuscation'));
   assert('Encrypted still in Privacy section', siteSrc.includes('Encrypted &amp; Backed Up'));
 
-  // Feature count
-  const featureCards = (siteSrc.match(/class="feature-card/g) || []).length;
-  assert('6 feature cards (removed PII, Encryption, BioAge)', featureCards === 6, `found ${featureCards}`);
+  // Privacy section tightened
+  assert('Privacy: no "No account. No tracking."', !siteSrc.includes('No account. No tracking.'));
+
+  // AI Providers updated
+  assert('Anthropic: Opus 4.6 mention', siteSrc.includes('Opus 4.6'));
+  assert('Anthropic: Sonnet 4.6 mention', siteSrc.includes('Sonnet 4.6'));
+  assert('Anthropic: Haiku 4.5 mention', siteSrc.includes('Haiku 4.5'));
+  assert('OpenRouter: no Llama mention', !/<h3>OpenRouter[\s\S]*?<\/div>\s*<div class="provider-card/.test(siteSrc) || !siteSrc.includes('Llama, Gemini'));
+  assert('OpenRouter: Claude 4.6 listed', /OpenRouter[\s\S]*?Claude 4\.6/.test(siteSrc));
+  assert('OpenRouter: dynamic pricing', /OpenRouter[\s\S]*?[Dd]ynamic pricing/.test(siteSrc));
+  assert('Venice: proxies GPT-5', /Venice[\s\S]*?GPT-5/.test(siteSrc));
+  assert('Venice: proxies Grok-4', /Venice[\s\S]*?Grok-4/.test(siteSrc));
+
+  // CTA updated
+  assert('CTA: "nothing to install"', siteSrc.includes('nothing to install'));
+  assert('CTA: no "No account needed"', !siteSrc.includes('No account needed, your data stored locally'));
 
   // Nav/footer
   assert('Nav has Why link', siteSrc.includes('<a href="#why">Why</a>'));
   assert('Footer has Why link', /footer[\s\S]*#why/.test(siteSrc));
 
-  // CTA tightened
-  assert('CTA: no "install as an app"', !siteSrc.includes('Install as an app'));
-
-  // CSS: why section responsive
+  // CSS: responsive rules
+  assert('CSS: features-section-top responsive at 768px', /768px[\s\S]*?\.features-section-top/.test(siteSrc));
+  assert('CSS: features-section-bento responsive at 1024px', /1024px[\s\S]*?\.features-section-bento/.test(siteSrc));
   assert('Why-grid responsive in 1024px', siteSrc.includes('.why-grid{grid-template-columns:1fr'));
+  assert('CSS: .feature-tag.cyan exists', siteSrc.includes('.feature-tag.cyan'));
 
   // ── 5. DOM checks (if on site.html) ──
   console.log('\n%c5. DOM checks', 'font-weight:bold');
@@ -100,10 +175,26 @@
     const domFeatureCards = document.querySelectorAll('.feature-card');
     assert('6 feature cards in DOM', domFeatureCards.length === 6, `found ${domFeatureCards.length}`);
 
+    const domBentoCards = document.querySelectorAll('.bento-card');
+    assert('2 bento cards in DOM', domBentoCards.length === 2, `found ${domBentoCards.length}`);
+
+    const domCtxCards = document.querySelectorAll('.ctx-card');
+    assert('9 context cards in DOM', domCtxCards.length === 9, `found ${domCtxCards.length}`);
+
+    const domStatNumbers = document.querySelectorAll('.stat-number');
+    if (domStatNumbers.length >= 2) {
+      assert('First stat is 287+', domStatNumbers[0].textContent.trim() === '287+');
+      assert('Second stat is 26', domStatNumbers[1].textContent.trim() === '26');
+    }
+
     if (whyGrid) {
       const style = getComputedStyle(whyGrid);
       assert('.why-grid display: grid', style.display === 'grid');
     }
+
+    // Check no standalone bento section
+    const bentoSections = document.querySelectorAll('section.bento');
+    assert('No standalone bento section in DOM', bentoSections.length === 0);
   } else {
     console.log('  ⚠️  Not on site.html — skipping DOM checks');
   }

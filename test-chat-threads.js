@@ -362,10 +362,10 @@
   console.group('%c18. Thread Personality', 'font-weight:bold');
   st.chatThreads = [];
   st.currentThreadId = null;
-  st.currentChatPersonality = 'kruse';
+  st.currentChatPersonality = 'house';
   window.createNewThread();
   const pThread = st.chatThreads.find(t => t.id === st.currentThreadId);
-  assert('new thread inherits current personality', pThread && pThread.personality === 'kruse');
+  assert('new thread inherits current personality', pThread && pThread.personality === 'house');
   console.groupEnd();
 
   // ═══════════════════════════════════════════════
