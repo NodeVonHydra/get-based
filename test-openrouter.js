@@ -122,7 +122,7 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v38', swSrc.includes("labcharts-v40"));
+  assert('SW cache is v38', swSrc.includes("labcharts-v42"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. site.html ───
@@ -130,9 +130,9 @@
   const siteSrc = await fetch('site.html').then(r => r.text());
   assert('site.html has OpenRouter card', siteSrc.includes('OpenRouter'));
   assert('site.html mentions 200+ models', siteSrc.includes('200+ models'));
-  assert('site.html grid is 4-col', siteSrc.includes('repeat(4,1fr)'));
-  assert('site.html has 4 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 4);
-  assert('site.html heading says Four backends', siteSrc.includes('Four backends'));
+  assert('site.html grid is 5-col', siteSrc.includes('repeat(5,1fr)'));
+  assert('site.html has 5 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 5);
+  assert('site.html heading says Five backends', siteSrc.includes('Five backends'));
   const orCardIdx = siteSrc.indexOf('<h3>OpenRouter</h3>');
   const veniceCardIdx = siteSrc.indexOf('<h3>Venice AI</h3>');
   assert('site.html: OpenRouter card before Venice card', orCardIdx < veniceCardIdx, `OpenRouter@${orCardIdx}, Venice@${veniceCardIdx}`);
@@ -198,7 +198,7 @@
   window.openSettingsModal('ai');
   await new Promise(r => setTimeout(r, 100));
   const providerBtns = document.querySelectorAll('.ai-provider-btn');
-  assert('4 provider buttons in settings', providerBtns.length === 4, `found ${providerBtns.length}`);
+  assert('5 provider buttons in settings', providerBtns.length === 5, `found ${providerBtns.length}`);
   const providerValues = Array.from(providerBtns).map(b => b.dataset.provider);
   assert('provider buttons include anthropic', providerValues.includes('anthropic'));
   assert('provider buttons include venice', providerValues.includes('venice'));
