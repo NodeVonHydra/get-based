@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v38', swSrc.includes('labcharts-v42'));
+  assert('Cache bumped to v43', swSrc.includes('labcharts-v43'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -160,6 +160,47 @@
   assert('CSS: providers-grid responsive at 1024px', /1024px[\s\S]*?\.providers-grid/.test(siteSrc));
   assert('CSS: bg layers hidden at 480px', /480px[\s\S]*?\.bg-grid/.test(siteSrc));
 
+  // Hamburger menu
+  assert('Has nav-hamburger button', siteSrc.includes('class="nav-hamburger"'));
+  assert('Hamburger has 3 spans', (siteSrc.match(/id="nav-hamburger"[^>]*>[\s\S]*?<\/button>/)?.[0]?.match(/<span>/g) || []).length === 3);
+  assert('Hamburger has aria-expanded', siteSrc.includes('aria-expanded="false"'));
+  assert('Has nav-drawer div', siteSrc.includes('class="nav-drawer"'));
+  assert('Nav drawer has links', /nav-drawer[\s\S]*?href="#why"/.test(siteSrc));
+  assert('Nav drawer has Open App CTA', /nav-drawer[\s\S]*?href="\/app"/.test(siteSrc));
+  assert('CSS: nav-hamburger hidden by default', /\.nav-hamburger\{[^}]*display:none/.test(siteSrc));
+  assert('CSS: nav-hamburger shown at 768px', /768px[\s\S]*?\.nav-hamburger\{display:flex/.test(siteSrc));
+  assert('CSS: nav-drawer transforms', /\.nav-drawer\{[^}]*transform:translateY\(-100%\)/.test(siteSrc));
+  assert('CSS: nav-drawer.open transforms', /\.nav-drawer\.open\{[^}]*transform:translateY\(0\)/.test(siteSrc));
+  assert('CSS: body.nav-open overflow hidden', /body\.nav-open\{overflow:hidden/.test(siteSrc));
+  assert('JS: toggleDrawer function', siteSrc.includes('function toggleDrawer'));
+  assert('JS: Escape closes drawer', /keydown[\s\S]*?Escape[\s\S]*?toggleDrawer/.test(siteSrc));
+
+  // Mockup animations
+  assert('Has chart-line-animated class', siteSrc.includes('class="chart-line-animated"'));
+  assert('Has chart-end-dot class', siteSrc.includes('class="chart-end-dot"'));
+  assert('Has 3 sparkline-animated classes', (siteSrc.match(/class="sparkline-animated"/g) || []).length === 3);
+  assert('CSS: @keyframes drawLine', siteSrc.includes('@keyframes drawLine'));
+  assert('CSS: @keyframes sparkDraw', siteSrc.includes('@keyframes sparkDraw'));
+  assert('CSS: @keyframes dotPop', siteSrc.includes('@keyframes dotPop'));
+  assert('Animations triggered by .hero-mockup.visible', siteSrc.includes('.hero-mockup.visible .chart-line-animated'));
+
+  // Stats count-up
+  assert('Stats have data-count attrs', (siteSrc.match(/data-count="/g) || []).length === 4);
+  assert('First stat data-count=287', siteSrc.includes('data-count="287"'));
+  assert('First stat data-suffix="+"', siteSrc.includes('data-suffix="+"'));
+  assert('JS: animateCount function', siteSrc.includes('function animateCount'));
+  assert('JS: easeOutExpo function', siteSrc.includes('function easeOutExpo'));
+  assert('JS: count-up IntersectionObserver', /countObserver[\s\S]*?IntersectionObserver/.test(siteSrc));
+  assert('JS: count-up threshold 0.5', /countObserver[\s\S]*?threshold:\s*0\.5/.test(siteSrc) || /IntersectionObserver[\s\S]*?threshold:\s*0\.5/.test(siteSrc));
+
+  // GitHub stars
+  assert('JS: fetches GitHub API', siteSrc.includes('api.github.com/repos/elkimek/lab-charts'));
+  assert('JS: GitHub stars graceful (catch)', /fetchGitHubStars[\s\S]*?\.catch/.test(siteSrc) || /api\.github\.com[\s\S]*?\.catch/.test(siteSrc));
+
+  // Reduced motion
+  assert('Reduced motion: chart animations', /prefers-reduced-motion[\s\S]*?chart-line-animated/.test(siteSrc));
+  assert('Reduced motion: sparkline animations', /prefers-reduced-motion[\s\S]*?sparkline-animated/.test(siteSrc));
+
   // Support section
   assert('Has #support section', siteSrc.includes('id="support"'));
   assert('Has #providers section', siteSrc.includes('id="providers"'));
@@ -198,9 +239,31 @@
 
     const domStatNumbers = document.querySelectorAll('.stat-number');
     if (domStatNumbers.length >= 2) {
-      assert('First stat is 287+', domStatNumbers[0].textContent.trim() === '287+');
-      assert('Second stat is 26', domStatNumbers[1].textContent.trim() === '26');
+      assert('First stat has data-count=287', domStatNumbers[0].dataset.count === '287');
+      assert('Second stat has data-count=26', domStatNumbers[1].dataset.count === '26');
     }
+
+    // Hamburger DOM checks
+    const hamBtn = document.getElementById('nav-hamburger');
+    assert('Hamburger button in DOM', !!hamBtn);
+    if (hamBtn) {
+      assert('Hamburger has 3 span children', hamBtn.querySelectorAll('span').length === 3);
+      assert('Hamburger aria-expanded=false initially', hamBtn.getAttribute('aria-expanded') === 'false');
+    }
+    const drawerEl = document.getElementById('nav-drawer');
+    assert('Nav drawer in DOM', !!drawerEl);
+    if (drawerEl) {
+      const drawerLinks = drawerEl.querySelectorAll('a');
+      assert('Drawer has 6 links', drawerLinks.length === 6, `found ${drawerLinks.length}`);
+    }
+
+    // Animation class DOM checks
+    const chartLine = document.querySelector('.chart-line-animated');
+    assert('Chart line animated polyline in DOM', !!chartLine);
+    const endDot = document.querySelector('.chart-end-dot');
+    assert('Chart end dot in DOM', !!endDot);
+    const sparklines = document.querySelectorAll('.sparkline-animated');
+    assert('3 sparkline-animated in DOM', sparklines.length === 3, `found ${sparklines.length}`);
 
     if (whyGrid) {
       const style = getComputedStyle(whyGrid);
