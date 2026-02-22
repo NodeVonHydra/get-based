@@ -4,9 +4,9 @@ import { state } from './state.js';
 import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
-import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown } from './data.js';
+import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown } from './data.js';
 import { profileStorageKey, setProfileSex, setProfileDob } from './profile.js';
-import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin } from './charts.js';
+import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin, phaseBandPlugin } from './charts.js';
 import { renderSupplementsSection } from './supplements.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
@@ -232,7 +232,7 @@ export function showDashboard(data) {
 
   for (const km of keyMarkers) {
     const marker = filteredData.categories[km.cat].markers[km.key];
-    createLineChart(km.cat + "_" + km.key, marker, filteredData.dateLabels, filteredData.dates);
+    createLineChart(km.cat + "_" + km.key, marker, filteredData.dateLabels, filteredData.dates, filteredData.phaseLabels);
   }
   setupDropZone();
 
@@ -420,7 +420,7 @@ export function showCategory(categoryKey, preData) {
   else if (cat.singleDate) { renderFattyAcidsCharts(cat); }
   else {
     for (const [key, marker] of Object.entries(cat.markers)) {
-      createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
+      createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates, data.phaseLabels);
     }
   }
 }
@@ -449,7 +449,7 @@ export function switchView(view, categoryKey, btn) {
       html += `</div>`;
       container.innerHTML = html;
       for (const [key, marker] of Object.entries(cat.markers)) {
-        createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates);
+        createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates, data.phaseLabels);
       }
     }
   }
@@ -459,8 +459,8 @@ export function renderChartCard(id, marker, dateLabels) {
   state.markerRegistry[id] = marker;
   const latestIdx = getLatestValueIndex(marker.values);
   const latestVal = latestIdx !== -1 ? marker.values[latestIdx] : null;
-  const r = getEffectiveRange(marker);
-  const status = latestVal !== null ? getStatus(latestVal, r.min, r.max) : "missing";
+  const lr = getEffectiveRangeForDate(marker, latestIdx);
+  const status = latestVal !== null ? getStatus(latestVal, lr.min, lr.max) : "missing";
   const statusLabel = status === "normal" ? "Normal" : status === "high" ? "High" : status === "low" ? "Low" : "N/A";
   const sIcon = statusIcon(status);
 
@@ -477,10 +477,12 @@ export function renderChartCard(id, marker, dateLabels) {
   const labels = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
-    const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
+    const ri = getEffectiveRangeForDate(marker, i);
+    const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
+  const r = getEffectiveRange(marker);
   const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
   html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : ''}</div>`;
   return html;
@@ -503,15 +505,17 @@ export function renderTableView(cat, dateLabels) {
       <td class="ref-col">${refCell}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
-      const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
+      const ri = getEffectiveRangeForDate(marker, i);
+      const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
       html += `<td class="value-cell val-${s}">${v !== null ? formatValue(v) : "\u2014"}</td>`;
     }
     const trend = getTrend(marker.values);
     html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     const li = getLatestValueIndex(marker.values);
     if (li !== -1 && r.min != null && r.max != null) {
-      const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], r.min, r.max)));
-      const s = getStatus(marker.values[li], r.min, r.max);
+      const lr = getEffectiveRangeForDate(marker, li);
+      const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], lr.min, lr.max)));
+      const s = getStatus(marker.values[li], lr.min, lr.max);
       html += `<td><div class="range-bar"><div class="range-bar-fill" style="left:0;width:100%"></div>
         <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></td>`;
     } else html += `<td>\u2014</td>`;
@@ -529,11 +533,11 @@ export function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
   for (const [key, marker] of Object.entries(cat.markers)) {
     const id = categoryKey + "_" + key;
     state.markerRegistry[id] = marker;
-    const r = getEffectiveRange(marker);
     html += `<tr><td>${escapeHTML(marker.name)}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
-      const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
+      const ri = getEffectiveRangeForDate(marker, i);
+      const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
       html += `<td class="heatmap-${s}" onclick="showDetailModal('${id}')">${v !== null ? formatValue(v) : "\u2014"}</td>`;
     }
     html += `</tr>`;
@@ -644,8 +648,11 @@ export function showDetailModal(id) {
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
-    const s = v !== null ? getStatus(v, r.min, r.max) : "missing";
+    const ri = getEffectiveRangeForDate(marker, i);
+    const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
     const sl = s==="normal"?"\u2713 In Range":s==="high"?"\u25B2 Above Range":s==="low"?"\u25BC Below Range":"N/A";
+    const phaseLabel = marker.phaseLabels && marker.phaseLabels[i];
+    const phaseInfo = phaseLabel ? `<div class="mv-phase">${phaseLabel} \u2022 ${formatValue(ri.min)}\u2013${formatValue(ri.max)}</div>` : '';
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && state.importedData.notes ? state.importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
@@ -654,7 +661,7 @@ export function showDetailModal(id) {
     const deleteBtn = (v !== null && isManual) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
     html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
       <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
-      <div class="mv-status val-${s}">${sl}</div></div>`;
+      <div class="mv-status val-${s}">${sl}</div>${phaseInfo}</div>`;
   }
   html += `</div>`;
   const nonNull = marker.values.map((v,i)=>({v,i})).filter(x=>x.v!==null);
@@ -669,7 +676,7 @@ export function showDetailModal(id) {
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
-    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates);
+    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);
   }, 50);
   // Display marker description (sync for schema markers, async fetch for custom)
   const descEl = document.getElementById('marker-desc');
@@ -861,9 +868,11 @@ export function renderCompareTable(data, idx1, idx2) {
       const v1 = marker.values[idx1];
       const v2 = marker.values[idx2];
       if (v1 === null && v2 === null) continue;
+      const mr1 = getEffectiveRangeForDate(marker, idx1);
+      const mr2 = getEffectiveRangeForDate(marker, idx2);
       const mr = getEffectiveRange(marker);
-      const s1 = v1 !== null ? getStatus(v1, mr.min, mr.max) : 'missing';
-      const s2 = v2 !== null ? getStatus(v2, mr.min, mr.max) : 'missing';
+      const s1 = v1 !== null ? getStatus(v1, mr1.min, mr1.max) : 'missing';
+      const s2 = v2 !== null ? getStatus(v2, mr2.min, mr2.max) : 'missing';
       let delta = null, pctChange = null, directionClass = 'compare-neutral';
       if (v1 !== null && v2 !== null) {
         delta = v2 - v1;

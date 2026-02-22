@@ -18,6 +18,7 @@ export const state = {
   rangeMode: 'optimal',
   suppOverlayMode: 'off',
   noteOverlayMode: 'off',
+  phaseOverlayMode: 'off',
   compareDate1: null,
   compareDate2: null,
 };
