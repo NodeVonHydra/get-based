@@ -193,7 +193,7 @@
   assert('site.html mentions eCash', siteSrc.includes('eCash'));
   assert('site.html mentions Lightning Bitcoin', siteSrc.includes('Lightning Bitcoin'));
   assert('site.html has 5 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 5);
-  assert('site.html heading says Five backends', siteSrc.includes('Five backends'));
+  assert('site.html heading says Five providers', siteSrc.includes('Five providers'));
   assert('site.html stats say 5 AI providers', siteSrc.includes('>5</div>'));
   const routstrCardIdx = siteSrc.indexOf('<h3>Routstr</h3>');
   const orCardIdx2 = siteSrc.indexOf('<h3>OpenRouter</h3>');

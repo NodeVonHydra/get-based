@@ -68,16 +68,13 @@
   assert('Persona: The patient', siteSrc.includes('The patient'));
   assert('Persona: The doctor who cares', siteSrc.includes('The doctor who cares'));
   assert('Persona: been dismissed', siteSrc.includes('been dismissed'));
-  assert('Why: "not on someone else\'s server"', siteSrc.includes('not on someone else'));
+  assert('Value for Value link exists', siteSrc.includes('value4value.info'));
 
   // How It Works
-  assert('Step 1: batch import mention', siteSrc.includes('Batch-import a stack'));
-  assert('Step 1: custom markers mention', siteSrc.includes('custom markers'));
-  assert('Step 2: cycle phase bands', siteSrc.includes('cycle phase bands'));
-  assert('Step 2: supplement timelines', siteSrc.includes('supplement timelines'));
-  assert('Step 2: correlation viewer', siteSrc.includes('correlation viewer'));
-  assert('Step 3: chat threads', siteSrc.includes('chat threads'));
-  assert('Step 3: per-marker AI', /any marker.*AI/i.test(siteSrc) || siteSrc.includes('marker for a quick AI'));
+  assert('Step 1: AI extracts', siteSrc.includes('AI extracts every biomarker'));
+  assert('Step 2: trends over time', siteSrc.includes('trends over time'));
+  assert('Step 2: optimal ranges', siteSrc.includes('optimal ranges'));
+  assert('Step 3: Ask AI', siteSrc.includes('Ask AI about any marker'));
 
   // Unified features section (no standalone bento)
   assert('Has features-section-top', siteSrc.includes('features-section-top'));
@@ -91,14 +88,14 @@
   assert('6 feature-card elements', featureCards === 6, `found ${featureCards}`);
 
   // Top row feature cards
-  assert('Feature: Interactive Trend Charts', siteSrc.includes('Interactive Trend Charts'));
-  assert('Feature: AI-Powered PDF Import', siteSrc.includes('AI-Powered PDF Import'));
+  assert('Feature: Trend Charts', siteSrc.includes('Trend Charts'));
+  assert('Feature: AI PDF Import', siteSrc.includes('AI PDF Import'));
   assert('Feature: Cycle-Aware Labs', siteSrc.includes('Cycle-Aware Labs'));
 
   // Bottom row feature cards
-  assert('Feature: Supplement & Med Timeline', siteSrc.includes('Supplement &amp; Med Timeline'));
-  assert('Feature: Persistent Chat History', siteSrc.includes('Persistent Chat History'));
-  assert('Feature: Calculated & Custom Markers', siteSrc.includes('Calculated &amp; Custom Markers'));
+  assert('Feature: Is it actually working?', siteSrc.includes('Is it actually working?'));
+  assert('Feature: More than a chatbot', siteSrc.includes('More than a chatbot'));
+  assert('Feature: Ratios & Derived Markers', siteSrc.includes('Ratios &amp; Derived Markers'));
 
   // Bento cards (2 in middle row)
   const bentoCards = (siteSrc.match(/class="bento-card/g) || []).length;
@@ -124,21 +121,21 @@
   assert('No Biological Age feature card', !siteSrc.includes('<h3>Biological Age</h3>'));
   assert('No markers scroll section', !siteSrc.includes('markers-scroll'));
   assert('No marker-chip CSS', !siteSrc.includes('.marker-chip'));
-  assert('PII still in Privacy section', siteSrc.includes('PII Obfuscation'));
-  assert('Encrypted still in Privacy section', siteSrc.includes('Encrypted &amp; Backed Up'));
+  assert('PII still in Privacy section', siteSrc.includes('Personal info is stripped'));
+  assert('Encrypted still in Privacy section', siteSrc.includes('Encrypted &amp; backed up'));
 
   // Privacy section tightened
   assert('Privacy: no "No account. No tracking."', !siteSrc.includes('No account. No tracking.'));
 
   // AI Providers updated
-  assert('Anthropic: Opus 4.6 mention', siteSrc.includes('Opus 4.6'));
-  assert('Anthropic: Sonnet 4.6 mention', siteSrc.includes('Sonnet 4.6'));
-  assert('Anthropic: Haiku 4.5 mention', siteSrc.includes('Haiku 4.5'));
-  assert('OpenRouter: no Llama mention', !/<h3>OpenRouter[\s\S]*?<\/div>\s*<div class="provider-card/.test(siteSrc) || !siteSrc.includes('Llama, Gemini'));
-  assert('OpenRouter: Claude 4.6 listed', /OpenRouter[\s\S]*?Claude 4\.6/.test(siteSrc));
-  assert('OpenRouter: dynamic pricing', /OpenRouter[\s\S]*?[Dd]ynamic pricing/.test(siteSrc));
-  assert('Venice: proxies GPT-5', /Venice[\s\S]*?GPT-5/.test(siteSrc));
-  assert('Venice: proxies Grok-4', /Venice[\s\S]*?Grok-4/.test(siteSrc));
+  assert('Anthropic: recommended badge', siteSrc.includes('Recommended'));
+  assert('Anthropic: best results', /Anthropic[\s\S]*?best results/.test(siteSrc));
+  assert('OpenRouter: marketplace badge', siteSrc.includes('Marketplace'));
+  assert('OpenRouter: many models', /OpenRouter[\s\S]*?many models/.test(siteSrc));
+  assert('Routstr: anonymous badge', /Routstr[\s\S]*?Anonymous/.test(siteSrc));
+  assert('Venice: private badge', /Venice[\s\S]*?Private/.test(siteSrc));
+  assert('Ollama: local free badge', /Ollama[\s\S]*?Local/.test(siteSrc));
+  assert('Five providers heading', siteSrc.includes('Five providers'));
 
   // CTA updated
   assert('CTA: "nothing to install"', siteSrc.includes('nothing to install'));
