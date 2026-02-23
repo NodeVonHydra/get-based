@@ -117,6 +117,10 @@ If you add a feature or fix a bug, add assertions to the relevant test file (or 
 
 ---
 
+## Roadmap
+
+Check the [project board](https://github.com/users/elkimek/projects/2) for planned features and ideas. If something interests you, comment on the issue to discuss the approach before starting work.
+
 ## Reporting bugs
 
 Open a GitHub issue or use the feedback button in the app (flag icon in the header). Include browser, OS, and steps to reproduce.
