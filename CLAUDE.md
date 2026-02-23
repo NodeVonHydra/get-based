@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Lab Charts is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files.
 
-Uses AI APIs (Anthropic Claude, OpenRouter, Routstr, Venice, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results.
+Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results. (Routstr provider disabled pending CORS fix — see `grep -r "ROUTSTR DISABLED"`)
 
 ## Architecture
 
@@ -203,24 +203,23 @@ Two-path architecture replacing personal info with fake data before sending to A
 
 ### AI Provider System
 
-Five backends: Anthropic (cloud), OpenRouter (model marketplace), Routstr (decentralized/anonymous), Venice (privacy cloud), Ollama (local). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'openrouter'`/`'routstr'`/`'venice'`/`'ollama'`).
+Four active backends: Anthropic (cloud), OpenRouter (model marketplace), Venice (privacy cloud), Ollama (local). Routstr (decentralized/anonymous) is disabled pending a CORS fix — all code commented out with `ROUTSTR DISABLED` markers (`github.com/Routstr/routstr-core/issues/375`). Provider stored in `labcharts-ai-provider` (`'anthropic'`/`'openrouter'`/`'venice'`/`'ollama'`).
 
-- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callOpenRouterAPI`, `callRoutstrAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
-- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders = {})` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). OpenRouter, Routstr, and Venice delegate to it. `extraHeaders` merged into fetch headers (OpenRouter uses `HTTP-Referer` + `X-Title` for attribution)
+- **Routing**: `callClaudeAPI(opts)` delegates to `callAnthropicAPI`, `callOpenRouterAPI`, `callVeniceAPI`, or `callOllamaChat` based on `getAIProvider()`. All call sites use `callClaudeAPI`
+- **Shared helper**: `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders = {})` — reusable OpenAI-format chat completions caller (message building, Bearer auth, SSE streaming, usage tracking). OpenRouter and Venice delegate to it. `extraHeaders` merged into fetch headers (OpenRouter uses `HTTP-Referer` + `X-Title` for attribution)
 - **Anthropic**: Messages API + SSE streaming. Model from `getAnthropicModel()`. Key: `labcharts-api-key`
 - **OpenRouter**: OpenAI-compatible API marketplace (CORS-enabled) routing to 200+ models. Via `callOpenAICompatibleAPI` with attribution headers. Model from `getOpenRouterModel()` (default: `anthropic/claude-sonnet-4-6`). Key: `labcharts-openrouter-key`. Model IDs use `provider/model-name` format (e.g., `anthropic/claude-sonnet-4-6`). **Curated model list**: `OPENROUTER_CURATED` whitelist of latest-gen medically capable models (Claude 4.6, GPT-5.2, Gemini 3.1 Pro/3 Flash, DeepSeek v3.2, Qwen 3.5/3 Max, Grok 4) — prefix-matched against model IDs. `OPENROUTER_EXCLUDE` blocklist filters codex/audio/image/oss/safeguard/coder variants. **Dynamic pricing**: `fetchOpenRouterModels()` extracts `pricing.prompt`/`pricing.completion` (per-token strings → per-million-token floats) from API response, cached in `labcharts-openrouter-pricing`. `getOpenRouterPricing(modelId)` reads cache; `getModelPricing()` in schema.js checks dynamic cache first for OpenRouter, falls back to `_default: { input: 1.00, output: 3.00, approx: true }`. Models cached in `labcharts-openrouter-models`
-- **Routstr**: Decentralized AI inference via OpenAI-compatible API at `api.routstr.com`. Pay anonymously with eCash/Lightning Bitcoin. Via `callOpenAICompatibleAPI`. Model from `getRoutstrModel()` (default: `anthropic/claude-sonnet-4-6`). Key: `labcharts-routstr-key`. Dynamic model list + pricing from `/v1/models`. No curated whitelist needed (Routstr curates server-side)
 - **Venice**: OpenAI-compatible API via `callOpenAICompatibleAPI`. Model from `getVeniceModel()`. Key: `labcharts-venice-key`. 300s timeout
 - **Ollama**: `/api/chat` + newline-delimited JSON streaming. Model from `getOllamaMainModel()`. `maxTokens` → `options.num_predict`. 120s timeout
 - **Guard**: `hasAIProvider()` gates all 7 AI features (focus card, marker desc, PDF import, chat)
 
 ### Settings Modal
 
-4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format, guided tour), **AI Provider** (5-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
+4 sections: **Profile** (sex, DOB, country+ZIP with auto latitude band), **Display** (units, range, theme, 24h/12h time format, guided tour), **AI Provider** (4-button toggle + conditional panel per provider), **PDF Import Privacy** (status card + collapsible configure).
 
 - **Location**: `getProfileLocation()`, `setProfileLocation()`, `COUNTRY_LATITUDES` (~70 countries → 5 bands), `getLatitudeFromLocation()`
 - **Time**: `getTimeFormat()`/`setTimeFormat()`, `formatTime()`, `parseTimeInput()`. Stored in `labcharts-time-format`
-- **Provider panels**: Each shows connection status + key input (Anthropic/OpenRouter/Routstr/Venice) or server config (Ollama) + model selector
+- **Provider panels**: Each shows connection status + key input (Anthropic/OpenRouter/Venice) or server config (Ollama) + model selector
 
 ### JSON Export/Import
 
@@ -254,7 +253,7 @@ This auto-starts a server if needed, runs all tests via headless Chrome (Puppete
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v44` (bump to bust). Strategies: API/OpenRouter/Routstr/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v45` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
