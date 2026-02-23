@@ -1,6 +1,6 @@
 # Cross-Module Patterns
 
-Lab Charts is a zero-build ES module app. Because there is no bundler, circular imports fail at runtime. These patterns are how the codebase avoids them.
+Get Based is a zero-build ES module app. Because there is no bundler, circular imports fail at runtime. These patterns are how the codebase avoids them.
 
 ---
 

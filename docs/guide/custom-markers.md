@@ -1,6 +1,6 @@
 # Custom Markers
 
-Lab Charts has a built-in schema of 287+ biomarkers across 15 categories. When you import a PDF that contains a result the app doesn't recognize — a specialty marker, a newer test, or one with an unusual name — it's automatically created as a **custom marker** rather than being discarded.
+Get Based has a built-in schema of 287+ biomarkers across 15 categories. When you import a PDF that contains a result the app doesn't recognize — a specialty marker, a newer test, or one with an unusual name — it's automatically created as a **custom marker** rather than being discarded.
 
 ## How Custom Markers Are Created
 

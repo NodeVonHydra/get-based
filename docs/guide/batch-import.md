@@ -6,7 +6,7 @@ If you have multiple lab reports to import at once — for example, several year
 
 1. Select multiple PDF files (hold Shift or Ctrl/Cmd while clicking to select several)
 2. Drag them all onto the drop zone at the same time
-3. Lab Charts processes them **one file at a time**, in order
+3. Get Based processes them **one file at a time**, in order
 
 For each file, you go through the normal import preview — review matched markers, then confirm or skip. The app shows you which file you're on (e.g., "File 2 of 5") so you always know your progress.
 
@@ -28,7 +28,7 @@ After all files are processed, a summary notification tells you:
 - How many **failed** (the AI couldn't extract usable data)
 
 ::: tip Recommended order
-If your PDFs cover different dates, Lab Charts sorts data chronologically regardless of the import order. But importing oldest-to-newest can make it easier to review previews, since you'll see your history build up in order.
+If your PDFs cover different dates, Get Based sorts data chronologically regardless of the import order. But importing oldest-to-newest can make it easier to review previews, since you'll see your history build up in order.
 :::
 
 ::: warning Requires an AI provider

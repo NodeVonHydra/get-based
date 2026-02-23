@@ -4,7 +4,7 @@ The Trends & Alerts section on the dashboard automatically scans your lab histor
 
 ## Two Detection Methods
 
-Lab Charts uses two independent methods to detect problems:
+Get Based uses two independent methods to detect problems:
 
 ### 1. Sudden Change
 
@@ -34,7 +34,7 @@ Sudden change alerts take priority over regression alerts for the same marker.
 
 ## Critical Flags
 
-Below the trend alerts, Lab Charts lists **critical flags** — markers where the latest value has crossed more than 50% of the reference range width past the boundary. These are not trend detections; they flag markers that are significantly out of range right now.
+Below the trend alerts, Get Based lists **critical flags** — markers where the latest value has crossed more than 50% of the reference range width past the boundary. These are not trend detections; they flag markers that are significantly out of range right now.
 
 ::: warning
 Trend alerts and critical flags are informational tools to help you spot patterns. They are not medical diagnoses. Always discuss significant changes with a qualified healthcare provider.

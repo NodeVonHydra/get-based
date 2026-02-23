@@ -12,7 +12,7 @@ export default {
     // (Vercel routes /app to index.html).
     const fixAppLinks = () => {
       nextTick(() => {
-        document.querySelectorAll('a[href*="labcharts.app/app"]').forEach(a => {
+        document.querySelectorAll('a[href*="getbased.health/app"]').forEach(a => {
           a.href = '/app'
         })
       })

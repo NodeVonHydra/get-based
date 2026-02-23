@@ -598,7 +598,7 @@ export async function searchOpenAlex(terms) {
   if (!terms || terms.length === 0) return [];
   const query = encodeURIComponent(terms.join(' '));
   try {
-    const resp = await fetch(`https://api.openalex.org/works?search=${query}&per_page=5&mailto=user@labcharts.app&select=id,title,authorships,publication_year,doi,cited_by_count,primary_location`, { signal: AbortSignal.timeout(10000) });
+    const resp = await fetch(`https://api.openalex.org/works?search=${query}&per_page=5&mailto=user@getbased.health&select=id,title,authorships,publication_year,doi,cited_by_count,primary_location`, { signal: AbortSignal.timeout(10000) });
     if (!resp.ok) return [];
     const data = await resp.json();
     return (data.results || []).map(w => {
@@ -964,7 +964,7 @@ export async function generateCustomPersonality() {
   textarea.placeholder = `Generating ${name} persona\u2026`;
 
   try {
-    const systemPrompt = `You are a persona designer for a health/blood work AI chat assistant called LabCharts. The user will give you a name — a real person, fictional character, or archetype. Create a thorough, vivid persona profile that the AI should fully embody when discussing lab results and health data.
+    const systemPrompt = `You are a persona designer for a health/blood work AI chat assistant called Get Based. The user will give you a name — a real person, fictional character, or archetype. Create a thorough, vivid persona profile that the AI should fully embody when discussing lab results and health data.
 
 Write in second person ("You are..."). Output a rich persona description covering ALL of the following:
 

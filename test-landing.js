@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v48', swSrc.includes('labcharts-v48'));
+  assert('Cache bumped to v49', swSrc.includes('labcharts-v49'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -193,7 +193,7 @@
   assert('JS: count-up threshold 0.5', /countObserver[\s\S]*?threshold:\s*0\.5/.test(siteSrc) || /IntersectionObserver[\s\S]*?threshold:\s*0\.5/.test(siteSrc));
 
   // GitHub stars
-  assert('JS: fetches GitHub API', siteSrc.includes('api.github.com/repos/elkimek/lab-charts'));
+  assert('JS: fetches GitHub API', siteSrc.includes('api.github.com/repos/elkimek/get-based'));
   assert('JS: GitHub stars graceful (catch)', /fetchGitHubStars[\s\S]*?\.catch/.test(siteSrc) || /api\.github\.com[\s\S]*?\.catch/.test(siteSrc));
 
   // Reduced motion

@@ -426,7 +426,7 @@ export function hideImportProgress() {
   if (!dropZone) return;
   dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or LabCharts JSON export</div>`;
+    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or Get Based JSON export</div>`;
 }
 
 export async function handlePDFFile(file) {

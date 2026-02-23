@@ -1,6 +1,6 @@
 # PII Obfuscation
 
-When you import a lab PDF, Lab Charts strips out your personal information before the text is sent to any AI provider. Your name, address, date of birth, ID numbers, and contact details are replaced with fake placeholder data. The AI only ever sees the lab results themselves.
+When you import a lab PDF, Get Based strips out your personal information before the text is sent to any AI provider. Your name, address, date of birth, ID numbers, and contact details are replaced with fake placeholder data. The AI only ever sees the lab results themselves.
 
 ## What Gets Stripped
 
@@ -19,11 +19,11 @@ Lab result lines and collection dates are specifically protected and left intact
 
 ### Ollama (Preferred)
 
-If you have [Ollama](./ai-providers.md#ollama-fully-local) running locally, Lab Charts uses it to intelligently strip PII. A dedicated language model reads the full PDF text, identifies personal information contextually, and replaces it with realistic fake data.
+If you have [Ollama](./ai-providers.md#ollama-fully-local) running locally, Get Based uses it to intelligently strip PII. A dedicated language model reads the full PDF text, identifies personal information contextually, and replaces it with realistic fake data.
 
 This method is more accurate than regex — it catches edge cases like names embedded in unusual places — and runs entirely on your machine. Nothing is sent anywhere during the obfuscation step.
 
-Lab Charts detects Ollama automatically. If it's running, PII stripping via Ollama happens silently in the background.
+Get Based detects Ollama automatically. If it's running, PII stripping via Ollama happens silently in the background.
 
 ::: tip Separate PII model
 You can configure a separate Ollama model specifically for PII stripping in **Settings → PDF Import Privacy**. This lets you use a small, fast model for obfuscation and a larger, more capable model for the actual lab analysis.
@@ -31,13 +31,13 @@ You can configure a separate Ollama model specifically for PII stripping in **Se
 
 ### Regex Fallback
 
-If Ollama is not available, Lab Charts falls back to a rule-based approach. It scans the PDF text for known PII patterns (label-based detection for fields like "Name:", "Address:", "DOB:", and pattern-based detection for ID formats, emails, and phone numbers) and replaces them automatically.
+If Ollama is not available, Get Based falls back to a rule-based approach. It scans the PDF text for known PII patterns (label-based detection for fields like "Name:", "Address:", "DOB:", and pattern-based detection for ID formats, emails, and phone numbers) and replaces them automatically.
 
 The regex approach is fast and works without any local software, but may miss unusual formatting that the Ollama approach would catch.
 
 ## First-Time Warning
 
-If you drop a PDF and Ollama is not running, Lab Charts shows a one-time warning explaining that the regex fallback will be used. You can choose to continue or cancel and set up Ollama first. This warning appears once per browser session.
+If you drop a PDF and Ollama is not running, Get Based shows a one-time warning explaining that the regex fallback will be used. You can choose to continue or cancel and set up Ollama first. This warning appears once per browser session.
 
 ## Configure PII Settings
 

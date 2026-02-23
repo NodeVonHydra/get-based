@@ -70,7 +70,7 @@
 
     // Encrypt
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const plaintext = 'Hello, Lab Charts!';
+    const plaintext = 'Hello, Get Based!';
     const ciphertext = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv }, key, enc.encode(plaintext)
     );
@@ -178,7 +178,7 @@
     const swResponse = await fetch('service-worker.js');
     const swText = await swResponse.text();
     assert('Service worker contains /js/crypto.js', swText.includes('/js/crypto.js'));
-    assert('Service worker cache is v48', swText.includes("labcharts-v48"));
+    assert('Service worker cache is v49', swText.includes("labcharts-v49"));
   } catch (e) {
     assert('Service worker check', false, e.message);
   }

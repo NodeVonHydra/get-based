@@ -1,10 +1,10 @@
 # Encryption
 
-Lab Charts stores all your data locally in your browser — nothing is uploaded to any server (except what you deliberately send to an AI provider). On top of that, you can enable encryption at rest to protect your data with a passphrase.
+Get Based stores all your data locally in your browser — nothing is uploaded to any server (except what you deliberately send to an AI provider). On top of that, you can enable encryption at rest to protect your data with a passphrase.
 
 ## Local Storage
 
-All your lab data, context cards, notes, supplements, and settings live in your browser's **localStorage** and **IndexedDB**. No account is required. No data is synced to the cloud. Clearing your browser data will erase Lab Charts data, so use the export and backup features regularly.
+All your lab data, context cards, notes, supplements, and settings live in your browser's **localStorage** and **IndexedDB**. No account is required. No data is synced to the cloud. Clearing your browser data will erase Get Based data, so use the export and backup features regularly.
 
 ## Encryption at Rest
 
@@ -13,7 +13,7 @@ When you set a passphrase in **Settings → Security**, your data is encrypted b
 - **AES-256-GCM** — authenticated encryption that protects both confidentiality and integrity
 - **PBKDF2** key derivation — your passphrase is never stored directly; it is stretched into a cryptographic key
 
-When you open Lab Charts, you are prompted for your passphrase to decrypt and load your data. Without the correct passphrase, the data is unreadable.
+When you open Get Based, you are prompted for your passphrase to decrypt and load your data. Without the correct passphrase, the data is unreadable.
 
 ::: warning
 There is no passphrase recovery. If you forget your passphrase, your data cannot be decrypted. Make sure to export a plaintext JSON backup before enabling encryption, or store your passphrase somewhere safe.
@@ -21,7 +21,7 @@ There is no passphrase recovery. If you forget your passphrase, your data cannot
 
 ## Automatic Backups
 
-Lab Charts automatically backs up your data using **IndexedDB** as a secondary storage layer. Backups happen in the background:
+Get Based automatically backs up your data using **IndexedDB** as a secondary storage layer. Backups happen in the background:
 
 - A backup is triggered 60 seconds after any data change (debounced — rapid changes only trigger one backup)
 - Up to **5 snapshots** are stored; the oldest is pruned when a new one is added

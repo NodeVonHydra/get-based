@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { profileStorageKey } from './profile.js';
 
 const TOUR_STEPS = [
-  { target: null, title: 'Welcome to Lab Charts', text: 'Your personal blood work dashboard. Let\'s take a quick look around.', position: 'center' },
+  { target: null, title: 'Welcome to Get Based', text: 'Your personal blood work dashboard. Let\'s take a quick look around.', position: 'center' },
   { target: '#drop-zone', title: 'Import Your Results', text: 'Drag a PDF lab report or JSON file here \u2014 the AI extracts your markers automatically.', position: 'bottom' },
   { target: '#sidebar-nav', title: 'Category Navigation', text: 'Browse marker categories \u2014 biochemistry, hormones, lipids, and more. On mobile this becomes a horizontal bar.', position: 'right' },
   { target: '.profile-context-cards', title: 'Lifestyle Context', text: 'Tell the AI about your diet, sleep, exercise, and more. The more you fill in, the better your insights.', position: 'bottom' },
@@ -14,7 +14,7 @@ const TOUR_STEPS = [
 ];
 
 const CYCLE_TOUR_STEPS = [
-  { target: null, title: 'Cycle-Aware Lab Interpretation', text: 'Lab Charts tracks your menstrual cycle so AI can interpret hormones, iron, and inflammation in the right context. Here\u2019s what\u2019s available.', position: 'center' },
+  { target: null, title: 'Cycle-Aware Lab Interpretation', text: 'Get Based tracks your menstrual cycle so AI can interpret hormones, iron, and inflammation in the right context. Here\u2019s what\u2019s available.', position: 'center' },
   { target: '.cycle-summary', title: 'Your Cycle at a Glance', text: 'Cycle length, regularity, flow, and contraceptive info \u2014 auto-calculated from your period log when possible.', position: 'bottom' },
   { target: '.cycle-draw-date', title: 'Optimal Blood Draw Timing', text: 'Get recommendations for when to schedule blood work \u2014 early follicular phase (days 3\u20135) gives the most stable baseline.', position: 'bottom' },
   { target: '.cycle-draw-phases', title: 'Phase Labels on Lab Dates', text: 'Each lab date is tagged with its cycle phase so you can see how timing may have affected your results.', position: 'bottom' },

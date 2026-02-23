@@ -61,16 +61,16 @@ Switch providers anytime in Settings. The app falls back gracefully if no provid
 
 ## Documentation
 
-Full documentation at [labcharts.app/docs](https://labcharts.app/docs) — user guide, contributor architecture reference, module docs, and deployment guide.
+Full documentation at [getbased.health/docs](https://getbased.health/docs) — user guide, contributor architecture reference, module docs, and deployment guide.
 
 ---
 
 ## Quick start
 
 ```bash
-git clone https://github.com/elkimek/lab-charts
-cd lab-charts
-python3 -m http.server 8000
+git clone https://github.com/elkimek/get-based
+cd get-based
+node dev-server.js
 ```
 
 Then open `http://localhost:8000` in your browser.
@@ -111,7 +111,7 @@ Get Based is installable as a Progressive Web App. The service worker caches the
 
 ## Testing
 
-12 browser-based test files cover source inspection, DOM behavior, CSS, and live feature logic. Run all of them headlessly:
+13 browser-based test files cover source inspection, DOM behavior, CSS, and live feature logic. Run all of them headlessly:
 
 ```bash
 ./run-tests.sh

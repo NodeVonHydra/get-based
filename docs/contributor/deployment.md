@@ -1,6 +1,6 @@
 # Deployment
 
-Lab Charts is deployed on Vercel. The app is static — no server-side code, no API routes, no backend. Vercel serves the files directly and injects security headers.
+Get Based is deployed on Vercel. The app is static — no server-side code, no API routes, no backend. Vercel serves the files directly and injects security headers.
 
 ## Vercel configuration
 
@@ -65,7 +65,7 @@ If a new AI provider is added, its hostname must be added to `connect-src` in `v
 The service worker (`service-worker.js`) manages PWA caching. The cache name includes a version number:
 
 ```js
-const CACHE_NAME = 'labcharts-v48';
+const CACHE_NAME = 'labcharts-v49';
 ```
 
 **When to bump the version:** Any time you change an app file — JS, CSS, HTML, manifest, images. Incrementing the version busts the cache for existing users, who will download fresh files on next visit.
@@ -87,8 +87,8 @@ The API bypass is critical for streaming. If the service worker intercepts a str
 
 ```json
 {
-  "name": "Lab Charts",
-  "short_name": "Lab Charts",
+  "name": "Get Based",
+  "short_name": "Get Based",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#0f1117",
