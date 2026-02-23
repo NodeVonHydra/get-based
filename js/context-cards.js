@@ -405,6 +405,7 @@ export function renderDiagnosesModal(modal, current) {
     if (input) {
       input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addCondition(); } };
     }
+    document.removeEventListener('click', closeSuggestionsOnClickOutside);
     document.addEventListener('click', closeSuggestionsOnClickOutside);
   }, 50);
 }

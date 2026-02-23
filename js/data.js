@@ -297,16 +297,18 @@ export function getActiveData() {
       let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
       if (age <= 0) return null;
 
-      // Levine 2018 coefficients expect SI units directly (g/L, µmol/L, mmol/L, etc.)
+      // Levine 2018 coefficients expect NHANES units (g/dL, mg/dL, mg/dL, %, U/L)
+      // Convert SI → NHANES: albumin g/L→g/dL (/10), creatinine µmol/L→mg/dL (/88.4),
+      // glucose mmol/L→mg/dL (*18.016), lymphocytes fraction→% (*100), ALP µkat/L→U/L (*60)
       const xb = -19.907
-        - 0.0336  * albumin_si
-        + 0.0095  * creatinine_si
-        + 0.1953  * glucose_si
+        - 0.0336  * (albumin_si / 10)
+        + 0.0095  * (creatinine_si / 88.4)
+        + 0.1953  * (glucose_si * 18.016)
         + 0.0954  * Math.log(crp)
-        - 0.0120  * lymphPct_si
+        - 0.0120  * (lymphPct_si * 100)
         + 0.0268  * mcv
         + 0.3306  * rdw
-        + 0.00188 * alp_si
+        + 0.00188 * (alp_si * 60)
         + 0.0554  * wbc
         + 0.0804  * age;
 
@@ -328,8 +330,8 @@ export function applyUnitConversion(data) {
       if (!conv) continue;
       if (conv.type === 'multiply') {
         marker.values = marker.values.map(v => v !== null ? parseFloat((v * conv.factor).toPrecision(4)) : null);
-        marker.refMin = parseFloat((marker.refMin * conv.factor).toPrecision(4));
-        marker.refMax = parseFloat((marker.refMax * conv.factor).toPrecision(4));
+        if (marker.refMin != null) marker.refMin = parseFloat((marker.refMin * conv.factor).toPrecision(4));
+        if (marker.refMax != null) marker.refMax = parseFloat((marker.refMax * conv.factor).toPrecision(4));
         if (marker.optimalMin != null) marker.optimalMin = parseFloat((marker.optimalMin * conv.factor).toPrecision(4));
         if (marker.optimalMax != null) marker.optimalMax = parseFloat((marker.optimalMax * conv.factor).toPrecision(4));
         if (marker.phaseRefRanges) {
@@ -341,8 +343,8 @@ export function applyUnitConversion(data) {
         marker.unit = conv.usUnit;
       } else if (conv.type === 'hba1c') {
         marker.values = marker.values.map(v => v !== null ? parseFloat(((v / 10.929) + 2.15).toFixed(1)) : null);
-        marker.refMin = parseFloat(((marker.refMin / 10.929) + 2.15).toFixed(1));
-        marker.refMax = parseFloat(((marker.refMax / 10.929) + 2.15).toFixed(1));
+        if (marker.refMin != null) marker.refMin = parseFloat(((marker.refMin / 10.929) + 2.15).toFixed(1));
+        if (marker.refMax != null) marker.refMax = parseFloat(((marker.refMax / 10.929) + 2.15).toFixed(1));
         if (marker.optimalMin != null) marker.optimalMin = parseFloat(((marker.optimalMin / 10.929) + 2.15).toFixed(1));
         if (marker.optimalMax != null) marker.optimalMax = parseFloat(((marker.optimalMax / 10.929) + 2.15).toFixed(1));
         marker.unit = '%';
@@ -632,7 +634,7 @@ export function getKeyTrendMarkers(filteredData) {
   // Tier 3: Sex-aware defaults
   const defaults = state.profileSex === 'female'
     ? [['diabetes','hba1c'],['diabetes','homaIR'],['lipids','ldl'],['vitamins','vitaminD'],
-       ['thyroid','tsh'],['hematology','ferritin'],['hormones','estradiol'],['proteins','hsCRP']]
+       ['thyroid','tsh'],['iron','ferritin'],['hormones','estradiol'],['proteins','hsCRP']]
     : state.profileSex === 'male'
     ? [['diabetes','hba1c'],['diabetes','homaIR'],['lipids','ldl'],['vitamins','vitaminD'],
        ['thyroid','tsh'],['hormones','testosterone'],['proteins','hsCRP'],['biochemistry','ggt']]

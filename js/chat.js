@@ -679,7 +679,7 @@ export function buildActionBar(msgIndex) {
 export function renderSourcesSection(sources, msgIndex) {
   let html = `<div class="chat-sources-details" id="chat-src-details-${msgIndex}" style="display:none">`;
   for (const s of sources) {
-    const linkUrl = s.url ? escapeHTML(s.url) : '#';
+    const linkUrl = (s.url && /^https?:/.test(s.url)) ? s.url.replace(/"/g, '&quot;') : '#';
     html += `<div class="chat-source-item">`;
     html += `<a href="${linkUrl}" target="_blank" rel="noopener" class="chat-source-title">\uD83D\uDCC4 ${escapeHTML(s.title)}</a>`;
     const meta = [];
@@ -719,6 +719,7 @@ export function copyMessage(msgIndex) {
   const msg = state.chatHistory[msgIndex];
   if (!msg) return;
   const btn = document.getElementById(`chat-copy-btn-${msgIndex}`);
+  if (!navigator.clipboard) { if (btn) { btn.innerHTML = '\u2717 Not supported'; setTimeout(() => { btn.innerHTML = '\uD83D\uDCCB Copy'; }, 1500); } return; }
   navigator.clipboard.writeText(msg.content).then(() => {
     if (btn) {
       btn.innerHTML = '\u2713 Copied!';
@@ -1106,7 +1107,7 @@ export function applyInlineMarkdown(text) {
     .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
-      const safe = /^(https?:|mailto:)/.test(url) ? url : '#';
+      const safe = /^(https?:|mailto:)/.test(url) ? url.replace(/"/g, '&quot;') : '#';
       return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`;
     });
 }

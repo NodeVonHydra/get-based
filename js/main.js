@@ -134,6 +134,22 @@ document.addEventListener("keydown", e => {
     if (modalOverlay && modalOverlay.classList.contains("show")) { window.closeModal(); return; }
     return;
   }
+  // Focus trap for open modals
+  if (e.key === "Tab") {
+    const overlayIds = ["settings-modal-overlay","import-modal-overlay","glossary-modal-overlay","feedback-modal-overlay","modal-overlay"];
+    for (const oid of overlayIds) {
+      const ov = document.getElementById(oid);
+      if (ov && ov.classList.contains("show")) {
+        const modal = ov.querySelector('[role="dialog"]') || ov.querySelector('.modal') || ov;
+        const focusable = modal.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])');
+        if (focusable.length === 0) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+        return;
+      }
+    }
+  }
   // Skip shortcuts when typing in an input/textarea or when modifier keys are held
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const tag = document.activeElement?.tagName;

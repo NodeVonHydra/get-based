@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v45', swSrc.includes('labcharts-v45'));
+  assert('Cache bumped to v46', swSrc.includes('labcharts-v46'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 

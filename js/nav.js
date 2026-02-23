@@ -9,11 +9,11 @@ export function buildSidebar(data) {
   if (!data) data = getActiveData();
   const nav = document.getElementById("sidebar-nav");
   let html = `<input type="text" class="sidebar-search" id="sidebar-search" placeholder="Search markers..." oninput="filterSidebar()">`;
-  html += `<div class="nav-item active" data-category="dashboard" onclick="window.navigate('dashboard')">
+  html += `<div class="nav-item active" data-category="dashboard" tabindex="0" role="button" onclick="window.navigate('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.navigate('dashboard')}">
     <span class="icon">\uD83D\uDCCB</span> Dashboard</div>`;
-  html += `<div class="nav-item" data-category="correlations" onclick="window.navigate('correlations')">
+  html += `<div class="nav-item" data-category="correlations" tabindex="0" role="button" onclick="window.navigate('correlations')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.navigate('correlations')}">
     <span class="icon">\uD83D\uDCC8</span> Correlations</div>`;
-  html += `<div class="nav-item" data-category="compare" onclick="window.navigate('compare')">
+  html += `<div class="nav-item" data-category="compare" tabindex="0" role="button" onclick="window.navigate('compare')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.navigate('compare')}">
     <span class="icon">\u2194</span> Compare Dates</div>`;
   html += `<div class="sidebar-title">Categories</div>`;
   for (const [key, cat] of Object.entries(data.categories)) {
@@ -25,8 +25,8 @@ export function buildSidebar(data) {
       ? `<span class="flag-count">${flagged}</span>`
       : `<span class="count">${withData}</span>`;
     const markerNames = markers.map(m => m.name).join('|');
-    html += `<div class="nav-item" data-category="${key}" data-markers="${escapeHTML(markerNames)}" onclick="window.navigate('${key}')">
-      <span class="icon">${cat.icon}</span> ${cat.label} ${flagHtml}</div>`;
+    html += `<div class="nav-item" data-category="${key}" data-markers="${escapeHTML(markerNames)}" tabindex="0" role="button" onclick="window.navigate('${key}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.navigate('${key}')}">
+      <span class="icon">${cat.icon}</span> ${escapeHTML(cat.label)} ${flagHtml}</div>`;
   }
   nav.innerHTML = html;
 }
