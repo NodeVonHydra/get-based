@@ -178,7 +178,7 @@
     const swResponse = await fetch('service-worker.js');
     const swText = await swResponse.text();
     assert('Service worker contains /js/crypto.js', swText.includes('/js/crypto.js'));
-    assert('Service worker cache is v46', swText.includes("labcharts-v46"));
+    assert('Service worker cache is v47', swText.includes("labcharts-v47"));
   } catch (e) {
     assert('Service worker check', false, e.message);
   }

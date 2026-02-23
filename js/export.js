@@ -124,7 +124,8 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
       for (let i = 0; i < marker.values.length; i++) {
         const v = marker.values[i];
         const s = v !== null ? getStatus(v, r.min, r.max) : 'missing';
-        body += `<td class="val-${s}">${v !== null ? formatValue(v) : '\u2014'}</td>`;
+        const sPrefix = s === 'high' ? '\u25B2 ' : s === 'low' ? '\u25BC ' : '';
+        body += `<td class="val-${s}">${v !== null ? sPrefix + formatValue(v) : '\u2014'}</td>`;
       }
       body += `<td>${trend.arrow}</td></tr>`;
     }

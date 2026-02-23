@@ -191,6 +191,9 @@ export function applyDotColor(key, color) {
   const dot = document.getElementById('ctx-dot-' + key);
   if (!dot) return;
   dot.className = 'ctx-health-dot ctx-health-dot-' + color;
+  const dotLabels = { green: 'Good', yellow: 'Caution', red: 'Concern', gray: 'Not rated' };
+  dot.title = dotLabels[color] || '';
+  dot.setAttribute('aria-label', dotLabels[color] || '');
 }
 
 export function applyAISummary(key, text, color) {
@@ -198,7 +201,8 @@ export function applyAISummary(key, text, color) {
   if (!el) return;
   el.classList.remove('ctx-ai-summary-green', 'ctx-ai-summary-yellow', 'ctx-ai-summary-red');
   if (text) {
-    el.textContent = text;
+    const prefixes = { green: '\u2713 ', yellow: '\u26A0 ', red: '\u25B2 ' };
+    el.textContent = (prefixes[color] || '') + text;
     el.classList.add('ctx-ai-summary-visible');
     if (color && color !== 'gray') el.classList.add('ctx-ai-summary-' + color);
   } else {

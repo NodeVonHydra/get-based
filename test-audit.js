@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v46', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v46'));
+  assert('SW cache version bumped to v47', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v47'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
@@ -162,6 +162,60 @@
   const cycleSrc = await fetch('js/cycle.js').then(r => r.text());
   assert('Cycle stats filters periods with endDate', cycleSrc.includes('filter(p => p.endDate)'));
   assert('Period length guards empty array', cycleSrc.includes('if (periodLengths.length > 0)'));
+
+  // ═══════════════════════════════════════
+  // 13. Security Headers (CSP)
+  // ═══════════════════════════════════════
+  console.log('%c 13. Security Headers ', 'font-weight:bold;color:#f59e0b');
+
+  const vercelSrc = await fetch('vercel.json').then(r => r.text());
+  assert('CSP header in vercel.json', vercelSrc.includes('Content-Security-Policy'));
+  assert('CSP allows cdn.jsdelivr.net scripts', vercelSrc.includes('cdn.jsdelivr.net'));
+  assert('CSP allows Anthropic API', vercelSrc.includes('api.anthropic.com'));
+  assert('CSP allows OpenRouter API', vercelSrc.includes('openrouter.ai'));
+  assert('CSP allows Venice API', vercelSrc.includes('api.venice.ai'));
+  assert('CSP allows localhost for Ollama', vercelSrc.includes('localhost:*'));
+  assert('X-Frame-Options DENY', vercelSrc.includes('DENY'));
+  assert('X-Content-Type-Options nosniff', vercelSrc.includes('nosniff'));
+
+  // ═══════════════════════════════════════
+  // 14. Aria-live & Screen Reader
+  // ═══════════════════════════════════════
+  console.log('%c 14. Aria-live & Screen Reader ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Notification container has aria-live', indexSrc.includes('aria-live="polite"'));
+  assert('Notification container has role=status', indexSrc.includes('role="status"'));
+  const utilsSrc2 = await fetch('js/utils.js').then(r => r.text());
+  assert('Error toasts get role=alert', utilsSrc2.includes("role', 'alert'"));
+  assert('Confirm dialog has role=alertdialog', utilsSrc2.includes('role="alertdialog"'));
+
+  // ═══════════════════════════════════════
+  // 15. Colorblind Accessibility
+  // ═══════════════════════════════════════
+  console.log('%c 15. Colorblind Accessibility ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Chart card val-high has ::before arrow', cssSrc.includes('.chart-value-num.val-high::before'));
+  assert('Chart card val-low has ::before arrow', cssSrc.includes('.chart-value-num.val-low::before'));
+  assert('Table val-high has ::before arrow', cssSrc.includes('.data-table .value-cell.val-high::before'));
+  assert('Table val-low has ::before arrow', cssSrc.includes('.data-table .value-cell.val-low::before'));
+  assert('Heatmap high has ::before', cssSrc.includes('.heatmap-high::before'));
+  assert('Heatmap low has ::before', cssSrc.includes('.heatmap-low::before'));
+  assert('Compare improved has ::before', cssSrc.includes('.compare-improved::before'));
+  assert('Compare worsened has ::before', cssSrc.includes('.compare-worsened::before'));
+  assert('Range bar high uses diamond shape', cssSrc.includes('.range-bar-marker.marker-high') && cssSrc.includes('rotate(45deg)'));
+  assert('Health dot yellow uses diamond shape', cssSrc.includes('.ctx-health-dot-yellow') && cssSrc.includes('rotate(45deg)'));
+  assert('Health dot red uses triangle shape', cssSrc.includes('.ctx-health-dot-red') && cssSrc.includes('clip-path'));
+
+  const chartsSrc = await fetch('js/charts.js').then(r => r.text());
+  assert('Chart.js pointStyle per status', chartsSrc.includes('ptStyles') && chartsSrc.includes('pointStyle'));
+
+  const ctxSrc2 = await fetch('js/context-cards.js').then(r => r.text());
+  assert('Health dots have title attribute', ctxSrc2.includes('dot.title'));
+  assert('Health dots have aria-label', ctxSrc2.includes("dot.setAttribute('aria-label'"));
+  assert('AI tips have severity prefix', ctxSrc2.includes('prefixes'));
+
+  const exportSrc2 = await fetch('js/export.js').then(r => r.text());
+  assert('PDF report values have status prefix', exportSrc2.includes('sPrefix'));
 
   // ═══════════════════════════════════════
   // Results

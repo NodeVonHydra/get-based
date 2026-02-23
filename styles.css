@@ -223,7 +223,9 @@ body {
 .chart-value-num { font-family: var(--font-mono); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .chart-value-num.val-normal { color: var(--green); }
 .chart-value-num.val-high { color: var(--red); }
+.chart-value-num.val-high::before { content: "\25B2 "; font-size: 0.65em; }
 .chart-value-num.val-low { color: var(--yellow); }
+.chart-value-num.val-low::before { content: "\25BC "; font-size: 0.65em; }
 .chart-value-num.val-missing { color: var(--text-muted); }
 .chart-ref-range { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
 .data-table-wrapper { overflow-x: auto; }
@@ -243,7 +245,9 @@ body {
 .data-table .value-cell { font-family: var(--font-mono); font-weight: 600; }
 .data-table .value-cell.val-normal { color: var(--green); }
 .data-table .value-cell.val-high { color: var(--red); }
+.data-table .value-cell.val-high::before { content: "\25B2 "; font-size: 0.7em; }
 .data-table .value-cell.val-low { color: var(--yellow); }
+.data-table .value-cell.val-low::before { content: "\25BC "; font-size: 0.7em; }
 .data-table .value-cell.val-missing { color: var(--text-muted); font-weight: 400; }
 .trend-arrow { font-size: 12px; margin-left: 4px; display: inline-block; }
 .trend-up { color: var(--red); animation: trendUp 0.4s ease 0.2s both; }
@@ -263,8 +267,8 @@ body {
   top: -1px; transform: translateX(-50%); border: 2px solid var(--bg-card);
 }
 .range-bar-marker.marker-normal { background: var(--green); }
-.range-bar-marker.marker-high { background: var(--red); }
-.range-bar-marker.marker-low { background: var(--yellow); }
+.range-bar-marker.marker-high { background: var(--red); border-radius: 2px; transform: translateX(-50%) rotate(45deg); }
+.range-bar-marker.marker-low { background: var(--yellow); border-radius: 0; width: 0; height: 0; background: none; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 10px solid var(--yellow); top: -1px; }
 .fa-bar-chart-container { height: 400px; }
 @media (max-width: 480px) { .fa-bar-chart-container { height: 280px; } }
 .fatty-acids-grid {
@@ -664,8 +668,8 @@ body {
 }
 .ctx-health-dot-gray { background: var(--text-muted); opacity: 0.4; }
 .ctx-health-dot-green { background: var(--green); box-shadow: 0 0 6px rgba(52, 211, 153, 0.5); }
-.ctx-health-dot-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); }
-.ctx-health-dot-red { background: var(--red); box-shadow: 0 0 6px rgba(248, 113, 113, 0.5); animation: dotPulse 2s ease-in-out infinite; }
+.ctx-health-dot-yellow { background: var(--yellow); box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); border-radius: 2px; transform: rotate(45deg); }
+.ctx-health-dot-red { background: var(--red); box-shadow: 0 0 6px rgba(248, 113, 113, 0.5); animation: dotPulse 2s ease-in-out infinite; border-radius: 1px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 @keyframes dotPulse { 0%, 100% { box-shadow: 0 0 6px rgba(248, 113, 113, 0.5); } 50% { box-shadow: 0 0 12px rgba(248, 113, 113, 0.8); } }
 .ctx-health-dot-shimmer {
   background: linear-gradient(90deg, var(--text-muted) 25%, var(--border) 50%, var(--text-muted) 75%);
@@ -1547,7 +1551,9 @@ body {
 .heatmap-table td:hover:not(:first-child) { outline: 2px solid var(--accent); outline-offset: -2px; }
 .heatmap-normal { background: rgba(52, 211, 153, 0.12); color: var(--green); }
 .heatmap-high { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+.heatmap-high::before { content: "\25B2 "; font-size: 0.7em; }
 .heatmap-low { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+.heatmap-low::before { content: "\25BC "; font-size: 0.7em; }
 .heatmap-missing { background: transparent; color: var(--text-muted); font-weight: 400; }
 /* Compare View */
 .compare-controls {
@@ -1587,7 +1593,9 @@ body {
   padding: 8px 14px;
 }
 .compare-improved { color: var(--green); }
+.compare-improved::before { content: "\2713 "; }
 .compare-worsened { color: var(--red); }
+.compare-worsened::before { content: "\26A0 "; }
 .compare-neutral { color: var(--text-muted); }
 /* Styled Confirmation Dialog */
 .confirm-overlay {
