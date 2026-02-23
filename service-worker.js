@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v44';
+const CACHE_NAME = 'labcharts-v45';
 
 const APP_SHELL = [
   '/index.html',
@@ -60,9 +60,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-only: API calls (Anthropic, OpenRouter, Routstr, Venice, OpenAlex, Ollama) — do NOT
+  // Network-only: API calls (Anthropic, OpenRouter, Venice, OpenAlex, Ollama) — do NOT
   // intercept so streaming ReadableStream goes directly to the page without SW IPC buffering
-  if (url.hostname === 'api.anthropic.com' || url.hostname === 'openrouter.ai' || url.hostname === 'api.routstr.com' || url.hostname === 'api.venice.ai' || url.hostname === 'api.openalex.org' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  if (url.hostname === 'api.anthropic.com' || url.hostname === 'openrouter.ai' || /* ROUTSTR DISABLED: url.hostname === 'api.routstr.com' || */ url.hostname === 'api.venice.ai' || url.hostname === 'api.openalex.org' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
     return;
   }
 

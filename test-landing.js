@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v43', swSrc.includes('labcharts-v43'));
+  assert('Cache bumped to v45', swSrc.includes('labcharts-v45'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -136,10 +136,9 @@
   assert('Anthropic: best results', /Anthropic[\s\S]*?best results/.test(siteSrc));
   assert('OpenRouter: marketplace badge', siteSrc.includes('Marketplace'));
   assert('OpenRouter: many models', /OpenRouter[\s\S]*?many models/.test(siteSrc));
-  assert('Routstr: anonymous badge', /Routstr[\s\S]*?Anonymous/.test(siteSrc));
+  // ROUTSTR DISABLED: assert('Routstr: anonymous badge', /Routstr[\s\S]*?Anonymous/.test(siteSrc));
   assert('Venice: private badge', /Venice[\s\S]*?Private/.test(siteSrc));
   assert('Ollama: local free badge', /Ollama[\s\S]*?Local/.test(siteSrc));
-  assert('Five providers heading', siteSrc.includes('Five providers'));
 
   // CTA updated
   assert('CTA: "nothing to install"', siteSrc.includes('nothing to install'));

@@ -450,9 +450,9 @@ export async function changePassphrase() {
 // BACKUP / RESTORE
 // ═══════════════════════════════════════════════
 const GLOBAL_SETTINGS_KEYS = [
-  'labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', 'labcharts-routstr-key',
+  'labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', /* ROUTSTR DISABLED: 'labcharts-routstr-key', */
   'labcharts-ai-provider',
-  'labcharts-anthropic-model', 'labcharts-venice-model', 'labcharts-openrouter-model', 'labcharts-routstr-model',
+  'labcharts-anthropic-model', 'labcharts-venice-model', 'labcharts-openrouter-model', /* ROUTSTR DISABLED: 'labcharts-routstr-model', */
   'labcharts-ollama', 'labcharts-ollama-model',
   'labcharts-ollama-pii-url', 'labcharts-ollama-pii-model',
   'labcharts-time-format', 'labcharts-theme', 'labcharts-debug',
