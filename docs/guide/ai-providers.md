@@ -1,6 +1,6 @@
 # AI Providers
 
-Lab Charts supports four AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI Provider**.
+Get Based supports four AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI Provider**.
 
 ## Which Features Need an AI Provider?
 
@@ -37,7 +37,7 @@ Anthropic charges per token. A typical PDF import costs a few cents. Chat respon
 
 ### OpenRouter (Best flexibility)
 
-A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more — through a single API key. Lab Charts shows a curated list of the latest medically capable models and displays live pricing for each.
+A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more — through a single API key. Get Based shows a curated list of the latest medically capable models and displays live pricing for each.
 
 **Setup:**
 1. Get an API key at [openrouter.ai](https://openrouter.ai)
@@ -80,4 +80,4 @@ Smaller models (under ~7B parameters) may struggle with accurate marker extracti
 
 ## Switching Providers
 
-You can switch providers at any time in Settings without losing any data. Your API keys are stored locally in your browser and are never sent to Lab Charts servers.
+You can switch providers at any time in Settings without losing any data. Your API keys are stored locally in your browser and are never sent to Get Based servers.

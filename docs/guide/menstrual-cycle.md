@@ -1,6 +1,6 @@
 # Menstrual Cycle Tracking
 
-Lab Charts includes a full menstrual cycle tracking module for female profiles. Because hormones, iron, and inflammatory markers all shift across the cycle, knowing which phase you were in when blood was drawn makes your results far more meaningful.
+Get Based includes a full menstrual cycle tracking module for female profiles. Because hormones, iron, and inflammatory markers all shift across the cycle, knowing which phase you were in when blood was drawn makes your results far more meaningful.
 
 ::: warning
 Cycle tracking is only available when your profile sex is set to **Female**. You can set this in Settings → Profile.
@@ -29,7 +29,7 @@ The more periods you log, the more accurate your auto-calculated stats become.
 
 ## Auto-Calculated Stats
 
-Once you have logged enough periods, Lab Charts calculates cycle statistics automatically:
+Once you have logged enough periods, Get Based calculates cycle statistics automatically:
 
 | Stat | Requires |
 |------|----------|
@@ -41,7 +41,7 @@ Regularity is classified as **regular** (low variation), **irregular** (moderate
 
 ## Phase-Aware Reference Ranges
 
-For **estradiol** and **progesterone**, Lab Charts applies reference ranges specific to each cycle phase rather than a single flat range. The phases are:
+For **estradiol** and **progesterone**, Get Based applies reference ranges specific to each cycle phase rather than a single flat range. The phases are:
 
 - **Menstrual** (days 1–5 approximately)
 - **Follicular** (after menstrual, up to ovulation)
@@ -69,7 +69,7 @@ The dashboard shows a recommendation for your next optimal blood draw window —
 
 ### Perimenopause Detection
 
-If you are 35 or older and have logged 4 or more periods, Lab Charts watches for patterns that may suggest perimenopause:
+If you are 35 or older and have logged 4 or more periods, Get Based watches for patterns that may suggest perimenopause:
 
 - Cycles gradually lengthening over time
 - Increasing cycle-to-cycle variability
@@ -80,7 +80,7 @@ Two or more of these indicators triggers a perimenopause pattern alert on the da
 
 ### Heavy Flow and Iron Alerts
 
-If you have logged recent heavy flow, Lab Charts cross-references your ferritin, hemoglobin, and iron levels and alerts you if:
+If you have logged recent heavy flow, Get Based cross-references your ferritin, hemoglobin, and iron levels and alerts you if:
 
 - Values are below the reference range (critical alert)
 - Values are in the bottom 25% of the reference range (warning)

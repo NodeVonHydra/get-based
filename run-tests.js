@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Headless browser test runner for Lab Charts
+// Headless browser test runner for Get Based
 // Usage: node run-tests.js (requires http server on :8000)
 // Or:    ./run-tests.sh (starts server automatically)
 
@@ -60,10 +60,10 @@ const PORT = process.env.PORT || 8000;
   });
 
   try {
-    await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle2', timeout: 15000 });
+    await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle2', timeout: 15000 });
   } catch (e) {
     console.error(`\x1b[31mCannot connect to http://localhost:${PORT}/ — is the server running?\x1b[0m`);
-    console.error('Start it with: python3 -m http.server ' + PORT);
+    console.error('Start it with: node dev-server.js ' + PORT);
     await browser.close();
     process.exit(2);
   }
@@ -75,7 +75,7 @@ const PORT = process.env.PORT || 8000;
   });
 
   // Reload clean (no SW interference)
-  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle2', timeout: 15000 });
+  await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: 'networkidle2', timeout: 15000 });
 
   console.log(`Running ${TEST_FILES.length} test files...\n`);
   listening = true;

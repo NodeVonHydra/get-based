@@ -454,7 +454,7 @@ export async function callOpenRouterAPI(opts) {
   return callOpenAICompatibleAPI(
     'https://openrouter.ai/api/v1/chat/completions',
     key, getOpenRouterModel(), 'OpenRouter', opts,
-    { 'HTTP-Referer': window.location.origin, 'X-Title': 'Lab Charts' }
+    { 'HTTP-Referer': window.location.origin, 'X-Title': 'Get Based' }
   );
 }
 

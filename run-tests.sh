@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run all Lab Charts browser tests headlessly
+# Run all Get Based browser tests headlessly
 # Starts a temp server, runs tests, kills server on exit
 
 set -e
@@ -23,7 +23,7 @@ fi
 # Start server if not already running
 SERVER_PID=""
 if ! curl -s -o /dev/null "http://localhost:$PORT/" 2>/dev/null; then
-  python3 -m http.server "$PORT" -d "$DIR" &>/dev/null &
+  node "$DIR/dev-server.js" "$PORT" &>/dev/null &
   SERVER_PID=$!
   sleep 1
   echo "Started server on :$PORT (PID $SERVER_PID)"

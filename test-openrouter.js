@@ -27,7 +27,7 @@
   assert('hasAIProvider handles openrouter', apiSrc.includes("provider === 'openrouter') return hasOpenRouterKey()"));
   assert('callClaudeAPI handles openrouter', apiSrc.includes("provider === 'openrouter') return callOpenRouterAPI("));
   assert('callOpenRouterAPI sends HTTP-Referer', apiSrc.includes("'HTTP-Referer'"));
-  assert('callOpenRouterAPI sends X-Title', apiSrc.includes("'X-Title': 'Lab Charts'"));
+  assert('callOpenRouterAPI sends X-Title', apiSrc.includes("'X-Title': 'Get Based'"));
   assert('OpenRouter default model is claude-sonnet-4-6', apiSrc.includes("'anthropic/claude-sonnet-4-6'"));
   assert('OpenRouter API endpoint', apiSrc.includes('openrouter.ai/api/v1/chat/completions'));
   assert('OpenRouter models endpoint', apiSrc.includes('openrouter.ai/api/v1/models'));
@@ -122,7 +122,7 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v48', swSrc.includes("labcharts-v48"));
+  assert('SW cache is v49', swSrc.includes("labcharts-v49"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. site.html ───

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Lab Charts',
+  title: 'Get Based',
   description: 'Blood work dashboard for tracking biomarker trends over time',
   base: '/docs/',
   outDir: '../dist-docs',
@@ -12,12 +12,12 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/icon.svg',
-    siteTitle: 'Lab Charts',
+    siteTitle: 'Get Based',
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'Contributors', link: '/contributor/' },
-      { text: 'Open App', link: 'https://labcharts.app/app', target: '_self' }
+      { text: 'Open App', link: 'https://getbased.health/app', target: '_self' }
     ],
 
     sidebar: {
@@ -98,11 +98,11 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/elkimek/lab-charts' }
+      { icon: 'github', link: 'https://github.com/elkimek/get-based' }
     ],
 
     editLink: {
-      pattern: 'https://github.com/elkimek/lab-charts/edit/main/docs/:path',
+      pattern: 'https://github.com/elkimek/get-based/edit/main/docs/:path',
       text: 'Edit this page on GitHub'
     },
 
@@ -112,7 +112,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the AGPL-3.0 License.',
-      copyright: 'Copyright © 2026 Lab Charts'
+      copyright: 'Copyright © 2026 Get Based'
     }
   }
 })

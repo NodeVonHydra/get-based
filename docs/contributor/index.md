@@ -1,6 +1,6 @@
 # Contributor Quick Start
 
-Welcome. Lab Charts is a zero-build, native ES module web app. There is no install step, no compiler, and no package manager required to run it locally.
+Welcome. Get Based is a zero-build, native ES module web app. There is no install step, no compiler, and no package manager required to run it locally.
 
 ## Prerequisites
 
@@ -14,16 +14,16 @@ Welcome. Lab Charts is a zero-build, native ES module web app. There is no insta
 ## Get running in 3 steps
 
 ```bash
-git clone https://github.com/elkimek/lab-charts
-cd lab-charts
-python3 -m http.server 8000
+git clone https://github.com/elkimek/get-based
+cd get-based
+node dev-server.js
 ```
 
 Open `http://localhost:8000`. The app loads immediately — no compilation, no `npm install`.
 
 ## The primary reference
 
-**[CLAUDE.md](https://github.com/elkimek/lab-charts/blob/main/CLAUDE.md)** is the comprehensive architecture reference for this project. It documents every module, the full data flow, all localStorage keys, the AI pipeline, marker schema conventions, and every feature in detail. Read it before making any non-trivial change.
+**[CLAUDE.md](https://github.com/elkimek/get-based/blob/main/CLAUDE.md)** is the comprehensive architecture reference for this project. It documents every module, the full data flow, all localStorage keys, the AI pipeline, marker schema conventions, and every feature in detail. Read it before making any non-trivial change.
 
 ## Contributor docs map
 

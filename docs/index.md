@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Lab Charts
+  name: Get Based
   text: Blood Work Dashboard
   tagline: Track biomarker trends, import any lab PDF, and get AI-powered health insights — all stored locally in your browser.
   actions:
@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: Open App
-      link: https://labcharts.app/app
+      link: https://getbased.health/app
     - theme: alt
       text: Contribute
       link: /contributor/

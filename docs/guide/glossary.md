@@ -1,6 +1,6 @@
 # Marker Glossary
 
-The Marker Glossary is a searchable reference for every biomarker tracked in Lab Charts. Open it any time you want to understand what a marker measures, what the reference and optimal ranges are, or what your latest result was.
+The Marker Glossary is a searchable reference for every biomarker tracked in Get Based. Open it any time you want to understand what a marker measures, what the reference and optimal ranges are, or what your latest result was.
 
 ## Opening the Glossary
 

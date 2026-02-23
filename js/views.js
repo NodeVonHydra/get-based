@@ -48,7 +48,7 @@ export function showDashboard(data) {
   html += `<div class="drop-zone" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or LabCharts JSON export</div></div>`;
+    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>`;
 
   if (!hasData) {
     html += `<div class="onboarding-step1">
@@ -64,7 +64,7 @@ export function showDashboard(data) {
         <span class="onboarding-step-label">Profile</span>
         <span class="onboarding-step-label">Ready</span>
       </div>
-      <h3>Welcome to LabCharts</h3>
+      <h3>Welcome to Get Based</h3>
       <p>Import your first lab results to get started.</p>
       <button class="onboarding-import-btn" onclick="document.getElementById('pdf-input').click()">Choose PDF or JSON file</button>
       <div class="onboarding-divider">

@@ -147,7 +147,7 @@ function renderPassphraseForm(overlay, onSuccess) {
   overlay.innerHTML = `
     <div class="passphrase-dialog" role="dialog" aria-modal="true" aria-label="Enter passphrase">
       <div class="passphrase-icon">&#128274;</div>
-      <h3 class="passphrase-title">Unlock Lab Charts</h3>
+      <h3 class="passphrase-title">Unlock Get Based</h3>
       <p class="passphrase-desc">Your data is encrypted. Enter your passphrase to continue.</p>
       <input type="password" class="passphrase-input" id="passphrase-unlock-input" placeholder="Passphrase" autocomplete="current-password" autofocus>
       <div class="passphrase-error" id="passphrase-error"></div>

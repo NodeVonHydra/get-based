@@ -1,6 +1,6 @@
 # Storage Schema
 
-Lab Charts stores all data in the browser. There is no backend database. Two storage mechanisms are used: `localStorage` for all app data and preferences, and IndexedDB for auto-backup snapshots.
+Get Based stores all data in the browser. There is no backend database. Two storage mechanisms are used: `localStorage` for all app data and preferences, and IndexedDB for auto-backup snapshots.
 
 ## localStorage key reference
 

@@ -7,18 +7,18 @@ Thanks for wanting to help. Here's everything you need to know.
 ## Prerequisites
 
 - A modern browser (Chrome or Firefox recommended)
-- Python 3 for running a local server
+- Node.js for the local dev server and headless test suite
 - An AI provider API key or local Ollama instance (optional — only needed for PDF import and chat features)
-- Node.js + Puppeteer if you want to run the headless test suite
+- Puppeteer if you want to run the headless test suite (`npm i -g puppeteer`)
 
 ---
 
 ## Running locally
 
 ```bash
-git clone https://github.com/elkimek/lab-charts
-cd lab-charts
-python3 -m http.server 8000
+git clone https://github.com/elkimek/get-based
+cd get-based
+node dev-server.js
 ```
 
 Open `http://localhost:8000`. That's it — no install step, no build step.
@@ -78,7 +78,7 @@ There is no linter. Just follow the patterns you see in the existing code.
 
 ## Tests
 
-There are 12 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
+There are 13 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
 
 Run all headlessly:
 
@@ -98,7 +98,7 @@ If you add a feature or fix a bug, add assertions to the relevant test file (or 
 - Test your changes with `./run-tests.sh` before opening a PR.
 - If you touch any app files (JS, CSS, HTML, manifest), bump the service worker cache version in `service-worker.js`. Find the line near the top:
   ```js
-  const CACHE_NAME = 'labcharts-v45';
+  const CACHE_NAME = 'labcharts-v49';
   ```
   Increment the number. This busts the cache for existing users.
 - Check comments near code you're changing — there are occasionally `// ROUTSTR DISABLED` or similar markers that explain why something is commented out.

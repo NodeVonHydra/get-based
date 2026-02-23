@@ -18,7 +18,7 @@ Values outside the reference range appear below 0% or above 100%, making it easy
 
 ## Preset Correlation Pairs
 
-Lab Charts includes a set of curated preset pairs for commonly studied relationships — for example, LDL and triglycerides, or glucose and insulin. Select a preset from the dropdown to jump directly to that pair without manually choosing both markers.
+Get Based includes a set of curated preset pairs for commonly studied relationships — for example, LDL and triglycerides, or glucose and insulin. Select a preset from the dropdown to jump directly to that pair without manually choosing both markers.
 
 ## Interpreting Results
 

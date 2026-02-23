@@ -79,7 +79,7 @@ export function submitFeedback() {
   body += `\n## System Info\n- Browser: ${browserSnippet}\n- Screen: ${screenSize}\n- Theme: ${theme}\n- AI Provider: ${provider}\n`;
 
   // Build URL (encodeURIComponent for proper %20 encoding)
-  let url = `https://github.com/elkimek/lab-charts/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(body)}`;
+  let url = `https://github.com/elkimek/get-based/issues/new?title=${encodeURIComponent(issueTitle)}&body=${encodeURIComponent(body)}`;
   if (typeDef.ghLabel) url += `&labels=${encodeURIComponent(typeDef.ghLabel)}`;
   window.open(url, '_blank');
   showNotification('Opening GitHub issue...', 'success');

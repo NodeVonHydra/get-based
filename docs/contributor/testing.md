@@ -1,6 +1,6 @@
 # Testing
 
-Lab Charts uses browser-based tests — no test framework, no Jest, no jsdom. Each test file is a self-executing IIFE that runs assertions against the live app in a real browser context.
+Get Based uses browser-based tests — no test framework, no Jest, no jsdom. Each test file is a self-executing IIFE that runs assertions against the live app in a real browser context.
 
 ## The assert pattern
 

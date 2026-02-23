@@ -1,6 +1,6 @@
 # Charts
 
-Lab Charts visualizes every biomarker as a line chart over time. Charts are grouped by category — Biochemistry, Hormones, Lipids, Hematology, and so on — and each category gets its own section on the dashboard.
+Get Based visualizes every biomarker as a line chart over time. Charts are grouped by category — Biochemistry, Hormones, Lipids, Hematology, and so on — and each category gets its own section on the dashboard.
 
 ## Reading a Chart
 

@@ -1,10 +1,10 @@
 # Getting Started
 
-Lab Charts is a blood work dashboard that turns your lab reports into interactive charts, trend analysis, and AI-powered interpretation. The app starts empty — your data is loaded by you, stored locally in your browser, and never uploaded anywhere by default.
+Get Based is a blood work dashboard that turns your lab reports into interactive charts, trend analysis, and AI-powered interpretation. The app starts empty — your data is loaded by you, stored locally in your browser, and never uploaded anywhere by default.
 
 ## Open the App
 
-The easiest way to get started is the hosted version at **[labcharts.app](https://labcharts.app)**. No installation required.
+The easiest way to get started is the hosted version at **[getbased.health](https://getbased.health)**. No installation required.
 
 ### Self-host
 
@@ -18,9 +18,9 @@ Then open `http://localhost:8000` in your browser. A local server is required be
 
 ## Install as a PWA
 
-Lab Charts is installable as a Progressive Web App on desktop and mobile. Look for the install prompt in your browser's address bar, or use your browser menu:
+Get Based is installable as a Progressive Web App on desktop and mobile. Look for the install prompt in your browser's address bar, or use your browser menu:
 
-- **Chrome / Edge**: address bar → install icon, or menu → "Install Lab Charts"
+- **Chrome / Edge**: address bar → install icon, or menu → "Install Get Based"
 - **Safari (iOS)**: Share → Add to Home Screen
 - **Firefox**: menu → Install
 
