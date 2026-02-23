@@ -1,4 +1,4 @@
-# Contributing to Lab Charts
+# Contributing to Get Based
 
 Thanks for wanting to help. Here's everything you need to know.
 
@@ -27,7 +27,7 @@ Open `http://localhost:8000`. That's it — no install step, no build step.
 
 ## Architecture overview
 
-Lab Charts has no build system. It's 24 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
+Get Based has no build system. It's 24 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
 
 ```
 index.html        — HTML structure, script/CSS includes with SRI hashes

@@ -122,7 +122,7 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v47', swSrc.includes("labcharts-v47"));
+  assert('SW cache is v48', swSrc.includes("labcharts-v48"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. site.html ───
