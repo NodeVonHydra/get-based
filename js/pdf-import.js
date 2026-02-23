@@ -1,8 +1,7 @@
 // pdf-import.js — PDF parsing pipeline, import preview, drop zone, batch import
 
 import { state } from './state.js';
-import { MARKER_SCHEMA } from './schema.js';
-import { calculateCost } from './schema.js';
+import { MARKER_SCHEMA, calculateCost, formatCost } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
@@ -177,7 +176,7 @@ Return ONLY valid JSON in this exact format, no other text:
       unit: m.unit || null,
       refMin: m.refMin != null ? m.refMin : null,
       refMax: m.refMax != null ? m.refMax : null
-    })),
+    })).filter(m => !isNaN(m.value)),
     fileName,
     usage,
     provider
@@ -643,16 +642,6 @@ export function showImportPreviewAsync(result, fileName, current, total) {
     window._batchImportContext = { current, total };
     showImportPreview(result);
   });
-}
-
-// ═══════════════════════════════════════════════
-// LOCAL HELPERS
-// ═══════════════════════════════════════════════
-function formatCost(usd) {
-  if (usd === 0) return 'Free';
-  if (usd < 0.0001) return '<$0.0001';
-  if (usd < 0.01) return '$' + usd.toFixed(4);
-  return '$' + usd.toFixed(3);
 }
 
 // ═══════════════════════════════════════════════

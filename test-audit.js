@@ -1,0 +1,170 @@
+// test-audit.js — Verify pre-release audit fixes
+// Run: fetch('test-audit.js').then(r=>r.text()).then(s=>Function(s)())
+
+(async function() {
+  let pass = 0, fail = 0;
+  function assert(name, condition, detail) {
+    if (condition) { pass++; console.log(`%c PASS %c ${name}`, 'background:#22c55e;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }
+    else { fail++; console.error(`%c FAIL %c ${name}`, 'background:#ef4444;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }
+  }
+
+  console.log('%c Pre-Release Audit Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
+
+  // ═══════════════════════════════════════
+  // 1. PhenoAge unit conversions (CRITICAL)
+  // ═══════════════════════════════════════
+  console.log('%c 1. PhenoAge Unit Conversions ', 'font-weight:bold;color:#f59e0b');
+
+  const dataSrc = await fetch('js/data.js').then(r => r.text());
+  assert('PhenoAge converts albumin g/L to g/dL', dataSrc.includes('albumin_si / 10'));
+  assert('PhenoAge converts creatinine µmol/L to mg/dL', dataSrc.includes('creatinine_si / 88.4'));
+  assert('PhenoAge converts glucose mmol/L to mg/dL', dataSrc.includes('glucose_si * 18.016'));
+  assert('PhenoAge converts lymphocytes fraction to %', dataSrc.includes('lymphPct_si * 100'));
+  assert('PhenoAge converts ALP µkat/L to U/L', dataSrc.includes('alp_si * 60'));
+
+  // ═══════════════════════════════════════
+  // 2. Service Worker registration (CRITICAL)
+  // ═══════════════════════════════════════
+  console.log('%c 2. Service Worker Registration ', 'font-weight:bold;color:#f59e0b');
+
+  const indexSrc = await fetch('index.html').then(r => r.text());
+  assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
+  assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
+  assert('SW cache version bumped to v46', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v46'));
+
+  // ═══════════════════════════════════════
+  // 3. XSS: escapeHTML in views.js
+  // ═══════════════════════════════════════
+  console.log('%c 3. XSS Prevention ', 'font-weight:bold;color:#f59e0b');
+
+  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+  assert('Trend alert name escaped', viewsSrc.includes('escapeHTML(alert.name)'));
+  assert('Trend alert category escaped', viewsSrc.includes('escapeHTML(alert.category)'));
+  assert('Flagged marker name escaped', /escapeHTML\(f\.name\)/.test(viewsSrc));
+  assert('Category label escaped in header', viewsSrc.includes('escapeHTML(cat.label)'));
+  assert('marker.unit escaped in detail modal', /escapeHTML\(marker\.unit\)/.test(viewsSrc));
+  assert('Correlation option names escaped', /escapeHTML\(marker\.name\)/.test(viewsSrc));
+
+  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  assert('Markdown URL has quote escaping', chatSrc.includes('.replace(/"/g, \'&quot;\')'));
+  assert('OpenAlex URL has protocol check', chatSrc.includes('/^https?:/.test(s.url)'));
+  assert('Clipboard has navigator.clipboard guard', chatSrc.includes('if (!navigator.clipboard)'));
+
+  // ═══════════════════════════════════════
+  // 4. Division by zero guards (utils.js)
+  // ═══════════════════════════════════════
+  console.log('%c 4. Division by Zero Guards ', 'font-weight:bold;color:#f59e0b');
+
+  const utilsSrc = await fetch('js/utils.js').then(r => r.text());
+  assert('getRangePosition guards refMax === refMin', utilsSrc.includes('refMax === refMin'));
+  assert('getTrend guards prev === 0', utilsSrc.includes('prev === 0'));
+
+  // ═══════════════════════════════════════
+  // 5. CSS variable fixes
+  // ═══════════════════════════════════════
+  console.log('%c 5. CSS Variable Fixes ', 'font-weight:bold;color:#f59e0b');
+
+  const cssSrc = await fetch('styles.css').then(r => r.text());
+  assert('No var(--card-bg) reference', !cssSrc.includes('var(--card-bg)'));
+  assert('No var(--text) without suffix', !/(var\(--text\))(?!-)/.test(cssSrc));
+  assert('Dead overview-grid CSS removed', !cssSrc.includes('.overview-grid'));
+  assert('Dead overview-card CSS removed', !cssSrc.includes('.overview-card'));
+
+  // ═══════════════════════════════════════
+  // 6. Data integrity fixes
+  // ═══════════════════════════════════════
+  console.log('%c 6. Data Integrity ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Ferritin lookup uses iron category', dataSrc.includes("'iron','ferritin'") && !dataSrc.includes("'hematology','ferritin'"));
+  assert('Unit conversion guards null refMin', dataSrc.includes('if (marker.refMin != null) marker.refMin = parseFloat'));
+  assert('Unit conversion guards null refMax', dataSrc.includes('if (marker.refMax != null) marker.refMax = parseFloat'));
+
+  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  // Check apoAI optimalMax <= refMax
+  const apoMatch = schemaSrc.match(/lipids\.apoAI.*?optimalMax:\s*([\d.]+)/);
+  if (apoMatch) {
+    const apoOptMax = parseFloat(apoMatch[1]);
+    assert('apoAI optimalMax <= refMax (1.70)', apoOptMax <= 1.70, `optimalMax = ${apoOptMax}`);
+  }
+
+  // ═══════════════════════════════════════
+  // 7. Error handling
+  // ═══════════════════════════════════════
+  console.log('%c 7. Error Handling ', 'font-weight:bold;color:#f59e0b');
+
+  const apiSrc = await fetch('js/api.js').then(r => r.text());
+  assert('Anthropic models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models')"));
+  assert('Venice models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-venice-models')"));
+  assert('OpenRouter models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models')"));
+  assert('OpenRouter pricing JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing')"));
+
+  const exportSrc = await fetch('js/export.js').then(r => r.text());
+  assert('PDF report null popup guard', exportSrc.includes('if (!win)'));
+  assert('PDF report context serialization', exportSrc.includes('fmtCtx'));
+
+  const pdfSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  assert('NaN markers filtered out', pdfSrc.includes('filter(m => !isNaN(m.value))'));
+
+  // ═══════════════════════════════════════
+  // 8. Duplicate code cleanup
+  // ═══════════════════════════════════════
+  console.log('%c 8. Code Cleanup ', 'font-weight:bold;color:#f59e0b');
+
+  assert('pdf-import.js imports formatCost from schema', pdfSrc.includes("formatCost } from './schema.js'") || pdfSrc.includes("formatCost} from './schema.js'"));
+  const localFormatCost = pdfSrc.match(/^function formatCost/m);
+  assert('pdf-import.js no local formatCost', !localFormatCost);
+
+  // ═══════════════════════════════════════
+  // 9. OpenRouter curated prefixes
+  // ═══════════════════════════════════════
+  console.log('%c 9. OpenRouter Curated List ', 'font-weight:bold;color:#f59e0b');
+
+  const curatedMatch = apiSrc.match(/OPENROUTER_CURATED\s*=\s*\[([\s\S]*?)\]/);
+  if (curatedMatch) {
+    const curated = curatedMatch[1];
+    assert('Curated uses anthropic/claude- prefix (no dots in version)', !curated.includes('claude-sonnet-4.6') && !curated.includes('claude-opus-4.6'));
+    assert('Curated has anthropic prefix', curated.includes('anthropic/'));
+    assert('Curated has google prefix', curated.includes('google/'));
+    assert('Curated has x-ai prefix', curated.includes('x-ai/'));
+  }
+
+  // ═══════════════════════════════════════
+  // 10. Accessibility
+  // ═══════════════════════════════════════
+  console.log('%c 10. Accessibility ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Skip-to-content link exists', indexSrc.includes('class="skip-link"'));
+  assert('Skip link targets #main-content', indexSrc.includes('href="#main-content"'));
+  assert('Skip link CSS', cssSrc.includes('.skip-link'));
+
+  const navSrc = await fetch('js/nav.js').then(r => r.text());
+  assert('Nav items have tabindex', navSrc.includes('tabindex="0"'));
+  assert('Nav items have role=button', navSrc.includes('role="button"'));
+  assert('Nav items have keyboard handler', navSrc.includes('onkeydown'));
+  assert('Category labels escaped in sidebar', navSrc.includes('escapeHTML(cat.label)'));
+
+  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  assert('Focus trap for modals', mainSrc.includes('e.key === "Tab"') && mainSrc.includes('focusable'));
+
+  // ═══════════════════════════════════════
+  // 11. Event listener leak fix
+  // ═══════════════════════════════════════
+  console.log('%c 11. Event Listener Leak Fix ', 'font-weight:bold;color:#f59e0b');
+
+  const ctxSrc = await fetch('js/context-cards.js').then(r => r.text());
+  assert('Diagnoses editor removes old listener before adding', ctxSrc.includes('document.removeEventListener(\'click\', closeSuggestionsOnClickOutside)'));
+
+  // ═══════════════════════════════════════
+  // 12. Cycle stats NaN guard
+  // ═══════════════════════════════════════
+  console.log('%c 12. Cycle Stats Guard ', 'font-weight:bold;color:#f59e0b');
+
+  const cycleSrc = await fetch('js/cycle.js').then(r => r.text());
+  assert('Cycle stats filters periods with endDate', cycleSrc.includes('filter(p => p.endDate)'));
+  assert('Period length guards empty array', cycleSrc.includes('if (periodLengths.length > 0)'));
+
+  // ═══════════════════════════════════════
+  // Results
+  // ═══════════════════════════════════════
+  console.log(`\n%c Results: ${pass} passed, ${fail} failed `, `background:${fail?'#ef4444':'#22c55e'};color:#fff;font-size:14px;padding:4px 12px;border-radius:4px`);
+})();

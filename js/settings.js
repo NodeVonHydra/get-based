@@ -184,7 +184,7 @@ export function switchSettingsTab(tabId) {
 export function renderAIProviderPanel(provider) {
   if (provider === 'anthropic') {
     const currentKey = getApiKey();
-    const cachedModels = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]');
+    let cachedModels = []; try { cachedModels = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]'); } catch(e) {}
     const currentModel = getAnthropicModel();
     let modelHtml;
     if (cachedModels.length > 0) {
@@ -217,7 +217,7 @@ export function renderAIProviderPanel(provider) {
   if (provider === 'openrouter') {
     const currentKey = getOpenRouterKey();
     const orModel = getOpenRouterModel();
-    const cachedORModels = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]');
+    let cachedORModels = []; try { cachedORModels = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]'); } catch(e) {}
     let orModelHtml;
     if (cachedORModels.length > 0) {
       const opts = cachedORModels.map(function(m) {
@@ -252,7 +252,7 @@ export function renderAIProviderPanel(provider) {
   if (provider === 'venice') {
     const currentKey = getVeniceKey();
     const veniceModel = getVeniceModel();
-    const cachedVeniceModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]');
+    let cachedVeniceModels = []; try { cachedVeniceModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
     let veniceModelHtml;
     if (cachedVeniceModels.length > 0) {
       const opts = cachedVeniceModels.map(function(m) {

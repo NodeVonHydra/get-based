@@ -22,13 +22,16 @@ export function getStatus(value, refMin, refMax) {
 
 export function getRangePosition(value, refMin, refMax) {
   if (value === null || value === undefined) return null;
+  if (refMin == null || refMax == null || refMax === refMin) return 50;
   return ((value - refMin) / (refMax - refMin)) * 100;
 }
 
 export function getTrend(values) {
   const nn = values.filter(v=>v!==null);
   if (nn.length<2) return {arrow:"\u2014",cls:"trend-stable"};
-  const pct = ((nn[nn.length-1]-nn[nn.length-2])/nn[nn.length-2])*100;
+  const prev = nn[nn.length-2];
+  if (prev === 0) return {arrow:"→",cls:"trend-stable"};
+  const pct = ((nn[nn.length-1]-prev)/prev)*100;
   if (Math.abs(pct)<2) return {arrow:"\u2192",cls:"trend-stable"};
   if (pct>0) return {arrow:`\u2191 +${pct.toFixed(1)}%`,cls:"trend-up"};
   return {arrow:`\u2193 ${pct.toFixed(1)}%`,cls:"trend-down"};

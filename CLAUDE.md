@@ -245,7 +245,7 @@ No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Ven
 
 ### Tests
 
-11 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
+13 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
 ```
 ./run-tests.sh
 ```
@@ -253,7 +253,7 @@ This auto-starts a server if needed, runs all tests via headless Chrome (Puppete
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v45` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v46` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

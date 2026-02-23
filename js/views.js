@@ -159,7 +159,7 @@ export function showDashboard(data) {
       html += `<div class="trend-alert-card ${cls}" onclick="showDetailModal('${alert.id}')">
         <span class="trend-alert-arrow">${arrow}</span>
         <div class="trend-alert-info">
-          <div class="trend-alert-name">${alert.name} <span class="trend-alert-cat">${alert.category}</span></div>
+          <div class="trend-alert-name">${escapeHTML(alert.name)} <span class="trend-alert-cat">${escapeHTML(alert.category)}</span></div>
           <div class="trend-alert-label">${label}</div>
         </div>
         <div class="trend-alert-spark">${alert.spark.join(' \u2192 ')}</div>
@@ -170,8 +170,8 @@ export function showDashboard(data) {
       const label = f.status === "high" ? "\u25B2 CRITICAL HIGH" : "\u25BC CRITICAL LOW";
       html += `<div class="alert-card ${cls}" onclick="navigate('${f.categoryKey}')">
         <span class="alert-indicator">${label}</span>
-        <span class="alert-name">${f.name}</span>
-        <span class="alert-value">${f.value} ${f.unit}</span>
+        <span class="alert-name">${escapeHTML(f.name)}</span>
+        <span class="alert-value">${escapeHTML(String(f.value))} ${escapeHTML(f.unit)}</span>
         <span class="alert-ref">${formatValue(f.effectiveMin)} \u2013 ${formatValue(f.effectiveMax)}</span></div>`;
     }
     html += `</div>`;
@@ -386,7 +386,7 @@ export function showCategory(categoryKey, preData) {
   const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const main = document.getElementById("main-content");
-  let html = `<div class="category-header"><h2>${cat.icon} ${cat.label}</h2>
+  let html = `<div class="category-header"><h2>${cat.icon} ${escapeHTML(cat.label)}</h2>
     <p>${Object.keys(cat.markers).length} biomarkers tracked</p></div>`;
 
   html += `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">`;
@@ -403,7 +403,7 @@ export function showCategory(categoryKey, preData) {
   html += `<div id="view-content">`;
   if (!hasValues) {
     html += `<div class="empty-state"><div class="empty-state-icon">${cat.icon}</div>
-      <h3>No Data Available</h3><p>Import lab results containing ${cat.label.toLowerCase()} markers to see data here.</p></div>`;
+      <h3>No Data Available</h3><p>Import lab results containing ${escapeHTML(cat.label.toLowerCase())} markers to see data here.</p></div>`;
   } else if (cat.singleDate) {
     html += renderFattyAcidsView(cat);
   } else {
@@ -669,7 +669,7 @@ export function showDetailModal(id) {
     const f = nonNull[0], l = nonNull[nonNull.length-1];
     const ch = l.v - f.v, pct = ((ch/f.v)*100).toFixed(1);
     const dir = ch > 0 ? "increased" : ch < 0 ? "decreased" : "unchanged";
-    html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${marker.unit} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
+    html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${escapeHTML(marker.unit)} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
@@ -710,11 +710,11 @@ export function openManualEntryForm(id) {
   const overlay = document.getElementById("modal-overlay");
   const today = new Date().toISOString().slice(0, 10);
   const refText = marker.refMin != null && marker.refMax != null
-    ? `Reference: ${marker.refMin} \u2013 ${marker.refMax} ${marker.unit}`
+    ? `Reference: ${marker.refMin} \u2013 ${marker.refMax} ${escapeHTML(marker.unit)}`
     : '';
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Add Value \u2014 ${marker.name}</h3>
-    <div class="modal-unit">${marker.unit}${refText ? ' \u00b7 ' + refText : ''}</div>
+    <h3>Add Value \u2014 ${escapeHTML(marker.name)}</h3>
+    <div class="modal-unit">${escapeHTML(marker.unit)}${refText ? ' \u00b7 ' + refText : ''}</div>
     <div class="manual-entry-form">
       <div class="me-field">
         <label>Date</label>
@@ -887,8 +887,8 @@ export function renderCompareTable(data, idx1, idx2) {
       }
       const refStr = marker.refMin != null && marker.refMax != null ? `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}` : '\u2014';
       rows.push(`<tr>
-        <td class="marker-name">${marker.name}</td>
-        <td style="color:var(--text-muted);font-size:12px">${marker.unit}</td>
+        <td class="marker-name">${escapeHTML(marker.name)}</td>
+        <td style="color:var(--text-muted);font-size:12px">${escapeHTML(marker.unit)}</td>
         <td style="color:var(--text-secondary);font-size:12px">${refStr}</td>
         <td class="value-cell val-${s1}" style="font-weight:600">${v1 !== null ? formatValue(v1) : '\u2014'}</td>
         <td class="value-cell val-${s2}" style="font-weight:600">${v2 !== null ? formatValue(v2) : '\u2014'}</td>
@@ -897,7 +897,7 @@ export function renderCompareTable(data, idx1, idx2) {
       </tr>`);
     }
     if (rows.length > 0) {
-      html += `<tr class="cat-row"><td colspan="7">${cat.icon} ${cat.label}</td></tr>`;
+      html += `<tr class="cat-row"><td colspan="7">${escapeHTML(cat.icon)} ${escapeHTML(cat.label)}</td></tr>`;
       html += rows.join('');
     }
   }
@@ -952,9 +952,9 @@ export function populateCorrelationOptions(data) {
       const fullKey = `${catKey}.${markerKey}`;
       const selected = state.selectedCorrelationMarkers.includes(fullKey);
       html += `<div class="corr-option ${selected ? 'selected' : ''}"
-        data-key="${fullKey}" data-name="${marker.name}" data-cat="${cat.label}"
+        data-key="${fullKey}" data-name="${escapeHTML(marker.name)}" data-cat="${escapeHTML(cat.label)}"
         onclick="toggleCorrelationMarker('${fullKey}')">
-        ${marker.name} <span class="opt-cat">${cat.label}</span></div>`;
+        ${escapeHTML(marker.name)} <span class="opt-cat">${escapeHTML(cat.label)}</span></div>`;
     }
   }
   container.innerHTML = html;
@@ -1005,7 +1005,7 @@ export function renderCorrelationChips() {
     if (!marker) return;
     const color = CHIP_COLORS[i % CHIP_COLORS.length];
     html += `<span class="corr-chip" style="background:${color}20;border-color:${color};color:${color}">
-      ${marker.name} <span class="chip-remove" onclick="toggleCorrelationMarker('${key}')">&times;</span></span>`;
+      ${escapeHTML(marker.name)} <span class="chip-remove" onclick="toggleCorrelationMarker('${key}')">&times;</span></span>`;
   });
   container.innerHTML = html;
 }

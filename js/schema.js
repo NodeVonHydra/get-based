@@ -606,7 +606,7 @@ export const OPTIMAL_RANGES = {
   'lipids.ldl': { optimalMin: 1.20, optimalMax: 2.60 },
   'lipids.nonHdl': { optimalMin: 1.80, optimalMax: 2.60 },
   'lipids.apoB': { optimalMin: 0.40, optimalMax: 0.70 },
-  'lipids.apoAI': { optimalMin: 1.40, optimalMax: 1.80 },
+  'lipids.apoAI': { optimalMin: 1.40, optimalMax: 1.70 },
   // Proteins & Inflammation
   'proteins.hsCRP': { optimalMin: 0.00, optimalMax: 1.00 },
   'proteins.totalProtein': { optimalMin: 69.0, optimalMax: 74.0 },

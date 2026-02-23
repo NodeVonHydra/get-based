@@ -19,14 +19,26 @@ export function exportPDFReport() {
   const notes = (state.importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
   const supps = state.importedData.supplements || [];
   const contextSections = [];
-  if (state.importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: state.importedData.diagnoses });
-  if (state.importedData.diet) contextSections.push({ title: 'Diet', text: state.importedData.diet });
-  if (state.importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: state.importedData.exercise });
-  if (state.importedData.sleepRest) contextSections.push({ title: 'Sleep & Rest', text: state.importedData.sleepRest });
-  if (state.importedData.lightCircadian) contextSections.push({ title: 'Light & Circadian', text: state.importedData.lightCircadian });
-  if (state.importedData.stress) contextSections.push({ title: 'Stress', text: state.importedData.stress });
-  if (state.importedData.loveLife) contextSections.push({ title: 'Love Life & Relationships', text: state.importedData.loveLife });
-  if (state.importedData.environment) contextSections.push({ title: 'Environment', text: state.importedData.environment });
+  const fmtCtx = obj => {
+    if (typeof obj === 'string') return obj;
+    const parts = [];
+    for (const [k, v] of Object.entries(obj)) {
+      if (v == null || k === 'note') continue;
+      if (Array.isArray(v)) { if (v.length) parts.push(`${k}: ${v.map(i => typeof i === 'object' ? (i.name || JSON.stringify(i)) : i).join(', ')}`); }
+      else if (typeof v === 'object') parts.push(`${k}: ${JSON.stringify(v)}`);
+      else parts.push(`${k}: ${v}`);
+    }
+    if (obj.note) parts.push(`Note: ${obj.note}`);
+    return parts.join('. ');
+  };
+  if (state.importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: fmtCtx(state.importedData.diagnoses) });
+  if (state.importedData.diet) contextSections.push({ title: 'Diet', text: fmtCtx(state.importedData.diet) });
+  if (state.importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: fmtCtx(state.importedData.exercise) });
+  if (state.importedData.sleepRest) contextSections.push({ title: 'Sleep & Rest', text: fmtCtx(state.importedData.sleepRest) });
+  if (state.importedData.lightCircadian) contextSections.push({ title: 'Light & Circadian', text: fmtCtx(state.importedData.lightCircadian) });
+  if (state.importedData.stress) contextSections.push({ title: 'Stress', text: fmtCtx(state.importedData.stress) });
+  if (state.importedData.loveLife) contextSections.push({ title: 'Love Life & Relationships', text: fmtCtx(state.importedData.loveLife) });
+  if (state.importedData.environment) contextSections.push({ title: 'Environment', text: fmtCtx(state.importedData.environment) });
   if (state.importedData.interpretiveLens) contextSections.push({ title: 'Interpretive Lens', text: state.importedData.interpretiveLens });
   const hg = state.importedData.healthGoals || [];
   if (hg.length) {
@@ -49,6 +61,7 @@ export function exportPDFReport() {
 
   const html = buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections);
   const win = window.open('', '_blank');
+  if (!win) { showNotification('Pop-up blocked — please allow pop-ups for this site', 'error'); return; }
   win.document.write(html);
   win.document.close();
   setTimeout(() => win.print(), 600);

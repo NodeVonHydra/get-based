@@ -86,14 +86,16 @@ export function calculateCycleStats(periods) {
   if (!periods || periods.length === 0) return result;
   const sorted = periods.slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
 
-  // Average period length (1+ periods)
-  const periodLengths = sorted.map(p => {
+  // Average period length (1+ periods with valid endDate)
+  const periodLengths = sorted.filter(p => p.endDate).map(p => {
     const start = new Date(p.startDate + 'T00:00:00');
     const end = new Date(p.endDate + 'T00:00:00');
     return Math.round((end - start) / 86400000) + 1;
   });
-  const avgPeriod = Math.round(periodLengths.reduce((a, b) => a + b, 0) / periodLengths.length);
-  result.periodLength = Math.max(2, Math.min(10, avgPeriod));
+  if (periodLengths.length > 0) {
+    const avgPeriod = Math.round(periodLengths.reduce((a, b) => a + b, 0) / periodLengths.length);
+    result.periodLength = Math.max(2, Math.min(10, avgPeriod));
+  }
 
   // Cycle lengths between consecutive period starts (2+ periods)
   if (sorted.length >= 2) {

@@ -40,14 +40,14 @@
   assert('getModelPricing checks openrouter-pricing cache', schemaSrc.includes('labcharts-openrouter-pricing'));
   // Curated whitelist in api.js
   assert('OPENROUTER_CURATED whitelist exists', apiSrc.includes('OPENROUTER_CURATED'));
-  assert('Curated: anthropic/claude-sonnet-4.6', apiSrc.includes("'anthropic/claude-sonnet-4.6'"));
-  assert('Curated: anthropic/claude-opus-4.6', apiSrc.includes("'anthropic/claude-opus-4.6'"));
-  assert('Curated: openai/gpt-5.2', apiSrc.includes("'openai/gpt-5.2'"));
-  assert('Curated: google/gemini-3.1-pro', apiSrc.includes("'google/gemini-3.1-pro'"));
-  assert('Curated: google/gemini-3-flash', apiSrc.includes("'google/gemini-3-flash'"));
-  assert('Curated: deepseek/deepseek-v3.2', apiSrc.includes("'deepseek/deepseek-v3.2'"));
-  assert('Curated: qwen/qwen3.5', apiSrc.includes("'qwen/qwen3.5'"));
-  assert('Curated: x-ai/grok-4', apiSrc.includes("'x-ai/grok-4'"));
+  assert('Curated: anthropic/claude-sonnet prefix', apiSrc.includes("'anthropic/claude-sonnet-4'"));
+  assert('Curated: anthropic/claude-opus prefix', apiSrc.includes("'anthropic/claude-opus-4'"));
+  assert('Curated: openai/gpt prefix', apiSrc.includes("'openai/gpt-5'"));
+  assert('Curated: google/gemini-3 prefix', apiSrc.includes("'google/gemini-3'"));
+  assert('Curated: google/gemini-2 prefix', apiSrc.includes("'google/gemini-2'"));
+  assert('Curated: deepseek prefix', apiSrc.includes("'deepseek/deepseek'"));
+  assert('Curated: qwen prefix', apiSrc.includes("'qwen/qwen'"));
+  assert('Curated: x-ai/grok prefix', apiSrc.includes("'x-ai/grok'"));
   // Exclusion list
   assert('OPENROUTER_EXCLUDE exists', apiSrc.includes('OPENROUTER_EXCLUDE'));
   assert('Excludes codex variants', apiSrc.includes("'codex'"));
@@ -122,7 +122,7 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v45', swSrc.includes("labcharts-v45"));
+  assert('SW cache is v46', swSrc.includes("labcharts-v46"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. site.html ───

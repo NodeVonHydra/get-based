@@ -13,7 +13,7 @@ export function getAnthropicModel() { return localStorage.getItem('labcharts-ant
 export function setAnthropicModel(id) { localStorage.setItem('labcharts-anthropic-model', id); }
 export function getAnthropicModelDisplay() {
   const id = getAnthropicModel();
-  const cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]');
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]'); } catch(e) {}
   const m = cached.find(function(x) { return x.id === id; });
   return m ? m.display_name || m.id : id;
 }
@@ -73,7 +73,7 @@ export function getVeniceModel() { return localStorage.getItem('labcharts-venice
 export function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
 export function getVeniceModelDisplay() {
   const id = getVeniceModel();
-  const cached = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]');
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
@@ -85,18 +85,18 @@ export function getOpenRouterModel() { return localStorage.getItem('labcharts-op
 export function setOpenRouterModel(model) { localStorage.setItem('labcharts-openrouter-model', model); }
 export function getOpenRouterModelDisplay() {
   const id = getOpenRouterModel();
-  const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]');
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]'); } catch(e) {}
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
 // Curated: latest-gen medically capable models only (prefixes matched against IDs)
 const OPENROUTER_CURATED = [
-  'anthropic/claude-sonnet-4.6', 'anthropic/claude-opus-4.6',
-  'openai/gpt-5.2',
-  'google/gemini-3.1-pro', 'google/gemini-3-flash',
-  'deepseek/deepseek-v3.2',
-  'qwen/qwen3.5', 'qwen/qwen3-max',
-  'x-ai/grok-4',
+  'anthropic/claude-sonnet-4', 'anthropic/claude-opus-4',
+  'openai/gpt-5',
+  'google/gemini-3', 'google/gemini-2',
+  'deepseek/deepseek',
+  'qwen/qwen', 'qwen/qwq',
+  'x-ai/grok',
 ];
 // Exclude specialized variants not suited for medical analysis
 const OPENROUTER_EXCLUDE = ['codex', 'audio', 'image', 'oss', 'safeguard', 'coder'];
@@ -137,7 +137,7 @@ export async function fetchOpenRouterModels(key) {
   } catch (e) { return []; }
 }
 export function getOpenRouterPricing(modelId) {
-  const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
+  let cached = {}; try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}'); } catch(e) {}
   return cached[modelId] || null;
 }
 
