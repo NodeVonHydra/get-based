@@ -1,18 +1,23 @@
-# Lab Charts
+# Get Based
 
-Blood work dashboard for tracking biomarker trends over time.
+Evidence-based health tracking. Know your baseline, aim for optimal.
 
 Drop any lab PDF, get interactive charts, trend detection, and AI that understands your full health context — not just reference ranges.
 
-![Lab Charts Dashboard](screenshot.png)
+![Get Based Dashboard](screenshot.png)
 
 ---
 
-## What it does
+## Why "Get Based"?
 
-Lab Charts is a local-first web app that turns your blood work history into something actually useful. Import any lab report (any format, any language, any country), track 287+ biomarkers across 15 categories, and ask AI questions grounded in your actual data and lifestyle.
+Most people get blood work done and never look at it again. A doctor glances at it for 30 seconds, says "everything looks normal," and moves on. But **normal isn't optimal** — reference ranges are built from population averages, not from what's best for you.
 
-The app starts empty and is fully data-driven. No demo data is forced on you. Your data stays in your browser.
+Get Based gives you the tools to actually understand your health data:
+
+- **Evidence-based** — AI analysis grounded in your real lab values and lifestyle, not generic advice
+- **Know your baseline** — track 287+ biomarkers over time to see what's changing and why
+- **Aim for optimal** — optimal ranges, trend detection, and calculated markers like biological age (PhenoAge) go beyond "in range"
+- **Your data, your control** — local-first, encrypted, open source. No accounts, no cloud lock-in
 
 ---
 
@@ -54,9 +59,17 @@ Switch providers anytime in Settings. The app falls back gracefully if no provid
 
 ---
 
+## Documentation
+
+Full documentation at [labcharts.app/docs](https://labcharts.app/docs) — user guide, contributor architecture reference, module docs, and deployment guide.
+
+---
+
 ## Quick start
 
 ```bash
+git clone https://github.com/elkimek/lab-charts
+cd lab-charts
 python3 -m http.server 8000
 ```
 
@@ -92,7 +105,7 @@ Configure your provider in Settings after opening the app.
 
 ## PWA
 
-Lab Charts is installable as a Progressive Web App. The service worker caches the full app shell so it works offline. AI features (PDF import, chat) require a network connection to your provider — everything else works without one.
+Get Based is installable as a Progressive Web App. The service worker caches the full app shell so it works offline. AI features (PDF import, chat) require a network connection to your provider — everything else works without one.
 
 ---
 

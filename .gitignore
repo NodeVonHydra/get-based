@@ -7,3 +7,6 @@ test-data.json
 labcharts-*.json
 test-*.json
 site.html
+node_modules/
+dist-docs/
+docs/.vitepress/cache/

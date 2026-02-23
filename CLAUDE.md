@@ -251,9 +251,19 @@ No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Ven
 ```
 This auto-starts a server if needed, runs all tests via headless Chrome (Puppeteer), and exits with code 0/1. Requires Puppeteer (`npx puppeteer` or `npm i -g puppeteer`). Alternatively, with a server already running: `NODE_PATH=/path/to/node_modules node run-tests.js`
 
+### Documentation Site
+
+VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/config.mjs`. Theme: `docs/.vitepress/theme/`. Build: `npm run docs:build`. Dev: `npm run docs:dev`.
+
+- **User guide** (`docs/guide/`): 27 pages covering all features for end users
+- **Contributor docs** (`docs/contributor/`): 8 pages — architecture, module reference, data pipeline, testing, deployment, storage schema
+- **Vercel**: `buildCommand: "npm run docs:build"`, `outDir: '../dist-docs'`, routes serve `/dist-docs/` at `/docs`
+- **Cross-links**: site.html nav/drawer/footer, index.html header, README.md all link to `/docs`
+- **SW**: Does not cache `/docs/` paths (not in APP_SHELL) — correct behavior
+
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v47` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v48` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
