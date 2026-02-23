@@ -108,6 +108,10 @@ This starts a local server if one isn't running, runs all tests via headless Chr
 
 ---
 
+## Roadmap
+
+See the [project board](https://github.com/users/elkimek/projects/2) for planned features and ideas. Contributions welcome.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
