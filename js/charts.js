@@ -397,19 +397,22 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
   const maxV = Math.max(...allValid, refMaxSafe, optMaxSafe);
   const pad = (maxV - minV) * 0.15 || 1;
   const chartRange = getEffectiveRange(marker);
-  const ptColors = values.map((v, i) => {
-    if (v === null) return "transparent";
+  const ptColors = []; const ptStyles = [];
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
+    if (v === null) { ptColors.push("transparent"); ptStyles.push('circle'); continue; }
     const r = getEffectiveRangeForDate(marker, i);
     const s = getStatus(v, r.min, r.max);
-    return s==="normal"?tc.green:s==="high"?tc.red:tc.yellow;
-  });
+    ptColors.push(s==="normal"?tc.green:s==="high"?tc.red:tc.yellow);
+    ptStyles.push(s==="normal"?'circle':s==="high"?'triangle':'rectRot');
+  }
   const rawDates = chartDates || [];
   const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
   const chartSupps = marker.singlePoint ? [] : getSupplementsForChart(rawDates);
   const datasets = [{
     data: values, borderColor: tc.lineColor, backgroundColor: tc.lineFill,
     borderWidth: 2.5, pointBackgroundColor: ptColors, pointBorderColor: ptColors,
-    pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
+    pointStyle: ptStyles, pointRadius: 6, pointHoverRadius: 8, tension: 0.3, fill: false, spanGaps: true,
     label: isPhenoAge ? 'Biological Age' : ''
   }];
   if (chronoAgeValues) {

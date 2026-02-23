@@ -73,6 +73,7 @@ export function showNotification(message, type, duration) {
   const container = document.getElementById("notification-container");
   const toast = document.createElement("div");
   toast.className = `notification-toast ${type}`;
+  if (type === 'error') toast.setAttribute('role', 'alert');
   const icons = { success: "\u2713", error: "\u2717", info: "\u2139" };
   const iconSpan = document.createElement('span');
   iconSpan.textContent = icons[type] || "\u2139";
@@ -93,7 +94,7 @@ export function showConfirmDialog(message, onConfirm) {
     overlay.className = "confirm-overlay";
     document.body.appendChild(overlay);
   }
-  overlay.innerHTML = `<div class="confirm-dialog">
+  overlay.innerHTML = `<div class="confirm-dialog" role="alertdialog" aria-modal="true" aria-label="Confirmation">
     <p class="confirm-message">${escapeHTML(message)}</p>
     <div class="confirm-actions">
       <button class="confirm-btn confirm-btn-cancel" id="confirm-cancel">Cancel</button>
