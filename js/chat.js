@@ -288,6 +288,16 @@ export function buildLabContext() {
   const unitLabel = state.unitSystem === 'US' ? 'US conventional' : 'SI';
   let ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dateLabels.join(', ')}):\n\n`;
 
+  // ── Staleness signal ──
+  if (data.dates.length > 0) {
+    const lastDate = data.dates[data.dates.length - 1];
+    const daysSince = Math.round((new Date() - new Date(lastDate + 'T00:00:00')) / (24 * 3600 * 1000));
+    if (daysSince > 90) {
+      const monthsAgo = Math.round(daysSince / 30.44);
+      ctx += `NOTE: Most recent lab results are from ${fmtDate(lastDate)} (approximately ${monthsAgo} months ago). Values may have changed.\n\n`;
+    }
+  }
+
   // ── 1. Health Goals (top priority — "what are you trying to solve?") ──
   const healthGoals = state.importedData.healthGoals || [];
   if (healthGoals.length > 0) {
@@ -432,7 +442,7 @@ export function buildLabContext() {
 
   // ── 9. Diet ("what lifestyle context?") ──
   const diet = state.importedData.diet;
-  if (diet && (diet.type || diet.breakfast || diet.lunch || diet.dinner || diet.note?.trim())) {
+  if (diet && (diet.type || diet.breakfast || diet.lunch || diet.dinner || diet.restrictions?.length || diet.pattern || diet.snacks || diet.note?.trim())) {
     ctx += `## Diet\n`;
     const parts = [];
     if (diet.type) parts.push(`Type: ${diet.type}`);
@@ -449,7 +459,7 @@ export function buildLabContext() {
 
   // ── 10. Exercise ──
   const ex = state.importedData.exercise;
-  if (ex && (ex.frequency || ex.types?.length || ex.note?.trim())) {
+  if (ex && (ex.frequency || ex.types?.length || ex.intensity || ex.dailyMovement || ex.note?.trim())) {
     ctx += `## Exercise & Movement\n`;
     const parts = [];
     if (ex.frequency) parts.push(`Frequency: ${ex.frequency}`);
@@ -463,7 +473,7 @@ export function buildLabContext() {
 
   // ── 11. Sleep & Rest ──
   const sl = state.importedData.sleepRest;
-  if (sl && (sl.duration || sl.quality || sl.issues?.length || sl.note?.trim())) {
+  if (sl && (sl.duration || sl.quality || sl.issues?.length || sl.schedule || sl.roomTemp || sl.environment?.length || sl.practices?.length || sl.note?.trim())) {
     ctx += `## Sleep & Rest\n`;
     const parts = [];
     if (sl.duration) parts.push(`Duration: ${sl.duration}`);
@@ -518,7 +528,7 @@ export function buildLabContext() {
 
   // ── 14. Love Life & Sexual Health ──
   const ll = state.importedData.loveLife;
-  if (ll && (ll.status || ll.libido || ll.concerns?.length || ll.note?.trim())) {
+  if (ll && (ll.status || ll.libido || ll.concerns?.length || ll.relationship || ll.satisfaction || ll.frequency || ll.orgasm || ll.note?.trim())) {
     ctx += `## Love Life & Sexual Health\n`;
     const parts = [];
     if (ll.status) parts.push(`Status: ${ll.status}`);
@@ -535,7 +545,7 @@ export function buildLabContext() {
 
   // ── 15. Environment ──
   const env = state.importedData.environment;
-  if (env && (env.setting || env.water || env.air?.length || env.note?.trim())) {
+  if (env && (env.setting || env.water || env.air?.length || env.climate || env.waterConcerns?.length || env.emf?.length || env.emfMitigation?.length || env.homeLight || env.toxins?.length || env.building || env.note?.trim())) {
     ctx += `## Environment\n`;
     const parts = [];
     if (env.setting) parts.push(`Setting: ${env.setting}`);

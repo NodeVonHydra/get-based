@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v51'));
+  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v52'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
@@ -239,17 +239,41 @@
   assert('Health Goals section before Diet section', chatSrc.indexOf('## Health Goals') < chatSrc.indexOf('## Diet'));
   assert('Interpretive Lens before lab values', chatSrc.indexOf('Interpretive Lens') < chatSrc.indexOf('${cat.label}'));
 
-  // Empty-card guards
+  // Staleness signal
+  assert('buildLabContext has staleness daysSince', chatSrc.includes('daysSince'));
+  assert('buildLabContext has staleness months ago', chatSrc.includes('months ago'));
+  assert('buildFocusContext has last labs date', viewsSrc.includes('last labs'));
+
+  // Empty-card guards (broadened)
   assert('Diagnoses has empty guard', chatSrc.includes("diag.conditions?.length > 0") || chatSrc.includes("diag.conditions?.length"));
   assert('Diet has empty guard', chatSrc.includes("diet.type || diet.breakfast || diet.lunch || diet.dinner"));
+  assert('Diet gate includes pattern', chatSrc.includes("diet.pattern"));
+  assert('Diet gate includes restrictions', chatSrc.includes("diet.restrictions?.length"));
   assert('Exercise has empty guard', chatSrc.includes("ex.frequency || ex.types?.length"));
+  assert('Exercise gate includes intensity', chatSrc.includes("ex.intensity"));
+  assert('Exercise gate includes dailyMovement', chatSrc.includes("ex.dailyMovement"));
   assert('Sleep has empty guard', chatSrc.includes("sl.duration || sl.quality || sl.issues?.length"));
+  assert('Sleep gate includes schedule', chatSrc.includes("sl.schedule"));
+  assert('Sleep gate includes roomTemp', chatSrc.includes("sl.roomTemp"));
+  assert('Sleep gate includes environment', chatSrc.includes("sl.environment?.length"));
+  assert('Sleep gate includes practices', chatSrc.includes("sl.practices?.length"));
   assert('Stress has empty guard', chatSrc.includes("st.level || st.sources?.length"));
   assert('LoveLife has empty guard', chatSrc.includes("ll.status || ll.libido || ll.concerns?.length"));
+  assert('LoveLife gate includes relationship', chatSrc.includes("ll.relationship"));
+  assert('LoveLife gate includes satisfaction', chatSrc.includes("ll.satisfaction"));
   assert('Environment has empty guard', chatSrc.includes("env.setting || env.water || env.air?.length"));
+  assert('Environment gate includes climate', chatSrc.includes("env.climate"));
+  assert('Environment gate includes homeLight', chatSrc.includes("env.homeLight"));
+  assert('Environment gate includes building', chatSrc.includes("env.building"));
 
   // System prompt restructure
   const constSrc = await fetch('js/constants.js').then(r => r.text());
+
+  // System prompt staleness + absent field instructions
+  assert('System prompt has staleness instruction', constSrc.includes('several months old'));
+  assert('System prompt has absent field instruction', constSrc.includes('did not provide'));
+  assert('System prompt has absent section instruction', constSrc.includes('has not filled in'));
+
   assert('System prompt has Core Rules section', constSrc.includes('## Core Rules'));
   assert('System prompt has Priority Context section', constSrc.includes('## Priority Context'));
   assert('System prompt has Lifestyle Context section', constSrc.includes('## Lifestyle Context'));

@@ -512,6 +512,28 @@ Each entry documents:
 
 **Files modified**: `js/chat.js`, `js/constants.js`, `js/views.js`, `js/context-cards.js`, `js/pdf-import.js`, `service-worker.js` (v50→v51), `test-audit.js`, `CLAUDE.md`
 
+### 2026-02b — Staleness Signals + Absent Field Awareness + Gate Broadening
+
+**Staleness signal** (`buildLabContext`)
+- When most recent lab results are >90 days old, inserts explicit `NOTE:` line with date and approximate months since last test
+- Prevents AI from treating stale data as current without human-obvious arithmetic
+
+**Focus card staleness** (`buildFocusContext`)
+- Added `last labs <date>` to compact header so focus card can caveat stale data
+
+**System prompt additions** (`CHAT_SYSTEM_PROMPT`)
+- Core Rules: instruction to note when data age affects analysis relevance
+- Lifestyle Context: two bullets teaching AI that missing fields = user didn't provide (not assumed default), and missing sections = user hasn't filled that area
+
+**Broadened empty-card gates** (`buildLabContext`)
+- Diet: added `restrictions`, `pattern`, `snacks` to gate (user who only sets restrictions was silently dropped)
+- Exercise: added `intensity`, `dailyMovement` to gate
+- Sleep: added `schedule`, `roomTemp`, `environment`, `practices` to gate
+- Love Life: added `relationship`, `satisfaction`, `frequency`, `orgasm` to gate
+- Environment: added `climate`, `waterConcerns`, `emf`, `emfMitigation`, `homeLight`, `toxins`, `building` to gate
+
+**Files modified**: `js/chat.js`, `js/constants.js`, `js/views.js`, `service-worker.js` (v51→v52), `test-audit.js`, `CLAUDE.md`
+
 ## Source Files
 
 | File | Key Functions |
