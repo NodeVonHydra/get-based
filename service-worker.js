@@ -1,4 +1,4 @@
-const CACHE_NAME = 'labcharts-v49';
+const CACHE_NAME = 'labcharts-v50';
 
 const APP_SHELL = [
   '/index.html',
