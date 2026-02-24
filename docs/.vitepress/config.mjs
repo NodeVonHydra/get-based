@@ -88,6 +88,7 @@ export default defineConfig({
             { text: 'Architecture', link: '/contributor/architecture' },
             { text: 'Module Reference', link: '/contributor/module-reference' },
             { text: 'Cross-Module Patterns', link: '/contributor/cross-module-patterns' },
+            { text: 'Context Assembly', link: '/contributor/context-assembly' },
             { text: 'Data Pipeline', link: '/contributor/data-pipeline' },
             { text: 'Testing', link: '/contributor/testing' },
             { text: 'Deployment', link: '/contributor/deployment' },
