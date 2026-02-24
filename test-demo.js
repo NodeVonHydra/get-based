@@ -97,7 +97,7 @@
   // ── 6. Service worker ──
   console.log('\n%c6. service-worker.js — Cache version', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v49', swSrc.includes("labcharts-v50"));
+  assert('Cache bumped to v49', swSrc.includes("labcharts-v51"));
   assert('No v27 reference', !swSrc.includes("labcharts-v27"));
 
   // ── Summary ──

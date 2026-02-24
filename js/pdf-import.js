@@ -130,8 +130,8 @@ Your task:
    - "Triacylglyceroly" → "lipids.triglycerides"
    - Use the units and reference ranges to help disambiguate
 4. Only map to a marker if you're confident it's the correct match
-5. Skip non-numeric results (text-only findings, interpretive notes)
-6. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
+5. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
+6. Skip non-numeric results (text-only findings, interpretive notes)
 7. For markers that do NOT match any known key (mappedKey is null), also return:
    - suggestedKey: a "category.camelCaseKey" string. Use an existing category from the reference if the marker fits (e.g. "biochemistry", "hormones", "vitamins"), otherwise use "custom". The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
    - suggestedName: a clean English display name for the marker
@@ -151,7 +151,7 @@ Return ONLY valid JSON in this exact format, no other text:
   const provider = getAIProvider();
   const { text: response, usage } = await callClaudeAPI({
     system,
-    messages: [{ role: 'user', content: `Extract all biomarker results from this lab report:\n\n${pdfText}` }],
+    messages: [{ role: 'user', content: `Extract all biomarker results from this lab report${fileName ? ' (file: ' + fileName + ')' : ''}:\n\n${pdfText}` }],
     maxTokens: 8192
   });
 

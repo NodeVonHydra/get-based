@@ -268,7 +268,13 @@ Tips should reference specific markers or trends when possible (e.g. "Low vitami
     const text = (result && typeof result === 'object') ? (result.text || '') : (typeof result === 'string' ? result : '');
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
+      let parsed;
+      try { parsed = JSON.parse(jsonMatch[0]); } catch(e) {
+        // JSON parse failed — apply gray dots only to stale keys, preserve cached good keys
+        for (const k of staleKeys) applyDotColor(k, 'gray');
+        try { localStorage.setItem(cacheKey, JSON.stringify(cached)); } catch(e2) {}
+        return;
+      }
       if (!cached.fingerprints) cached.fingerprints = {};
       for (const k of staleKeys) {
         const entry = parsed[k] || {};
