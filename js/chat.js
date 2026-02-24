@@ -349,6 +349,20 @@ export function buildLabContext() {
         ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
       }
     }
+    // Per-category staleness: flag if this category's latest data is >90 days old
+    const catLatestDate = cat.singleDate || (() => {
+      for (let i = data.dates.length - 1; i >= 0; i--) {
+        if (markersWithData.some(([_, m]) => m.values[i] !== null)) return data.dates[i];
+      }
+      return null;
+    })();
+    if (catLatestDate) {
+      const catDaysSince = Math.round((new Date() - new Date(catLatestDate + 'T00:00:00')) / (24 * 3600 * 1000));
+      if (catDaysSince > 90) {
+        const catMonthsAgo = Math.round(catDaysSince / 30.44);
+        ctx += `⚠ Last tested ~${catMonthsAgo} months ago — values may no longer reflect current status.\n`;
+      }
+    }
     ctx += '\n';
   }
 

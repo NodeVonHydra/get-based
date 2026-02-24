@@ -239,9 +239,11 @@
   assert('Health Goals section before Diet section', chatSrc.indexOf('## Health Goals') < chatSrc.indexOf('## Diet'));
   assert('Interpretive Lens before lab values', chatSrc.indexOf('Interpretive Lens') < chatSrc.indexOf('${cat.label}'));
 
-  // Staleness signal
-  assert('buildLabContext has staleness daysSince', chatSrc.includes('daysSince'));
-  assert('buildLabContext has staleness months ago', chatSrc.includes('months ago'));
+  // Staleness signals (global + per-category)
+  assert('buildLabContext has global staleness daysSince', chatSrc.includes('daysSince'));
+  assert('buildLabContext has global staleness months ago', chatSrc.includes('months ago'));
+  assert('buildLabContext has per-category staleness', chatSrc.includes('catDaysSince') && chatSrc.includes('catMonthsAgo'));
+  assert('Per-category staleness uses warning marker', chatSrc.includes('⚠ Last tested'));
   assert('buildFocusContext has last labs date', viewsSrc.includes('last labs'));
 
   // Empty-card guards (broadened)
@@ -270,7 +272,7 @@
   const constSrc = await fetch('js/constants.js').then(r => r.text());
 
   // System prompt staleness + absent field instructions
-  assert('System prompt has staleness instruction', constSrc.includes('several months old'));
+  assert('System prompt has per-category staleness instruction', constSrc.includes('stale data') && constSrc.includes('recommend retesting'));
   assert('System prompt has absent field instruction', constSrc.includes('did not provide'));
   assert('System prompt has absent section instruction', constSrc.includes('has not filled in'));
 
