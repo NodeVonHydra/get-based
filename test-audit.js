@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v49', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v50'));
+  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v51'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
@@ -216,6 +216,65 @@
 
   const exportSrc2 = await fetch('js/export.js').then(r => r.text());
   assert('PDF report values have status prefix', exportSrc2.includes('sPrefix'));
+
+  // ═══════════════════════════════════════
+  // 16. Context Assembly Pipeline
+  // ═══════════════════════════════════════
+  console.log('%c 16. Context Assembly Pipeline ', 'font-weight:bold;color:#f59e0b');
+
+  // buildLabContext enriched header
+  assert('buildLabContext has age computation', chatSrc.includes('Math.floor((new Date() - new Date(state.profileDob))'));
+  assert('buildLabContext has today ISO date', chatSrc.includes("new Date().toISOString().slice(0, 10)"));
+  assert('buildLabContext has unit system label', chatSrc.includes("unit system: ${unitLabel}"));
+  assert('buildLabContext has fmtDate helper', chatSrc.includes("const fmtDate = d => new Date(d + 'T00:00:00')"));
+
+  // Section ordering: goals before lab values, lab values before lifestyle
+  const goalsIdx = chatSrc.indexOf('## Health Goals (Things to Solve)');
+  const labValuesIdx = chatSrc.indexOf('## ${cat.label}');
+  const dietIdx = chatSrc.indexOf('## Diet\\n');
+  const flaggedIdx = chatSrc.indexOf('## Flagged Results (Latest)');
+  const notesIdx = chatSrc.indexOf('## User Notes');
+  const diagIdx = chatSrc.indexOf('## Medical Conditions / Diagnoses');
+  // Goals should appear before diet in the source (section ordering)
+  assert('Health Goals section before Diet section', chatSrc.indexOf('## Health Goals') < chatSrc.indexOf('## Diet'));
+  assert('Interpretive Lens before lab values', chatSrc.indexOf('Interpretive Lens') < chatSrc.indexOf('${cat.label}'));
+
+  // Empty-card guards
+  assert('Diagnoses has empty guard', chatSrc.includes("diag.conditions?.length > 0") || chatSrc.includes("diag.conditions?.length"));
+  assert('Diet has empty guard', chatSrc.includes("diet.type || diet.breakfast || diet.lunch || diet.dinner"));
+  assert('Exercise has empty guard', chatSrc.includes("ex.frequency || ex.types?.length"));
+  assert('Sleep has empty guard', chatSrc.includes("sl.duration || sl.quality || sl.issues?.length"));
+  assert('Stress has empty guard', chatSrc.includes("st.level || st.sources?.length"));
+  assert('LoveLife has empty guard', chatSrc.includes("ll.status || ll.libido || ll.concerns?.length"));
+  assert('Environment has empty guard', chatSrc.includes("env.setting || env.water || env.air?.length"));
+
+  // System prompt restructure
+  const constSrc = await fetch('js/constants.js').then(r => r.text());
+  assert('System prompt has Core Rules section', constSrc.includes('## Core Rules'));
+  assert('System prompt has Priority Context section', constSrc.includes('## Priority Context'));
+  assert('System prompt has Lifestyle Context section', constSrc.includes('## Lifestyle Context'));
+  assert('System prompt has cortisol cross-cutting note', constSrc.includes('cortisol/HPA axis'));
+  assert('System prompt has Style section', constSrc.includes('## Style'));
+  assert('Health goals at top of Priority Context', constSrc.indexOf('Health goals:') < constSrc.indexOf('Medical conditions:'));
+
+  // Persona after data in chat prompt
+  assert('Persona placed after lab data', chatSrc.includes("CHAT_SYSTEM_PROMPT + '\\n\\nCurrent lab data:\\n' + labContext + personalityPrompt"));
+
+  // Focus card lightweight context
+  assert('buildFocusContext exists in views.js', viewsSrc.includes('function buildFocusContext()'));
+  assert('Focus card uses buildFocusContext', viewsSrc.includes('buildFocusContext()'));
+  assert('Focus card health-goals-aware system prompt', viewsSrc.includes('connect your finding to their most relevant goal'));
+
+  // askAIAboutMarker uses effective range
+  assert('askAIAboutMarker uses lr.min/lr.max', chatSrc.includes('${lr.min}') && chatSrc.includes('${lr.max}'));
+  assert('askAIAboutMarker has trend direction', chatSrc.includes("Trend: ${dir}"));
+
+  // JSON.parse guard in health dots
+  assert('Health dots JSON.parse has try-catch', ctxSrc.includes('try { parsed = JSON.parse(jsonMatch[0])'));
+
+  // PDF import WBC rule position
+  assert('WBC rule at position 5 (before Skip non-numeric)', pdfSrc.indexOf('differential WBC') < pdfSrc.indexOf('Skip non-numeric'));
+  assert('PDF import includes filename in user message', pdfSrc.includes("(file: ' + fileName"));
 
   // ═══════════════════════════════════════
   // Results

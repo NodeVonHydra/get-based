@@ -192,13 +192,31 @@ Two-path architecture replacing personal info with fake data before sending to A
 - **UX**: Ollama auto-detected silently. No Ollama → one-time warning per session (`sessionStorage` key `labcharts-pii-choice`)
 - **Settings**: "PDF Import Privacy" section with status card + collapsible configure panel. `labcharts-debug` enables diff viewer
 
+### Context Assembly Pipeline
+
+`buildLabContext()` in chat.js is the central serializer — converts all user data into a plain-text block used by Chat, Focus Card, and Health Dots. Section order optimized for AI primacy bias:
+
+1. **Profile header** — sex, age, unit system (SI/US), today's date, collection dates
+2. **Health Goals** — major→mild→minor priorities (what the user is trying to solve)
+3. **Interpretive Lens** — named experts and scientific paradigms
+4. **Lab values by category** — all markers with values, per-date phase ranges for female profiles
+5. **Flagged Results** — quick-scan summary of out-of-range markers
+6. **User Notes** — chronological notes with dates
+7. **Medical Conditions** — diagnoses with severity and since-date
+8. **Supplements & Medications** — with date ranges
+9. **Menstrual Cycle** — cycle profile, recent periods, blood draw phases, alerts (female only)
+10. **Lifestyle cards** (Diet → Exercise → Sleep → Light → Stress → Love Life → Environment)
+11. **Additional Context Notes** — freetext
+
+Empty-card guards prevent sending empty `{}` objects: each card checks for actual content (not just object existence). `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style). Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
+
 ### AI Chat Panel
 
 - Slide-out panel with streaming responses. Responsive width across 5 breakpoints (560px–1060px)
 - **Markdown**: `renderMarkdown()` block-aware parser (headings, lists, code blocks, HR, paragraphs) + `applyInlineMarkdown()` (bold, italic, code, links). Streaming-compatible
 - **Personalities**: 3 presets (default, House, custom). Stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality in `labcharts-{profileId}-chatPersonalityCustom` as JSON `{ name, icon, promptText }` (backward-compat with legacy plain strings). Removed personalities (Murphy, Robby, Kruse) fall back to default
 - **Named custom personalities**: `getCustomPersonality()` returns `{ name, icon, promptText }`. `pickPersonaIcon(name)` hashes name into a 10-emoji palette. `generateCustomPersonality()` calls AI to auto-generate a persona profile from a name. `getActivePersonality()` overlays dynamic name/icon onto the static custom entry. Thread metadata stores `personalityName`/`personalityIcon` for history display
-- **Context**: `buildLabContext()` serializes all 9 context areas + interpretiveLens + contextNotes + lab values + notes. Chat history: last 20 stored, last 10 sent to API (`labcharts-{profileId}-chat`)
+- **Context**: `buildLabContext()` serializes all user data in priority order (goals→lens→values→flags→notes→conditions→supps→cycle→lifestyle). Chat history: last 20 stored, last 10 sent to API (`labcharts-{profileId}-chat`). Prompt order: system prompt → lab data → persona → search instruction
 - **Marker descriptions**: `MARKER_SCHEMA` `desc` field, `localStorage` `labcharts-marker-desc` fallback for custom markers. `fetchCustomMarkerDescription()` one-time API call
 
 ### AI Provider System
@@ -264,7 +282,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v50` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v51` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

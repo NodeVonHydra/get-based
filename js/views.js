@@ -260,6 +260,55 @@ export function renderFocusCard() {
   </div>`;
 }
 
+export function buildFocusContext() {
+  const data = getActiveData();
+  if (!data.dates.length && !Object.values(data.categories).some(c => c.singleDate)) {
+    return null;
+  }
+  const sexLabel = state.profileSex === 'female' ? 'female' : state.profileSex === 'male' ? 'male' : 'not specified';
+  const age = state.profileDob ? Math.floor((new Date() - new Date(state.profileDob)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
+  const today = new Date().toISOString().slice(0, 10);
+  let ctx = `Profile: ${sexLabel}${age !== null ? ', age ' + age : ''}, today ${today}\n`;
+
+  // Major health goals (if any)
+  const healthGoals = state.importedData.healthGoals || [];
+  const majorGoals = healthGoals.filter(g => g.severity === 'major');
+  if (majorGoals.length > 0) {
+    ctx += `Goals: ${majorGoals.map(g => g.text).join('; ')}\n`;
+  }
+
+  // Flagged/non-normal markers (latest values only)
+  const flags = getAllFlaggedMarkers(data);
+  if (flags.length > 0) {
+    ctx += `Flagged:\n`;
+    for (const f of flags) {
+      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status}, ref ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
+    }
+  }
+
+  // Also include any markers that changed significantly (latest vs previous)
+  const changes = [];
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    for (const [key, m] of Object.entries(cat.markers)) {
+      const nonNull = m.values.filter(v => v !== null);
+      if (nonNull.length < 2) continue;
+      const prev = nonNull[nonNull.length - 2];
+      const last = nonNull[nonNull.length - 1];
+      if (prev === 0) continue;
+      const pct = Math.abs((last - prev) / prev * 100);
+      if (pct > 20) {
+        const dir = last > prev ? 'up' : 'down';
+        changes.push(`${m.name}: ${dir} ${pct.toFixed(0)}%`);
+      }
+    }
+  }
+  if (changes.length > 0) {
+    ctx += `Notable changes: ${changes.slice(0, 5).join(', ')}\n`;
+  }
+
+  return ctx;
+}
+
 export async function loadFocusCard() {
   const el = document.getElementById('focus-card-body');
   if (!el) return;
@@ -272,9 +321,18 @@ export async function loadFocusCard() {
   }
   el.innerHTML = `<span class="focus-card-shimmer"></span>`;
   try {
-    const ctx = buildLabContext();
+    const ctx = buildFocusContext();
+    if (!ctx) {
+      el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
+      return;
+    }
+    const healthGoals = state.importedData.healthGoals || [];
+    const hasGoals = healthGoals.some(g => g.severity === 'major');
+    const focusSystem = hasGoals
+      ? 'You are a blood work analyst. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its direction, and why it matters. No preamble, no disclaimer.'
+      : 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
     const apiCall = callClaudeAPI({
-      system: 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.',
+      system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
       maxTokens: 100
     });
@@ -1081,6 +1139,7 @@ Object.assign(window, {
   navigate,
   showDashboard,
   renderFocusCard,
+  buildFocusContext,
   loadFocusCard,
   refreshFocusCard,
   renderOnboardingBanner,

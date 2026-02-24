@@ -281,137 +281,14 @@ export function buildLabContext() {
   if (!data.dates.length && !Object.values(data.categories).some(c => c.singleDate)) {
     return 'No lab data is currently loaded for this profile.';
   }
+  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const sexLabel = state.profileSex === 'female' ? 'female' : state.profileSex === 'male' ? 'male' : 'not specified';
-  let ctx = `Lab data for current profile (sex: ${sexLabel}, dates: ${data.dateLabels.join(', ')}):\n\n`;
-  // Medical Conditions (structured)
-  const diag = state.importedData.diagnoses;
-  if (diag) {
-    ctx += `## Medical Conditions / Diagnoses\n`;
-    if (diag.conditions && diag.conditions.length) {
-      for (const c of diag.conditions) {
-        ctx += `- ${c.name} (${c.severity}${c.since ? ', since ' + c.since : ''})\n`;
-      }
-    }
-    if (diag.note) ctx += `Notes: ${diag.note}\n`;
-    ctx += '\n';
-  }
-  // Diet (structured)
-  const diet = state.importedData.diet;
-  if (diet) {
-    ctx += `## Diet\n`;
-    const parts = [];
-    if (diet.type) parts.push(`Type: ${diet.type}`);
-    if (diet.pattern) parts.push(`Pattern: ${diet.pattern}`);
-    if (diet.restrictions && diet.restrictions.length) parts.push(`Restrictions: ${diet.restrictions.join(', ')}`);
-    ctx += parts.join('. ') + '\n';
-    if (diet.breakfast) ctx += `Breakfast${diet.breakfastTime ? ' (' + formatTime(diet.breakfastTime) + ')' : ''}: ${diet.breakfast}\n`;
-    if (diet.lunch) ctx += `Lunch${diet.lunchTime ? ' (' + formatTime(diet.lunchTime) + ')' : ''}: ${diet.lunch}\n`;
-    if (diet.dinner) ctx += `Dinner${diet.dinnerTime ? ' (' + formatTime(diet.dinnerTime) + ')' : ''}: ${diet.dinner}\n`;
-    if (diet.snacks) ctx += `Snacks${diet.snacksTime ? ' (' + formatTime(diet.snacksTime) + ')' : ''}: ${diet.snacks}\n`;
-    if (diet.note) ctx += `Notes: ${diet.note}\n`;
-    ctx += '\n';
-  }
-  // Exercise (structured)
-  const ex = state.importedData.exercise;
-  if (ex) {
-    ctx += `## Exercise & Movement\n`;
-    const parts = [];
-    if (ex.frequency) parts.push(`Frequency: ${ex.frequency}`);
-    if (ex.types && ex.types.length) parts.push(`Types: ${ex.types.join(', ')}`);
-    if (ex.intensity) parts.push(`Intensity: ${ex.intensity}`);
-    if (ex.dailyMovement) parts.push(`Daily movement: ${ex.dailyMovement}`);
-    ctx += parts.join('. ') + '\n';
-    if (ex.note) ctx += `Notes: ${ex.note}\n`;
-    ctx += '\n';
-  }
-  // Sleep & Rest (structured)
-  const sl = state.importedData.sleepRest;
-  if (sl) {
-    ctx += `## Sleep & Rest\n`;
-    const parts = [];
-    if (sl.duration) parts.push(`Duration: ${sl.duration}`);
-    if (sl.quality) parts.push(`Quality: ${sl.quality}`);
-    if (sl.schedule) parts.push(`Schedule: ${sl.schedule}`);
-    if (sl.roomTemp) parts.push(`Room temp: ${sl.roomTemp}`);
-    if (sl.issues && sl.issues.length) parts.push(`Issues: ${sl.issues.join(', ')}`);
-    if (sl.environment && sl.environment.length) parts.push(`Environment: ${sl.environment.join(', ')}`);
-    if (sl.practices && sl.practices.length) parts.push(`Practices: ${sl.practices.join(', ')}`);
-    ctx += parts.join('. ') + '\n';
-    if (sl.note) ctx += `Notes: ${sl.note}\n`;
-    ctx += '\n';
-  }
-  // Light & Circadian (structured)
-  const lc = state.importedData.lightCircadian;
-  const autoLat = getLatitudeFromLocation();
-  if (lc || autoLat) {
-    ctx += `## Light & Circadian\n`;
-    const parts = [];
-    if (lc) {
-      if (lc.amLight) parts.push(`Morning light: ${lc.amLight}`);
-      if (lc.daytime) parts.push(`Daytime outdoor: ${lc.daytime}`);
-      if (lc.uvExposure) parts.push(`UV exposure: ${lc.uvExposure}`);
-      if (lc.evening && lc.evening.length) parts.push(`Evening light: ${lc.evening.join(', ')}`);
-      if (lc.screenTime) parts.push(`Daily screen time: ${lc.screenTime}`);
-      if (lc.techEnv && lc.techEnv.length) parts.push(`Tech environment: ${lc.techEnv.join(', ')}`);
-      if (lc.cold) parts.push(`Cold exposure: ${lc.cold}`);
-      if (lc.grounding) parts.push(`Grounding: ${lc.grounding}`);
-      if (lc.mealTiming && lc.mealTiming.length) parts.push(`Meal timing: ${lc.mealTiming.join(', ')}`);
-    }
-    if (autoLat) parts.push(`Latitude: ${autoLat}`);
-    const loc = getProfileLocation();
-    if (loc.country) parts.push(`Location: ${loc.country}${loc.zip ? ' ' + loc.zip : ''}`);
-    ctx += parts.join('. ') + '\n';
-    if (lc && lc.note) ctx += `Notes: ${lc.note}\n`;
-    ctx += '\n';
-  }
-  // Stress (structured)
-  const st = state.importedData.stress;
-  if (st) {
-    ctx += `## Stress\n`;
-    const parts = [];
-    if (st.level) parts.push(`Level: ${st.level}`);
-    if (st.sources && st.sources.length) parts.push(`Sources: ${st.sources.join(', ')}`);
-    if (st.management && st.management.length) parts.push(`Management: ${st.management.join(', ')}`);
-    ctx += parts.join('. ') + '\n';
-    if (st.note) ctx += `Notes: ${st.note}\n`;
-    ctx += '\n';
-  }
-  // Love Life (structured)
-  const ll = state.importedData.loveLife;
-  if (ll) {
-    ctx += `## Love Life & Sexual Health\n`;
-    const parts = [];
-    if (ll.status) parts.push(`Status: ${ll.status}`);
-    if (ll.relationship) parts.push(`Relationship quality: ${ll.relationship}`);
-    if (ll.satisfaction) parts.push(`Satisfaction: ${ll.satisfaction}`);
-    if (ll.libido) parts.push(`Libido: ${ll.libido}`);
-    if (ll.frequency) parts.push(`Sexual frequency: ${ll.frequency}`);
-    if (ll.orgasm) parts.push(`Orgasm: ${ll.orgasm}`);
-    if (ll.concerns && ll.concerns.length) parts.push(`Concerns: ${ll.concerns.join(', ')}`);
-    ctx += parts.join('. ') + '\n';
-    if (ll.note) ctx += `Notes: ${ll.note}\n`;
-    ctx += '\n';
-  }
-  // Environment (structured)
-  const env = state.importedData.environment;
-  if (env) {
-    ctx += `## Environment\n`;
-    const parts = [];
-    if (env.setting) parts.push(`Setting: ${env.setting}`);
-    if (env.climate) parts.push(`Climate: ${env.climate}`);
-    if (env.water) parts.push(`Water: ${env.water}`);
-    if (env.waterConcerns && env.waterConcerns.length) parts.push(`Water concerns: ${env.waterConcerns.join(', ')}`);
-    if (env.emf && env.emf.length) parts.push(`EMF exposure: ${env.emf.join(', ')}`);
-    if (env.emfMitigation && env.emfMitigation.length) parts.push(`EMF mitigation: ${env.emfMitigation.join(', ')}`);
-    if (env.homeLight) parts.push(`Home lighting: ${env.homeLight}`);
-    if (env.air && env.air.length) parts.push(`Air quality: ${env.air.join(', ')}`);
-    if (env.toxins && env.toxins.length) parts.push(`Toxin exposure: ${env.toxins.join(', ')}`);
-    if (env.building) parts.push(`Building: ${env.building}`);
-    ctx += parts.join('. ') + '\n';
-    if (env.note) ctx += `Notes: ${env.note}\n`;
-    ctx += '\n';
-  }
-  // Health Goals (unchanged)
+  const age = state.profileDob ? Math.floor((new Date() - new Date(state.profileDob)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const unitLabel = state.unitSystem === 'US' ? 'US conventional' : 'SI';
+  let ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+
+  // ── 1. Health Goals (top priority — "what are you trying to solve?") ──
   const healthGoals = state.importedData.healthGoals || [];
   if (healthGoals.length > 0) {
     ctx += `## Health Goals (Things to Solve)\n`;
@@ -425,16 +302,91 @@ export function buildLabContext() {
     }
     ctx += '\n';
   }
-  // Interpretive Lens (unchanged)
+
+  // ── 2. Interpretive Lens ──
   const interpretiveLens = state.importedData.interpretiveLens || '';
   if (interpretiveLens.trim()) {
     ctx += `## Interpretive Lens\n${interpretiveLens.trim()}\n\n`;
   }
-  // Additional context notes
-  const ctxNotes = state.importedData.contextNotes || '';
-  if (ctxNotes.trim()) {
-    ctx += `## Additional Context Notes\n${ctxNotes.trim()}\n\n`;
+
+  // ── 3. Lab values by category ("what do the numbers say?") ──
+  const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
+  ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
+    if (markersWithData.length === 0) continue;
+    ctx += `## ${cat.label}\n`;
+    for (const [key, m] of markersWithData) {
+      const latestIdx = getLatestValueIndex(m.values);
+      if (m.phaseRefRanges && m.phaseLabels) {
+        const parts = m.values.map((v, i) => {
+          if (v === null) return null;
+          const phase = m.phaseLabels[i];
+          const pr = m.phaseRefRanges[i];
+          const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
+          const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
+          const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
+          return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
+        }).filter(Boolean).join(', ');
+        ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
+      } else {
+        const vals = m.singlePoint
+          ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
+          : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
+        const mr = getEffectiveRangeForDate(m, latestIdx);
+        const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
+        const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
+        ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+      }
+    }
+    ctx += '\n';
   }
+
+  // ── 4. Flagged Results (quick-scan summary) ──
+  const flags = getAllFlaggedMarkers(data);
+  if (flags.length > 0) {
+    ctx += `## Flagged Results (Latest)\n`;
+    for (const f of flags) {
+      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
+    }
+    ctx += '\n';
+  }
+
+  // ── 5. User Notes ──
+  const notes = (state.importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  if (notes.length > 0) {
+    ctx += `## User Notes\n`;
+    for (const n of notes) {
+      ctx += `- ${fmtDate(n.date)}: ${n.text}\n`;
+    }
+    ctx += '\n';
+  }
+
+  // ── 6. Medical Conditions ("what medical context applies?") ──
+  const diag = state.importedData.diagnoses;
+  if (diag && ((diag.conditions?.length > 0) || diag.note?.trim())) {
+    ctx += `## Medical Conditions / Diagnoses\n`;
+    if (diag.conditions && diag.conditions.length) {
+      for (const c of diag.conditions) {
+        ctx += `- ${c.name} (${c.severity}${c.since ? ', since ' + c.since : ''})\n`;
+      }
+    }
+    if (diag.note) ctx += `Notes: ${diag.note}\n`;
+    ctx += '\n';
+  }
+
+  // ── 7. Supplements & Medications ──
+  const supps = state.importedData.supplements || [];
+  if (supps.length > 0) {
+    ctx += `## Supplements & Medications\n`;
+    for (const s of supps) {
+      const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}\n`;
+    }
+    ctx += '\n';
+  }
+
+  // ── 8. Menstrual Cycle (female only) ──
   const mc = state.importedData.menstrualCycle;
   if (mc && state.profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
@@ -458,8 +410,7 @@ export function buildLabContext() {
       if (phaseDates.length > 0) {
         ctx += `\nBlood draw cycle context:\n`;
         for (const [date, p] of phaseDates) {
-          const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          ctx += `- ${dateLabel}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
+          ctx += `- ${fmtDate(date)}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
         }
       }
     }
@@ -478,64 +429,136 @@ export function buildLabContext() {
     }
     ctx += '\n';
   }
-  const supps = state.importedData.supplements || [];
-  if (supps.length > 0) {
-    ctx += `## Supplements & Medications\n`;
-    const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    for (const s of supps) {
-      const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
-      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}\n`;
-    }
+
+  // ── 9. Diet ("what lifestyle context?") ──
+  const diet = state.importedData.diet;
+  if (diet && (diet.type || diet.breakfast || diet.lunch || diet.dinner || diet.note?.trim())) {
+    ctx += `## Diet\n`;
+    const parts = [];
+    if (diet.type) parts.push(`Type: ${diet.type}`);
+    if (diet.pattern) parts.push(`Pattern: ${diet.pattern}`);
+    if (diet.restrictions && diet.restrictions.length) parts.push(`Restrictions: ${diet.restrictions.join(', ')}`);
+    ctx += parts.join('. ') + '\n';
+    if (diet.breakfast) ctx += `Breakfast${diet.breakfastTime ? ' (' + formatTime(diet.breakfastTime) + ')' : ''}: ${diet.breakfast}\n`;
+    if (diet.lunch) ctx += `Lunch${diet.lunchTime ? ' (' + formatTime(diet.lunchTime) + ')' : ''}: ${diet.lunch}\n`;
+    if (diet.dinner) ctx += `Dinner${diet.dinnerTime ? ' (' + formatTime(diet.dinnerTime) + ')' : ''}: ${diet.dinner}\n`;
+    if (diet.snacks) ctx += `Snacks${diet.snacksTime ? ' (' + formatTime(diet.snacksTime) + ')' : ''}: ${diet.snacks}\n`;
+    if (diet.note) ctx += `Notes: ${diet.note}\n`;
     ctx += '\n';
   }
-  const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
-  ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
-  for (const [catKey, cat] of Object.entries(data.categories)) {
-    const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
-    if (markersWithData.length === 0) continue;
-    ctx += `## ${cat.label}\n`;
-    for (const [key, m] of markersWithData) {
-      const latestIdx = getLatestValueIndex(m.values);
-      if (m.phaseRefRanges && m.phaseLabels) {
-        // Phase-aware: show each value with its phase and phase-specific range
-        const parts = m.values.map((v, i) => {
-          if (v === null) return null;
-          const phase = m.phaseLabels[i];
-          const pr = m.phaseRefRanges[i];
-          const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
-          const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
-          const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
-          return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
-        }).filter(Boolean).join(', ');
-        ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
-      } else {
-        const vals = m.singlePoint
-          ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
-          : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
-        const mr = getEffectiveRangeForDate(m, latestIdx);
-        const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
-        const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
-        ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
-      }
-    }
+
+  // ── 10. Exercise ──
+  const ex = state.importedData.exercise;
+  if (ex && (ex.frequency || ex.types?.length || ex.note?.trim())) {
+    ctx += `## Exercise & Movement\n`;
+    const parts = [];
+    if (ex.frequency) parts.push(`Frequency: ${ex.frequency}`);
+    if (ex.types && ex.types.length) parts.push(`Types: ${ex.types.join(', ')}`);
+    if (ex.intensity) parts.push(`Intensity: ${ex.intensity}`);
+    if (ex.dailyMovement) parts.push(`Daily movement: ${ex.dailyMovement}`);
+    ctx += parts.join('. ') + '\n';
+    if (ex.note) ctx += `Notes: ${ex.note}\n`;
     ctx += '\n';
   }
-  const flags = getAllFlaggedMarkers(data);
-  if (flags.length > 0) {
-    ctx += `## Flagged Results (Latest)\n`;
-    for (const f of flags) {
-      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
-    }
+
+  // ── 11. Sleep & Rest ──
+  const sl = state.importedData.sleepRest;
+  if (sl && (sl.duration || sl.quality || sl.issues?.length || sl.note?.trim())) {
+    ctx += `## Sleep & Rest\n`;
+    const parts = [];
+    if (sl.duration) parts.push(`Duration: ${sl.duration}`);
+    if (sl.quality) parts.push(`Quality: ${sl.quality}`);
+    if (sl.schedule) parts.push(`Schedule: ${sl.schedule}`);
+    if (sl.roomTemp) parts.push(`Room temp: ${sl.roomTemp}`);
+    if (sl.issues && sl.issues.length) parts.push(`Issues: ${sl.issues.join(', ')}`);
+    if (sl.environment && sl.environment.length) parts.push(`Environment: ${sl.environment.join(', ')}`);
+    if (sl.practices && sl.practices.length) parts.push(`Practices: ${sl.practices.join(', ')}`);
+    ctx += parts.join('. ') + '\n';
+    if (sl.note) ctx += `Notes: ${sl.note}\n`;
     ctx += '\n';
   }
-  const notes = (state.importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-  if (notes.length > 0) {
-    ctx += `## User Notes\n`;
-    for (const n of notes) {
-      const d = new Date(n.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      ctx += `- ${d}: ${n.text}\n`;
+
+  // ── 12. Light & Circadian ──
+  const lc = state.importedData.lightCircadian;
+  const autoLat = getLatitudeFromLocation();
+  if (lc || autoLat) {
+    ctx += `## Light & Circadian\n`;
+    const parts = [];
+    if (lc) {
+      if (lc.amLight) parts.push(`Morning light: ${lc.amLight}`);
+      if (lc.daytime) parts.push(`Daytime outdoor: ${lc.daytime}`);
+      if (lc.uvExposure) parts.push(`UV exposure: ${lc.uvExposure}`);
+      if (lc.evening && lc.evening.length) parts.push(`Evening light: ${lc.evening.join(', ')}`);
+      if (lc.screenTime) parts.push(`Daily screen time: ${lc.screenTime}`);
+      if (lc.techEnv && lc.techEnv.length) parts.push(`Tech environment: ${lc.techEnv.join(', ')}`);
+      if (lc.cold) parts.push(`Cold exposure: ${lc.cold}`);
+      if (lc.grounding) parts.push(`Grounding: ${lc.grounding}`);
+      if (lc.mealTiming && lc.mealTiming.length) parts.push(`Meal timing: ${lc.mealTiming.join(', ')}`);
     }
+    if (autoLat) parts.push(`Latitude: ${autoLat}`);
+    const loc = getProfileLocation();
+    if (loc.country) parts.push(`Location: ${loc.country}${loc.zip ? ' ' + loc.zip : ''}`);
+    ctx += parts.join('. ') + '\n';
+    if (lc && lc.note) ctx += `Notes: ${lc.note}\n`;
+    ctx += '\n';
   }
+
+  // ── 13. Stress ──
+  const st = state.importedData.stress;
+  if (st && (st.level || st.sources?.length || st.note?.trim())) {
+    ctx += `## Stress\n`;
+    const parts = [];
+    if (st.level) parts.push(`Level: ${st.level}`);
+    if (st.sources && st.sources.length) parts.push(`Sources: ${st.sources.join(', ')}`);
+    if (st.management && st.management.length) parts.push(`Management: ${st.management.join(', ')}`);
+    ctx += parts.join('. ') + '\n';
+    if (st.note) ctx += `Notes: ${st.note}\n`;
+    ctx += '\n';
+  }
+
+  // ── 14. Love Life & Sexual Health ──
+  const ll = state.importedData.loveLife;
+  if (ll && (ll.status || ll.libido || ll.concerns?.length || ll.note?.trim())) {
+    ctx += `## Love Life & Sexual Health\n`;
+    const parts = [];
+    if (ll.status) parts.push(`Status: ${ll.status}`);
+    if (ll.relationship) parts.push(`Relationship quality: ${ll.relationship}`);
+    if (ll.satisfaction) parts.push(`Satisfaction: ${ll.satisfaction}`);
+    if (ll.libido) parts.push(`Libido: ${ll.libido}`);
+    if (ll.frequency) parts.push(`Sexual frequency: ${ll.frequency}`);
+    if (ll.orgasm) parts.push(`Orgasm: ${ll.orgasm}`);
+    if (ll.concerns && ll.concerns.length) parts.push(`Concerns: ${ll.concerns.join(', ')}`);
+    ctx += parts.join('. ') + '\n';
+    if (ll.note) ctx += `Notes: ${ll.note}\n`;
+    ctx += '\n';
+  }
+
+  // ── 15. Environment ──
+  const env = state.importedData.environment;
+  if (env && (env.setting || env.water || env.air?.length || env.note?.trim())) {
+    ctx += `## Environment\n`;
+    const parts = [];
+    if (env.setting) parts.push(`Setting: ${env.setting}`);
+    if (env.climate) parts.push(`Climate: ${env.climate}`);
+    if (env.water) parts.push(`Water: ${env.water}`);
+    if (env.waterConcerns && env.waterConcerns.length) parts.push(`Water concerns: ${env.waterConcerns.join(', ')}`);
+    if (env.emf && env.emf.length) parts.push(`EMF exposure: ${env.emf.join(', ')}`);
+    if (env.emfMitigation && env.emfMitigation.length) parts.push(`EMF mitigation: ${env.emfMitigation.join(', ')}`);
+    if (env.homeLight) parts.push(`Home lighting: ${env.homeLight}`);
+    if (env.air && env.air.length) parts.push(`Air quality: ${env.air.join(', ')}`);
+    if (env.toxins && env.toxins.length) parts.push(`Toxin exposure: ${env.toxins.join(', ')}`);
+    if (env.building) parts.push(`Building: ${env.building}`);
+    ctx += parts.join('. ') + '\n';
+    if (env.note) ctx += `Notes: ${env.note}\n`;
+    ctx += '\n';
+  }
+
+  // ── 16. Additional Context Notes ──
+  const ctxNotes = state.importedData.contextNotes || '';
+  if (ctxNotes.trim()) {
+    ctx += `## Additional Context Notes\n${ctxNotes.trim()}\n\n`;
+  }
+
   return ctx;
 }
 
@@ -1306,7 +1329,7 @@ export async function sendChatMessage() {
     if (sourcesEnabled) {
       searchInstruction = '\n\nAfter your response, on its own line output SEARCH_TERMS: followed by 2-3 concise medical/scientific search terms separated by commas. Example:\nSEARCH_TERMS: vitamin D deficiency, immune function, 25-hydroxyvitamin D';
     }
-    const systemPrompt = CHAT_SYSTEM_PROMPT + personalityPrompt + searchInstruction + '\n\nCurrent lab data:\n' + labContext;
+    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + searchInstruction;
 
     // Send last 10 messages for context
     const apiMessages = state.chatHistory.slice(-10).map(m => ({ role: m.role, content: m.content }));
@@ -1470,8 +1493,18 @@ export function askAIAboutMarker(markerId) {
   const latestIdx = getLatestValueIndex(marker.values);
   const lr = getEffectiveRangeForDate(marker, latestIdx);
   const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], lr.min, lr.max) : 'no data';
-  let prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}\u2013${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}.`;
+  let prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${lr.min}\u2013${lr.max} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}.`;
   if (marker.phaseLabels) prompt += ' Note: reference ranges shown are phase-specific for the menstrual cycle.';
+  const nonNull = marker.values.filter(v => v !== null);
+  if (nonNull.length >= 2) {
+    const prev = nonNull[nonNull.length - 2];
+    const last = nonNull[nonNull.length - 1];
+    if (prev !== 0) {
+      const pctChange = ((last - prev) / prev * 100).toFixed(1);
+      const dir = last > prev ? 'up' : last < prev ? 'down' : 'stable';
+      prompt += ` Trend: ${dir} ${Math.abs(parseFloat(pctChange))}% from previous.`;
+    }
+  }
   prompt += ' What does this mean and should I be concerned about anything?';
   window.closeModal();
   openChatPanel(prompt);
