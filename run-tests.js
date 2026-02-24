@@ -19,6 +19,7 @@ const TEST_FILES = [
   'test-cycle-improvements.js',
   'test-cycle-tour.js',
   'test-custom-personality.js',
+  'test-changelog.js',
   'test-audit.js'
 ];
 

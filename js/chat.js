@@ -3,7 +3,7 @@
 import { state } from './state.js';
 import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT } from './constants.js';
 import { calculateCost, formatCost } from './schema.js';
-import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus } from './utils.js';
+import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
@@ -388,7 +388,7 @@ export function buildLabContext() {
 
   // ── 6. Medical Conditions ("what medical context applies?") ──
   const diag = state.importedData.diagnoses;
-  if (diag && ((diag.conditions?.length > 0) || diag.note?.trim())) {
+  if (hasCardContent(diag)) {
     ctx += `## Medical Conditions / Diagnoses\n`;
     if (diag.conditions && diag.conditions.length) {
       for (const c of diag.conditions) {
@@ -456,7 +456,7 @@ export function buildLabContext() {
 
   // ── 9. Diet ("what lifestyle context?") ──
   const diet = state.importedData.diet;
-  if (diet && (diet.type || diet.breakfast || diet.lunch || diet.dinner || diet.restrictions?.length || diet.pattern || diet.snacks || diet.note?.trim())) {
+  if (hasCardContent(diet)) {
     ctx += `## Diet\n`;
     const parts = [];
     if (diet.type) parts.push(`Type: ${diet.type}`);
@@ -473,7 +473,7 @@ export function buildLabContext() {
 
   // ── 10. Exercise ──
   const ex = state.importedData.exercise;
-  if (ex && (ex.frequency || ex.types?.length || ex.intensity || ex.dailyMovement || ex.note?.trim())) {
+  if (hasCardContent(ex)) {
     ctx += `## Exercise & Movement\n`;
     const parts = [];
     if (ex.frequency) parts.push(`Frequency: ${ex.frequency}`);
@@ -487,7 +487,7 @@ export function buildLabContext() {
 
   // ── 11. Sleep & Rest ──
   const sl = state.importedData.sleepRest;
-  if (sl && (sl.duration || sl.quality || sl.issues?.length || sl.schedule || sl.roomTemp || sl.environment?.length || sl.practices?.length || sl.note?.trim())) {
+  if (hasCardContent(sl)) {
     ctx += `## Sleep & Rest\n`;
     const parts = [];
     if (sl.duration) parts.push(`Duration: ${sl.duration}`);
@@ -529,7 +529,7 @@ export function buildLabContext() {
 
   // ── 13. Stress ──
   const st = state.importedData.stress;
-  if (st && (st.level || st.sources?.length || st.note?.trim())) {
+  if (hasCardContent(st)) {
     ctx += `## Stress\n`;
     const parts = [];
     if (st.level) parts.push(`Level: ${st.level}`);
@@ -542,7 +542,7 @@ export function buildLabContext() {
 
   // ── 14. Love Life & Sexual Health ──
   const ll = state.importedData.loveLife;
-  if (ll && (ll.status || ll.libido || ll.concerns?.length || ll.relationship || ll.satisfaction || ll.frequency || ll.orgasm || ll.note?.trim())) {
+  if (hasCardContent(ll)) {
     ctx += `## Love Life & Sexual Health\n`;
     const parts = [];
     if (ll.status) parts.push(`Status: ${ll.status}`);
@@ -559,7 +559,7 @@ export function buildLabContext() {
 
   // ── 15. Environment ──
   const env = state.importedData.environment;
-  if (env && (env.setting || env.water || env.air?.length || env.climate || env.waterConcerns?.length || env.emf?.length || env.emfMitigation?.length || env.homeLight || env.toxins?.length || env.building || env.note?.trim())) {
+  if (hasCardContent(env)) {
     ctx += `## Environment\n`;
     const parts = [];
     if (env.setting) parts.push(`Setting: ${env.setting}`);

@@ -107,4 +107,14 @@ export function showConfirmDialog(message, onConfirm) {
   document.getElementById("confirm-cancel").focus();
 }
 
-Object.assign(window, { showNotification, showConfirmDialog, setDebugMode, setPIIReviewEnabled });
+export function hasCardContent(obj) {
+  if (!obj) return false;
+  for (const [key, val] of Object.entries(obj)) {
+    if (key === 'note') { if (val?.trim()) return true; }
+    else if (Array.isArray(val)) { if (val.length > 0) return true; }
+    else if (val != null && val !== '') return true;
+  }
+  return false;
+}
+
+Object.assign(window, { showNotification, showConfirmDialog, setDebugMode, setPIIReviewEnabled, hasCardContent });

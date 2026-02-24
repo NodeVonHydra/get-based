@@ -526,19 +526,27 @@ Each entry documents:
 - Core Rules: instruction to note when data age affects analysis relevance
 - Lifestyle Context: two bullets teaching AI that missing fields = user didn't provide (not assumed default), and missing sections = user hasn't filled that area
 
-**Broadened empty-card gates** (`buildLabContext`)
+**Auto-gating with `hasCardContent()`** (v53)
+- Replaced 7 hand-written card gates with generic `hasCardContent(obj)` from `js/utils.js`
+- Returns `true` if any field has content: strings non-empty, arrays non-empty, `note` field trimmed
+- Cards using auto-gate: diagnoses, diet, exercise, sleep, stress, loveLife, environment
+- Light & Circadian keeps custom `lc || autoLat` gate (external latitude injection)
+- Eliminates bug class: new fields added to any card are automatically included in AI context without manual gate updates
+
+**Previously broadened empty-card gates** (v52, now superseded by auto-gating)
 - Diet: added `restrictions`, `pattern`, `snacks` to gate (user who only sets restrictions was silently dropped)
 - Exercise: added `intensity`, `dailyMovement` to gate
 - Sleep: added `schedule`, `roomTemp`, `environment`, `practices` to gate
 - Love Life: added `relationship`, `satisfaction`, `frequency`, `orgasm` to gate
 - Environment: added `climate`, `waterConcerns`, `emf`, `emfMitigation`, `homeLight`, `toxins`, `building` to gate
 
-**Files modified**: `js/chat.js`, `js/constants.js`, `js/views.js`, `service-worker.js` (v51→v52), `test-audit.js`, `CLAUDE.md`
+**Files modified**: `js/utils.js`, `js/chat.js`, `js/constants.js`, `js/views.js`, `js/changelog.js`, `service-worker.js` (v52→v53), `test-audit.js`, `test-changelog.js`, `CLAUDE.md`
 
 ## Source Files
 
 | File | Key Functions |
 |---|---|
+| `js/utils.js` | `hasCardContent()` — generic empty-card gate for context assembly |
 | `js/constants.js` | `CHAT_SYSTEM_PROMPT` — priority-tiered system prompt |
 | `js/chat.js` | `buildLabContext()` — central serializer (full context) |
 | `js/chat.js` | `sendChatMessage()` — chat prompt composition |

@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v52'));
+  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v53'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
@@ -246,27 +246,22 @@
   assert('Per-category staleness uses warning marker', chatSrc.includes('⚠ Last tested'));
   assert('buildFocusContext has last labs date', viewsSrc.includes('last labs'));
 
-  // Empty-card guards (broadened)
-  assert('Diagnoses has empty guard', chatSrc.includes("diag.conditions?.length > 0") || chatSrc.includes("diag.conditions?.length"));
-  assert('Diet has empty guard', chatSrc.includes("diet.type || diet.breakfast || diet.lunch || diet.dinner"));
-  assert('Diet gate includes pattern', chatSrc.includes("diet.pattern"));
-  assert('Diet gate includes restrictions', chatSrc.includes("diet.restrictions?.length"));
-  assert('Exercise has empty guard', chatSrc.includes("ex.frequency || ex.types?.length"));
-  assert('Exercise gate includes intensity', chatSrc.includes("ex.intensity"));
-  assert('Exercise gate includes dailyMovement', chatSrc.includes("ex.dailyMovement"));
-  assert('Sleep has empty guard', chatSrc.includes("sl.duration || sl.quality || sl.issues?.length"));
-  assert('Sleep gate includes schedule', chatSrc.includes("sl.schedule"));
-  assert('Sleep gate includes roomTemp', chatSrc.includes("sl.roomTemp"));
-  assert('Sleep gate includes environment', chatSrc.includes("sl.environment?.length"));
-  assert('Sleep gate includes practices', chatSrc.includes("sl.practices?.length"));
-  assert('Stress has empty guard', chatSrc.includes("st.level || st.sources?.length"));
-  assert('LoveLife has empty guard', chatSrc.includes("ll.status || ll.libido || ll.concerns?.length"));
-  assert('LoveLife gate includes relationship', chatSrc.includes("ll.relationship"));
-  assert('LoveLife gate includes satisfaction', chatSrc.includes("ll.satisfaction"));
-  assert('Environment has empty guard', chatSrc.includes("env.setting || env.water || env.air?.length"));
-  assert('Environment gate includes climate', chatSrc.includes("env.climate"));
-  assert('Environment gate includes homeLight', chatSrc.includes("env.homeLight"));
-  assert('Environment gate includes building', chatSrc.includes("env.building"));
+  // Auto-gating: 7 cards use hasCardContent(), 4 have custom logic
+  const hccCount = (chatSrc.match(/hasCardContent\(/g) || []).length;
+  assert('chat.js uses hasCardContent for 7 card gates', hccCount >= 7, `found ${hccCount}`);
+  assert('chat.js imports hasCardContent', chatSrc.includes("hasCardContent } from './utils.js'") || chatSrc.includes("hasCardContent} from './utils.js'"));
+  assert('Diagnoses uses hasCardContent', chatSrc.includes('hasCardContent(diag)'));
+  assert('Diet uses hasCardContent', chatSrc.includes('hasCardContent(diet)'));
+  assert('Exercise uses hasCardContent', chatSrc.includes('hasCardContent(ex)'));
+  assert('Sleep uses hasCardContent', chatSrc.includes('hasCardContent(sl)'));
+  assert('Stress uses hasCardContent', chatSrc.includes('hasCardContent(st)'));
+  assert('LoveLife uses hasCardContent', chatSrc.includes('hasCardContent(ll)'));
+  assert('Environment uses hasCardContent', chatSrc.includes('hasCardContent(env)'));
+  // Light & Circadian still uses custom gate (external latitude data)
+  assert('Light still uses lc || autoLat gate', chatSrc.includes('lc || autoLat'));
+  // hasCardContent in utils.js
+  const utilsSrc3 = await fetch('js/utils.js').then(r => r.text());
+  assert('hasCardContent exported from utils.js', utilsSrc3.includes('export function hasCardContent'));
 
   // System prompt restructure
   const constSrc = await fetch('js/constants.js').then(r => r.text());
