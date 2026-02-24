@@ -212,9 +212,13 @@ export function applyAISummary(key, text, color) {
 }
 
 export function getCardFingerprint(key) {
-  const labPart = JSON.stringify((state.importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length));
-  const val = key === 'healthGoals' ? JSON.stringify(state.importedData.healthGoals || []) : JSON.stringify(state.importedData[key]);
-  return hashString(labPart + '|' + val + '|' + (state.profileSex || '') + '|' + (state.profileDob || ''));
+  const labPart = (state.importedData.entries || []).map(e => {
+    const m = e.markers || {};
+    return e.date + ':' + hashString(JSON.stringify(m));
+  }).join(',');
+  const val = key === 'healthGoals' ? JSON.stringify(state.importedData.healthGoals || []) : JSON.stringify(state.importedData[key] || null);
+  const shared = (state.importedData.contextNotes || '') + '|' + (state.importedData.interpretiveLens || '');
+  return hashString(labPart + '|' + val + '|' + shared + '|' + (state.profileSex || '') + '|' + (state.profileDob || ''));
 }
 
 export async function loadContextHealthDots() {
@@ -230,7 +234,8 @@ export async function loadContextHealthDots() {
   // Determine which cards need re-fetching
   const staleKeys = [];
   for (const k of keys) {
-    const fp = getCardFingerprint(k);
+    let fp;
+    try { fp = getCardFingerprint(k); } catch(e) { staleKeys.push(k); continue; }
     if (cached.fingerprints && cached.fingerprints[k] === fp && cached.dots[k] && cached.summaries[k] !== undefined) {
       applyDotColor(k, cached.dots[k]);
       if (cached.summaries[k]) applyAISummary(k, cached.summaries[k], cached.dots[k]);
@@ -255,11 +260,11 @@ export async function loadContextHealthDots() {
   const exampleObj = {};
   for (const k of staleKeys) exampleObj[k] = {"dot":"...","tip":"..."};
   const exampleJSON = JSON.stringify(exampleObj);
-  const prompt = `Based on this person's lab data and profile context, assess each profile area. Return ONLY valid JSON with these keys, each having "dot" (green/yellow/red/gray) and "tip" (max 12 words — a brief, specific insight connecting this area to their actual lab markers):
+  const prompt = `Based on this person's lab data and profile context, assess each profile area. Return ONLY valid JSON with these keys, each having "dot" (green/yellow/red/gray) and "tip" (max 8 words — a brief, specific insight referencing their actual lab markers):
 ${exampleJSON}
 
 Dot colors: green = supports health, yellow = needs attention, red = concerning, gray = not enough info.
-Tips should reference specific markers or trends when possible (e.g. "Low vitamin D may link to limited sun exposure" not "Consider improving this area"). If no data, use gray dot and empty tip.`;
+Tips must be concise (8 words max, e.g. "Low D may link to limited sun" not "Consider improving this area"). Reference specific markers. If no data, use gray dot and empty tip.`;
   try {
     const result = await Promise.race([
       callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 500 }),
@@ -289,6 +294,9 @@ Tips should reference specific markers or trends when possible (e.g. "Low vitami
         cached.fingerprints[k] = getCardFingerprint(k);
       }
       try { localStorage.setItem(cacheKey, JSON.stringify(cached)); } catch(e) {}
+    } else {
+      // No JSON in response — apply gray dots so shimmer doesn't stay forever
+      for (const k of staleKeys) applyDotColor(k, 'gray');
     }
   } catch(e) {
     for (const k of staleKeys) applyDotColor(k, 'gray');
@@ -376,7 +384,7 @@ export function openDiagnosesEditor() {
 
 export function renderDiagnosesModal(modal, current) {
   const conditions = current.conditions || [];
-  let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
+  let html = `<button class="modal-close" onclick="closeDiagnoses()">&times;</button>
     <h3>Medical Conditions</h3>
     <div class="modal-unit">Add diagnosed conditions. The AI will consider these when interpreting your labs.</div>`;
   if (conditions.length > 0) {
@@ -408,7 +416,12 @@ export function renderDiagnosesModal(modal, current) {
     </div>
   </div>`;
   html += renderNoteField(current.note);
-  html += contextEditorActions(conditions.length > 0 || current.note, 'saveDiagnoses', 'clearDiagnoses');
+  const hasCurrent = conditions.length > 0 || current.note;
+  html += `<div class="ctx-editor-actions">
+    <button class="import-btn import-btn-primary" onclick="saveDiagnoses()">Save</button>
+    <button class="import-btn import-btn-secondary" onclick="closeDiagnoses()">Cancel</button>
+    ${hasCurrent ? '<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearDiagnoses()">Clear</button>' : ''}
+  </div>`;
   modal.innerHTML = html;
   setTimeout(() => {
     const input = document.getElementById('condition-input');
@@ -482,6 +495,12 @@ export function saveDiagnoses() {
     state.importedData.diagnoses = null;
   }
   saveAndRefresh('Medical conditions saved');
+}
+
+export function closeDiagnoses() {
+  window.closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
 }
 
 export function clearDiagnoses() {
@@ -858,7 +877,7 @@ export function renderHealthGoalsModal(modal) {
     </div>
   </div>
   <div class="ctx-editor-actions">
-    <button class="import-btn import-btn-secondary" onclick="closeModal()">Done</button>
+    <button class="import-btn import-btn-secondary" onclick="closeHealthGoals()">Done</button>
     ${goals.length > 0 ? `<button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red);margin-left:auto" onclick="clearHealthGoals()">Clear All</button>` : ''}
   </div>`;
   modal.innerHTML = html;
@@ -887,6 +906,13 @@ export function deleteHealthGoal(idx) {
   state.importedData.healthGoals.splice(idx, 1);
   saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
+}
+
+export function closeHealthGoals() {
+  window.closeModal();
+  const activeNav = document.querySelector(".nav-item.active");
+  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  if ((state.importedData.healthGoals || []).length > 0) showNotification('Health goals saved', 'success');
 }
 
 export function clearHealthGoals() {
@@ -984,6 +1010,7 @@ Object.assign(window, {
   addCondition,
   deleteCondition,
   saveDiagnoses,
+  closeDiagnoses,
   clearDiagnoses,
   openDietEditor,
   saveDiet,
@@ -1010,6 +1037,7 @@ Object.assign(window, {
   renderHealthGoalsModal,
   addHealthGoal,
   deleteHealthGoal,
+  closeHealthGoals,
   clearHealthGoals,
   openInterpretiveLensEditor,
   saveInterpretiveLens,

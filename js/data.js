@@ -59,7 +59,7 @@ export async function saveImportedData() {
 
 export function getFocusCardFingerprint() {
   const parts = [
-    JSON.stringify((state.importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers).length)),
+    (state.importedData.entries || []).map(e => e.date + ':' + Object.keys(e.markers || {}).length).join(','),
     state.profileSex || '',
     state.profileDob || '',
     JSON.stringify(state.importedData.diagnoses || null),
@@ -159,7 +159,7 @@ export function getActiveData() {
   const regularDates = new Set();
   if (hasEntries) {
     for (const entry of entries) {
-      for (const key of Object.keys(entry.markers)) {
+      for (const key of Object.keys(entry.markers || {})) {
         if (!singlePointCats.has(key.split('.')[0])) {
           regularDates.add(entry.date);
           break;
@@ -191,7 +191,7 @@ export function getActiveData() {
       // Find the latest entry that has any marker in this category
       let singleDate = null;
       for (let ei = entries.length - 1; ei >= 0; ei--) {
-        for (const key of Object.keys(entries[ei].markers)) {
+        for (const key of Object.keys(entries[ei].markers || {})) {
           if (key.startsWith(catKey + '.')) { singleDate = entries[ei].date; break; }
         }
         if (singleDate) break;

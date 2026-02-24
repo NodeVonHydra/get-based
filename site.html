@@ -13,6 +13,8 @@
 <link rel="canonical" href="https://getbased.health/">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0a0c14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f7ff" media="(prefers-color-scheme: light)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -28,15 +30,18 @@
   --glow:0 0 80px rgba(79,140,255,0.15);
   --gradient:linear-gradient(135deg,#4f8cff 0%,#6366f1 50%,#a78bfa 100%);
   --gradient2:linear-gradient(135deg,#4f8cff 0%,#6366f1 100%);
+  --nav-bg:rgba(10,12,20,0.7);--nav-bg-scrolled:rgba(10,12,20,0.9);--drawer-bg:rgba(10,12,20,0.95);
+  --grid-line:rgba(255,255,255,0.02);--selection-color:rgba(79,140,255,0.3);
+  --mockup-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05) inset;
 }
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
-::selection{background:rgba(79,140,255,0.3);color:#fff}
+::selection{background:var(--selection-color);color:#fff}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--text3);border-radius:3px}
 
 /* ═══ AMBIENT BACKGROUND ═══ */
 .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
   background-size:64px 64px}
 .bg-glow{position:fixed;top:-40%;left:-20%;width:140%;height:100%;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse at 30% 20%,rgba(79,140,255,0.08) 0%,transparent 60%),
@@ -49,9 +54,9 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 /* ═══ NAV ═══ */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;
   padding:16px 32px;display:flex;align-items:center;justify-content:space-between;
-  background:rgba(10,12,20,0.7);backdrop-filter:blur(20px) saturate(1.4);
+  background:var(--nav-bg);backdrop-filter:blur(20px) saturate(1.4);
   border-bottom:1px solid var(--border);transition:all 0.3s}
-nav.scrolled{padding:12px 32px;background:rgba(10,12,20,0.9)}
+nav.scrolled{padding:12px 32px;background:var(--nav-bg-scrolled)}
 .nav-logo{font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.5px;
   background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
 .nav-logo span{-webkit-text-fill-color:var(--text)}
@@ -77,7 +82,7 @@ nav.scrolled{padding:12px 32px;background:rgba(10,12,20,0.9)}
 /* ── Nav drawer ── */
 .nav-drawer{position:fixed;top:0;left:0;right:0;z-index:99;
   padding:80px 32px 32px;display:flex;flex-direction:column;gap:8px;
-  background:rgba(10,12,20,0.95);backdrop-filter:blur(20px) saturate(1.4);
+  background:var(--drawer-bg);backdrop-filter:blur(20px) saturate(1.4);
   border-bottom:1px solid var(--border);
   transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1);pointer-events:none}
 .nav-drawer.open{transform:translateY(0);pointer-events:auto}
@@ -122,7 +127,7 @@ section{position:relative;z-index:1;padding:120px 32px}
   background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:12px;
   font-family:'Inter',sans-serif;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none;
   transition:all 0.25s}
-.btn-secondary:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
+.btn-secondary:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
 
 /* ═══ HERO MOCKUP ═══ */
 .hero-mockup{margin-top:64px;width:100%;max-width:1100px;position:relative}
@@ -130,7 +135,7 @@ section{position:relative;z-index:1;padding:120px 32px}
   background:radial-gradient(ellipse at center,rgba(79,140,255,0.12) 0%,transparent 70%);z-index:0;pointer-events:none}
 .mockup-frame{position:relative;z-index:1;
   background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
-  overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.05) inset}
+  overflow:hidden;box-shadow:var(--mockup-shadow)}
 .mockup-bar{height:40px;background:var(--bg3);border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 16px;gap:8px}
 .mockup-dot{width:10px;height:10px;border-radius:50%;background:var(--text3);opacity:0.4}
@@ -351,6 +356,59 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
 .hero-mockup.visible .mockup-card:nth-child(2) .sparkline-animated{animation:sparkDraw 1s ease-out 0.7s forwards}
 .hero-mockup.visible .mockup-card:nth-child(3) .sparkline-animated{animation:sparkDraw 1s ease-out 0.9s forwards}
 
+/* ═══ THEME TOGGLE ═══ */
+.theme-toggle{background:none;border:1px solid var(--border);border-radius:8px;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);transition:color 0.2s,border-color 0.2s;flex-shrink:0}
+.theme-toggle:hover{color:var(--text);border-color:var(--border2)}
+.theme-icon-moon{display:none}
+[data-theme="light"] .theme-icon-sun{display:none}
+[data-theme="light"] .theme-icon-moon{display:block}
+
+/* ═══ LIGHT THEME ═══ */
+[data-theme="light"]{
+  --bg:#f5f7ff;--bg2:#ffffff;--bg3:#f0f2f9;--bg4:#e8ebf5;
+  --surface:rgba(0,0,0,0.03);--surface2:rgba(0,0,0,0.06);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+  --text:#1a1d27;--text2:#5a5f73;--text3:#8b90a0;
+  --blue:#3b7cf5;--indigo:#4f51d9;--green:#059669;--red:#dc2626;--yellow:#d97706;
+  --purple:#7c3aed;--orange:#ea580c;--cyan:#0891b2;
+  --glow:0 0 80px rgba(59,124,245,0.1);
+  --gradient:linear-gradient(135deg,#3b7cf5 0%,#4f51d9 50%,#7c3aed 100%);
+  --gradient2:linear-gradient(135deg,#3b7cf5 0%,#4f51d9 100%);
+  --nav-bg:rgba(245,247,255,0.8);--nav-bg-scrolled:rgba(245,247,255,0.95);--drawer-bg:rgba(245,247,255,0.98);
+  --grid-line:rgba(0,0,0,0.03);--selection-color:rgba(59,124,245,0.2);
+  --mockup-shadow:0 32px 80px rgba(0,0,0,0.08),0 0 0 1px rgba(0,0,0,0.06) inset}
+[data-theme="light"] ::selection{color:var(--text)}
+[data-theme="light"] .bg-glow{opacity:0.5}
+[data-theme="light"] .bg-noise{opacity:0.12}
+[data-theme="light"] .feature-card::before{background:linear-gradient(90deg,transparent,rgba(59,124,245,0.15),transparent)}
+[data-theme="light"] .cta::before{background:radial-gradient(ellipse at 50% 80%,rgba(59,124,245,0.06) 0%,transparent 60%)}
+[data-theme="light"] .hero-mockup::before{background:radial-gradient(ellipse at center,rgba(59,124,245,0.06) 0%,transparent 70%)}
+@media(prefers-color-scheme:light){
+  :root:not([data-theme]){
+    --bg:#f5f7ff;--bg2:#ffffff;--bg3:#f0f2f9;--bg4:#e8ebf5;
+    --surface:rgba(0,0,0,0.03);--surface2:rgba(0,0,0,0.06);
+    --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+    --text:#1a1d27;--text2:#5a5f73;--text3:#8b90a0;
+    --blue:#3b7cf5;--indigo:#4f51d9;--green:#059669;--red:#dc2626;--yellow:#d97706;
+    --purple:#7c3aed;--orange:#ea580c;--cyan:#0891b2;
+    --glow:0 0 80px rgba(59,124,245,0.1);
+    --gradient:linear-gradient(135deg,#3b7cf5 0%,#4f51d9 50%,#7c3aed 100%);
+    --gradient2:linear-gradient(135deg,#3b7cf5 0%,#4f51d9 100%);
+    --nav-bg:rgba(245,247,255,0.8);--nav-bg-scrolled:rgba(245,247,255,0.95);--drawer-bg:rgba(245,247,255,0.98);
+    --grid-line:rgba(0,0,0,0.03);--selection-color:rgba(59,124,245,0.2);
+    --mockup-shadow:0 32px 80px rgba(0,0,0,0.08),0 0 0 1px rgba(0,0,0,0.06) inset}
+  :root:not([data-theme]) ::selection{color:#1a1d27}
+  :root:not([data-theme]) .bg-glow{opacity:0.5}
+  :root:not([data-theme]) .bg-noise{opacity:0.12}
+  :root:not([data-theme]) .feature-card::before{background:linear-gradient(90deg,transparent,rgba(59,124,245,0.15),transparent)}
+  :root:not([data-theme]) .cta::before{background:radial-gradient(ellipse at 50% 80%,rgba(59,124,245,0.06) 0%,transparent 60%)}
+  :root:not([data-theme]) .hero-mockup::before{background:radial-gradient(ellipse at center,rgba(59,124,245,0.06) 0%,transparent 70%)}
+  :root:not([data-theme]) .theme-icon-sun{display:none}
+  :root:not([data-theme]) .theme-icon-moon{display:block}
+}
+
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:1024px){
   .bento-card.span-7,.bento-card.span-5{grid-column:span 12}
@@ -390,6 +448,14 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
   .stat-number[data-count]{-webkit-text-fill-color:transparent !important}
 }
 </style>
+<script>
+// Early theme detection — runs before first paint
+(function(){
+  var t = localStorage.getItem('labcharts-theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+})();
+</script>
 </head>
 <body>
 
@@ -410,6 +476,10 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
     <a href="/docs">Docs</a>
     <a href="/app" class="nav-cta">Open App &rarr;</a>
   </div>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+    <svg class="theme-icon-sun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg class="theme-icon-moon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
   <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </nav>
 <div class="nav-drawer" id="nav-drawer">
@@ -888,7 +958,7 @@ footer{border-top:1px solid var(--border);padding:48px 32px;position:relative;z-
       <a href="#support">Support</a>
       <a href="#faq">FAQ</a>
     </div>
-    <span class="footer-copy">&copy; 2026 Get Based &middot; Open source &middot; No tracking</span>
+    <span class="footer-copy">&copy; 2026 Get Based &middot; Open source &middot; No tracking &middot; Vibecoded with ❤️ by <a href="https://x.com/elkimxoc" target="_blank" rel="noopener" style="color:var(--text2);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--text2)'">Elkim</a></span>
   </div>
 </footer>
 
@@ -902,6 +972,23 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Live OS theme switch
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function(e) {
+  if (!localStorage.getItem('labcharts-theme')) {
+    if (e.matches) document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+  }
+});
+
+// Theme toggle
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var next = isLight ? 'dark' : 'light';
+  localStorage.setItem('labcharts-theme', next);
+  if (next === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+});
 
 // Nav scroll effect
 const nav = document.getElementById('nav');
@@ -950,7 +1037,7 @@ document.addEventListener('keydown', e => {
       // Append pill to "View on GitHub" CTA button
       document.querySelectorAll('.btn-secondary, .contribute-btn').forEach(btn => {
         if (btn.textContent.includes('GitHub')) {
-          btn.insertAdjacentHTML('beforeend', '<span style="margin-left:6px;padding:2px 8px;background:rgba(255,255,255,0.12);border-radius:6px;font-size:12px;font-weight:600">&#9733; ' + fmt + '</span>');
+          btn.insertAdjacentHTML('beforeend', '<span style="margin-left:6px;padding:2px 8px;background:var(--surface2);border-radius:6px;font-size:12px;font-weight:600">&#9733; ' + fmt + '</span>');
         }
       });
     })

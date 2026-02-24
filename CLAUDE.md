@@ -294,7 +294,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v53` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v54` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
@@ -303,7 +303,7 @@ Breakpoints: 3000/2000/1600/1400px (chat panel scaling up), 1200px (context card
 ## Key Patterns
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"`. Returns `"normal"` when refs are `null` (e.g., PhenoAge)
-- **Theme**: Dark (default) / light. `setTheme()` sets `data-theme` on `<html>`. CSS vars in `:root`, overridden in `[data-theme="light"]`. `getChartColors()` reads live CSS vars for Chart.js
+- **Theme**: Dark (default) / light. `setTheme()` sets `data-theme` on `<html>`. CSS vars in `:root`, overridden in `[data-theme="light"]`. `getChartColors()` reads live CSS vars for Chart.js. Landing page (`site.html`) also supports light mode — auto-detects from `localStorage('labcharts-theme')` or `prefers-color-scheme`, with live OS switching and no-JS fallback
 - **Performance**: Rendering functions accept optional `data` param. Toggle functions compute `getActiveData()` once and pass through
 - **Chart lifecycle**: `chartInstances` object + `destroyAllCharts()` prevents memory leaks
 - **Chart.js plugins**: `refBandPlugin` (ref range bands), `optimalBandPlugin` (green dashed), `noteAnnotationPlugin` (yellow dots), `supplementBarPlugin` (timeline bars)

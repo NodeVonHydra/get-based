@@ -132,7 +132,7 @@
   console.log('%c 9. Service Worker ', 'font-weight:bold;color:#f59e0b');
 
   assert('APP_SHELL includes /js/changelog.js', swSrc.includes('/js/changelog.js'));
-  assert('SW cache is v53', swSrc.includes('labcharts-v53'));
+  assert('SW cache is v53', swSrc.includes('labcharts-v54'));
 
   // ═══════════════════════════════════════
   // 10. Changelog data integrity
