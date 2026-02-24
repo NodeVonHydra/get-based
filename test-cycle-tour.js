@@ -99,7 +99,7 @@
   // --- 14. Service worker cache version ---
   console.log('%c[14] Service worker cache', 'font-weight:bold');
   const swSrc = await fetch('/service-worker.js').then(r => r.text());
-  assert('SW cache is v49', swSrc.includes("labcharts-v49"));
+  assert('SW cache is v49', swSrc.includes("labcharts-v50"));
 
   // --- Summary ---
   console.log('%c=== Results ===', 'font-weight:bold;font-size:14px');
