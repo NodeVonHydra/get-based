@@ -110,6 +110,11 @@ export function openSettingsModal(tab) {
         <label class="settings-label">Guided Tour</label>
         <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Take a Tour</button>
       </div>
+
+      <div class="settings-section">
+        <label class="settings-label">Changelog</label>
+        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
+      </div>
     </div>
 
     <!-- AI Tab -->

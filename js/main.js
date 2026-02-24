@@ -21,6 +21,7 @@ import './settings.js';
 import './glossary.js';
 import './feedback.js';
 import './tour.js';
+import { maybeShowChangelog } from './changelog.js';
 import { buildSidebar, renderProfileDropdown } from './nav.js';
 import './views.js';
 import { initEncryption, initBroadcastChannel, encryptedGetItem } from './crypto.js';
@@ -79,6 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setTheme(getTheme());
   buildSidebar();
   window.showDashboard();
+  maybeShowChangelog();
   updateHeaderDates();
   updateHeaderRangeToggle();
   renderProfileDropdown();
@@ -106,6 +108,7 @@ document.addEventListener("click", e => {
   if (e.target.id === "import-modal-overlay") window.closeImportModal();
   if (e.target.id === "settings-modal-overlay") window.closeSettingsModal();
   if (e.target.id === "glossary-modal-overlay") window.closeGlossary();
+  if (e.target.id === "changelog-modal-overlay") window.closeChangelog();
   if (e.target.id === "feedback-modal-overlay") window.closeFeedbackModal();
   const dd = document.getElementById("corr-options");
   const si = document.getElementById("corr-search");
@@ -124,6 +127,8 @@ document.addEventListener("keydown", e => {
     if (chatPanel && chatPanel.classList.contains("open")) { window.closeChatPanel(); return; }
     const importOverlay = document.getElementById("import-modal-overlay");
     if (importOverlay && importOverlay.classList.contains("show")) { window.closeImportModal(); return; }
+    const changelogOverlay = document.getElementById("changelog-modal-overlay");
+    if (changelogOverlay && changelogOverlay.classList.contains("show")) { window.closeChangelog(); return; }
     const feedbackOverlay = document.getElementById("feedback-modal-overlay");
     if (feedbackOverlay && feedbackOverlay.classList.contains("show")) { window.closeFeedbackModal(); return; }
     const glossaryOverlay = document.getElementById("glossary-modal-overlay");
@@ -136,7 +141,7 @@ document.addEventListener("keydown", e => {
   }
   // Focus trap for open modals
   if (e.key === "Tab") {
-    const overlayIds = ["settings-modal-overlay","import-modal-overlay","glossary-modal-overlay","feedback-modal-overlay","modal-overlay"];
+    const overlayIds = ["changelog-modal-overlay","settings-modal-overlay","import-modal-overlay","glossary-modal-overlay","feedback-modal-overlay","modal-overlay"];
     for (const oid of overlayIds) {
       const ov = document.getElementById(oid);
       if (ov && ov.classList.contains("show")) {

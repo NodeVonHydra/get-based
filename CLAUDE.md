@@ -14,7 +14,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes, SEO meta tags)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries, modals, notifications, correlation view, chat panel, empty state)
-- **`js/`** — 24 ES modules loaded via `js/main.js`:
+- **`js/`** — 25 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
@@ -36,6 +36,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — first-visit guided tour (spotlight walkthrough)
+  - `changelog.js` — What's New modal, `APP_VERSION`, auto-trigger on update
   - `nav.js` — sidebar, date range filter, chart layers
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
@@ -155,6 +156,17 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 - **Generic engine**: `runTour(steps, storageKey, auto)` — filters out steps whose target element is missing, creates DOM, starts navigation. `activeTour` object holds `{ steps, storageKey, currentStep }`
 - **Cycle tour**: 8-step cycle-specific tour (`CYCLE_TOUR_STEPS`). Steps: Welcome → `.cycle-summary` → `.cycle-draw-date` → `.cycle-draw-phases` → `.cycle-period-log` → `.cycle-alert` → `.chart-layers-wrapper` → `.chat-toggle-btn`. Auto-triggered via `startCycleTour(true)` after `saveMenstrualCycle()` with 600ms delay. Re-trigger via `?` button (`.cycle-tour-btn`) in cycle section header. Storage: `labcharts-{profileId}-cycleTour`
 
+### What's New Modal
+
+Version-triggered changelog modal so users see what changed after each PWA update.
+
+- **Version**: `APP_VERSION` in `changelog.js` matches SW cache number (e.g., 53)
+- **Storage**: `labcharts-changelog-seen` → version string. Auto-trigger after `showDashboard()` if seen !== APP_VERSION
+- **HTML**: `#changelog-modal-overlay` + `#changelog-modal` with `role="dialog"`
+- **Data**: `CHANGELOG` array — `[{ version, date, title, items[] }]`, newest first. Auto-trigger shows latest 3; Settings shows all
+- **Trigger**: Settings → Display → "What's New" button calls `openChangelog(true)`
+- **Escape/click/focus-trap**: Wired in `main.js` alongside other modals
+
 ### Dashboard Section Order
 
 Flat layout (no collapsible toggles): 1) Drop zone, 2) Onboarding, 3) Interpretive Lens, 3b) Focus Card, 4) Context Cards, 5) Menstrual Cycle (female), 6) Supplements, 7) Key Trends + charts, 8) Trends & Alerts, 9) Data & Notes + Export.
@@ -208,7 +220,7 @@ Two-path architecture replacing personal info with fake data before sending to A
 10. **Lifestyle cards** (Diet → Exercise → Sleep → Light → Stress → Love Life → Environment)
 11. **Additional Context Notes** — freetext
 
-Empty-card guards prevent sending empty `{}` objects: each card checks for actual content (not just object existence) — gates broadened to cover all serialized fields (e.g., diet also triggers on `restrictions`/`pattern`/`snacks`, sleep on `schedule`/`roomTemp`/`environment`/`practices`). Staleness signals: global `NOTE:` when most recent labs are >90 days old, plus per-category `⚠ Last tested ~N months ago` after each stale category (catches old fatty acids alongside fresh CBC); `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
+Empty-card guards prevent sending empty `{}` objects: `hasCardContent(obj)` in `utils.js` is the generic gate — returns `true` if any field has content (strings non-empty, arrays non-empty, `note` trimmed). Used for 7 cards (diagnoses, diet, exercise, sleep, stress, loveLife, environment). Light & Circadian uses custom `lc || autoLat` gate (external latitude). Menstrual cycle is sex-gated. Health goals and interpretive lens use type-specific checks. Staleness signals: global `NOTE:` when most recent labs are >90 days old, plus per-category `⚠ Last tested ~N months ago` after each stale category (catches old fatty acids alongside fresh CBC); `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
 
 ### AI Chat Panel
 
@@ -264,7 +276,7 @@ No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Ven
 
 ### Tests
 
-13 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
+14 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
 ```
 ./run-tests.sh
 ```
@@ -282,7 +294,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v52` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v53` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
