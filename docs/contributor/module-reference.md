@@ -1,6 +1,6 @@
 # Module Reference
 
-All 24 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 25 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -102,8 +102,9 @@ Shared pure utility functions.
 - `showNotification(message, type)` — toast notification (`'info'` | `'success'` | `'error'` | `'warning'`)
 - `showConfirmDialog(message)` — returns `Promise<boolean>`, styled confirm dialog
 - `linearRegression(points)` — `{ slope, intercept, r2 }` from `[{ x, y }]` array
+- `hasCardContent(obj)` — generic empty-card gate: returns `true` if any field has content (strings non-empty, arrays non-empty, `note` trimmed). Used by `buildLabContext()` for 7 context card gates
 
-**Window exports:** none
+**Window exports:** `showNotification`, `showConfirmDialog`, `setDebugMode`, `setPIIReviewEnabled`, `hasCardContent`
 
 ---
 
@@ -442,6 +443,20 @@ Generic spotlight tour engine plus the app tour and cycle tour configurations.
 - `CYCLE_TOUR_STEPS` — array of 8 step configs for the cycle tour
 
 **Window exports:** `startTour`, `startCycleTour`, `endTour`
+
+---
+
+### `changelog.js`
+
+What's New modal triggered on version bump so users see what changed after each PWA update.
+
+**Key exports:**
+- `APP_VERSION` — number matching the SW cache version (e.g., 53)
+- `openChangelog(showAll)` — renders and shows the modal; `showAll=true` shows all entries, `false` shows latest 3
+- `closeChangelog()` — hides modal, marks current version as seen in localStorage
+- `maybeShowChangelog()` — auto-trigger: shows modal if `labcharts-changelog-seen` !== `APP_VERSION`
+
+**Window exports:** `openChangelog`, `closeChangelog`, `maybeShowChangelog`
 
 ---
 
