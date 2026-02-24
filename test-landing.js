@@ -31,7 +31,7 @@
   // ── 3. service-worker.js ──
   console.log('\n%c3. service-worker.js — Cache', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v49', swSrc.includes('labcharts-v53'));
+  assert('Cache includes latest version', swSrc.includes('labcharts-v54'));
   assert('No standalone / in APP_SHELL', !swSrc.match(/\n\s*'\/'\s*,/));
   assert('/index.html in APP_SHELL', swSrc.includes("'/index.html'"));
 
@@ -281,6 +281,30 @@
   const appLinks = (siteSrc.match(/href="\/app"/g) || []).length;
   assert('/app links present (CTAs)', appLinks >= 3, `found ${appLinks}`);
   assert('No /landing links', !siteSrc.includes('href="/landing"'));
+
+  // ── 7. Light mode support ──
+  console.log('\n%c7. Light mode', 'font-weight:bold');
+  assert('Has [data-theme="light"] CSS block', /\[data-theme="light"\]\s*\{/.test(siteSrc));
+  assert('Light theme overrides --bg', /\[data-theme="light"\]\s*\{[^}]*--bg:#f5f7ff/.test(siteSrc));
+  assert('Light theme overrides --text', /\[data-theme="light"\]\s*\{[^}]*--text:#1a1d27/.test(siteSrc));
+  assert('Light theme overrides --nav-bg', /\[data-theme="light"\]\s*\{[^}]*--nav-bg:/.test(siteSrc));
+  assert('prefers-color-scheme light no-JS fallback', /prefers-color-scheme:\s*light[\s\S]*?:root:not\(\[data-theme\]\)/.test(siteSrc));
+  assert('Early theme detection script in head', /document\.documentElement\.setAttribute\('data-theme',\s*'light'\)/.test(siteSrc));
+  assert('Live OS theme listener', /prefers-color-scheme: light[\s\S]*?addEventListener\('change'/.test(siteSrc));
+  assert('meta theme-color for dark', /meta name="theme-color" content="#0a0c14" media="\(prefers-color-scheme: dark\)"/.test(siteSrc));
+  assert('meta theme-color for light', /meta name="theme-color" content="#f5f7ff" media="\(prefers-color-scheme: light\)"/.test(siteSrc));
+  assert('Nav uses --nav-bg var', /nav\{[^}]*background:var\(--nav-bg\)/.test(siteSrc));
+  assert('Grid uses --grid-line var', /bg-grid[\s\S]*?var\(--grid-line\)/.test(siteSrc));
+  assert('Selection uses --selection-color var', /::selection\{background:var\(--selection-color\)/.test(siteSrc));
+  assert('GitHub stars pill uses var(--surface2)', siteSrc.includes("background:var(--surface2);border-radius:6px;font-size:12px"));
+  assert('Light bg-glow reduced', /\[data-theme="light"\]\s+\.bg-glow\{opacity:0\.5\}/.test(siteSrc));
+  assert('Light bg-noise reduced', /\[data-theme="light"\]\s+\.bg-noise\{opacity:0\.12\}/.test(siteSrc));
+  assert('Theme toggle button in HTML', siteSrc.includes('id="theme-toggle"'));
+  assert('Theme toggle has sun icon', siteSrc.includes('class="theme-icon-sun"'));
+  assert('Theme toggle has moon icon', siteSrc.includes('class="theme-icon-moon"'));
+  assert('CSS: .theme-toggle styles', /\.theme-toggle\{/.test(siteSrc));
+  assert('CSS: light hides sun icon', /\[data-theme="light"\]\s+\.theme-icon-sun\{display:none\}/.test(siteSrc));
+  assert('JS: toggle click sets localStorage', /theme-toggle[\s\S]*?localStorage\.setItem\('labcharts-theme'/.test(siteSrc));
 
   // ── Summary ──
   console.log(`\n%c${pass + fail} tests: ${pass} passed, ${fail} failed`, fail ? 'color:red;font-weight:bold' : 'color:green;font-weight:bold');

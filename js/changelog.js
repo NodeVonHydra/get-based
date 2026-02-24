@@ -2,9 +2,15 @@
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = 53;
+export const APP_VERSION = 54;
 
 const CHANGELOG = [
+  {
+    version: 54, date: '2026-02-24', title: 'Landing Page Light Mode',
+    items: [
+      'Landing page light mode — auto-detects OS preference or app theme, with live switching',
+    ]
+  },
   {
     version: 53, date: '2026-02-24', title: 'Smarter Context & What\'s New',
     items: [
