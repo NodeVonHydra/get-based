@@ -38,7 +38,7 @@ Every test file defines a local `assert` helper and collects results:
 
 The `detail` argument appears in the failure output — use it to print the actual value that caused the failure.
 
-## The 13 test files
+## The 14 test files
 
 | File | What it covers |
 |---|---|
@@ -55,6 +55,7 @@ The `detail` argument appears in the failure output — use it to print the actu
 | `test-openrouter.js` | OpenRouter provider: curated model list, pricing cache, exclude blocklist, model fetch |
 | `test-phase-ranges.js` | Phase-aware reference ranges for estradiol and progesterone aligned with dates |
 | `test-routstr.js` | ROUTSTR DISABLED markers: verifies all commented-out code is correctly disabled |
+| `test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
 | `test-tour.js` | App tour: 7 steps, spotlight DOM, positioning, escape key, completion flag (154 assertions) |
 
 ## Run all tests headlessly
