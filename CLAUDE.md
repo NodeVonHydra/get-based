@@ -208,7 +208,7 @@ Two-path architecture replacing personal info with fake data before sending to A
 10. **Lifestyle cards** (Diet → Exercise → Sleep → Light → Stress → Love Life → Environment)
 11. **Additional Context Notes** — freetext
 
-Empty-card guards prevent sending empty `{}` objects: each card checks for actual content (not just object existence). `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style). Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
+Empty-card guards prevent sending empty `{}` objects: each card checks for actual content (not just object existence) — gates broadened to cover all serialized fields (e.g., diet also triggers on `restrictions`/`pattern`/`snacks`, sleep on `schedule`/`roomTemp`/`environment`/`practices`). Staleness signal: when most recent labs are >90 days old, `buildLabContext()` inserts an explicit `NOTE:` line; `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
 
 ### AI Chat Panel
 
@@ -282,7 +282,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v51` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v52` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

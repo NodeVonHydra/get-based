@@ -268,7 +268,8 @@ export function buildFocusContext() {
   const sexLabel = state.profileSex === 'female' ? 'female' : state.profileSex === 'male' ? 'male' : 'not specified';
   const age = state.profileDob ? Math.floor((new Date() - new Date(state.profileDob)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
   const today = new Date().toISOString().slice(0, 10);
-  let ctx = `Profile: ${sexLabel}${age !== null ? ', age ' + age : ''}, today ${today}\n`;
+  const lastDate = data.dates[data.dates.length - 1];
+  let ctx = `Profile: ${sexLabel}${age !== null ? ', age ' + age : ''}, today ${today}, last labs ${lastDate}\n`;
 
   // Major health goals (if any)
   const healthGoals = state.importedData.healthGoals || [];
