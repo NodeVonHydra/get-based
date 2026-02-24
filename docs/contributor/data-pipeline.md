@@ -4,28 +4,86 @@
 
 ## Pipeline flowchart
 
-```mermaid
-flowchart TD
-    A[Start: getActiveData] --> B[Deep-clone MARKER_SCHEMA\ninto data.categories]
-    B --> C[Merge custom markers\nfrom importedData.customMarkers]
-    C --> D[Apply sex-specific ranges\nreplace refMin/refMax with _f variants if female]
-    D --> E[Merge OPTIMAL_RANGES\ninto marker objects]
-    E --> F[Collect dates from entries\nexcluding singlePoint categories]
-    F --> G[Build sorted data.dates array\nand data.dateLabels array]
-    G --> H[Populate marker.values arrays\naligned with data.dates, null = no data]
-    H --> I{singlePoint category?}
-    I -- yes --> J[Set cat.singleDate\nset marker.singlePoint = true]
-    I -- no --> K[Normal values array]
-    J --> L[Compute cycle phase labels\nfor female profiles with period data]
-    K --> L
-    L --> M[Compute phase-specific ref ranges\nfor estradiol and progesterone]
-    M --> N[Calculate ratios\nTG/HDL, LDL/HDL, ApoB/ApoAI, NLR, PLR, De Ritis, Cu/Zn]
-    N --> O[Calculate Free Water Deficit\nTBW × Na/140 − 1]
-    O --> P[Calculate PhenoAge\nLevine 2018, 9 biomarkers + DOB]
-    P --> Q{unitSystem === US?}
-    Q -- yes --> R[Apply unit conversions\nfrom UNIT_CONVERSIONS]
-    Q -- no --> S[Return data]
-    R --> S
+```
+                      ┌──────────────────────┐
+                      │   getActiveData()     │
+                      └──────────┬───────────┘
+                                 │
+                                 ▼
+                  Deep-clone MARKER_SCHEMA
+                  into data.categories
+                                 │
+                                 ▼
+                  Merge custom markers
+                  from importedData.customMarkers
+                                 │
+                                 ▼
+                  Apply sex-specific ranges
+                  (replace refMin/refMax with _f if female)
+                                 │
+                                 ▼
+                  Merge OPTIMAL_RANGES
+                  into marker objects
+                                 │
+                                 ▼
+                  Collect dates from entries
+                  (excluding singlePoint categories)
+                                 │
+                                 ▼
+                  Build sorted data.dates[]
+                  and data.dateLabels[]
+                                 │
+                                 ▼
+                  Populate marker.values[]
+                  aligned with dates, null = no data
+                                 │
+                                 ▼
+                        ◇ singlePoint? ◇
+                       ╱               ╲
+                     yes                no
+                      │                  │
+                      ▼                  │
+              Set cat.singleDate         │
+              marker.singlePoint = true  │
+                      │                  │
+                      └───────┬──────────┘
+                              │
+                              ▼
+                  Compute cycle phase labels
+                  (female profiles with period data)
+                              │
+                              ▼
+                  Compute phase-specific ref ranges
+                  (estradiol and progesterone)
+                              │
+                              ▼
+                  Calculate ratios
+                  TG/HDL, LDL/HDL, ApoB/ApoAI,
+                  NLR, PLR, De Ritis, Cu/Zn
+                              │
+                              ▼
+                  Calculate Free Water Deficit
+                  TBW × (Na / 140 − 1)
+                              │
+                              ▼
+                  Calculate PhenoAge
+                  Levine 2018, 9 biomarkers + DOB
+                              │
+                              ▼
+                      ◇ US units? ◇
+                     ╱              ╲
+                   yes               no
+                    │                 │
+                    ▼                 │
+            Apply unit conversions    │
+            from UNIT_CONVERSIONS     │
+                    │                 │
+                    └────────┬────────┘
+                             │
+                             ▼
+                  ┌──────────────────────┐
+                  │     Return data       │
+                  └──────────────────────┘
 ```
 
 The caller is responsible for applying date range filtering after receiving `data`:

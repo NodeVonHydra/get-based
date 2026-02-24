@@ -287,7 +287,7 @@ This auto-starts a server if needed, runs all tests via headless Chrome (Puppete
 VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/config.mjs`. Theme: `docs/.vitepress/theme/`. Build: `npm run docs:build`. Dev: `npm run docs:dev`.
 
 - **User guide** (`docs/guide/`): 27 pages covering all features for end users
-- **Contributor docs** (`docs/contributor/`): 8 pages — architecture, module reference, data pipeline, testing, deployment, storage schema
+- **Contributor docs** (`docs/contributor/`): 8 pages — architecture, module reference, data pipeline, testing, deployment, storage schema. Diagrams use ASCII box-drawing (no mermaid plugin installed)
 - **Vercel**: `buildCommand: "npm run docs:build"`, `outDir: '../dist-docs'`, routes serve `/dist-docs/` at `/docs`
 - **Cross-links**: site.html nav/drawer/footer, index.html header, README.md all link to `/docs`
 - **SW**: Does not cache `/docs/` paths (not in APP_SHELL) — correct behavior
