@@ -514,9 +514,10 @@ Each entry documents:
 
 ### 2026-02b — Staleness Signals + Absent Field Awareness + Gate Broadening
 
-**Staleness signal** (`buildLabContext`)
-- When most recent lab results are >90 days old, inserts explicit `NOTE:` line with date and approximate months since last test
-- Prevents AI from treating stale data as current without human-obvious arithmetic
+**Staleness signals** (`buildLabContext`)
+- **Global**: When most recent lab results are >90 days old, inserts explicit `NOTE:` line with date and approximate months since last test
+- **Per-category**: After each category's markers, if that category's latest data is >90 days old, appends `⚠ Last tested ~N months ago` line — catches stale categories even when other data is recent (e.g., old fatty acids alongside fresh CBC)
+- System prompt instructs AI to recommend retesting stale categories and discuss what similar/changed results would suggest
 
 **Focus card staleness** (`buildFocusContext`)
 - Added `last labs <date>` to compact header so focus card can caveat stale data
