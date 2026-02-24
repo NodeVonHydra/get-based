@@ -62,55 +62,42 @@ index.html
 
 Modules in a higher layer may import from lower layers. Modules in the same layer must not import from each other — cross-layer calls within the same layer use `window.fn()` to avoid circular dependencies.
 
-```mermaid
-graph TD
-  subgraph L1["Layer 1 — Foundation"]
-    schema.js
-    constants.js
-    state.js
-    utils.js
-  end
-
-  subgraph L2["Layer 2 — Core Services"]
-    theme.js
-    api.js
-  end
-
-  subgraph L3["Layer 3 — Data & Profile"]
-    profile.js
-    data.js
-    pii.js
-  end
-
-  subgraph L4["Layer 4 — Domain Modules"]
-    charts.js
-    notes.js
-    supplements.js
-    cycle.js
-    context-cards.js
-  end
-
-  subgraph L5["Layer 5 — Feature Modules"]
-    pdf-import.js
-    export.js
-    chat.js
-    settings.js
-    glossary.js
-    feedback.js
-    nav.js
-  end
-
-  subgraph L6["Layer 6 — Orchestration"]
-    views.js
-    main.js
-    tour.js
-  end
-
-  L1 --> L2
-  L2 --> L3
-  L3 --> L4
-  L4 --> L5
-  L5 --> L6
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  L1 — Foundation                                                    │
+│  schema.js   constants.js   state.js   utils.js                    │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  L2 — Core Services                                                 │
+│  theme.js   api.js                                                  │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  L3 — Data & Profile                                                │
+│  profile.js   data.js   pii.js                                     │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  L4 — Domain Modules                                                │
+│  charts.js   notes.js   supplements.js   cycle.js   context-cards.js│
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  L5 — Feature Modules                                               │
+│  pdf-import.js  export.js  chat.js  settings.js  glossary.js       │
+│  feedback.js    nav.js                                              │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  L6 — Orchestration                                                 │
+│  views.js   main.js   tour.js   changelog.js                       │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Circular dependency avoidance
