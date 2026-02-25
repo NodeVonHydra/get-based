@@ -424,8 +424,8 @@
     "building": "new construction (<5yr)",
     "note": "New development suburb. Good air quality area. Recently switched from non-stick to cast iron cookware."
   },
-  "interpretiveLens": "Interested in longevity and metabolic health optimization. Follows Peter Attia's framework on metabolic health markers. Wants to catch insulin resistance early given family history of T2D. Values functional/optimal ranges over just reference ranges.",
-  "contextNotes": "Alex is data-driven and tracks his metrics closely. He wants to understand the relationship between his declining testosterone, rising insulin, and lifestyle factors. Prefers evidence-based interventions.",
+  "interpretiveLens": "Interested in longevity and metabolic health optimization. Follows a metabolic health framework focused on early insulin resistance detection. Family history of T2D. Values functional/optimal ranges over just reference ranges.",
+  "contextNotes": "Data-driven and tracks metrics closely. Wants to understand the relationship between declining testosterone, rising insulin, and lifestyle factors. Prefers evidence-based interventions.",
   "healthGoals": [
     { "text": "Reverse insulin resistance trend — get HOMA-IR back below 2.0", "severity": "major" },
     { "text": "Support testosterone levels naturally through lifestyle", "severity": "mild" },
