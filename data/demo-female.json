@@ -431,8 +431,8 @@
     "building": "old building (pre-1970)",
     "note": "Lives in a quiet residential area of Prague. Building renovated 2018 — new windows, old structure."
   },
-  "interpretiveLens": "Interested in functional medicine approach to thyroid and iron. Follows Isabella Wentz (thyroid pharmacist) for Hashimoto's prevention strategies. Wants to optimize ferritin to 50+ µg/L (functional range), not just above lab minimum. Concerned about thyroid trajectory given family history.",
-  "contextNotes": "Sarah is proactive about her health and prefers functional/optimal reference ranges over standard lab ranges. She's particularly concerned about her thyroid trajectory given her mother's Hashimoto's diagnosis.",
+  "interpretiveLens": "Interested in functional medicine approach to thyroid and iron. Follows a Hashimoto's prevention strategy focused on optimizing ferritin to 50+ µg/L (functional range), not just above lab minimum. Concerned about thyroid trajectory given family history.",
+  "contextNotes": "Proactive about health and prefers functional/optimal reference ranges over standard lab ranges. Particularly concerned about thyroid trajectory given family history of Hashimoto's diagnosis.",
   "healthGoals": [
     { "text": "Build ferritin to 50+ µg/L and maintain stable iron status", "severity": "major" },
     { "text": "Clarify thyroid status — determine if subclinical hypothyroidism or early Hashimoto's", "severity": "major" },
