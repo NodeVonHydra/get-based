@@ -1801,7 +1801,9 @@ function collectDiscussionPersonas() {
   return personas;
 }
 
-async function runDiscussionRound(personas) {
+const DEFAULT_DISCUSS_PROMPT = 'Respond to the other analyst\'s points above. Where do you agree or disagree? Add any insights they may have missed.';
+
+async function runDiscussionRound(personas, steerPrompt) {
   const container = document.getElementById('chat-messages');
   const sendBtn = document.getElementById('chat-send-btn');
   if (!container) return;
@@ -1809,13 +1811,15 @@ async function runDiscussionRound(personas) {
   _chatAbortController = new AbortController();
   setSendButtonMode(sendBtn, 'streaming');
 
+  const promptText = steerPrompt || DEFAULT_DISCUSS_PROMPT;
+
   try {
     for (const persona of personas) {
       if (_chatAbortController.signal.aborted) break;
 
       state.currentChatPersonality = persona.id;
 
-      const autoMsg = { role: 'user', content: 'Respond to the other analyst\'s points above. Where do you agree or disagree? Add any insights they may have missed.', auto: true };
+      const autoMsg = { role: 'user', content: promptText, auto: true };
       state.chatHistory.push(autoMsg);
       renderChatMessages();
       saveChatHistory();
@@ -1939,10 +1943,16 @@ function showDiscussContinuePrompt(personas, originalPersonality) {
 
   const prompt = document.createElement('div');
   prompt.className = 'chat-discuss-continue';
-  prompt.innerHTML = '<button class="chat-discuss-continue-btn" onclick="continueDiscussion()">Continue discussion?</button>' +
-    '<button class="chat-discuss-done-btn" onclick="endDiscussion()">Done</button>';
+  prompt.innerHTML = '<input type="text" class="chat-discuss-steer" id="chat-discuss-steer" placeholder="Steer the debate (optional)..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();continueDiscussion()}">' +
+    '<div class="chat-discuss-continue-actions">' +
+    '<button class="chat-discuss-continue-btn" onclick="continueDiscussion()">Continue</button>' +
+    '<button class="chat-discuss-done-btn" onclick="endDiscussion()">Done</button>' +
+    '</div>';
   container.appendChild(prompt);
   container.scrollTop = container.scrollHeight;
+  // Focus the steer input
+  const steerInput = prompt.querySelector('.chat-discuss-steer');
+  if (steerInput) steerInput.focus();
 
   // Stash state for continue/done
   state._discussionPersonas = personas;
@@ -1957,12 +1967,15 @@ export function removeDiscussContinuePrompt() {
 }
 
 export async function continueDiscussion() {
+  // Read steer input before removing the prompt
+  const steerInput = document.getElementById('chat-discuss-steer');
+  const steerText = steerInput ? steerInput.value.trim() : '';
   removeDiscussContinuePrompt();
   const personas = state._discussionPersonas;
   const originalPersonality = state._discussionOriginalPersonality;
   if (!personas || personas.length < 2) return;
 
-  await runDiscussionRound(personas);
+  await runDiscussionRound(personas, steerText || null);
 
   // Restore and show continue prompt again
   state.currentChatPersonality = originalPersonality;
