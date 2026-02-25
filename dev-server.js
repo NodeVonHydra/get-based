@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-// Local dev server that replicates Vercel routing from vercel.json
+// Local dev server that mirrors production routing:
+//   /        → landing page (from ../get-based-site or SITE_DIR)
+//   /app     → the app (index.html)
+//   /docs/*  → built VitePress docs
 // Usage: node dev-server.js [port]
+//        SITE_DIR=/path/to/get-based-site node dev-server.js
 
 const http = require('http');
 const fs = require('fs');
@@ -8,6 +12,9 @@ const path = require('path');
 
 const PORT = parseInt(process.argv[2], 10) || 8000;
 const ROOT = __dirname;
+const SITE_DIR = process.env.SITE_DIR || path.join(ROOT, '..', 'get-based-site');
+const SITE_INDEX = path.join(SITE_DIR, 'index.html');
+const hasSite = fs.existsSync(SITE_INDEX);
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
@@ -20,7 +27,6 @@ const MIME = {
 
 function serveFile(res, filePath) {
   const resolved = path.resolve(filePath);
-  if (!resolved.startsWith(ROOT)) { res.writeHead(403); res.end(); return; }
   fs.readFile(resolved, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     const ext = path.extname(resolved).toLowerCase();
@@ -33,8 +39,14 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
 
-  // Route: / → index.html
+  // Route: / → landing page (if site repo found) or app
   if (pathname === '/') {
+    if (hasSite) return serveFile(res, SITE_INDEX);
+    return serveFile(res, path.join(ROOT, 'index.html'));
+  }
+
+  // Route: /app → index.html
+  if (pathname === '/app' || pathname === '/app/') {
     return serveFile(res, path.join(ROOT, 'index.html'));
   }
 
@@ -69,6 +81,11 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Dev server running at http://localhost:${PORT}`);
-  console.log(`  /        → index.html`);
+  if (hasSite) {
+    console.log(`  /        → landing page (${SITE_DIR})`);
+    console.log(`  /app     → index.html`);
+  } else {
+    console.log(`  /        → index.html (no site repo found at ${SITE_DIR})`);
+  }
   console.log(`  /docs/*  → dist-docs/*`);
 });
