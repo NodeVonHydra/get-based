@@ -258,7 +258,7 @@
   console.log('%c▶ 16. Service worker version', 'font-weight:bold');
   try {
     const swSrc = await fetch('service-worker.js').then(r => r.text());
-    assert('SW cache is v56', swSrc.includes('labcharts-v60'));
+    assert('SW cache is v56', swSrc.includes('labcharts-v61'));
   } catch {
     assert('Could read service-worker.js', false);
   }

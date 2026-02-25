@@ -228,6 +228,8 @@ export function showDashboard(data) {
     html += `</div>`;
   }
 
+  html += `<p class="app-disclaimer">For educational and informational purposes only. Not medical advice. Always consult a qualified healthcare provider before making health decisions.</p>`;
+
   main.innerHTML = html;
 
   for (const km of keyMarkers) {

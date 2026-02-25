@@ -119,7 +119,7 @@
   // ─── 7. Service worker bypasses api.routstr.com ───
   console.log('\n7. Service worker');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v55', swSrc.includes('labcharts-v60'));
+  assert('SW cache is v55', swSrc.includes('labcharts-v61'));
   assert('SW bypasses api.routstr.com', swSrc.includes('api.routstr.com'));
 
   // ─── 8. getModelPricing checks routstr dynamic pricing ───
