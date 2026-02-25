@@ -404,7 +404,7 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
     const r = getEffectiveRangeForDate(marker, i);
     const s = getStatus(v, r.min, r.max);
     ptColors.push(s==="normal"?tc.green:s==="high"?tc.red:tc.yellow);
-    ptStyles.push(s==="normal"?'circle':s==="high"?'triangle':'rectRot');
+    ptStyles.push('circle');
   }
   const rawDates = chartDates || [];
   const chartNotes = marker.singlePoint ? [] : getNotesForChart(rawDates);
