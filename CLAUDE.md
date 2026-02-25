@@ -161,7 +161,7 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 Version-triggered changelog modal so users see what changed after each PWA update.
 
-- **Version**: `APP_VERSION` in `changelog.js` matches SW cache number (e.g., 53)
+- **Version**: `APP_VERSION` in `changelog.js` — semantic string (e.g., `'1.0'`), decoupled from SW cache integer
 - **Storage**: `labcharts-changelog-seen` → version string. Auto-trigger after `showDashboard()` if seen !== APP_VERSION
 - **HTML**: `#changelog-modal-overlay` + `#changelog-modal` with `role="dialog"`
 - **Data**: `CHANGELOG` array — `[{ version, date, title, items[] }]`, newest first. Auto-trigger shows latest 3; Settings shows all
@@ -297,7 +297,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v58` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v59` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

@@ -30,17 +30,16 @@
   assert('changelog.js exports maybeShowChangelog', changelogSrc.includes('export function maybeShowChangelog'));
 
   // ═══════════════════════════════════════
-  // 2. Version sync: APP_VERSION matches SW CACHE_NAME
+  // 2. Version format: APP_VERSION is semantic string, SW cache is separate integer
   // ═══════════════════════════════════════
-  console.log('%c 2. Version Sync ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 2. Version Format ', 'font-weight:bold;color:#f59e0b');
 
-  const versionMatch = changelogSrc.match(/APP_VERSION\s*=\s*(\d+)/);
+  const versionMatch = changelogSrc.match(/APP_VERSION\s*=\s*'([^']+)'/);
   const swMatch = swSrc.match(/labcharts-v(\d+)/);
-  assert('APP_VERSION is a number', versionMatch !== null);
+  assert('APP_VERSION is a quoted string', versionMatch !== null, versionMatch ? `'${versionMatch[1]}'` : 'not found');
+  assert('APP_VERSION looks semantic', versionMatch && /^\d+\.\d+/.test(versionMatch[1]), versionMatch ? versionMatch[1] : '');
   assert('SW CACHE_NAME has version number', swMatch !== null);
-  if (versionMatch && swMatch) {
-    assert('APP_VERSION matches SW cache version', versionMatch[1] === swMatch[1], `changelog=${versionMatch[1]}, SW=${swMatch[1]}`);
-  }
+  assert('APP_VERSION decoupled from SW cache', versionMatch && swMatch && versionMatch[1] !== swMatch[1], 'semantic vs integer');
 
   // ═══════════════════════════════════════
   // 3. HTML: changelog modal exists
@@ -132,7 +131,7 @@
   console.log('%c 9. Service Worker ', 'font-weight:bold;color:#f59e0b');
 
   assert('APP_SHELL includes /js/changelog.js', swSrc.includes('/js/changelog.js'));
-  assert('SW cache is v55', swSrc.includes('labcharts-v58'));
+  assert('SW cache is v59', swSrc.includes('labcharts-v59'));
 
   // ═══════════════════════════════════════
   // 10. Changelog data integrity
