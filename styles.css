@@ -266,9 +266,9 @@ body {
   position: absolute; width: 10px; height: 10px; border-radius: 50%;
   top: -1px; transform: translateX(-50%); border: 2px solid var(--bg-card);
 }
-.range-bar-marker.marker-normal { background: var(--green); }
-.range-bar-marker.marker-high { background: var(--red); border-radius: 2px; transform: translateX(-50%) rotate(45deg); }
-.range-bar-marker.marker-low { background: var(--yellow); border-radius: 0; width: 0; height: 0; background: none; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 10px solid var(--yellow); top: -1px; }
+.range-bar-marker.marker-normal { background: var(--green); box-shadow: 0 0 6px rgba(52, 211, 153, 0.5); }
+.range-bar-marker.marker-high { background: var(--red); box-shadow: 0 0 6px rgba(248, 113, 113, 0.5); }
+.range-bar-marker.marker-low { background: var(--yellow); box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); }
 .fa-bar-chart-container { height: 400px; }
 @media (max-width: 480px) { .fa-bar-chart-container { height: 280px; } }
 .fatty-acids-grid {
