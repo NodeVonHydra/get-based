@@ -267,11 +267,11 @@ Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `h
 
 ## Development
 
-Since the app loads external CSS/JS files, you need a local server. Use the dev server (`/` → index.html, `/docs/*` → built VitePress):
+Since the app loads external CSS/JS files, you need a local server. The dev server mirrors production routing:
 ```
 node dev-server.js
 ```
-Or for a quick static server (no routing): `python3 -m http.server 8000`
+If the landing page repo (`get-based-site`) is cloned as a sibling directory (`../get-based-site`), the dev server serves it at `/` and the app at `/app` — matching the production subdomain layout (`getbased.health` / `app.getbased.health`). Without the sibling repo, `/` serves the app directly. Override with `SITE_DIR=/path/to/site node dev-server.js`. Docs at `/docs/*` always route to `dist-docs/`.
 
 No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Venice) or local Ollama is required for PDF import and chat features.
 
