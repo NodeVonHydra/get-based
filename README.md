@@ -63,6 +63,10 @@ Switch providers anytime in Settings. The app falls back gracefully if no provid
 
 Full documentation at [getbased.health/docs](https://getbased.health/docs) — user guide, contributor architecture reference, module docs, and deployment guide.
 
+## Community
+
+Join the [Discord](https://discord.gg/zJdVB9zgQB) — questions, feature ideas, and health optimization discussion.
+
 ---
 
 ## Quick start
