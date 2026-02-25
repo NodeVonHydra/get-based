@@ -1,5 +1,5 @@
 // verify-modules.js — Browser-based verification for modularized app
-// Run in console: fetch('verify-modules.js').then(r=>r.text()).then(s=>Function(s)())
+// Run in console: fetch('tests/verify-modules.js').then(r=>r.text()).then(s=>Function(s)())
 (function() {
   'use strict';
   let passed = 0, failed = 0, errors = [];

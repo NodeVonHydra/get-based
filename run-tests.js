@@ -6,21 +6,20 @@
 const puppeteer = require('puppeteer');
 
 const TEST_FILES = [
-  'test-crypto.js',
-  'test-chat-threads.js',
-  'test-chat-actions.js',
-  'test-mobile.js',
-  'test-demo.js',
-  'test-landing.js',
-  'test-openrouter.js',
-  // ROUTSTR DISABLED: 'test-routstr.js',
-  'test-tour.js',
-  'test-phase-ranges.js',
-  'test-cycle-improvements.js',
-  'test-cycle-tour.js',
-  'test-custom-personality.js',
-  'test-changelog.js',
-  'test-audit.js'
+  'tests/test-crypto.js',
+  'tests/test-chat-threads.js',
+  'tests/test-chat-actions.js',
+  'tests/test-mobile.js',
+  'tests/test-demo.js',
+  'tests/test-openrouter.js',
+  // ROUTSTR DISABLED: 'tests/test-routstr.js',
+  'tests/test-tour.js',
+  'tests/test-phase-ranges.js',
+  'tests/test-cycle-improvements.js',
+  'tests/test-cycle-tour.js',
+  'tests/test-custom-personality.js',
+  'tests/test-changelog.js',
+  'tests/test-audit.js'
 ];
 
 const PORT = process.env.PORT || 8000;

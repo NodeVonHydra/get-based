@@ -1,5 +1,5 @@
 // test-chat-actions.js — Browser test for chat action buttons + scientific sources
-// Run: fetch('test-chat-actions.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-chat-actions.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   const results = [];
@@ -338,7 +338,7 @@
   assert('SW bypasses api.openalex.org', swSrc.includes('api.openalex.org'), 'found in bypass list');
   assert('SW still bypasses Anthropic', swSrc.includes('api.anthropic.com'), 'found');
   assert('SW still bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
-  assert('SW cache bumped to v49', swSrc.includes('labcharts-v54'), 'found');
+  assert('SW cache bumped to v55', swSrc.includes('labcharts-v55'), 'found');
 
   // ─── Section 16: CSS classes ───
   console.log('%c Section 16: CSS classes', 'font-weight:bold;color:#6366f1');

@@ -14,8 +14,6 @@
       "continue": true
     },
     { "src": "^/docs/?$", "dest": "/dist-docs/index.html" },
-    { "src": "^/docs/(.*)", "dest": "/dist-docs/$1" },
-    { "src": "^/$", "dest": "/site.html" },
-    { "src": "^/app/?$", "dest": "/index.html" }
+    { "src": "^/docs/(.*)", "dest": "/dist-docs/$1" }
   ]
 }

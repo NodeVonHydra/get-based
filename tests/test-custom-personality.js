@@ -1,5 +1,5 @@
 // test-custom-personality.js — Named Custom Personalities with AI Generation
-// Run: fetch('test-custom-personality.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-custom-personality.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   const results = { passed: 0, failed: 0, total: 0 };

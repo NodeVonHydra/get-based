@@ -1,5 +1,5 @@
 // test-openrouter.js — Verify OpenRouter as 4th AI provider
-// Run: fetch('test-openrouter.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-openrouter.js').then(r=>r.text()).then(s=>Function(s)())
 (async function() {
   const results = [];
   let passed = 0, failed = 0;
@@ -122,23 +122,11 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v49', swSrc.includes("labcharts-v54"));
+  assert('SW cache is v55', swSrc.includes("labcharts-v55"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
-  // ─── 7. site.html ───
-  console.log('\n7. site.html');
-  const siteSrc = await fetch('site.html').then(r => r.text());
-  assert('site.html has OpenRouter card', siteSrc.includes('OpenRouter'));
-  assert('site.html mentions many models', siteSrc.includes('many models'));
-  assert('site.html grid is 5-col', siteSrc.includes('repeat(5,1fr)'));
-  assert('site.html has 5 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 5);
-  assert('site.html heading says Five providers', siteSrc.includes('Five providers'));
-  const orCardIdx = siteSrc.indexOf('<h3>OpenRouter</h3>');
-  const veniceCardIdx = siteSrc.indexOf('<h3>Venice AI</h3>');
-  assert('site.html: OpenRouter card before Venice card', orCardIdx < veniceCardIdx, `OpenRouter@${orCardIdx}, Venice@${veniceCardIdx}`);
-
-  // ─── 8. Window function exports ───
-  console.log('\n8. Window function exports');
+  // ─── 7. Window function exports ───
+  console.log('\n7. Window function exports');
   assert('window.getOpenRouterKey is function', typeof window.getOpenRouterKey === 'function');
   assert('window.saveOpenRouterKey is function', typeof window.saveOpenRouterKey === 'function');
   assert('window.hasOpenRouterKey is function', typeof window.hasOpenRouterKey === 'function');
@@ -153,8 +141,8 @@
   assert('window.renderOpenRouterModelDropdown is function', typeof window.renderOpenRouterModelDropdown === 'function');
   assert('window.updateOpenRouterModelPricing is function', typeof window.updateOpenRouterModelPricing === 'function');
 
-  // ─── 9. Key/model management (localStorage) ───
-  console.log('\n9. Key/model management');
+  // ─── 8. Key/model management (localStorage) ───
+  console.log('\n8. Key/model management');
   // Save and retrieve key
   const oldKey = localStorage.getItem('labcharts-openrouter-key');
   window.saveOpenRouterKey('test-key-123');
@@ -178,8 +166,8 @@
   if (oldModel) localStorage.setItem('labcharts-openrouter-model', oldModel);
   else localStorage.removeItem('labcharts-openrouter-model');
 
-  // ─── 10. hasAIProvider with openrouter ───
-  console.log('\n10. hasAIProvider integration');
+  // ─── 9. hasAIProvider with openrouter ───
+  console.log('\n9. hasAIProvider integration');
   const oldProvider = localStorage.getItem('labcharts-ai-provider');
   const oldORKey = localStorage.getItem('labcharts-openrouter-key');
   window.setAIProvider('openrouter');
@@ -193,8 +181,8 @@
   if (oldORKey) localStorage.setItem('labcharts-openrouter-key', oldORKey);
   else localStorage.removeItem('labcharts-openrouter-key');
 
-  // ─── 11. Settings modal DOM ───
-  console.log('\n11. Settings modal DOM');
+  // ─── 10. Settings modal DOM ───
+  console.log('\n10. Settings modal DOM');
   window.openSettingsModal('ai');
   await new Promise(r => setTimeout(r, 100));
   const providerBtns = document.querySelectorAll('.ai-provider-btn');
@@ -216,8 +204,8 @@
   if (oldProvider) window.setAIProvider(oldProvider);
   window.closeSettingsModal();
 
-  // ─── 12. Model pricing ───
-  console.log('\n12. Model pricing');
+  // ─── 11. Model pricing ───
+  console.log('\n11. Model pricing');
   // Seed dynamic pricing so hint shows exact values
   const savedPr = localStorage.getItem('labcharts-openrouter-pricing');
   localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify({
@@ -236,8 +224,8 @@
   const ollamaPricing = window.renderModelPricingHint('ollama', '');
   assert('ollama pricing still says Free', ollamaPricing.includes('Free'));
 
-  // ─── 13. Key removal clears pricing cache ───
-  console.log('\n13. Key removal clears pricing cache');
+  // ─── 12. Key removal clears pricing cache ───
+  console.log('\n12. Key removal clears pricing cache');
   const rmSrc = await fetch('js/settings.js').then(r => r.text());
   assert('handleRemoveOpenRouterKey clears pricing cache', rmSrc.includes("removeItem('labcharts-openrouter-pricing')"));
 

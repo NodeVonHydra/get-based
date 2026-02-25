@@ -1,5 +1,5 @@
 // test-crypto.js — Browser-based verification for encryption, backup, and cross-tab sync
-// Run: fetch('test-crypto.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-crypto.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -178,7 +178,7 @@
     const swResponse = await fetch('service-worker.js');
     const swText = await swResponse.text();
     assert('Service worker contains /js/crypto.js', swText.includes('/js/crypto.js'));
-    assert('Service worker cache is v49', swText.includes("labcharts-v54"));
+    assert('Service worker cache is v55', swText.includes("labcharts-v55"));
   } catch (e) {
     assert('Service worker check', false, e.message);
   }

@@ -1,5 +1,5 @@
 // test-demo.js — Verify demo data onboarding redesign
-// Run: fetch('test-demo.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-demo.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -97,7 +97,7 @@
   // ── 6. Service worker ──
   console.log('\n%c6. service-worker.js — Cache version', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v49', swSrc.includes("labcharts-v54"));
+  assert('Cache bumped to v55', swSrc.includes("labcharts-v55"));
   assert('No v27 reference', !swSrc.includes("labcharts-v27"));
 
   // ── Summary ──

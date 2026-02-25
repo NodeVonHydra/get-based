@@ -451,7 +451,7 @@ export function clearAllData() {
 
 export async function loadDemoData(sex = 'male') {
   try {
-    const file = sex === 'female' ? 'demo-female.json' : 'demo-male.json';
+    const file = sex === 'female' ? 'data/demo-female.json' : 'data/demo-male.json';
     const resp = await fetch(file);
     if (!resp.ok) throw new Error('Failed to load');
     const blob = await resp.blob();

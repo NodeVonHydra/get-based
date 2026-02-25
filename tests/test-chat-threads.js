@@ -1,5 +1,5 @@
 // test-chat-threads.js — Browser verification for chat thread feature
-// Run: fetch('test-chat-threads.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-chat-threads.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let passed = 0, failed = 0, total = 0;

@@ -1,5 +1,5 @@
 // test-changelog.js — Verify What's New modal + hasCardContent auto-gating
-// Run: fetch('test-changelog.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-changelog.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -132,7 +132,7 @@
   console.log('%c 9. Service Worker ', 'font-weight:bold;color:#f59e0b');
 
   assert('APP_SHELL includes /js/changelog.js', swSrc.includes('/js/changelog.js'));
-  assert('SW cache is v53', swSrc.includes('labcharts-v54'));
+  assert('SW cache is v55', swSrc.includes('labcharts-v55'));
 
   // ═══════════════════════════════════════
   // 10. Changelog data integrity

@@ -1,5 +1,5 @@
 // test-cycle-tour.js — Cycle tour feature tests
-// Run: fetch('test-cycle-tour.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-cycle-tour.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   const results = [];
@@ -99,7 +99,7 @@
   // --- 14. Service worker cache version ---
   console.log('%c[14] Service worker cache', 'font-weight:bold');
   const swSrc = await fetch('/service-worker.js').then(r => r.text());
-  assert('SW cache is v49', swSrc.includes("labcharts-v54"));
+  assert('SW cache is v55', swSrc.includes("labcharts-v55"));
 
   // --- Summary ---
   console.log('%c=== Results ===', 'font-weight:bold;font-size:14px');
