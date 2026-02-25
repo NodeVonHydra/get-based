@@ -1358,6 +1358,10 @@ body {
   border: 1px solid var(--border); border-bottom-left-radius: 4px;
   border-left: 2px solid rgba(79, 140, 255, 0.3);
 }
+.chat-persona-label {
+  align-self: flex-start; font-size: 11px; color: var(--text-muted);
+  font-weight: 500; padding: 2px 0; margin-top: 4px;
+}
 .chat-msg-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
 /* Markdown elements in chat messages */
 .chat-para { margin: 0 0 10px 0; }
