@@ -122,7 +122,7 @@
   // ─── 6. service-worker.js ───
   console.log('\n6. service-worker.js');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v55', swSrc.includes("labcharts-v59"));
+  assert('SW cache is v55', swSrc.includes("labcharts-v60"));
   assert('SW bypasses openrouter.ai', swSrc.includes("openrouter.ai"));
 
   // ─── 7. Window function exports ───
