@@ -147,6 +147,7 @@ body {
   box-shadow: 0 0 6px rgba(248, 113, 113, 0.15);
 }
 .main { flex: 1; padding: 24px 32px; max-width: calc(100vw - 260px); }
+.app-disclaimer { font-size: 11px; color: var(--text-muted); text-align: center; margin: 32px 0 8px; line-height: 1.5; }
 .category-header { margin-bottom: 24px; }
 .category-header h2 {
   font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.3px;
