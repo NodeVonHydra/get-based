@@ -116,25 +116,7 @@
             </div>
             <span class="chat-personality-opt-check">&#10003;</span>
           </button>
-          <button class="chat-personality-opt" data-personality="custom" onclick="setChatPersonality('custom')">
-            <span class="chat-personality-opt-icon">&#9999;&#65039;</span>
-            <div class="chat-personality-opt-info">
-              <span class="chat-personality-opt-name">Custom Personality</span>
-              <span class="chat-personality-opt-desc">Define your own style</span>
-            </div>
-            <span class="chat-personality-opt-check">&#10003;</span>
-          </button>
-          <div class="chat-personality-custom-area" style="display:none">
-            <div class="chat-personality-custom-header">
-              <input type="text" id="chat-personality-custom-name" class="chat-personality-custom-name-input" placeholder="e.g. Dr. Jack Kruse" maxlength="60" oninput="markPersonalityDirty()">
-              <button id="chat-personality-generate-btn" class="chat-personality-generate-btn" onclick="generateCustomPersonality()">Generate</button>
-            </div>
-            <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
-            <div class="chat-personality-custom-footer">
-              <label class="chat-personality-evidence-label"><input type="checkbox" id="chat-personality-evidence-based" onchange="markPersonalityDirty()"> Enforce evidence-based accuracy</label>
-              <button class="chat-personality-custom-save" onclick="saveCustomPersonality()" disabled>Save</button>
-            </div>
-          </div>
+          <div id="chat-personality-custom-section"></div>
         </div>
       </div>
       <div class="chat-messages" id="chat-messages"></div>

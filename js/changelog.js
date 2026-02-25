@@ -2,9 +2,16 @@
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = 55;
+export const APP_VERSION = 56;
 
 const CHANGELOG = [
+  {
+    version: 56, date: '2026-02-25', title: 'Multiple Custom Personalities',
+    items: [
+      'Create and manage multiple custom AI chat personalities',
+      'Delete custom personalities you no longer need',
+    ]
+  },
   {
     version: 55, date: '2026-02-25', title: 'Website Split',
     items: [
