@@ -12,6 +12,11 @@ import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeni
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
 // ═══════════════════════════════════════════════
+// ABORT CONTROLLER (stop streaming)
+// ═══════════════════════════════════════════════
+let _chatAbortController = null;
+
+// ═══════════════════════════════════════════════
 // THREAD STORAGE HELPERS
 // ═══════════════════════════════════════════════
 const MAX_THREADS = 50;
@@ -745,8 +750,7 @@ export function renderSourcesSection(sources, msgIndex) {
 // ═══════════════════════════════════════════════
 export function regenerateLastMessage() {
   if (state.chatHistory.length < 2) return;
-  const sendBtn = document.getElementById('chat-send-btn');
-  if (sendBtn && sendBtn.disabled) return; // streaming in progress
+  if (_chatAbortController) return; // streaming in progress
   // Pop the last assistant message
   state.chatHistory.pop();
   // Get the last user message
@@ -919,7 +923,19 @@ export function loadChatPersonality() {
 
 export function updateChatHeaderTitle() {
   const el = document.querySelector('.chat-header-title');
-  if (el) {
+  if (!el) return;
+  // Show all persona names when 2+ have responded in this thread
+  const names = [];
+  const seen = new Set();
+  for (const m of state.chatHistory) {
+    if (m.role === 'assistant' && m.personalityName && !seen.has(m.personalityName)) {
+      seen.add(m.personalityName);
+      names.push((m.personalityIcon || '') + ' ' + m.personalityName);
+    }
+  }
+  if (names.length >= 2) {
+    el.textContent = names.join(' & ');
+  } else {
     const p = getActivePersonality();
     el.textContent = p.name;
   }
@@ -1231,7 +1247,9 @@ export function renderChatMessages() {
       html += `<div class="chat-persona-label">${msg.personalityIcon || ''} ${escapeHTML(msg.personalityName)}</div>`;
     }
     if (msg.role === 'assistant') lastPersonaName = msg.personalityName || null;
-    html += `<div class="chat-msg ${cls}">${renderMarkdown(msg.content)}`;
+    const autoClass = msg.auto ? ' chat-msg-auto' : '';
+    const stoppedNote = msg.stopped ? '<div class="chat-stopped-note">[stopped]</div>' : '';
+    html += `<div class="chat-msg ${cls}${autoClass}">${renderMarkdown(msg.content)}${stoppedNote}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
         const provider = getAIProvider();
@@ -1246,6 +1264,8 @@ export function renderChatMessages() {
   }
   container.innerHTML = html;
   container.scrollTop = container.scrollHeight;
+  updateDiscussButton();
+  updateChatHeaderTitle();
 }
 
 export function useChatPrompt(text) {
@@ -1402,9 +1422,37 @@ export function closeChatPanel() {
 }
 
 // ═══════════════════════════════════════════════
+// SEND BUTTON STATE
+// ═══════════════════════════════════════════════
+function setSendButtonMode(btn, mode) {
+  if (!btn) return;
+  if (mode === 'streaming') {
+    btn.disabled = false;
+    btn.innerHTML = '&#9632;'; // ■ stop square
+    btn.classList.add('streaming');
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = '&#10148;'; // ➤ send arrow
+    btn.classList.remove('streaming');
+  }
+}
+
+// ═══════════════════════════════════════════════
 // SEND MESSAGE
 // ═══════════════════════════════════════════════
 export async function sendChatMessage() {
+  // If currently streaming, abort and return (toggle behavior)
+  if (_chatAbortController) {
+    _chatAbortController.abort();
+    _chatAbortController = null;
+    return;
+  }
+
+  // Clear any pending discussion continue prompt
+  removeDiscussContinuePrompt();
+  delete state._discussionPersonas;
+  delete state._discussionOriginalPersonality;
+
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('chat-send-btn');
   const container = document.getElementById('chat-messages');
@@ -1436,8 +1484,9 @@ export async function sendChatMessage() {
   container.appendChild(typingEl);
   container.scrollTop = container.scrollHeight;
 
-  sendBtn.disabled = true;
-  sendBtn.textContent = '...';
+  // Switch to stop mode
+  _chatAbortController = new AbortController();
+  setSendButtonMode(sendBtn, 'streaming');
 
   // Snapshot context areas before sending
   const contextSnapshot = getContextSummary();
@@ -1506,6 +1555,7 @@ export async function sendChatMessage() {
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 4096,
+      signal: _chatAbortController ? _chatAbortController.signal : undefined,
       onStream(text) {
         _streamLatest = text;
         if (!_streamRaf) {
@@ -1618,14 +1668,28 @@ export async function sendChatMessage() {
   } catch (err) {
     if (typeof _streamRaf !== 'undefined' && _streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
     if (typingEl.parentNode) typingEl.remove();
-    const errEl = document.createElement('div');
-    errEl.className = 'chat-msg chat-ai';
-    errEl.innerHTML = `<span style="color:var(--red)">Error: ${escapeHTML(err.message)}</span>`;
-    container.appendChild(errEl);
+
+    // Abort: save partial streamed text as a normal message
+    if (err.name === 'AbortError') {
+      if (_streamLatest) {
+        if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
+        aiMsgEl.style.whiteSpace = '';
+        aiMsgEl.innerHTML = renderMarkdown(_streamLatest) + '<div class="chat-stopped-note">[stopped]</div>';
+        const personality = getActivePersonality();
+        state.chatHistory.push({ role: 'assistant', content: _streamLatest, personalityName: personality.name, personalityIcon: personality.icon, stopped: true });
+        saveChatHistory();
+      }
+    } else {
+      const errEl = document.createElement('div');
+      errEl.className = 'chat-msg chat-ai';
+      errEl.innerHTML = `<span style="color:var(--red)">Error: ${escapeHTML(err.message)}</span>`;
+      container.appendChild(errEl);
+    }
   }
 
-  sendBtn.disabled = false;
-  sendBtn.textContent = 'Send';
+  _chatAbortController = null;
+  setSendButtonMode(sendBtn, 'idle');
+  updateDiscussButton();
   container.scrollTop = container.scrollHeight;
 }
 
@@ -1696,6 +1760,255 @@ export function askAIAboutCorrelations() {
 }
 
 // ═══════════════════════════════════════════════
+// DISCUSS (multi-persona debate)
+// ═══════════════════════════════════════════════
+export function getThreadPersonaCount() {
+  const names = new Set();
+  for (const m of state.chatHistory) {
+    if (m.role === 'assistant' && m.personalityName) names.add(m.personalityName);
+  }
+  return names.size;
+}
+
+export function updateDiscussButton() {
+  const btn = document.getElementById('chat-discuss-btn');
+  if (!btn) return;
+  btn.style.display = getThreadPersonaCount() >= 2 ? 'flex' : 'none';
+}
+
+function collectDiscussionPersonas() {
+  // Walk history backwards to find the 2 most recently active personas
+  const seenIds = new Set();
+  const personas = [];
+  for (let i = state.chatHistory.length - 1; i >= 0; i--) {
+    const m = state.chatHistory[i];
+    if (m.role === 'assistant' && m.personalityName) {
+      let pid = null;
+      const builtIn = CHAT_PERSONALITIES.find(p => p.name === m.personalityName);
+      if (builtIn) pid = builtIn.id;
+      else {
+        const customs = getCustomPersonalities();
+        const cp = customs.find(p => p.name === m.personalityName);
+        if (cp) pid = cp.id;
+      }
+      if (pid && !seenIds.has(pid)) {
+        seenIds.add(pid);
+        personas.unshift({ id: pid, name: m.personalityName, icon: m.personalityIcon });
+        if (personas.length === 2) break;
+      }
+    }
+  }
+  return personas;
+}
+
+async function runDiscussionRound(personas) {
+  const container = document.getElementById('chat-messages');
+  const sendBtn = document.getElementById('chat-send-btn');
+  if (!container) return;
+
+  _chatAbortController = new AbortController();
+  setSendButtonMode(sendBtn, 'streaming');
+
+  try {
+    for (const persona of personas) {
+      if (_chatAbortController.signal.aborted) break;
+
+      state.currentChatPersonality = persona.id;
+
+      const autoMsg = { role: 'user', content: 'Respond to the other analyst\'s points above. Where do you agree or disagree? Add any insights they may have missed.', auto: true };
+      state.chatHistory.push(autoMsg);
+      renderChatMessages();
+      saveChatHistory();
+
+      const typingEl = document.createElement('div');
+      typingEl.className = 'typing-indicator';
+      typingEl.innerHTML = '<span></span><span></span><span></span>';
+      container.appendChild(typingEl);
+      container.scrollTop = container.scrollHeight;
+
+      const labContext = buildLabContext();
+      const personality = getActivePersonality();
+      let personalityPrompt = '';
+      if (personality.id && personality.id.startsWith('custom_')) {
+        const cp = getCustomPersonality();
+        if (cp.promptText) {
+          personalityPrompt = `\n\nPersona: ${cp.promptText}`;
+          if (cp.evidenceBased) {
+            personalityPrompt += '\n\nIMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.';
+          }
+        }
+      } else if (personality.promptAddition) {
+        personalityPrompt = '\n\n' + personality.promptAddition;
+      }
+      const otherNames = new Set();
+      for (const m of state.chatHistory) {
+        if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
+          otherNames.add(m.personalityName);
+        }
+      }
+      let multiPersonaInstruction = '';
+      if (otherNames.size > 0) {
+        multiPersonaInstruction = `\n\nThis conversation includes responses from other AI personalities (${[...otherNames].join(', ')}). Messages marked [Response from ...] were written by a different persona — treat them as a separate analyst's opinion, not your own. You may agree or disagree with their analysis, but never claim you wrote their responses.`;
+      }
+      const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
+
+      const apiMessages = state.chatHistory.slice(-10).map(m => {
+        if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
+          return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
+        }
+        return { role: m.role, content: m.content };
+      });
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chat-persona-label';
+      labelEl.textContent = `${personality.icon || ''} ${personality.name}`;
+      container.appendChild(labelEl);
+
+      const aiMsgEl = document.createElement('div');
+      aiMsgEl.className = 'chat-msg chat-ai';
+      aiMsgEl.style.whiteSpace = 'pre-wrap';
+
+      let _streamLatest = '';
+      let _streamRaf = null;
+
+      const { text: fullText, usage } = await callClaudeAPI({
+        system: systemPrompt,
+        messages: apiMessages,
+        maxTokens: 4096,
+        signal: _chatAbortController.signal,
+        onStream(text) {
+          _streamLatest = text;
+          if (!_streamRaf) {
+            _streamRaf = requestAnimationFrame(() => {
+              _streamRaf = null;
+              if (typingEl.parentNode) typingEl.remove();
+              if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
+              aiMsgEl.textContent = _streamLatest;
+              container.scrollTop = container.scrollHeight;
+            });
+          }
+        }
+      });
+
+      if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+      aiMsgEl.style.whiteSpace = '';
+      if (typingEl.parentNode) typingEl.remove();
+      if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
+      aiMsgEl.innerHTML = renderMarkdown(fullText);
+
+      if (usage && (usage.inputTokens || usage.outputTokens)) {
+        const provider = getAIProvider();
+        const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+        const cost = calculateCost(provider, modelId, usage.inputTokens, usage.outputTokens);
+        const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
+        const footnote = document.createElement('div');
+        footnote.className = 'chat-cost-footnote';
+        footnote.textContent = `${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+        aiMsgEl.appendChild(footnote);
+      }
+
+      const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon };
+      if (usage && (usage.inputTokens || usage.outputTokens)) {
+        assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
+      }
+      state.chatHistory.push(assistantMsg);
+      saveChatHistory();
+      container.scrollTop = container.scrollHeight;
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      // Partial text handled by DOM already
+    } else {
+      const errEl = document.createElement('div');
+      errEl.className = 'chat-msg chat-ai';
+      errEl.innerHTML = `<span style="color:var(--red)">Error: ${escapeHTML(err.message)}</span>`;
+      container.appendChild(errEl);
+    }
+  }
+
+  _chatAbortController = null;
+  setSendButtonMode(sendBtn, 'idle');
+}
+
+function showDiscussContinuePrompt(personas, originalPersonality) {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  // Remove any existing continue prompt
+  const existing = container.querySelector('.chat-discuss-continue');
+  if (existing) existing.remove();
+
+  const prompt = document.createElement('div');
+  prompt.className = 'chat-discuss-continue';
+  prompt.innerHTML = '<button class="chat-discuss-continue-btn" onclick="continueDiscussion()">Continue discussion?</button>' +
+    '<button class="chat-discuss-done-btn" onclick="endDiscussion()">Done</button>';
+  container.appendChild(prompt);
+  container.scrollTop = container.scrollHeight;
+
+  // Stash state for continue/done
+  state._discussionPersonas = personas;
+  state._discussionOriginalPersonality = originalPersonality;
+}
+
+export function removeDiscussContinuePrompt() {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  const el = container.querySelector('.chat-discuss-continue');
+  if (el) el.remove();
+}
+
+export async function continueDiscussion() {
+  removeDiscussContinuePrompt();
+  const personas = state._discussionPersonas;
+  const originalPersonality = state._discussionOriginalPersonality;
+  if (!personas || personas.length < 2) return;
+
+  await runDiscussionRound(personas);
+
+  // Restore and show continue prompt again
+  state.currentChatPersonality = originalPersonality;
+  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, originalPersonality);
+  updateDiscussButton();
+
+  if (!_chatAbortController) { // not aborted
+    showDiscussContinuePrompt(personas, originalPersonality);
+  }
+}
+
+export function endDiscussion() {
+  removeDiscussContinuePrompt();
+  const orig = state._discussionOriginalPersonality;
+  if (orig) {
+    state.currentChatPersonality = orig;
+    localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, orig);
+  }
+  delete state._discussionPersonas;
+  delete state._discussionOriginalPersonality;
+  updateDiscussButton();
+}
+
+export async function startDiscussion() {
+  if (_chatAbortController) return; // already streaming
+  if (getThreadPersonaCount() < 2) return;
+
+  const personas = collectDiscussionPersonas();
+  if (personas.length < 2) return;
+
+  const originalPersonality = state.currentChatPersonality;
+
+  await runDiscussionRound(personas);
+
+  // Restore original personality
+  state.currentChatPersonality = originalPersonality;
+  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, originalPersonality);
+  updateDiscussButton();
+
+  // Show continue prompt if round completed (not aborted)
+  if (!_chatAbortController) {
+    showDiscussContinuePrompt(personas, originalPersonality);
+  }
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS (for onclick handlers)
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -1733,6 +2046,12 @@ Object.assign(window, {
   closeChatPanel,
   sendChatMessage,
   handleChatKeydown,
+  startDiscussion,
+  continueDiscussion,
+  endDiscussion,
+  removeDiscussContinuePrompt,
+  updateDiscussButton,
+  getThreadPersonaCount,
   askAIAboutMarker,
   askAIAboutCorrelations,
   // Thread functions

@@ -231,7 +231,7 @@ export async function validateApiKey(key) {
   }
 }
 
-export async function callAnthropicAPI({ system, messages, maxTokens, onStream }) {
+export async function callAnthropicAPI({ system, messages, maxTokens, onStream, signal }) {
   const key = getApiKey();
   if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
   const body = {
@@ -242,6 +242,9 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream }
   if (system) body.system = system;
   if (onStream) body.stream = true;
 
+  const timeoutSignal = AbortSignal.timeout(300000);
+  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -251,7 +254,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream }
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(300000)
+    signal: fetchSignal
   });
 
   if (!res.ok) {
@@ -299,7 +302,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream }
   }
 }
 
-export async function callOllamaChat({ system, messages, maxTokens, onStream }) {
+export async function callOllamaChat({ system, messages, maxTokens, onStream, signal }) {
   const config = window.getOllamaConfig();
   const model = getOllamaMainModel();
   const ollamaMessages = [];
@@ -309,13 +312,16 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream }) 
   const body = { model, messages: ollamaMessages, stream: !!onStream };
   if (maxTokens) body.options = { num_predict: maxTokens };
 
+  const timeoutSignal = AbortSignal.timeout(300000);
+  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+
   let res;
   try {
     res = await fetch(`${config.url}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(300000)
+      signal: fetchSignal
     });
   } catch (e) {
     if (e.name === 'TimeoutError' || e.message.includes('timed out')) {
@@ -372,13 +378,16 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream }) 
 // ═══════════════════════════════════════════════
 // SHARED OPENAI-COMPATIBLE API HELPER
 // ═══════════════════════════════════════════════
-async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream }, extraHeaders = {}) {
+async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream, signal }, extraHeaders = {}) {
   const apiMessages = [];
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
 
   const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096 };
   if (onStream) { body.stream = true; body.stream_options = { include_usage: true }; }
+
+  const timeoutSignal = AbortSignal.timeout(300000);
+  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
 
   let res;
   try {
@@ -390,7 +399,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
         ...extraHeaders
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(300000)
+      signal: fetchSignal
     });
   } catch (e) {
     if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error(`${providerName} API timed out after 5 min.`);

@@ -2,9 +2,17 @@
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = 56;
+export const APP_VERSION = 57;
 
 const CHANGELOG = [
+  {
+    version: 57, date: '2026-02-25', title: 'Stop Button & Persona Discussion',
+    items: [
+      'Stop button — abort streaming AI responses mid-message',
+      'Discuss button — when 2+ personas have responded, they auto-debate each other',
+      'Partial responses saved when stopped (not lost)',
+    ]
+  },
   {
     version: 56, date: '2026-02-25', title: 'Multiple Custom Personalities',
     items: [

@@ -122,6 +122,7 @@
       <div class="chat-messages" id="chat-messages"></div>
       <div class="chat-input-area">
         <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." rows="2" onkeydown="handleChatKeydown(event)"></textarea>
+        <button class="chat-discuss-btn" id="chat-discuss-btn" onclick="startDiscussion()" style="display:none" aria-label="Start discussion" title="Personas discuss your results">&#128172;</button>
         <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()" aria-label="Send message">&#10148;</button>
       </div>
     </div>

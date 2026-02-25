@@ -258,7 +258,7 @@
   console.log('%c▶ 16. Service worker version', 'font-weight:bold');
   try {
     const swSrc = await fetch('service-worker.js').then(r => r.text());
-    assert('SW cache is v56', swSrc.includes('labcharts-v56'));
+    assert('SW cache is v56', swSrc.includes('labcharts-v57'));
   } catch {
     assert('Could read service-worker.js', false);
   }
@@ -272,6 +272,85 @@
   assert('After snapshot, save disabled', saveBtn2 && saveBtn2.disabled === true);
   window.markPersonalityDirty();
   assert('No changes, save stays disabled', saveBtn2 && saveBtn2.disabled === true);
+
+  // ── 18. Stop button exports ──
+  console.log('%c▶ 18. Stop button', 'font-weight:bold');
+  assert('sendChatMessage exported', typeof window.sendChatMessage === 'function');
+  const sendSrc2 = window.sendChatMessage.toString();
+  assert('sendChatMessage checks _chatAbortController', sendSrc2.includes('_chatAbortController'));
+  assert('sendChatMessage calls abort()', sendSrc2.includes('.abort()'));
+  assert('sendChatMessage passes signal', sendSrc2.includes('signal:'));
+  assert('sendChatMessage handles AbortError', sendSrc2.includes('AbortError'));
+
+  // ── 19. Stop button CSS ──
+  console.log('%c▶ 19. Stop button CSS', 'font-weight:bold');
+  {
+    const css = await fetch('styles.css').then(r => r.text());
+    assert('CSS has .chat-send-btn.streaming', css.includes('.chat-send-btn.streaming'));
+    assert('CSS has .chat-stopped-note', css.includes('.chat-stopped-note'));
+  }
+
+  // ── 20. Discuss button exports ──
+  console.log('%c▶ 20. Discuss button exports', 'font-weight:bold');
+  assert('startDiscussion exported', typeof window.startDiscussion === 'function');
+  assert('continueDiscussion exported', typeof window.continueDiscussion === 'function');
+  assert('endDiscussion exported', typeof window.endDiscussion === 'function');
+  assert('updateDiscussButton exported', typeof window.updateDiscussButton === 'function');
+  assert('getThreadPersonaCount exported', typeof window.getThreadPersonaCount === 'function');
+
+  // ── 21. Discuss button DOM ──
+  console.log('%c▶ 21. Discuss button DOM', 'font-weight:bold');
+  const discussBtnEl = document.getElementById('chat-discuss-btn');
+  assert('Discuss button exists', !!discussBtnEl);
+  assert('Discuss button hidden by default', discussBtnEl && discussBtnEl.style.display === 'none');
+  assert('Discuss button has onclick', discussBtnEl && discussBtnEl.getAttribute('onclick') === 'startDiscussion()');
+
+  // ── 22. Discuss button CSS ──
+  console.log('%c▶ 22. Discuss button CSS', 'font-weight:bold');
+  {
+    const css2 = await fetch('styles.css').then(r => r.text());
+    assert('CSS has .chat-discuss-btn', css2.includes('.chat-discuss-btn'));
+    assert('CSS has .chat-msg-auto', css2.includes('.chat-msg-auto'));
+    assert('CSS has .chat-discuss-continue', css2.includes('.chat-discuss-continue'));
+    assert('CSS has .chat-discuss-continue-btn', css2.includes('.chat-discuss-continue-btn'));
+    assert('CSS has .chat-discuss-done-btn', css2.includes('.chat-discuss-done-btn'));
+  }
+
+  // ── 23. getThreadPersonaCount source ──
+  console.log('%c▶ 23. getThreadPersonaCount', 'font-weight:bold');
+  const countSrc = window.getThreadPersonaCount.toString();
+  assert('getThreadPersonaCount checks personalityName', countSrc.includes('personalityName'));
+  assert('getThreadPersonaCount uses Set', countSrc.includes('new Set'));
+
+  // ── 24. API signal pass-through ──
+  console.log('%c▶ 24. API signal pass-through', 'font-weight:bold');
+  {
+    const apiSrc = await fetch('js/api.js').then(r => r.text());
+    assert('callAnthropicAPI destructures signal', apiSrc.includes('callAnthropicAPI') && apiSrc.includes('signal }'));
+    assert('API uses AbortSignal.any', apiSrc.includes('AbortSignal.any'));
+    assert('callOllamaChat has signal param', apiSrc.includes('callOllamaChat') && apiSrc.includes('signal }'));
+    assert('callOpenAICompatibleAPI has signal param', apiSrc.includes('callOpenAICompatibleAPI') && apiSrc.includes('signal }'));
+  }
+
+  // ── 25. Auto message rendering ──
+  console.log('%c▶ 25. Auto message rendering', 'font-weight:bold');
+  const renderSrc2 = window.renderChatMessages.toString();
+  assert('renderChatMessages checks msg.auto', renderSrc2.includes('msg.auto'));
+  assert('renderChatMessages applies chat-msg-auto class', renderSrc2.includes('chat-msg-auto'));
+  assert('renderChatMessages checks msg.stopped', renderSrc2.includes('msg.stopped'));
+
+  // ── 26. startDiscussion source ──
+  console.log('%c▶ 26. startDiscussion source', 'font-weight:bold');
+  const discSrc = window.startDiscussion.toString();
+  assert('startDiscussion collects personas', discSrc.includes('personas'));
+  assert('startDiscussion restores personality', discSrc.includes('originalPersonality'));
+  assert('startDiscussion shows continue prompt', discSrc.includes('showDiscussContinuePrompt'));
+  const contSrc = window.continueDiscussion.toString();
+  assert('continueDiscussion removes prompt', contSrc.includes('removeDiscussContinuePrompt'));
+  assert('continueDiscussion runs another round', contSrc.includes('runDiscussionRound'));
+  const endSrc = window.endDiscussion.toString();
+  assert('endDiscussion removes prompt', endSrc.includes('removeDiscussContinuePrompt'));
+  assert('endDiscussion restores personality', endSrc.includes('currentChatPersonality'));
 
   // ── Restore ──
   if (origVal !== null) localStorage.setItem(key, origVal);
