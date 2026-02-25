@@ -4,7 +4,7 @@ Get Based is deployed on Vercel. The app is static — no server-side code, no A
 
 ## Vercel configuration
 
-`vercel.json` uses the legacy `routes` array (not `rewrites` or `headers`). This is intentional — Vercel's filesystem routing gives priority to `index.html` at the root, which would shadow the landing page. The `routes` array overrides filesystem routing entirely:
+`vercel.json` uses the legacy `routes` array (not `rewrites` or `headers`):
 
 ```json
 {
@@ -14,19 +14,27 @@ Get Based is deployed on Vercel. The app is static — no server-side code, no A
       "headers": { "...CSP and security headers..." },
       "continue": true
     },
-    { "src": "^/$",       "dest": "/site.html"  },
-    { "src": "^/app/?$",  "dest": "/index.html" }
+    { "src": "^/docs/?$",  "dest": "/dist-docs/index.html" },
+    { "src": "^/docs/(.*)", "dest": "/dist-docs/$1" }
   ]
 }
 ```
 
 | Route | Destination |
 |---|---|
-| `/` | `site.html` — the marketing/landing page |
-| `/app` or `/app/` | `index.html` — the actual application |
+| `/` | `index.html` — the application (served by Vercel filesystem default) |
 | `/docs` | `dist-docs/index.html` — VitePress documentation |
 | `/docs/*` | `dist-docs/*` — VitePress documentation assets and pages |
 | Everything else | Served as-is from the filesystem (JS, CSS, images, manifest) |
+
+## Domain layout
+
+The app and landing page are deployed as two separate Vercel projects on the same domain:
+
+| Subdomain | Vercel project | Repo |
+|---|---|---|
+| `getbased.health` | `get-based-site` | [elkimek/get-based-site](https://github.com/elkimek/get-based-site) |
+| `app.getbased.health` | `get-based` | [elkimek/get-based](https://github.com/elkimek/get-based) |
 
 VitePress builds to `dist-docs/` (configured via `outDir` in `docs/.vitepress/config.mjs`). The output is separate from the `docs/` source directory to avoid Vercel serving the source files as a directory listing.
 
@@ -65,7 +73,7 @@ If a new AI provider is added, its hostname must be added to `connect-src` in `v
 The service worker (`service-worker.js`) manages PWA caching. The cache name includes a version number:
 
 ```js
-const CACHE_NAME = 'labcharts-v49';
+const CACHE_NAME = 'labcharts-v55';
 ```
 
 **When to bump the version:** Any time you change an app file — JS, CSS, HTML, manifest, images. Incrementing the version busts the cache for existing users, who will download fresh files on next visit.
@@ -89,7 +97,7 @@ The API bypass is critical for streaming. If the service worker intercepts a str
 {
   "name": "Get Based",
   "short_name": "Get Based",
-  "start_url": "/app",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#0f1117",

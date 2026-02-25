@@ -1,5 +1,5 @@
 // test-routstr.js — Verify Routstr as 5th AI provider
-// Run: fetch('test-routstr.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-routstr.js').then(r=>r.text()).then(s=>Function(s)())
 (async function() {
   const results = [];
   let passed = 0, failed = 0;
@@ -119,7 +119,7 @@
   // ─── 7. Service worker bypasses api.routstr.com ───
   console.log('\n7. Service worker');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW cache is v49', swSrc.includes('labcharts-v54'));
+  assert('SW cache is v55', swSrc.includes('labcharts-v55'));
   assert('SW bypasses api.routstr.com', swSrc.includes('api.routstr.com'));
 
   // ─── 8. getModelPricing checks routstr dynamic pricing ───
@@ -186,23 +186,8 @@
   assert('handleRemoveRoutstrKey clears model', rmSrc.includes("removeItem('labcharts-routstr-model')"));
   assert('handleRemoveRoutstrKey clears pricing', rmSrc.includes("removeItem('labcharts-routstr-pricing')"));
 
-  // ─── 12. site.html ───
-  console.log('\n12. site.html');
-  const siteSrc = await fetch('site.html').then(r => r.text());
-  assert('site.html has Routstr card', siteSrc.includes('<h3>Routstr</h3>'));
-  assert('site.html mentions eCash', siteSrc.includes('eCash'));
-  assert('site.html mentions Lightning Bitcoin', siteSrc.includes('Lightning Bitcoin'));
-  assert('site.html has 5 provider-cards', (siteSrc.match(/class="provider-card/g) || []).length === 5);
-  assert('site.html heading says Five providers', siteSrc.includes('Five providers'));
-  assert('site.html stats say 5 AI providers', siteSrc.includes('>5</div>'));
-  const routstrCardIdx = siteSrc.indexOf('<h3>Routstr</h3>');
-  const orCardIdx2 = siteSrc.indexOf('<h3>OpenRouter</h3>');
-  const veniceCardIdx2 = siteSrc.indexOf('<h3>Venice AI</h3>');
-  assert('site.html: Routstr card after OpenRouter', routstrCardIdx > orCardIdx2);
-  assert('site.html: Routstr card before Venice', routstrCardIdx < veniceCardIdx2);
-
-  // ─── 13. chat.js + pdf-import.js include routstr ───
-  console.log('\n13. Downstream modules');
+  // ─── 12. chat.js + pdf-import.js include routstr ───
+  console.log('\n12. Downstream modules');
   const chatSrc = await fetch('js/chat.js').then(r => r.text());
   assert('chat.js imports getRoutstrModel', chatSrc.includes('getRoutstrModel'));
   assert('chat.js has routstr model-ID case', chatSrc.includes("provider === 'routstr' ? getRoutstrModel()"));

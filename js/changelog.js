@@ -2,9 +2,15 @@
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = 54;
+export const APP_VERSION = 55;
 
 const CHANGELOG = [
+  {
+    version: 55, date: '2026-02-25', title: 'Website Split',
+    items: [
+      'Landing page moved to its own repo for cleaner separation',
+    ]
+  },
   {
     version: 54, date: '2026-02-24', title: 'Landing Page Light Mode',
     items: [

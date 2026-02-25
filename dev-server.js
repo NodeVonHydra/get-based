@@ -33,13 +33,8 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
 
-  // Route: / → site.html
+  // Route: / → index.html
   if (pathname === '/') {
-    return serveFile(res, path.join(ROOT, 'site.html'));
-  }
-
-  // Route: /app → index.html
-  if (pathname === '/app' || pathname === '/app/') {
     return serveFile(res, path.join(ROOT, 'index.html'));
   }
 
@@ -74,7 +69,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Dev server running at http://localhost:${PORT}`);
-  console.log(`  /        → site.html`);
-  console.log(`  /app     → index.html`);
+  console.log(`  /        → index.html`);
   console.log(`  /docs/*  → dist-docs/*`);
 });

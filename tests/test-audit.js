@@ -1,5 +1,5 @@
 // test-audit.js — Verify pre-release audit fixes
-// Run: fetch('test-audit.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-audit.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v51', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v54'));
+  assert('SW cache version bumped to v55', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v55'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js

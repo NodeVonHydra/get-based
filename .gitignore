@@ -6,7 +6,6 @@ test-data.json
 !icon-512.png
 labcharts-*.json
 test-*.json
-site.html
 node_modules/
 dist-docs/
 docs/.vitepress/cache/

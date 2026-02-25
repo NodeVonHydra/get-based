@@ -1,5 +1,5 @@
 // test-cycle-improvements.js — Browser test for cycle improvements
-// Run: fetch('test-cycle-improvements.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-cycle-improvements.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -290,7 +290,7 @@
 
     // Service worker cache version
     const swSrc = await fetch('service-worker.js').then(r => r.text());
-    assert('Service worker cache is v49', swSrc.includes('labcharts-v54'));
+    assert('Service worker cache is v55', swSrc.includes('labcharts-v55'));
   }
 
   // ── Section 19: addPeriodEntry collects symptoms ──

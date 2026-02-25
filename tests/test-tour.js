@@ -1,5 +1,5 @@
 // test-tour.js — Verify guided tour (spotlight walkthrough) implementation
-// Run: fetch('test-tour.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-tour.js').then(r=>r.text()).then(s=>Function(s)())
 
 (async function() {
   let pass = 0, fail = 0;
@@ -423,7 +423,7 @@
   const swSrc = await fetch('service-worker.js').then(r => r.text());
 
   assert('SW APP_SHELL includes /js/tour.js', swSrc.includes("'/js/tour.js'"));
-  assert('SW cache is v49', swSrc.includes('labcharts-v54'));
+  assert('SW cache is v55', swSrc.includes('labcharts-v55'));
 
   // ═══════════════════════════════════════
   // Restore original tour state

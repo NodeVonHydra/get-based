@@ -1,5 +1,5 @@
 // test-mobile.js — Browser-based verification of mobile responsiveness fixes
-// Run: fetch('test-mobile.js').then(r=>r.text()).then(s=>Function(s)())
+// Run: fetch('tests/test-mobile.js').then(r=>r.text()).then(s=>Function(s)())
 (function() {
   let passed = 0, failed = 0;
   const results = [];

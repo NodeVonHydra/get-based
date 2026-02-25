@@ -40,7 +40,8 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `nav.js` — sidebar, date range filter, chart layers
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
-- **`seed-data.json`** — baseline lab data in importable JSON format (4 entries across 4 dates)
+- **`data/`** — `seed-data.json` (baseline lab data), `demo-female.json`, `demo-male.json`
+- **`tests/`** — 13 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -266,7 +267,7 @@ Markers are referenced as `category.markerKey` (e.g., `biochemistry.glucose`, `h
 
 ## Development
 
-Since the app loads external CSS/JS files, you need a local server. Use the dev server that replicates Vercel routing (`/` → site.html, `/app` → index.html, `/docs/*` → built VitePress):
+Since the app loads external CSS/JS files, you need a local server. Use the dev server (`/` → index.html, `/docs/*` → built VitePress):
 ```
 node dev-server.js
 ```
@@ -276,7 +277,7 @@ No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Ven
 
 ### Tests
 
-14 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
+13 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
 ```
 ./run-tests.sh
 ```
@@ -289,12 +290,12 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 - **User guide** (`docs/guide/`): 27 pages covering all features for end users
 - **Contributor docs** (`docs/contributor/`): 8 pages — architecture, module reference, data pipeline, testing, deployment, storage schema. Diagrams use ASCII box-drawing (no mermaid plugin installed)
 - **Vercel**: `buildCommand: "npm run docs:build"`, `outDir: '../dist-docs'`, routes serve `/dist-docs/` at `/docs`
-- **Cross-links**: site.html nav/drawer/footer, index.html header, README.md all link to `/docs`
+- **Cross-links**: index.html header, README.md all link to `/docs`
 - **SW**: Does not cache `/docs/` paths (not in APP_SHELL) — correct behavior
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v54` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v55` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 
@@ -303,7 +304,7 @@ Breakpoints: 3000/2000/1600/1400px (chat panel scaling up), 1200px (context card
 ## Key Patterns
 
 - **Status coloring**: `getStatus()` returns `"normal"`, `"high"`, `"low"`, or `"missing"`. Returns `"normal"` when refs are `null` (e.g., PhenoAge)
-- **Theme**: Dark (default) / light. `setTheme()` sets `data-theme` on `<html>`. CSS vars in `:root`, overridden in `[data-theme="light"]`. `getChartColors()` reads live CSS vars for Chart.js. Landing page (`site.html`) also supports light mode — auto-detects from `localStorage('labcharts-theme')` or `prefers-color-scheme`, with live OS switching and no-JS fallback
+- **Theme**: Dark (default) / light. `setTheme()` sets `data-theme` on `<html>`. CSS vars in `:root`, overridden in `[data-theme="light"]`. `getChartColors()` reads live CSS vars for Chart.js
 - **Performance**: Rendering functions accept optional `data` param. Toggle functions compute `getActiveData()` once and pass through
 - **Chart lifecycle**: `chartInstances` object + `destroyAllCharts()` prevents memory leaks
 - **Chart.js plugins**: `refBandPlugin` (ref range bands), `optimalBandPlugin` (green dashed), `noteAnnotationPlugin` (yellow dots), `supplementBarPlugin` (timeline bars)
