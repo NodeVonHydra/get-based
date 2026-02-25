@@ -227,8 +227,8 @@ Empty-card guards prevent sending empty `{}` objects: `hasCardContent(obj)` in `
 
 - Slide-out panel with streaming responses. Responsive width across 5 breakpoints (560px–1060px)
 - **Markdown**: `renderMarkdown()` block-aware parser (headings, lists, code blocks, HR, paragraphs) + `applyInlineMarkdown()` (bold, italic, code, links). Streaming-compatible
-- **Personalities**: 3 presets (default, House, custom). Stored per-profile in `labcharts-{profileId}-chatPersonality`. Custom personality in `labcharts-{profileId}-chatPersonalityCustom` as JSON `{ name, icon, promptText }` (backward-compat with legacy plain strings). Removed personalities (Murphy, Robby, Kruse) fall back to default
-- **Named custom personalities**: `getCustomPersonality()` returns `{ name, icon, promptText }`. `pickPersonaIcon(name)` hashes name into a 10-emoji palette. `generateCustomPersonality()` calls AI to auto-generate a persona profile from a name. `getActivePersonality()` overlays dynamic name/icon onto the static custom entry. Thread metadata stores `personalityName`/`personalityIcon` for history display
+- **Personalities**: 2 built-in (default, House) + unlimited custom. Selection stored per-profile in `labcharts-{profileId}-chatPersonality` (value: `'default'`, `'house'`, or `'custom_<id>'`). Custom personalities stored in `labcharts-{profileId}-chatPersonalityCustom` as JSON array `[{ id, name, icon, promptText, evidenceBased }]` (backward-compat with legacy single object and plain strings — auto-migrated to array on read). Removed personalities (Murphy, Robby, Kruse) fall back to default
+- **Multiple custom personalities**: `getCustomPersonalities()` returns array. `getCustomPersonality()` compat shim returns current selection or first. `saveCustomPersonalities(arr)` writes array. `deleteCustomPersonality(id)` removes with confirm dialog, falls back to default if active deleted. `startNewCustomPersonality()` opens blank editor. `pickPersonaIcon(name)` hashes name into a 10-emoji palette. `generateCustomPersonality()` calls AI to auto-generate a persona profile from a name. `getActivePersonality()` looks up custom by ID. Thread metadata stores `personalityName`/`personalityIcon`. Dynamic rendering: `updatePersonalityBar()` builds custom section into `#chat-personality-custom-section` — custom buttons with delete icons + "New Personality" button + editor area. `_editingPersonalityId` tracks editing state (`null`, `'new'`, or custom ID)
 - **Context**: `buildLabContext()` serializes all user data in priority order (goals→lens→values→flags→notes→conditions→supps→cycle→lifestyle). Chat history: last 20 stored, last 10 sent to API (`labcharts-{profileId}-chat`). Prompt order: system prompt → lab data → persona → search instruction
 - **Marker descriptions**: `MARKER_SCHEMA` `desc` field, `localStorage` `labcharts-marker-desc` fallback for custom markers. `fetchCustomMarkerDescription()` one-time API call
 
@@ -295,7 +295,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v55` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v56` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

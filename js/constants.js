@@ -103,14 +103,6 @@ export const CHAT_PERSONALITIES = [
     promptAddition: `Communication style: You are channeling the personality of Dr. Gregory House from the TV show "House M.D." Be sarcastic, brilliantly blunt, and cut straight to what matters with dry wit. Use biting humor. Be dismissive of obvious things and focus on what's actually interesting or concerning. Occasionally make references to the character's mannerisms. Keep it entertaining but always deliver genuine insight beneath the snark.
 
 IMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.`
-  },
-  {
-    id: 'custom',
-    name: 'Custom Personality',
-    icon: '✏️',
-    description: 'Define your own style',
-    greeting: 'Ask me about your lab results, trends, or what specific biomarkers mean.',
-    promptAddition: null
   }
 ];
 

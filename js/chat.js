@@ -814,26 +814,54 @@ export function pickPersonaIcon(name) {
   return PERSONA_ICONS[Math.abs(hash) % PERSONA_ICONS.length];
 }
 
-export function getCustomPersonality() {
+export function getCustomPersonalities() {
   const raw = localStorage.getItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`) || '';
-  if (!raw) return { name: 'Custom Personality', icon: '✏️', promptText: '', evidenceBased: false };
+  if (!raw) return [];
   try {
-    const obj = JSON.parse(raw);
-    if (obj && typeof obj === 'object' && 'promptText' in obj) {
-      return { name: obj.name || 'Custom Personality', icon: obj.icon || '✏️', promptText: obj.promptText || '', evidenceBased: !!obj.evidenceBased };
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    // Single object with promptText → wrap as array
+    if (parsed && typeof parsed === 'object' && 'promptText' in parsed) {
+      return [{ ...parsed, id: parsed.id || 'custom_migrated' }];
     }
   } catch {}
   // Legacy plain string
-  return { name: 'Custom Personality', icon: '✏️', promptText: raw, evidenceBased: false };
+  return [{ id: 'custom_migrated', name: 'Custom Personality', icon: '✏️', promptText: raw, evidenceBased: false }];
+}
+
+export function saveCustomPersonalities(arr) {
+  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`, JSON.stringify(arr));
+}
+
+// Compat shim — returns the custom personality matching current selection, or first, or blank
+export function getCustomPersonality() {
+  const customs = getCustomPersonalities();
+  if (state.currentChatPersonality && state.currentChatPersonality.startsWith('custom_')) {
+    const match = customs.find(p => p.id === state.currentChatPersonality);
+    if (match) return match;
+  }
+  if (customs.length > 0) return customs[0];
+  return { name: 'Custom Personality', icon: '✏️', promptText: '', evidenceBased: false };
 }
 
 export function getActivePersonality() {
-  const base = CHAT_PERSONALITIES.find(p => p.id === state.currentChatPersonality) || CHAT_PERSONALITIES[0];
-  if (base.id === 'custom') {
-    const cp = getCustomPersonality();
-    return { ...base, name: cp.name, icon: cp.icon };
+  // Check if current personality is a custom one
+  if (state.currentChatPersonality && state.currentChatPersonality.startsWith('custom_')) {
+    const customs = getCustomPersonalities();
+    const cp = customs.find(p => p.id === state.currentChatPersonality);
+    if (cp) {
+      return {
+        id: cp.id,
+        name: cp.name,
+        icon: cp.icon,
+        description: 'Custom personality',
+        greeting: 'Ask me about your lab results, trends, or what specific biomarkers mean.',
+        promptAddition: null
+      };
+    }
+    // Custom was deleted — fall through to default
   }
-  return base;
+  return CHAT_PERSONALITIES.find(p => p.id === state.currentChatPersonality) || CHAT_PERSONALITIES[0];
 }
 
 export function getCustomPersonalityText() {
@@ -848,6 +876,7 @@ export async function setChatPersonality(id) {
     if (bar) bar.classList.remove('open');
     return;
   }
+  _editingPersonalityId = null;
   const hasMessages = state.chatHistory.length > 0;
   if (hasMessages) {
     // Save current thread BEFORE changing personality — preserves old thread's identity
@@ -882,7 +911,17 @@ export async function setChatPersonality(id) {
 
 export function loadChatPersonality() {
   const saved = localStorage.getItem(`labcharts-${state.currentProfile}-chatPersonality`);
-  state.currentChatPersonality = saved && CHAT_PERSONALITIES.some(p => p.id === saved) ? saved : 'default';
+  if (!saved) { state.currentChatPersonality = 'default'; return; }
+  // Accept built-in personalities
+  if (CHAT_PERSONALITIES.some(p => p.id === saved)) { state.currentChatPersonality = saved; return; }
+  // Accept custom personalities
+  if (saved.startsWith('custom_') && getCustomPersonalities().some(p => p.id === saved)) { state.currentChatPersonality = saved; return; }
+  // Legacy 'custom' → migrate to custom_migrated if it exists
+  if (saved === 'custom') {
+    const customs = getCustomPersonalities();
+    if (customs.length > 0) { state.currentChatPersonality = customs[0].id; localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, customs[0].id); return; }
+  }
+  state.currentChatPersonality = 'default';
 }
 
 export function updateChatHeaderTitle() {
@@ -900,33 +939,57 @@ export function updatePersonalityBar() {
     currentEl.querySelector('.chat-personality-current-icon').textContent = p.icon;
     currentEl.querySelector('.chat-personality-current-name').textContent = p.name;
   }
-  // Update active states
-  document.querySelectorAll('.chat-personality-opt').forEach(btn => {
+  // Update active states on built-in buttons
+  document.querySelectorAll('.chat-personality-opt[data-personality="default"], .chat-personality-opt[data-personality="house"]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.personality === state.currentChatPersonality);
   });
-  // Update custom button display with dynamic name/icon
-  const customBtn = document.querySelector('.chat-personality-opt[data-personality="custom"]');
-  if (customBtn) {
-    const cp = getCustomPersonality();
-    const iconEl = customBtn.querySelector('.chat-personality-opt-icon');
-    const nameEl = customBtn.querySelector('.chat-personality-opt-name');
-    if (iconEl) iconEl.textContent = cp.icon;
-    if (nameEl) nameEl.textContent = cp.name;
+  // Build custom section dynamically
+  const section = document.getElementById('chat-personality-custom-section');
+  if (!section) return;
+  const customs = getCustomPersonalities();
+  const isCustomActive = state.currentChatPersonality && state.currentChatPersonality.startsWith('custom_');
+  const showEditor = isCustomActive || _editingPersonalityId === 'new';
+  let html = '<div class="chat-personality-divider">Custom</div>';
+  for (const cp of customs) {
+    const isActive = cp.id === state.currentChatPersonality;
+    html += `<div class="chat-personality-opt-wrapper">
+      <button class="chat-personality-opt${isActive ? ' active' : ''}" data-personality="${escapeHTML(cp.id)}" onclick="setChatPersonality('${escapeHTML(cp.id)}')">
+        <span class="chat-personality-opt-icon">${cp.icon}</span>
+        <div class="chat-personality-opt-info">
+          <span class="chat-personality-opt-name">${escapeHTML(cp.name)}</span>
+          <span class="chat-personality-opt-desc">Custom personality</span>
+        </div>
+        <span class="chat-personality-opt-check">&#10003;</span>
+      </button>
+      <button class="chat-personality-delete" onclick="event.stopPropagation(); deleteCustomPersonality('${escapeHTML(cp.id)}')" title="Delete personality">&times;</button>
+    </div>`;
   }
-  // Show/hide custom area
-  const customArea = document.querySelector('.chat-personality-custom-area');
-  if (customArea) {
-    customArea.style.display = state.currentChatPersonality === 'custom' ? 'block' : 'none';
-    if (state.currentChatPersonality === 'custom') {
-      const cp = getCustomPersonality();
-      const textarea = customArea.querySelector('textarea');
-      if (textarea) { textarea.value = cp.promptText; autoResizePersonaTextarea(); }
-      const nameInput = document.getElementById('chat-personality-custom-name');
-      if (nameInput) nameInput.value = cp.name !== 'Custom Personality' ? cp.name : '';
-      const ebCheckbox = document.getElementById('chat-personality-evidence-based');
-      if (ebCheckbox) ebCheckbox.checked = cp.evidenceBased;
-      snapshotPersonalityClean();
-    }
+  html += '<button class="chat-personality-add-btn" onclick="startNewCustomPersonality()">+ New Personality</button>';
+  html += `<div class="chat-personality-custom-area" style="display:${showEditor ? 'block' : 'none'}">
+    <div class="chat-personality-custom-header">
+      <input type="text" id="chat-personality-custom-name" class="chat-personality-custom-name-input" placeholder="e.g. Dr. Jack Kruse" maxlength="60" oninput="markPersonalityDirty()">
+      <button id="chat-personality-generate-btn" class="chat-personality-generate-btn" onclick="generateCustomPersonality()">Generate</button>
+    </div>
+    <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
+    <div class="chat-personality-custom-footer">
+      <label class="chat-personality-evidence-label"><input type="checkbox" id="chat-personality-evidence-based" onchange="markPersonalityDirty()"> Enforce evidence-based accuracy</label>
+      <button class="chat-personality-custom-save" onclick="saveCustomPersonality()" disabled>Save</button>
+    </div>
+  </div>`;
+  section.innerHTML = html;
+  // Populate editor
+  if (isCustomActive && _editingPersonalityId !== 'new') {
+    const cp = getCustomPersonality();
+    const textarea = section.querySelector('.chat-personality-custom-textarea');
+    const nameInput = document.getElementById('chat-personality-custom-name');
+    const ebCheckbox = document.getElementById('chat-personality-evidence-based');
+    if (textarea) { textarea.value = cp.promptText; autoResizePersonaTextarea(); }
+    if (nameInput) nameInput.value = cp.name !== 'Custom Personality' ? cp.name : '';
+    if (ebCheckbox) ebCheckbox.checked = cp.evidenceBased;
+    _editingPersonalityId = state.currentChatPersonality;
+    snapshotPersonalityClean();
+  } else if (_editingPersonalityId === 'new') {
+    snapshotPersonalityClean();
   }
 }
 
@@ -937,6 +1000,9 @@ export function togglePersonalityBar() {
     bar.classList.toggle('open');
   }
 }
+
+// Track which custom personality is being edited (ID, 'new', or null)
+let _editingPersonalityId = null;
 
 // Dirty state tracking for custom personality
 let _personaCleanState = null;
@@ -977,17 +1043,54 @@ export function saveCustomPersonality() {
   const textarea = document.querySelector('.chat-personality-custom-textarea');
   const nameInput = document.getElementById('chat-personality-custom-name');
   const ebCheckbox = document.getElementById('chat-personality-evidence-based');
-  if (textarea) {
-    const name = (nameInput ? nameInput.value.trim() : '') || 'Custom Personality';
-    const icon = pickPersonaIcon(name);
-    const evidenceBased = ebCheckbox ? ebCheckbox.checked : false;
-    const obj = { name, icon, promptText: textarea.value.trim(), evidenceBased };
-    localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonalityCustom`, JSON.stringify(obj));
-    snapshotPersonalityClean();
+  if (!textarea) return;
+  const name = (nameInput ? nameInput.value.trim() : '') || 'Custom Personality';
+  const icon = pickPersonaIcon(name);
+  const evidenceBased = ebCheckbox ? ebCheckbox.checked : false;
+  const promptText = textarea.value.trim();
+  const customs = getCustomPersonalities();
+  let id;
+  if (_editingPersonalityId && _editingPersonalityId !== 'new') {
+    // Update existing
+    id = _editingPersonalityId;
+    const idx = customs.findIndex(p => p.id === id);
+    if (idx >= 0) customs[idx] = { ...customs[idx], name, icon, promptText, evidenceBased };
+  } else {
+    // Create new
+    id = 'custom_' + Date.now().toString(36);
+    customs.push({ id, name, icon, promptText, evidenceBased });
+  }
+  saveCustomPersonalities(customs);
+  _editingPersonalityId = id;
+  state.currentChatPersonality = id;
+  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, id);
+  snapshotPersonalityClean();
+  updatePersonalityBar();
+  updateChatHeaderTitle();
+  showNotification('Custom personality saved', 'success');
+}
+
+export function startNewCustomPersonality() {
+  _editingPersonalityId = 'new';
+  updatePersonalityBar();
+}
+
+export function deleteCustomPersonality(id) {
+  const customs = getCustomPersonalities();
+  const cp = customs.find(p => p.id === id);
+  const name = cp ? cp.name : 'personality';
+  showConfirmDialog(`Delete "${name}"? This cannot be undone.`, () => {
+    const updated = customs.filter(p => p.id !== id);
+    saveCustomPersonalities(updated);
+    if (state.currentChatPersonality === id) {
+      state.currentChatPersonality = 'default';
+      localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, 'default');
+      _editingPersonalityId = null;
+    }
     updatePersonalityBar();
     updateChatHeaderTitle();
-    showNotification('Custom personality saved', 'success');
-  }
+    renderChatMessages();
+  });
 }
 
 export async function generateCustomPersonality() {
@@ -1338,7 +1441,7 @@ export async function sendChatMessage() {
     const labContext = buildLabContext();
     const personality = getActivePersonality();
     let personalityPrompt = '';
-    if (personality.id === 'custom') {
+    if (personality.id && personality.id.startsWith('custom_')) {
       const cp = getCustomPersonality();
       if (cp.promptText) {
         personalityPrompt = `\n\nPersona: ${cp.promptText}`;
@@ -1566,6 +1669,8 @@ Object.assign(window, {
   getChatThreadsKey,
   getChatThreadKey,
   getActivePersonality,
+  getCustomPersonalities,
+  saveCustomPersonalities,
   getCustomPersonality,
   getCustomPersonalityText,
   pickPersonaIcon,
@@ -1579,6 +1684,8 @@ Object.assign(window, {
   updatePersonalityBar,
   togglePersonalityBar,
   saveCustomPersonality,
+  startNewCustomPersonality,
+  deleteCustomPersonality,
   loadChatHistory,
   saveChatHistory,
   clearChatHistory,
