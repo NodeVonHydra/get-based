@@ -877,30 +877,23 @@ export async function setChatPersonality(id) {
     return;
   }
   _editingPersonalityId = null;
-  const hasMessages = state.chatHistory.length > 0;
-  if (hasMessages) {
-    // Save current thread BEFORE changing personality — preserves old thread's identity
-    await saveChatHistory();
-  }
-  // Now switch personality
+  // Switch personality in-place — keep current conversation so users can
+  // get different perspectives in the same thread
   state.currentChatPersonality = id;
   localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, id);
-  if (hasMessages) {
-    // Start fresh thread for the new personality
-    createNewThread();
-  } else {
-    // Current thread is empty — just update its personality in place
-    const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
-    if (thread) {
-      thread.personality = id;
-      const p = getActivePersonality();
-      thread.personalityName = p.name;
-      thread.personalityIcon = p.icon;
-      saveChatThreadIndex();
-    }
-    renderChatMessages(); // re-render empty state with new personality greeting
-    renderThreadList();
+  // Update thread metadata
+  const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
+  if (thread) {
+    thread.personality = id;
+    const p = getActivePersonality();
+    thread.personalityName = p.name;
+    thread.personalityIcon = p.icon;
+    saveChatThreadIndex();
   }
+  if (state.chatHistory.length === 0) {
+    renderChatMessages(); // re-render empty state with new personality greeting
+  }
+  renderThreadList();
   updateChatHeaderTitle();
   updatePersonalityBar();
   const personality = getActivePersonality();

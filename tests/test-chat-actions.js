@@ -412,15 +412,10 @@
 
   if (hasState) {
     assert('setChatPersonality is async', chatSrc.includes('async function setChatPersonality'), 'found in source');
-    assert('setChatPersonality calls createNewThread', chatSrc.includes('createNewThread()'), 'found');
-    // Key fix: saves BEFORE changing state.currentChatPersonality
-    const saveIdx = chatSrc.indexOf('await saveChatHistory()', chatSrc.indexOf('setChatPersonality'));
-    const changeIdx = chatSrc.indexOf('state.currentChatPersonality = id', chatSrc.indexOf('setChatPersonality'));
-    assert('Saves history BEFORE changing personality', saveIdx > 0 && changeIdx > 0 && saveIdx < changeIdx, `save@${saveIdx} < change@${changeIdx}`);
-    // Key fix: only creates new thread when current has messages
-    assert('Checks hasMessages before createNewThread', chatSrc.includes('hasMessages') && chatSrc.includes('if (hasMessages)'), 'guards thread creation');
-    // Key fix: reuses empty thread when switching personality
-    assert('Updates empty thread personality in-place', chatSrc.includes('thread.personality = id'), 'found in setChatPersonality');
+    // Personality switch stays in current thread (no forced new thread)
+    assert('setChatPersonality switches in-place', chatSrc.includes('state.currentChatPersonality = id'), 'found');
+    assert('Updates thread personality in-place', chatSrc.includes('thread.personality = id'), 'found in setChatPersonality');
+    assert('Updates thread metadata on switch', chatSrc.includes('thread.personalityName') && chatSrc.includes('thread.personalityIcon'), 'found');
 
     // Functional test: save with sourcesPending strips it
     const origHist = JSON.parse(JSON.stringify(S.chatHistory));
