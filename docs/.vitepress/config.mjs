@@ -100,7 +100,8 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/elkimek/get-based' },
-      { icon: 'discord', link: 'https://discord.gg/zJdVB9zgQB' }
+      { icon: 'discord', link: 'https://discord.gg/zJdVB9zgQB' },
+      { icon: 'x', link: 'https://x.com/getbasedhealth' }
     ],
 
     editLink: {
