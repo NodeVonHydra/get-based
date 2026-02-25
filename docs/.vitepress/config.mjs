@@ -99,7 +99,8 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/elkimek/get-based' }
+      { icon: 'github', link: 'https://github.com/elkimek/get-based' },
+      { icon: 'discord', link: 'https://discord.gg/zJdVB9zgQB' }
     ],
 
     editLink: {
