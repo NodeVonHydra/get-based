@@ -1462,10 +1462,21 @@ export async function sendChatMessage() {
     if (sourcesEnabled) {
       searchInstruction = '\n\nAfter your response, on its own line output SEARCH_TERMS: followed by 2-3 concise medical/scientific search terms separated by commas. Example:\nSEARCH_TERMS: vitamin D deficiency, immune function, 25-hydroxyvitamin D';
     }
-    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + searchInstruction;
+    // Check if other personas have responded in this thread
+    const currentPersonaName = personality.name;
+    const otherPersonas = new Set();
+    for (const m of state.chatHistory) {
+      if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
+        otherPersonas.add(m.personalityName);
+      }
+    }
+    let multiPersonaInstruction = '';
+    if (otherPersonas.size > 0) {
+      multiPersonaInstruction = `\n\nThis conversation includes responses from other AI personalities (${[...otherPersonas].join(', ')}). Messages marked [Response from ...] were written by a different persona — treat them as a separate analyst's opinion, not your own. You may agree or disagree with their analysis, but never claim you wrote their responses.`;
+    }
+    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
     // Send last 10 messages for context — tag messages from other personas
-    const currentPersonaName = personality.name;
     const apiMessages = state.chatHistory.slice(-10).map(m => {
       if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
         return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
