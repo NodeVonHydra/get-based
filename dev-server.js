@@ -45,8 +45,11 @@ const server = http.createServer((req, res) => {
     return serveFile(res, path.join(ROOT, 'index.html'));
   }
 
-  // Route: /app → index.html
-  if (pathname === '/app' || pathname === '/app/') {
+  // Route: /app → index.html (redirect trailing slash to avoid broken relative paths)
+  if (pathname === '/app/') {
+    res.writeHead(301, { 'Location': '/app' }); res.end(); return;
+  }
+  if (pathname === '/app') {
     return serveFile(res, path.join(ROOT, 'index.html'));
   }
 
