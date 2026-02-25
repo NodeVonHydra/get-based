@@ -1464,8 +1464,14 @@ export async function sendChatMessage() {
     }
     const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + searchInstruction;
 
-    // Send last 10 messages for context
-    const apiMessages = state.chatHistory.slice(-10).map(m => ({ role: m.role, content: m.content }));
+    // Send last 10 messages for context — tag messages from other personas
+    const currentPersonaName = personality.name;
+    const apiMessages = state.chatHistory.slice(-10).map(m => {
+      if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
+        return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
+      }
+      return { role: m.role, content: m.content };
+    });
 
     // Show persona label if personality changed from last AI message
     const lastAiMsg = [...state.chatHistory].reverse().find(m => m.role === 'assistant');
