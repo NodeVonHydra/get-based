@@ -304,6 +304,22 @@ body {
 }
 .modal-close:hover { color: var(--text-primary); }
 .modal h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+/* Changelog */
+.cl-entry { margin-bottom: 20px; }
+.cl-entry + .cl-entry { padding-top: 20px; border-top: 1px solid var(--border); }
+.cl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.cl-version {
+  display: inline-block; background: var(--accent-gradient); color: #fff;
+  font-family: var(--font-display); font-weight: 600; font-size: 14px;
+  padding: 4px 12px; border-radius: 20px;
+}
+.cl-date { font-size: 13px; color: var(--text-muted); }
+.cl-items { list-style: none; margin: 0; padding: 0 0 0 4px; }
+.cl-item {
+  position: relative; padding: 3px 0 3px 16px;
+  font-size: 14px; color: var(--text-secondary); line-height: 1.5;
+}
+.cl-item::before { content: '–'; position: absolute; left: 0; color: var(--accent); font-weight: 600; }
 .modal .modal-unit { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; }
 .marker-description {
   font-size: 13px; color: var(--text-secondary); line-height: 1.4;
