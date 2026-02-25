@@ -278,7 +278,7 @@
   // ─── Section 11: Sources toggle in chat header ───
   console.log('%c Section 11: Sources toggle in chat header', 'font-weight:bold;color:#6366f1');
 
-  const indexSrc = await fetch('index.html').then(r => r.text());
+  const indexSrc = await fetch('/app').then(r => r.text());
   assert('index.html has chat-sources-checkbox', indexSrc.includes('chat-sources-checkbox'), 'found');
   assert('index.html has chat-sources-toggle-label', indexSrc.includes('chat-sources-toggle-label'), 'found');
   assert('index.html has chat-sources-slider', indexSrc.includes('chat-sources-slider'), 'found');

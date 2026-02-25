@@ -16,7 +16,7 @@
   const mainSrc = await fetch('js/main.js').then(r => r.text());
   const settingsSrc = await fetch('js/settings.js').then(r => r.text());
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  const indexSrc = await fetch('index.html').then(r => r.text());
+  const indexSrc = await fetch('/app').then(r => r.text());
 
   // ═══════════════════════════════════════
   // 1. changelog.js module structure
