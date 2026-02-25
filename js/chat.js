@@ -1222,9 +1222,15 @@ export function renderChatMessages() {
     return;
   }
   let html = '';
+  let lastPersonaName = null;
   for (let i = 0; i < state.chatHistory.length; i++) {
     const msg = state.chatHistory[i];
     const cls = msg.role === 'user' ? 'chat-user' : 'chat-ai';
+    // Show persona label when personality changes between AI messages
+    if (msg.role === 'assistant' && msg.personalityName && msg.personalityName !== lastPersonaName) {
+      html += `<div class="chat-persona-label">${msg.personalityIcon || ''} ${escapeHTML(msg.personalityName)}</div>`;
+    }
+    if (msg.role === 'assistant') lastPersonaName = msg.personalityName || null;
     html += `<div class="chat-msg ${cls}">${renderMarkdown(msg.content)}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
@@ -1461,6 +1467,15 @@ export async function sendChatMessage() {
     // Send last 10 messages for context
     const apiMessages = state.chatHistory.slice(-10).map(m => ({ role: m.role, content: m.content }));
 
+    // Show persona label if personality changed from last AI message
+    const lastAiMsg = [...state.chatHistory].reverse().find(m => m.role === 'assistant');
+    if (!lastAiMsg || lastAiMsg.personalityName !== personality.name) {
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chat-persona-label';
+      labelEl.textContent = `${personality.icon || ''} ${personality.name}`;
+      container.appendChild(labelEl);
+    }
+
     // Create AI message placeholder
     const aiMsgEl = document.createElement('div');
     aiMsgEl.className = 'chat-msg chat-ai';
@@ -1521,7 +1536,7 @@ export async function sendChatMessage() {
     }
 
     // Build assistant message object with context snapshot
-    const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot };
+    const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon };
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
     }
