@@ -290,7 +290,7 @@
 
     // Service worker cache version
     const swSrc = await fetch('service-worker.js').then(r => r.text());
-    assert('Service worker cache is v55', swSrc.includes('labcharts-v59'));
+    assert('Service worker cache is v55', swSrc.includes('labcharts-v60'));
   }
 
   // ── Section 19: addPeriodEntry collects symptoms ──

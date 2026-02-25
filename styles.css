@@ -1742,6 +1742,7 @@ body {
   transition: all 0.15s; line-height: 1;
 }
 .glossary-btn:hover { color: var(--accent); border-color: var(--accent); }
+.discord-btn { display: inline-flex; align-items: center; justify-content: center; }
 .glossary-modal {
   max-width: 800px; width: 95%; max-height: 85vh; overflow-y: auto;
 }
