@@ -376,7 +376,7 @@
   assert('sendChatMessage calls searchOpenAlex', chatSrc.includes('searchOpenAlex(searchTerms)'), 'found');
   assert('regenerateLastMessage checks sendBtn.disabled', chatSrc.includes('sendBtn.disabled') && chatSrc.includes('regenerateLastMessage'), 'found');
   assert('renderChatMessages calls buildActionBar', chatSrc.includes('buildActionBar(i)'), 'found');
-  assert('API messages use only role+content', chatSrc.includes('.map(m => ({ role: m.role, content: m.content }))'), 'found');
+  assert('API messages tag other personas', chatSrc.includes('Response from') && chatSrc.includes('personalityName'), 'tags messages from different personas');
   assert('Sources bug fix: isConnected guard', chatSrc.includes('aiMsgEl.isConnected'), 'found');
   assert('Sources bug fix: sourcesPending stripped from JSON', chatSrc.includes('sourcesPending') && chatSrc.includes('undefined'), 'JSON replacer strips sourcesPending');
   assert('Sources bug fix: .catch() handler', chatSrc.includes('.catch('), 'has catch for OpenAlex errors');
