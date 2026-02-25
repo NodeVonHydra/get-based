@@ -1195,7 +1195,7 @@ body {
   flex-shrink: 0;
 }
 .chat-header-left { display: flex; align-items: center; gap: 10px; }
-.chat-header-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+.chat-header-title { font-family: var(--font-display); font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-header-actions { display: flex; gap: 8px; align-items: center; }
 .chat-clear-btn {
   background: none; border: 1px solid var(--border); color: var(--text-muted);
@@ -1422,6 +1422,42 @@ body {
 }
 .chat-send-btn:hover { transform: scale(1.08); box-shadow: 0 2px 12px rgba(79, 140, 255, 0.3); }
 .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.chat-send-btn.streaming {
+  background: var(--red, #ef4444); font-size: 14px;
+}
+.chat-send-btn.streaming:hover { box-shadow: 0 2px 12px rgba(239, 68, 68, 0.3); }
+.chat-discuss-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.chat-discuss-btn:hover { border-color: var(--accent); background: var(--bg-hover); transform: scale(1.08); }
+.chat-msg-auto {
+  font-size: 12px !important; color: var(--text-muted) !important;
+  font-style: italic; padding: 6px 12px !important;
+  background: transparent !important; border: none !important;
+  border-left: none !important; max-width: 100% !important;
+  align-self: center !important;
+}
+.chat-stopped-note {
+  font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px;
+}
+.chat-discuss-continue {
+  align-self: center; display: flex; gap: 8px; padding: 8px 0;
+}
+.chat-discuss-continue-btn {
+  padding: 6px 14px; border-radius: 16px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.chat-discuss-continue-btn:hover { background: var(--accent); color: white; }
+.chat-discuss-done-btn {
+  padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-muted); font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.chat-discuss-done-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
 /* Ask AI Button in Marker Detail Modal */
 .ask-ai-btn {
   width: 100%; padding: 10px; border-radius: 6px;

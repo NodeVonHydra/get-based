@@ -338,7 +338,7 @@
   assert('SW bypasses api.openalex.org', swSrc.includes('api.openalex.org'), 'found in bypass list');
   assert('SW still bypasses Anthropic', swSrc.includes('api.anthropic.com'), 'found');
   assert('SW still bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
-  assert('SW cache bumped to v55', swSrc.includes('labcharts-v56'), 'found');
+  assert('SW cache bumped to v55', swSrc.includes('labcharts-v57'), 'found');
 
   // ─── Section 16: CSS classes ───
   console.log('%c Section 16: CSS classes', 'font-weight:bold;color:#6366f1');
@@ -374,7 +374,7 @@
   assert('sendChatMessage snapshots context', chatSrc.includes('contextSnapshot'), 'found');
   assert('sendChatMessage parses search terms', chatSrc.includes('parseSearchTerms(fullText)'), 'found');
   assert('sendChatMessage calls searchOpenAlex', chatSrc.includes('searchOpenAlex(searchTerms)'), 'found');
-  assert('regenerateLastMessage checks sendBtn.disabled', chatSrc.includes('sendBtn.disabled') && chatSrc.includes('regenerateLastMessage'), 'found');
+  assert('regenerateLastMessage checks _chatAbortController', chatSrc.includes('_chatAbortController') && chatSrc.includes('regenerateLastMessage'), 'found');
   assert('renderChatMessages calls buildActionBar', chatSrc.includes('buildActionBar(i)'), 'found');
   assert('API messages tag other personas', chatSrc.includes('Response from') && chatSrc.includes('personalityName'), 'tags messages from different personas');
   assert('Sources bug fix: isConnected guard', chatSrc.includes('aiMsgEl.isConnected'), 'found');
