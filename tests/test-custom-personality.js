@@ -348,9 +348,18 @@
   const contSrc = window.continueDiscussion.toString();
   assert('continueDiscussion removes prompt', contSrc.includes('removeDiscussContinuePrompt'));
   assert('continueDiscussion runs another round', contSrc.includes('runDiscussionRound'));
+  assert('continueDiscussion reads steer input', contSrc.includes('chat-discuss-steer'));
   const endSrc = window.endDiscussion.toString();
   assert('endDiscussion removes prompt', endSrc.includes('removeDiscussContinuePrompt'));
   assert('endDiscussion restores personality', endSrc.includes('currentChatPersonality'));
+
+  // ── 27. Steer input CSS ──
+  console.log('%c▶ 27. Steer input', 'font-weight:bold');
+  {
+    const css3 = await fetch('styles.css').then(r => r.text());
+    assert('CSS has .chat-discuss-steer', css3.includes('.chat-discuss-steer'));
+    assert('CSS has .chat-discuss-continue-actions', css3.includes('.chat-discuss-continue-actions'));
+  }
 
   // ── Restore ──
   if (origVal !== null) localStorage.setItem(key, origVal);
