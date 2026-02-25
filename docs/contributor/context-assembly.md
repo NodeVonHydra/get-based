@@ -78,7 +78,7 @@ Lab data for current profile (sex: female, age: 34, unit system: SI, today: 2026
 - Improve sleep quality
 
 ## Interpretive Lens                       ←── 2. LENS (analytical framework)
-Jack Kruse, functional medicine paradigm
+Quantum biology, functional medicine paradigm
 
 Note: status labels below use reference ranges.
 
