@@ -74,13 +74,16 @@ const server = http.createServer((req, res) => {
   }
 
   // Static files from site repo (e.g. /thank-you.html, /icon.svg)
+  // Skip files that also exist in the app root to avoid shadowing (index.html, vercel.json, etc.)
   if (hasSite) {
     let siteFile = path.join(SITE_DIR, pathname);
-    // Try exact, then with .html (for clean URLs like /thank-you)
-    if (fs.existsSync(siteFile) && fs.statSync(siteFile).isFile()) {
+    let appFile = path.join(ROOT, pathname);
+    // Only serve from site if the file doesn't also exist in the app root
+    if (fs.existsSync(siteFile) && fs.statSync(siteFile).isFile() && !(fs.existsSync(appFile) && fs.statSync(appFile).isFile())) {
       return serveFile(res, siteFile);
     }
-    if (fs.existsSync(siteFile + '.html')) {
+    // Clean URL: try .html append (only for site-specific pages like /thank-you)
+    if (fs.existsSync(siteFile + '.html') && !(fs.existsSync(appFile + '.html'))) {
       return serveFile(res, siteFile + '.html');
     }
   }

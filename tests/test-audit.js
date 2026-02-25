@@ -27,7 +27,7 @@
   // ═══════════════════════════════════════
   console.log('%c 2. Service Worker Registration ', 'font-weight:bold;color:#f59e0b');
 
-  const indexSrc = await fetch('index.html').then(r => r.text());
+  const indexSrc = await fetch('/app').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
   assert('SW cache version bumped to v55', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v58'));
@@ -168,7 +168,7 @@
   // ═══════════════════════════════════════
   console.log('%c 13. Security Headers ', 'font-weight:bold;color:#f59e0b');
 
-  const vercelSrc = await fetch('vercel.json').then(r => r.text());
+  const vercelSrc = await fetch('/vercel.json').then(r => r.text());
   assert('CSP header in vercel.json', vercelSrc.includes('Content-Security-Policy'));
   assert('CSP allows cdn.jsdelivr.net scripts', vercelSrc.includes('cdn.jsdelivr.net'));
   assert('CSP allows Anthropic API', vercelSrc.includes('api.anthropic.com'));
