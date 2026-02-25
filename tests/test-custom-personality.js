@@ -38,8 +38,8 @@
 
   // ── 2. pickPersonaIcon determinism ──
   console.log('%c▶ 2. pickPersonaIcon determinism', 'font-weight:bold');
-  const icon1 = window.pickPersonaIcon('Dr. Jack Kruse');
-  const icon2 = window.pickPersonaIcon('Dr. Jack Kruse');
+  const icon1 = window.pickPersonaIcon('Longevity Expert');
+  const icon2 = window.pickPersonaIcon('Longevity Expert');
   assert('pickPersonaIcon returns same icon for same name', icon1 === icon2, `${icon1} vs ${icon2}`);
   const icon3 = window.pickPersonaIcon('Dr. House');
   assert('pickPersonaIcon returns emoji', icon1.length > 0);
@@ -58,25 +58,25 @@
   assert('Empty storage returns []', JSON.stringify(window.getCustomPersonalities()) === '[]');
   // Array format
   const arr = [
-    { id: 'custom_abc', name: 'Dr. Kruse', icon: '\uD83E\uDDE0', promptText: 'Kruse prompt', evidenceBased: true },
-    { id: 'custom_def', name: 'Dr. Huberman', icon: '\uD83D\uDD2E', promptText: 'Huberman prompt', evidenceBased: false }
+    { id: 'custom_abc', name: 'Longevity Expert', icon: '\uD83E\uDDE0', promptText: 'Expert prompt', evidenceBased: true },
+    { id: 'custom_def', name: 'Functional Doc', icon: '\uD83D\uDD2E', promptText: 'Functional prompt', evidenceBased: false }
   ];
   localStorage.setItem(key, JSON.stringify(arr));
   const loaded = window.getCustomPersonalities();
   assert('Array: returns 2 items', loaded.length === 2);
-  assert('Array: first item name', loaded[0].name === 'Dr. Kruse');
-  assert('Array: second item name', loaded[1].name === 'Dr. Huberman');
+  assert('Array: first item name', loaded[0].name === 'Longevity Expert');
+  assert('Array: second item name', loaded[1].name === 'Functional Doc');
   assert('Array: IDs preserved', loaded[0].id === 'custom_abc' && loaded[1].id === 'custom_def');
 
   // ── 4. Migration from single object ──
   console.log('%c▶ 4. Migration from single object', 'font-weight:bold');
-  const singleObj = { name: 'Dr. Kruse', icon: '\uD83E\uDDE0', promptText: 'You are Dr. Jack Kruse...', evidenceBased: true };
+  const singleObj = { name: 'Longevity Expert', icon: '\uD83E\uDDE0', promptText: 'You are a longevity researcher...', evidenceBased: true };
   localStorage.setItem(key, JSON.stringify(singleObj));
   const migrated = window.getCustomPersonalities();
   assert('Single obj: returns array of 1', migrated.length === 1);
   assert('Single obj: id is custom_migrated', migrated[0].id === 'custom_migrated');
-  assert('Single obj: name preserved', migrated[0].name === 'Dr. Kruse');
-  assert('Single obj: promptText preserved', migrated[0].promptText === 'You are Dr. Jack Kruse...');
+  assert('Single obj: name preserved', migrated[0].name === 'Longevity Expert');
+  assert('Single obj: promptText preserved', migrated[0].promptText === 'You are a longevity researcher...');
   assert('Single obj: evidenceBased preserved', migrated[0].evidenceBased === true);
 
   // ── 5. Migration from legacy string ──
@@ -97,14 +97,14 @@
   window.loadChatPersonality();
   const compat = window.getCustomPersonality();
   assert('Compat shim: returns matching custom', compat.id === 'custom_def');
-  assert('Compat shim: name is Huberman', compat.name === 'Dr. Huberman');
+  assert('Compat shim: name is Functional Doc', compat.name === 'Functional Doc');
   // When current personality is not custom, returns first
   localStorage.setItem(`labcharts-${profileId}-chatPersonality`, 'default');
   window.loadChatPersonality();
   const compatFallback = window.getCustomPersonality();
   assert('Compat shim: fallback returns first', compatFallback.id === 'custom_abc');
   // getCustomPersonalityText still works
-  assert('getCustomPersonalityText returns promptText', window.getCustomPersonalityText() === 'Kruse prompt');
+  assert('getCustomPersonalityText returns promptText', window.getCustomPersonalityText() === 'Expert prompt');
   // Empty storage returns blank default
   localStorage.removeItem(key);
   const compatEmpty = window.getCustomPersonality();
@@ -125,7 +125,7 @@
   window.loadChatPersonality();
   const active = window.getActivePersonality();
   assert('Active custom: id is custom_abc', active.id === 'custom_abc');
-  assert('Active custom: name is Dr. Kruse', active.name === 'Dr. Kruse');
+  assert('Active custom: name is Longevity Expert', active.name === 'Longevity Expert');
   assert('Active custom: has greeting', typeof active.greeting === 'string' && active.greeting.length > 0);
   // Deleted custom falls back to default
   localStorage.setItem(`labcharts-${profileId}-chatPersonality`, 'custom_nonexistent');
@@ -184,7 +184,7 @@
   const nameInput = document.getElementById('chat-personality-custom-name');
   assert('Name input exists', !!nameInput);
   assert('Name input is text type', nameInput && nameInput.type === 'text');
-  assert('Name input has placeholder', nameInput && nameInput.placeholder.toLowerCase().includes('kruse'));
+  assert('Name input has placeholder', nameInput && nameInput.placeholder.toLowerCase().includes('longevity'));
   const genBtn = document.getElementById('chat-personality-generate-btn');
   assert('Generate button exists', !!genBtn);
   assert('Generate button text', genBtn && genBtn.textContent.trim() === 'Generate');
@@ -195,8 +195,8 @@
   const saveBtn = section.querySelector('.chat-personality-custom-save');
   assert('Save button exists', !!saveBtn);
   // Editor populated with active custom personality
-  assert('Editor name populated', nameInput && nameInput.value === 'Dr. Kruse');
-  assert('Editor textarea populated', textarea && textarea.value === 'Kruse prompt');
+  assert('Editor name populated', nameInput && nameInput.value === 'Longevity Expert');
+  assert('Editor textarea populated', textarea && textarea.value === 'Expert prompt');
 
   // ── 12. CSS classes for new elements ──
   console.log('%c▶ 12. CSS classes', 'font-weight:bold');

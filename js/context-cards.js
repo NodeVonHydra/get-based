@@ -935,7 +935,7 @@ export function openInterpretiveLensEditor() {
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Interpretive Lens</h3>
     <div class="modal-unit">List researchers, clinicians, or scientific paradigms whose frameworks you follow. The AI will consider their perspectives when interpreting your results.</div>
-    <textarea class="note-editor" id="interpretive-lens-textarea" placeholder="e.g. Peter Attia (longevity), Jack Kruse (quantum biology), Functional Endocrinology framework...">${escapeHTML(current)}</textarea>
+    <textarea class="note-editor" id="interpretive-lens-textarea" placeholder="e.g. Longevity medicine, quantum biology, functional endocrinology framework...">${escapeHTML(current)}</textarea>
     <div class="ctx-editor-actions">
       <button class="import-btn import-btn-primary" onclick="saveInterpretiveLens()">Save</button>
       <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>

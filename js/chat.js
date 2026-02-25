@@ -976,7 +976,7 @@ export function updatePersonalityBar() {
   html += '<button class="chat-personality-add-btn" onclick="startNewCustomPersonality()">+ New Personality</button>';
   html += `<div class="chat-personality-custom-area" style="display:${showEditor ? 'block' : 'none'}">
     <div class="chat-personality-custom-header">
-      <input type="text" id="chat-personality-custom-name" class="chat-personality-custom-name-input" placeholder="e.g. Dr. Jack Kruse" maxlength="60" oninput="markPersonalityDirty()">
+      <input type="text" id="chat-personality-custom-name" class="chat-personality-custom-name-input" placeholder="e.g. A longevity researcher" maxlength="60" oninput="markPersonalityDirty()">
       <button id="chat-personality-generate-btn" class="chat-personality-generate-btn" onclick="generateCustomPersonality()">Generate</button>
     </div>
     <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
@@ -1113,7 +1113,7 @@ export async function generateCustomPersonality() {
   if (!nameInput || !textarea) return;
   const name = nameInput.value.trim();
   if (!name) {
-    showNotification('Enter a name first (e.g. "Dr. Jack Kruse")', 'info');
+    showNotification('Enter a name first (e.g. "A longevity researcher")', 'info');
     nameInput.focus();
     return;
   }
