@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4f8cff"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="500" fill="#0a0c14"/>
+  <g transform="translate(750,180) scale(0.6) translate(-256,-272)">
+    <polyline points="96,352 176,288 256,320 336,192 416,224"
+      fill="none" stroke="url(#g)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="96" cy="352" r="16" fill="#4f8cff"/>
+    <circle cx="176" cy="288" r="16" fill="#4f8cff"/>
+    <circle cx="256" cy="320" r="16" fill="#4f8cff"/>
+    <circle cx="336" cy="192" r="16" fill="#4f8cff"/>
+    <circle cx="416" cy="224" r="16" fill="#4f8cff"/>
+  </g>
+  <text x="750" y="380" text-anchor="middle"
+    font-family="system-ui,sans-serif" font-weight="800" font-size="72"
+    letter-spacing="-2" fill="url(#g)">getbased</text>
+  <text x="750" y="430" text-anchor="middle"
+    font-family="system-ui,sans-serif" font-weight="400" font-size="22"
+    fill="#8a8f9e" letter-spacing="0.5">your blood work, decoded</text>
+</svg>
