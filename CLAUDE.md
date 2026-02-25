@@ -273,7 +273,7 @@ Since the app loads external CSS/JS files, you need a local server. The dev serv
 ```
 node dev-server.js
 ```
-If the landing page repo (`get-based-site`) is cloned as a sibling directory (`../get-based-site`), the dev server serves it at `/` and the app at `/app` — matching the production subdomain layout (`getbased.health` / `app.getbased.health`). Without the sibling repo, `/` serves the app directly. Override with `SITE_DIR=/path/to/site node dev-server.js`. Docs at `/docs/*` always route to `dist-docs/`.
+If the landing page repo (`get-based-site`) is cloned as a sibling directory (`../get-based-site`), the dev server serves `/` from its `index.html` and all other site repo files at their own paths (e.g., `/thank-you` → `thank-you.html`), with the app at `/app` — matching the production subdomain layout (`getbased.health` / `app.getbased.health`). Without the sibling repo, `/` serves the app directly. Override with `SITE_DIR=/path/to/site node dev-server.js`. Docs at `/docs/*` always route to `dist-docs/`.
 
 No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Venice) or local Ollama is required for PDF import and chat features.
 
