@@ -36,6 +36,22 @@ The app and landing page are deployed as two separate Vercel projects on the sam
 | `getbased.health` | `get-based-site` | [elkimek/get-based-site](https://github.com/elkimek/get-based-site) |
 | `app.getbased.health` | `get-based` | [elkimek/get-based](https://github.com/elkimek/get-based) |
 
+DNS (Namecheap): A record `@` → `76.76.21.21` (Vercel), CNAME `app` → `cname.vercel-dns.com`, CNAME `www` → `cname.vercel-dns.com`.
+
+The landing page is self-contained (all CSS/JS inline) and depends only on three icon files. CTA links point to `https://app.getbased.health`. A small inline script rewrites these to `/app` on `localhost` for local development.
+
+### Local dev server
+
+`node dev-server.js` mirrors the production layout. If the site repo is cloned as a sibling (`../get-based-site`), the server routes:
+
+| Path | Destination |
+|---|---|
+| `/` | Landing page from `../get-based-site/index.html` |
+| `/app` | App from `index.html` |
+| `/docs/*` | VitePress docs from `dist-docs/` |
+
+Without the sibling repo, `/` serves the app directly. Override the site path with `SITE_DIR=/path/to/site node dev-server.js`.
+
 VitePress builds to `dist-docs/` (configured via `outDir` in `docs/.vitepress/config.mjs`). The output is separate from the `docs/` source directory to avoid Vercel serving the source files as a directory listing.
 
 ## CSP headers
