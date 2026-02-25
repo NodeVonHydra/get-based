@@ -1227,6 +1227,13 @@ export function renderChatMessages() {
     const cls = msg.role === 'user' ? 'chat-user' : 'chat-ai';
     html += `<div class="chat-msg ${cls}">${renderMarkdown(msg.content)}`;
     if (msg.role === 'assistant') {
+      if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
+        const provider = getAIProvider();
+        const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+        const cost = calculateCost(provider, modelId, msg.usage.inputTokens, msg.usage.outputTokens);
+        const totalTokens = (msg.usage.inputTokens || 0) + (msg.usage.outputTokens || 0);
+        html += `<div class="chat-cost-footnote">${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens</div>`;
+      }
       html += buildActionBar(i);
     }
     html += '</div>';
@@ -1515,6 +1522,9 @@ export async function sendChatMessage() {
 
     // Build assistant message object with context snapshot
     const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot };
+    if (usage && (usage.inputTokens || usage.outputTokens)) {
+      assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
+    }
     if (searchTerms) assistantMsg.sourcesPending = true;
     state.chatHistory.push(assistantMsg);
 
