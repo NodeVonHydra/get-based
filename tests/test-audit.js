@@ -30,7 +30,7 @@
   const indexSrc = await fetch('index.html').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v55', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v57'));
+  assert('SW cache version bumped to v55', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v58'));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
@@ -203,8 +203,8 @@
   assert('Compare improved has ::before', cssSrc.includes('.compare-improved::before'));
   assert('Compare worsened has ::before', cssSrc.includes('.compare-worsened::before'));
   assert('Range bar high uses diamond shape', cssSrc.includes('.range-bar-marker.marker-high') && cssSrc.includes('rotate(45deg)'));
-  assert('Health dot yellow uses diamond shape', cssSrc.includes('.ctx-health-dot-yellow') && cssSrc.includes('rotate(45deg)'));
-  assert('Health dot red uses triangle shape', cssSrc.includes('.ctx-health-dot-red') && cssSrc.includes('clip-path'));
+  assert('Health dot yellow has glow', cssSrc.includes('.ctx-health-dot-yellow') && cssSrc.includes('box-shadow'));
+  assert('Health dot red has glow', cssSrc.includes('.ctx-health-dot-red') && cssSrc.includes('box-shadow'));
 
   const chartsSrc = await fetch('js/charts.js').then(r => r.text());
   assert('Chart.js pointStyle per status', chartsSrc.includes('ptStyles') && chartsSrc.includes('pointStyle'));

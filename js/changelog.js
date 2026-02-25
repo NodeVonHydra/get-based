@@ -2,9 +2,16 @@
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = 57;
+export const APP_VERSION = 58;
 
 const CHANGELOG = [
+  {
+    version: 58, date: '2026-02-25', title: 'Revert to Glowing Dots',
+    items: [
+      'Health status dots back to simple glowing circles (removed diamond/triangle shapes)',
+      'Chart data points back to uniform circles with status colors',
+    ]
+  },
   {
     version: 57, date: '2026-02-25', title: 'Stop Button & Persona Discussion',
     items: [
