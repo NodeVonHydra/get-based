@@ -202,7 +202,7 @@
   assert('Heatmap low has ::before', cssSrc.includes('.heatmap-low::before'));
   assert('Compare improved has ::before', cssSrc.includes('.compare-improved::before'));
   assert('Compare worsened has ::before', cssSrc.includes('.compare-worsened::before'));
-  assert('Range bar high uses diamond shape', cssSrc.includes('.range-bar-marker.marker-high') && cssSrc.includes('rotate(45deg)'));
+  assert('Range bar high has glow', cssSrc.includes('.range-bar-marker.marker-high') && cssSrc.includes('box-shadow'));
   assert('Health dot yellow has glow', cssSrc.includes('.ctx-health-dot-yellow') && cssSrc.includes('box-shadow'));
   assert('Health dot red has glow', cssSrc.includes('.ctx-health-dot-red') && cssSrc.includes('box-shadow'));
 
