@@ -73,6 +73,18 @@ const server = http.createServer((req, res) => {
     res.writeHead(404); res.end('Not found'); return;
   }
 
+  // Static files from site repo (e.g. /thank-you.html, /icon.svg)
+  if (hasSite) {
+    let siteFile = path.join(SITE_DIR, pathname);
+    // Try exact, then with .html (for clean URLs like /thank-you)
+    if (fs.existsSync(siteFile) && fs.statSync(siteFile).isFile()) {
+      return serveFile(res, siteFile);
+    }
+    if (fs.existsSync(siteFile + '.html')) {
+      return serveFile(res, siteFile + '.html');
+    }
+  }
+
   // Static files from root
   let filePath = path.join(ROOT, pathname);
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
