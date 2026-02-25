@@ -127,7 +127,7 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
     duration: "7-8h",
     quality: "good",
     schedule: "consistent",
-    roomTemp: "cool",                   // Kruse-informed
+    roomTemp: "cool",                   // circadian-informed
     issues: ["occasional_waking"],
     environment: ["blackout_curtains", "emf_off"],
     practices: ["mouth_taping", "magnesium"],
@@ -135,7 +135,7 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
   },
 
   lightCircadian: {                     // Light & Circadian card
-    amLight: "sunrise_sunlight",        // Kruse-informed
+    amLight: "sunrise_sunlight",        // circadian-informed
     daytime: "outdoor_work",
     uvExposure: "daily",
     evening: ["blue_light_glasses", "dim_lights"],
@@ -168,7 +168,7 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
   environment: {                        // Environment card
     setting: "suburban",
     climate: "temperate",
-    water: "reverse_osmosis",          // Kruse-informed
+    water: "reverse_osmosis",          // circadian-informed
     waterConcerns: [],
     emf: ["wifi", "smart_meter"],
     emfMitigation: ["router_timer"],
@@ -180,7 +180,7 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
   },
 
   // Full-width card — freetext string
-  interpretiveLens: "Jack Kruse, Andrew Huberman, Peter Attia",
+  interpretiveLens: "Longevity medicine, quantum biology, functional endocrinology",
 
   // Health goals — priority-ordered array
   healthGoals: [

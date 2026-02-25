@@ -37,7 +37,7 @@ Fill in as many cards as you can. The AI uses all of this context when interpret
 
 Click any card to open its editor modal. Each editor uses pill-button selectors and tag pills for multi-select options — no dropdowns to dig through. Changes save when you click **Save**.
 
-## Kruse-Informed Options
+## Circadian & Mitochondrial Health Options
 
 Several cards include options inspired by circadian biology and mitochondrial health frameworks:
 
