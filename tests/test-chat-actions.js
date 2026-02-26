@@ -338,7 +338,7 @@
   assert('SW bypasses api.openalex.org', swSrc.includes('api.openalex.org'), 'found in bypass list');
   assert('SW still bypasses Anthropic', swSrc.includes('api.anthropic.com'), 'found');
   assert('SW still bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
-  assert('SW cache bumped to v62', swSrc.includes('labcharts-v62'), 'found');
+  assert('SW cache bumped to v62', swSrc.includes('labcharts-v63'), 'found');
 
   // ─── Section 16: CSS classes ───
   console.log('%c Section 16: CSS classes', 'font-weight:bold;color:#6366f1');
