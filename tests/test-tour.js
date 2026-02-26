@@ -423,7 +423,7 @@
   const swSrc = await fetch('service-worker.js').then(r => r.text());
 
   assert('SW APP_SHELL includes /js/tour.js', swSrc.includes("'/js/tour.js'"));
-  assert('SW cache is v55', swSrc.includes('labcharts-v61'));
+  assert('SW cache is v62', swSrc.includes('labcharts-v62'));
 
   // ═══════════════════════════════════════
   // Restore original tour state
