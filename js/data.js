@@ -98,7 +98,7 @@ export function getActiveData() {
       // Create new category
       data.categories[catKey] = {
         label: def.categoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1),
-        icon: '\uD83D\uDD16',
+        icon: def.icon || '\uD83D\uDD16',
         markers: {}
       };
     }

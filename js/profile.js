@@ -1,6 +1,7 @@
 // profile.js — Profile CRUD, sex/DOB, location, data migration
 
 import { state } from './state.js';
+import { SPECIALTY_MARKER_DEFS } from './schema.js';
 import { COUNTRY_LATITUDES, LATITUDE_BANDS } from './constants.js';
 import { showNotification } from './utils.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
@@ -106,6 +107,26 @@ export function migrateProfileData(data) {
       }
     }
     data.lightCircadian = newLc;
+  }
+  // Migrate hardcoded specialty markers to customMarkers
+  if (data.entries?.length) {
+    const usedSpecialtyKeys = new Set();
+    for (const entry of data.entries) {
+      for (const key of Object.keys(entry.markers || {})) {
+        if (SPECIALTY_MARKER_DEFS[key]) usedSpecialtyKeys.add(key);
+      }
+    }
+    if (!data.customMarkers) data.customMarkers = {};
+    for (const key of usedSpecialtyKeys) {
+      if (!data.customMarkers[key]) {
+        const def = SPECIALTY_MARKER_DEFS[key];
+        data.customMarkers[key] = {
+          name: def.name, unit: def.unit,
+          refMin: def.refMin, refMax: def.refMax,
+          categoryLabel: def.categoryLabel, icon: def.icon
+        };
+      }
+    }
   }
   // Initialize new fields if missing
   if (data.healthGoals === undefined) data.healthGoals = [];
