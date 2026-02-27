@@ -229,6 +229,9 @@ export function showDashboard(data) {
   }
 
   html += `<p class="app-disclaimer">For educational and informational purposes only. Not medical advice. Always consult a qualified healthcare provider before making health decisions.</p>`;
+  const ver = window.APP_VERSION || '';
+  const commit = window.APP_COMMIT || '';
+  html += `<p class="app-footer-version">v${escapeHTML(ver)}${commit ? ` · <a href="https://github.com/elkimek/get-based/commit/${escapeHTML(commit)}" target="_blank" rel="noopener">${escapeHTML(commit)}</a>` : ''}</p>`;
 
   main.innerHTML = html;
 
