@@ -283,18 +283,28 @@ function restoreRailState() {
 // ═══════════════════════════════════════════════
 export function buildLabContext() {
   const data = getActiveData();
-  if (!data.dates.length && !Object.values(data.categories).some(c => c.singleDate)) {
-    return 'No lab data is currently loaded for this profile.';
-  }
+  const hasLabData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate);
   const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const sexLabel = state.profileSex === 'female' ? 'female' : state.profileSex === 'male' ? 'male' : 'not specified';
   const age = state.profileDob ? Math.floor((new Date() - new Date(state.profileDob)) / (365.25 * 24 * 60 * 60 * 1000)) : null;
   const today = new Date().toISOString().slice(0, 10);
   const unitLabel = state.unitSystem === 'US' ? 'US conventional' : 'SI';
-  let ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+
+  let ctx;
+  if (hasLabData) {
+    ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+  } else {
+    const missingDemo = [];
+    if (sexLabel === 'not specified') missingDemo.push('sex');
+    if (age === null) missingDemo.push('date of birth');
+    const demoWarning = missingDemo.length > 0
+      ? ` IMPORTANT: ${missingDemo.join(' and ')} not set — urge the user to set ${missingDemo.length > 1 ? 'these' : 'this'} in Settings first, as it directly affects which tests to recommend and how to interpret results.`
+      : '';
+    ctx = `Profile context (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, today: ${today}):\n\nNo lab data has been imported yet.\nNOTE: The user has not imported any lab results. Use their profile context below to recommend which blood panels and specific tests would be most valuable for them, and explain why each is relevant to their situation. The more cards the user fills out (there are 9 total), the more targeted your recommendations become — encourage filling all of them.${demoWarning}\n\n`;
+  }
 
   // ── Staleness signal ──
-  if (data.dates.length > 0) {
+  if (hasLabData && data.dates.length > 0) {
     const lastDate = data.dates[data.dates.length - 1];
     const daysSince = Math.round((new Date() - new Date(lastDate + 'T00:00:00')) / (24 * 3600 * 1000));
     if (daysSince > 90) {
@@ -325,60 +335,62 @@ export function buildLabContext() {
   }
 
   // ── 3. Lab values by category ("what do the numbers say?") ──
-  const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
-  ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
-  for (const [catKey, cat] of Object.entries(data.categories)) {
-    const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
-    if (markersWithData.length === 0) continue;
-    ctx += `## ${cat.label}\n`;
-    for (const [key, m] of markersWithData) {
-      const latestIdx = getLatestValueIndex(m.values);
-      if (m.phaseRefRanges && m.phaseLabels) {
-        const parts = m.values.map((v, i) => {
-          if (v === null) return null;
-          const phase = m.phaseLabels[i];
-          const pr = m.phaseRefRanges[i];
-          const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
-          const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
-          const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
-          return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
-        }).filter(Boolean).join(', ');
-        ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
-      } else {
-        const vals = m.singlePoint
-          ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
-          : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
-        const mr = getEffectiveRangeForDate(m, latestIdx);
-        const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
-        const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
-        ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+  if (hasLabData) {
+    const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
+    ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
+    for (const [catKey, cat] of Object.entries(data.categories)) {
+      const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
+      if (markersWithData.length === 0) continue;
+      ctx += `## ${cat.label}\n`;
+      for (const [key, m] of markersWithData) {
+        const latestIdx = getLatestValueIndex(m.values);
+        if (m.phaseRefRanges && m.phaseLabels) {
+          const parts = m.values.map((v, i) => {
+            if (v === null) return null;
+            const phase = m.phaseLabels[i];
+            const pr = m.phaseRefRanges[i];
+            const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
+            const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
+            const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
+            return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
+          }).filter(Boolean).join(', ');
+          ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
+        } else {
+          const vals = m.singlePoint
+            ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
+            : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
+          const mr = getEffectiveRangeForDate(m, latestIdx);
+          const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
+          const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
+          ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+        }
       }
+      // Per-category staleness: flag if this category's latest data is >90 days old
+      const catLatestDate = cat.singleDate || (() => {
+        for (let i = data.dates.length - 1; i >= 0; i--) {
+          if (markersWithData.some(([_, m]) => m.values[i] !== null)) return data.dates[i];
+        }
+        return null;
+      })();
+      if (catLatestDate) {
+        const catDaysSince = Math.round((new Date() - new Date(catLatestDate + 'T00:00:00')) / (24 * 3600 * 1000));
+        if (catDaysSince > 90) {
+          const catMonthsAgo = Math.round(catDaysSince / 30.44);
+          ctx += `⚠ Last tested ~${catMonthsAgo} months ago — values may no longer reflect current status.\n`;
+        }
+      }
+      ctx += '\n';
     }
-    // Per-category staleness: flag if this category's latest data is >90 days old
-    const catLatestDate = cat.singleDate || (() => {
-      for (let i = data.dates.length - 1; i >= 0; i--) {
-        if (markersWithData.some(([_, m]) => m.values[i] !== null)) return data.dates[i];
-      }
-      return null;
-    })();
-    if (catLatestDate) {
-      const catDaysSince = Math.round((new Date() - new Date(catLatestDate + 'T00:00:00')) / (24 * 3600 * 1000));
-      if (catDaysSince > 90) {
-        const catMonthsAgo = Math.round(catDaysSince / 30.44);
-        ctx += `⚠ Last tested ~${catMonthsAgo} months ago — values may no longer reflect current status.\n`;
-      }
-    }
-    ctx += '\n';
-  }
 
-  // ── 4. Flagged Results (quick-scan summary) ──
-  const flags = getAllFlaggedMarkers(data);
-  if (flags.length > 0) {
-    ctx += `## Flagged Results (Latest)\n`;
-    for (const f of flags) {
-      ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
+    // ── 4. Flagged Results (quick-scan summary) ──
+    const flags = getAllFlaggedMarkers(data);
+    if (flags.length > 0) {
+      ctx += `## Flagged Results (Latest)\n`;
+      for (const f of flags) {
+        ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
+      }
+      ctx += '\n';
     }
-    ctx += '\n';
   }
 
   // ── 5. User Notes ──
@@ -1219,20 +1231,50 @@ export function clearChatHistory() {
 // ═══════════════════════════════════════════════
 // MESSAGE RENDERING
 // ═══════════════════════════════════════════════
+
+function _getNoDataPrompts() {
+  const data = getActiveData();
+  const hasLabs = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate);
+  if (hasLabs) return null;
+  const cardKeys = ['healthGoals', 'diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment'];
+  const filledCount = cardKeys.filter(k => {
+    if (k === 'healthGoals') return (state.importedData.healthGoals || []).length > 0;
+    return hasCardContent(state.importedData[k]);
+  }).length;
+  if (filledCount === 0) {
+    return [
+      'What should I tell you about myself first?',
+      'Why do the context cards matter?',
+      'What blood tests are worth getting?',
+      'Where do I start with optimizing my health?'
+    ];
+  }
+  return [
+    'Based on my profile, what blood tests should I get?',
+    'What panels would help with my health goals?',
+    'What should I tell my doctor to test for?',
+    'Which markers are most relevant to my lifestyle?'
+  ];
+}
+
 export function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
   if (state.chatHistory.length === 0) {
     const personality = getActivePersonality();
+    const noDataPrompts = _getNoDataPrompts();
+    const prompts = noDataPrompts || [
+      'What are my most concerning results?',
+      'How has my bloodwork changed over time?',
+      'Are there any patterns in my flagged markers?',
+      'Explain my thyroid panel',
+      'What should I test next?'
+    ];
     container.innerHTML = `<div class="chat-empty">
       <div class="chat-empty-icon">${personality.icon}</div>
       <div>${escapeHTML(personality.greeting)}</div>
       <div class="chat-prompts">
-        <button class="chat-prompt-btn" onclick="useChatPrompt('What are my most concerning results?')">What are my most concerning results?</button>
-        <button class="chat-prompt-btn" onclick="useChatPrompt('How has my bloodwork changed over time?')">How has my bloodwork changed over time?</button>
-        <button class="chat-prompt-btn" onclick="useChatPrompt('Are there any patterns in my flagged markers?')">Are there any patterns in my flagged markers?</button>
-        <button class="chat-prompt-btn" onclick="useChatPrompt('Explain my thyroid panel')">Explain my thyroid panel</button>
-        <button class="chat-prompt-btn" onclick="useChatPrompt('What should I test next?')">What should I test next?</button>
+        ${prompts.map(p => `<button class="chat-prompt-btn" onclick="useChatPrompt('${escapeHTML(p)}')">${escapeHTML(p)}</button>`).join('\n        ')}
       </div>
     </div>`;
     return;

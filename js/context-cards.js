@@ -2,9 +2,9 @@
 
 import { state } from './state.js';
 import { COMMON_CONDITIONS, DIET_TYPES, DIET_RESTRICTIONS, DIET_PATTERNS, EXERCISE_FREQ, EXERCISE_TYPES, EXERCISE_INTENSITY, DAILY_MOVEMENT, SLEEP_DURATIONS, SLEEP_QUALITY, SLEEP_SCHEDULE, SLEEP_ROOM_TEMP, SLEEP_ISSUES, SLEEP_ENVIRONMENT, SLEEP_PRACTICES, LIGHT_AM, LIGHT_DAYTIME, LIGHT_UV, LIGHT_EVENING, LIGHT_COLD, LIGHT_GROUNDING, LIGHT_SCREEN_TIME, LIGHT_TECH_ENV, LIGHT_MEAL_TIMING, STRESS_LEVELS, STRESS_SOURCES, STRESS_MGMT, LOVE_STATUS, LOVE_SATISFACTION, LOVE_LIBIDO, LOVE_FREQUENCY, LOVE_ORGASM, LOVE_RELATIONSHIP, LOVE_CONCERNS, ENV_SETTING, ENV_CLIMATE, ENV_WATER, ENV_WATER_CONCERNS, ENV_EMF, ENV_EMF_MITIGATION, ENV_HOME_LIGHT, ENV_AIR, ENV_TOXINS, ENV_BUILDING } from './constants.js';
-import { escapeHTML, hashString, showNotification } from './utils.js';
+import { escapeHTML, hashString, showNotification, hasCardContent } from './utils.js';
 import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
-import { saveImportedData } from './data.js';
+import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
 import { callClaudeAPI, hasAIProvider } from './api.js';
 
@@ -146,7 +146,19 @@ export function renderProfileContextCards() {
     { key: 'environment', emoji: '\uD83C\uDF0D', label: 'Environment', editor: 'openEnvironmentEditor', tooltip: 'Water quality, EMF exposure, air quality, toxins, and building materials shape mitochondrial function, inflammation, hormones, and oxidative stress.', placeholder: 'Describe your environment', summaryFn: () => getEnvironmentSummary(state.importedData.environment) },
   ];
   const filledCount = cardDefs.filter(c => isContextFilled(c.key)).length;
-  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span></div>`;
+  const _ccData = getActiveData();
+  const _ccHasLabs = _ccData.dates.length > 0 || Object.values(_ccData.categories).some(c => c.singleDate);
+  const _ccMissingDemo = (!state.profileSex || !state.profileDob);
+  const _ccDemoHint = _ccMissingDemo ? ' Set your sex and date of birth in Settings too \u2014 they shape which panels matter most.' : '';
+  let _ccSubtitle = '';
+  if (!_ccHasLabs && filledCount === 0) {
+    _ccSubtitle = `<div class="context-section-subtitle">Fill all 9 cards and the AI can recommend exactly which labs to get \u2014 and why.${_ccDemoHint}</div>`;
+  } else if (!_ccHasLabs && filledCount < cardDefs.length) {
+    _ccSubtitle = `<div class="context-section-subtitle">The more you fill in, the better the recommendations \u2014 try to complete all 9, then open the chat.${_ccDemoHint}</div>`;
+  } else if (!_ccHasLabs) {
+    _ccSubtitle = `<div class="context-section-subtitle">${_ccMissingDemo ? 'Set your sex and date of birth in Settings, then open' : 'All filled \u2014 open'} the chat to get personalized test recommendations based on your profile.</div>`;
+  }
+  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span>${_ccSubtitle}</div>`;
   html += `<div class="profile-context-cards">`;
   for (const c of cardDefs) {
     const filled = isContextFilled(c.key);
@@ -252,11 +264,21 @@ export async function loadContextHealthDots() {
     const aiEl = document.getElementById('ctx-ai-' + k);
     if (aiEl) { aiEl.textContent = ''; aiEl.classList.remove('ctx-ai-summary-visible'); }
   }
-  const ctx = window.buildLabContext();
-  if (ctx === 'No lab data is currently loaded for this profile.') {
-    for (const k of staleKeys) applyDotColor(k, 'gray');
-    return;
+  // If none of the stale cards have actual content, keep dots gray (nothing to assess)
+  const _staleHaveContent = staleKeys.some(k => {
+    if (k === 'healthGoals') return (state.importedData.healthGoals || []).length > 0;
+    return hasCardContent(state.importedData[k]);
+  });
+  if (!_staleHaveContent) {
+    // Also check if there's lab data — if there is, the AI can still rate cards
+    const _dotData = getActiveData();
+    const _dotHasLabs = _dotData.dates.length > 0 || Object.values(_dotData.categories).some(c => c.singleDate);
+    if (!_dotHasLabs) {
+      for (const k of staleKeys) applyDotColor(k, 'gray');
+      return;
+    }
   }
+  const ctx = window.buildLabContext();
   const exampleObj = {};
   for (const k of staleKeys) exampleObj[k] = {"dot":"...","tip":"..."};
   const exampleJSON = JSON.stringify(exampleObj);

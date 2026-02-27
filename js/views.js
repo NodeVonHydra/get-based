@@ -229,9 +229,7 @@ export function showDashboard(data) {
   }
 
   html += `<p class="app-disclaimer">For educational and informational purposes only. Not medical advice. Always consult a qualified healthcare provider before making health decisions.</p>`;
-  const ver = window.APP_VERSION || '';
-  const commit = window.APP_COMMIT || '';
-  html += `<p class="app-footer-version">v${escapeHTML(ver)}${commit ? ` · <a href="https://github.com/elkimek/get-based/commit/${escapeHTML(commit)}" target="_blank" rel="noopener">${escapeHTML(commit)}</a>` : ''}</p>`;
+  html += `<p class="app-footer-version">v${escapeHTML(window.APP_VERSION || '')} · <span id="app-commit-hash">···</span></p>`;
 
   main.innerHTML = html;
 
@@ -244,9 +242,23 @@ export function showDashboard(data) {
   // Non-blocking: load focus card and health dots after DOM is ready
   if (hasData && hasAIProvider()) loadFocusCard();
   loadContextHealthDots();
+  loadCommitHash();
 
   // Auto-trigger guided tour on first visit
   if (window.startTour) window.startTour(true);
+}
+
+// ── Commit Hash ──
+
+let _cachedCommitHash = null;
+function loadCommitHash() {
+  const el = document.getElementById('app-commit-hash');
+  if (!el) return;
+  if (_cachedCommitHash) { el.innerHTML = `<a href="https://github.com/elkimek/get-based/commit/${_cachedCommitHash}" target="_blank" rel="noopener">${_cachedCommitHash}</a>`; return; }
+  fetch('https://api.github.com/repos/elkimek/get-based/commits/main', { headers: { Accept: 'application/vnd.github.sha' } })
+    .then(r => r.ok ? r.text() : Promise.reject())
+    .then(sha => { _cachedCommitHash = sha.slice(0, 7); const e = document.getElementById('app-commit-hash'); if (e) e.innerHTML = `<a href="https://github.com/elkimek/get-based/commit/${_cachedCommitHash}" target="_blank" rel="noopener">${_cachedCommitHash}</a>`; })
+    .catch(() => { const e = document.getElementById('app-commit-hash'); if (e) e.textContent = ''; });
 }
 
 // ── Focus Card ──

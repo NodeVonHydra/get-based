@@ -41,7 +41,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
 - **`data/`** — `seed-data.json` (baseline lab data), `demo-female.json`, `demo-male.json`
-- **`tests/`** — 13 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 14 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -221,7 +221,9 @@ Two-path architecture replacing personal info with fake data before sending to A
 10. **Lifestyle cards** (Diet → Exercise → Sleep → Light → Stress → Love Life → Environment)
 11. **Additional Context Notes** — freetext
 
-Empty-card guards prevent sending empty `{}` objects: `hasCardContent(obj)` in `utils.js` is the generic gate — returns `true` if any field has content (strings non-empty, arrays non-empty, `note` trimmed). Used for 7 cards (diagnoses, diet, exercise, sleep, stress, loveLife, environment). Light & Circadian uses custom `lc || autoLat` gate (external latitude). Menstrual cycle is sex-gated. Health goals and interpretive lens use type-specific checks. Staleness signals: global `NOTE:` when most recent labs are >90 days old, plus per-category `⚠ Last tested ~N months ago` after each stale category (catches old fatty acids alongside fresh CBC); `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
+Empty-card guards prevent sending empty `{}` objects: `hasCardContent(obj)` in `utils.js` is the generic gate — returns `true` if any field has content (strings non-empty, arrays non-empty, `note` trimmed). Used for 7 cards (diagnoses, diet, exercise, sleep, stress, loveLife, environment). Light & Circadian uses custom `lc || autoLat` gate (external latitude). Menstrual cycle is sex-gated. Health goals and interpretive lens use type-specific checks. Staleness signals: global `NOTE:` when most recent labs are >90 days old, plus per-category `⚠ Last tested ~N months ago` after each stale category (catches old fatty acids alongside fresh CBC); `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → No Lab Data State → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
+
+**No-data path**: When no lab data exists, `buildLabContext()` skips sections 3-4 (lab values, flagged results) but still serializes all other sections (goals, lens, notes, conditions, supplements, cycle, lifestyle cards). Header changes to "Profile context" with a NOTE instructing the AI to recommend tests. `CHAT_SYSTEM_PROMPT` has a `## No Lab Data State` section for pre-lab advisor behavior. Chat prompts switch: 0 cards filled → encourage filling cards + general test advice; some cards filled → personalized test recommendations. Dashboard shows a `.context-section-subtitle` nudge below "What your GP won't ask you" when no labs present. Health dots use content-based check (`hasCardContent`) instead of old sentinel string — dots work based on context alone when cards are filled.
 
 ### AI Chat Panel
 
@@ -279,7 +281,7 @@ No linters or build steps. An AI provider API key (Anthropic, OpenRouter, or Ven
 
 ### Tests
 
-13 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
+14 browser-based test files (`test-*.js`) run assertions against source code, DOM, CSS, and live behavior. Run all headlessly:
 ```
 ./run-tests.sh
 ```
