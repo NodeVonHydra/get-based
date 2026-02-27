@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.5', date: '2026-02-27', title: 'One-Click OpenRouter',
+    items: [
+      'Connect to OpenRouter with one click — no more copying API keys',
+      'OAuth button in chat setup guide and Settings for instant connection',
+      'OpenRouter is now the first provider tab in Settings',
+    ]
+  },
+  {
     version: '1.0.4', date: '2026-02-27', title: 'Simplified First Visit',
     items: [
       'New welcome hero — one focused card with drop zone and demo data instead of competing elements',
