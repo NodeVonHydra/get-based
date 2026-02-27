@@ -1,7 +1,7 @@
 // pdf-import.js — PDF parsing pipeline, import preview, drop zone, batch import
 
 import { state } from './state.js';
-import { MARKER_SCHEMA, calculateCost, formatCost } from './schema.js';
+import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, calculateCost, formatCost } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
@@ -22,11 +22,17 @@ export function buildMarkerReference() {
       ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: rMin, refMax: rMax };
     }
   }
-  // Include custom markers from previous imports
+  // Include custom markers from previous imports (override specialty defaults)
   const custom = (state.importedData && state.importedData.customMarkers) ? state.importedData.customMarkers : {};
   for (const [fullKey, def] of Object.entries(custom)) {
     if (!ref[fullKey]) {
       ref[fullKey] = { name: def.name, unit: def.unit, refMin: def.refMin, refMax: def.refMax };
+    }
+  }
+  // Include specialty marker definitions (fallback for first-time imports)
+  for (const [key, def] of Object.entries(SPECIALTY_MARKER_DEFS)) {
+    if (!ref[key]) {
+      ref[key] = { name: def.name, unit: def.unit, refMin: def.refMin, refMax: def.refMax };
     }
   }
   return ref;
@@ -125,6 +131,9 @@ Your task:
    - rawName: the test name exactly as it appears in the PDF
    - value: the numeric result (parse comma as decimal point, strip < > prefixes)
    - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
+   - unit: the unit as shown in the PDF
+   - refMin: the lower reference range bound from the PDF (number or null)
+   - refMax: the upper reference range bound from the PDF (number or null)
 3. Match based on medical/biochemical equivalence, not just string similarity. For example:
    - "Glukóza" → "biochemistry.glucose" (Czech for glucose)
    - "Triacylglyceroly" → "lipids.triglycerides"
@@ -135,15 +144,12 @@ Your task:
 7. For markers that do NOT match any known key (mappedKey is null), also return:
    - suggestedKey: a "category.camelCaseKey" string. Use an existing category from the reference if the marker fits (e.g. "biochemistry", "hormones", "vitamins"), otherwise use "custom". The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
    - suggestedName: a clean English display name for the marker
-   - unit: the unit as shown in the PDF
-   - refMin: the lower reference range bound from the PDF (number or null)
-   - refMax: the upper reference range bound from the PDF (number or null)
 
 Return ONLY valid JSON in this exact format, no other text:
 {
   "date": "YYYY-MM-DD",
   "markers": [
-    {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker"},
+    {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker", "unit": "mg/dL", "refMin": 70, "refMax": 100},
     {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "biochemistry.someMarker", "suggestedName": "Some Marker", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
   ]
 }`;
@@ -152,7 +158,7 @@ Return ONLY valid JSON in this exact format, no other text:
   const { text: response, usage } = await callClaudeAPI({
     system,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report${fileName ? ' (file: ' + fileName + ')' : ''}:\n\n${pdfText}` }],
-    maxTokens: 8192
+    maxTokens: 16384
   });
 
   // Parse JSON from response (handle markdown code blocks, truncated output)
@@ -302,6 +308,21 @@ export function confirmImport() {
     state.importedData.entries.push(entry);
   }
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
+  // Auto-create custom markers for matched specialty keys (uses PDF's reference ranges)
+  if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
+  for (const m of matched) {
+    if (SPECIALTY_MARKER_DEFS[m.mappedKey] && !state.importedData.customMarkers[m.mappedKey]) {
+      const def = SPECIALTY_MARKER_DEFS[m.mappedKey];
+      state.importedData.customMarkers[m.mappedKey] = {
+        name: def.name,
+        unit: m.unit || def.unit,
+        refMin: m.refMin != null ? m.refMin : def.refMin,
+        refMax: m.refMax != null ? m.refMax : def.refMax,
+        categoryLabel: def.categoryLabel,
+        icon: def.icon
+      };
+    }
+  }
   // Save new (custom) marker values and definitions
   if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of newMarkers) {

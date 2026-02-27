@@ -135,13 +135,17 @@
   assert('data.js uses def.icon for custom category icon', dataSrc.includes("def.icon || '\\uD83D\\uDD16'"));
 
   // ═══════════════════════════════════════
-  // 6. SPECIALTY_PREFIXES warning removed from pdf-import.js
+  // 6. PDF Import: specialty reference + auto-create custom markers
   // ═══════════════════════════════════════
-  console.log('%c 6. PDF Import Cleanup ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 6. PDF Import Specialty Support ', 'font-weight:bold;color:#f59e0b');
 
   assert('SPECIALTY_PREFIXES removed', !pdfImportSrc.includes('SPECIALTY_PREFIXES'));
   assert('Specialty warning removed', !pdfImportSrc.includes('specialty test data'));
   assert('buildMarkerReference still exists', pdfImportSrc.includes('function buildMarkerReference'));
+  assert('pdf-import imports SPECIALTY_MARKER_DEFS', pdfImportSrc.includes('SPECIALTY_MARKER_DEFS'));
+  assert('buildMarkerReference includes specialty defs', pdfImportSrc.includes('Object.entries(SPECIALTY_MARKER_DEFS)'));
+  assert('confirmImport auto-creates custom markers for specialty keys', pdfImportSrc.includes('SPECIALTY_MARKER_DEFS[m.mappedKey]'));
+  assert('Prompt asks for refMin/refMax on all markers', pdfImportSrc.includes('refMin: the lower reference range bound from the PDF'));
 
   // ═══════════════════════════════════════
   // 7. getActiveData merges migrated specialty markers correctly
