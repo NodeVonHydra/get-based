@@ -98,7 +98,10 @@
 
   if (hasState) {
     const realContainer = document.getElementById('chat-messages');
-    if (realContainer) {
+    // renderChatMessages shows setup guide when no AI provider is configured,
+    // so fall back to HTML-parsing approach when provider is missing
+    const hasProvider = typeof window.hasAIProvider === 'function' ? window.hasAIProvider() : true;
+    if (realContainer && hasProvider) {
       window.renderChatMessages();
       const aiMsgs = realContainer.querySelectorAll('.chat-msg.chat-ai');
       const userMsgs = realContainer.querySelectorAll('.chat-msg.chat-user');

@@ -174,6 +174,47 @@
   })(), 'Should always return the built context string');
 
   // ═══════════════════════════════════════
+  // 7. Chat setup guide (no AI provider)
+  // ═══════════════════════════════════════
+  console.log('%c 7. Chat Setup Guide (No Provider) ', 'font-weight:bold;color:#f59e0b');
+
+  assert('openChatPanel has no hasAIProvider gate', !(() => {
+    const fnStart = chatSrc.indexOf('export async function openChatPanel(');
+    const fnEnd = chatSrc.indexOf('\nexport', fnStart + 10);
+    const fnBody = chatSrc.substring(fnStart, fnEnd);
+    // Check if hasAIProvider is called before the panel opens
+    const providerCheck = fnBody.indexOf('hasAIProvider()');
+    const panelOpen = fnBody.indexOf("panel.classList.add('open')");
+    return providerCheck !== -1 && providerCheck < panelOpen;
+  })(), 'openChatPanel should let the panel open without a provider');
+
+  assert('renderChatMessages shows setup guide when no provider', chatSrc.includes('if (!hasAIProvider())') && chatSrc.includes('chat-setup-guide'),
+    'Should show friendly setup guide instead of error');
+  assert('Setup guide has OpenRouter', chatSrc.includes('openrouter.ai/keys'),
+    'Should link to OpenRouter key page');
+  assert('Setup guide has Anthropic', chatSrc.includes('console.anthropic.com'),
+    'Should link to Anthropic console');
+  assert('Setup guide has Venice', chatSrc.includes('venice.ai/settings/api'),
+    'Should link to Venice API settings');
+  assert('Setup guide has Ollama', chatSrc.includes('ollama.com'),
+    'Should link to Ollama download');
+  assert('Setup guide has settings button', chatSrc.includes("openSettingsModal('ai')"),
+    'Should have button that opens AI settings tab directly');
+  assert('sendChatMessage guards no provider', (() => {
+    const fnStart = chatSrc.indexOf('export async function sendChatMessage()');
+    const fnBody = chatSrc.substring(fnStart, fnStart + 300);
+    return fnBody.includes('if (!hasAIProvider())');
+  })(), 'sendChatMessage should check for provider and re-render setup guide');
+
+  // CSS checks
+  assert('.chat-setup-guide in CSS', cssSrc.includes('.chat-setup-guide'),
+    'CSS should define setup guide styles');
+  assert('.chat-setup-provider in CSS', cssSrc.includes('.chat-setup-provider'),
+    'CSS should define provider card styles');
+  assert('.chat-setup-btn in CSS', cssSrc.includes('.chat-setup-btn'),
+    'CSS should define setup button styles');
+
+  // ═══════════════════════════════════════
   // Results
   // ═══════════════════════════════════════
   console.log(`\n%c Results: ${pass} passed, ${fail} failed `, fail > 0
