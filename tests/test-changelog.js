@@ -18,28 +18,33 @@
   const swSrc = await fetch('service-worker.js').then(r => r.text());
   const indexSrc = await fetch('/app').then(r => r.text());
 
+  const versionSrc = await fetch('version.js').then(r => r.text());
+
   // ═══════════════════════════════════════
   // 1. changelog.js module structure
   // ═══════════════════════════════════════
   console.log('%c 1. Changelog Module Structure ', 'font-weight:bold;color:#f59e0b');
 
-  assert('changelog.js exports APP_VERSION', changelogSrc.includes('export const APP_VERSION'));
+  assert('changelog.js uses window.APP_VERSION', changelogSrc.includes('window.APP_VERSION'));
   assert('changelog.js has CHANGELOG array', changelogSrc.includes('const CHANGELOG'));
   assert('changelog.js exports openChangelog', changelogSrc.includes('export function openChangelog'));
   assert('changelog.js exports closeChangelog', changelogSrc.includes('export function closeChangelog'));
   assert('changelog.js exports maybeShowChangelog', changelogSrc.includes('export function maybeShowChangelog'));
+  assert('changelog.js has getMajorMinor helper', changelogSrc.includes('function getMajorMinor'));
+  assert('maybeShowChangelog compares major.minor only', changelogSrc.includes('getMajorMinor(seen) !== getMajorMinor('));
 
   // ═══════════════════════════════════════
-  // 2. Version format: APP_VERSION is semantic string, SW cache is separate integer
+  // 2. Unified semver versioning
   // ═══════════════════════════════════════
-  console.log('%c 2. Version Format ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 2. Unified Semver Versioning ', 'font-weight:bold;color:#f59e0b');
 
-  const versionMatch = changelogSrc.match(/APP_VERSION\s*=\s*'([^']+)'/);
-  const swMatch = swSrc.match(/labcharts-v(\d+)/);
-  assert('APP_VERSION is a quoted string', versionMatch !== null, versionMatch ? `'${versionMatch[1]}'` : 'not found');
-  assert('APP_VERSION looks semantic', versionMatch && /^\d+\.\d+/.test(versionMatch[1]), versionMatch ? versionMatch[1] : '');
-  assert('SW CACHE_NAME has version number', swMatch !== null);
-  assert('APP_VERSION decoupled from SW cache', versionMatch && swMatch && versionMatch[1] !== swMatch[1], 'semantic vs integer');
+  const versionMatch = versionSrc.match(/APP_VERSION\s*=\s*'([^']+)'/);
+  assert('version.js sets APP_VERSION', versionMatch !== null, versionMatch ? `'${versionMatch[1]}'` : 'not found');
+  assert('APP_VERSION is semver', versionMatch && /^\d+\.\d+\.\d+/.test(versionMatch[1]), versionMatch ? versionMatch[1] : '');
+  assert('SW imports version.js', swSrc.includes("importScripts('/version.js')"));
+  assert('SW CACHE_NAME uses template literal', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
+  assert('SW APP_SHELL includes version.js', swSrc.includes("'/version.js'"));
+  assert('index.html loads version.js', indexSrc.includes('src="version.js"'));
 
   // ═══════════════════════════════════════
   // 3. HTML: changelog modal exists
@@ -131,7 +136,6 @@
   console.log('%c 9. Service Worker ', 'font-weight:bold;color:#f59e0b');
 
   assert('APP_SHELL includes /js/changelog.js', swSrc.includes('/js/changelog.js'));
-  assert('SW cache is v62', swSrc.includes('labcharts-v63'));
 
   // ═══════════════════════════════════════
   // 10. Changelog data integrity

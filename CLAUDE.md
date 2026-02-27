@@ -36,7 +36,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — first-visit guided tour (spotlight walkthrough)
-  - `changelog.js` — What's New modal, `APP_VERSION`, auto-trigger on update
+  - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
   - `nav.js` — sidebar, date range filter, chart layers
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, event listeners, refresh callback
@@ -161,8 +161,8 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 Version-triggered changelog modal so users see what changed after each PWA update.
 
-- **Version**: `APP_VERSION` in `changelog.js` — semantic string (e.g., `'1.0'`), decoupled from SW cache integer
-- **Storage**: `labcharts-changelog-seen` → version string. Auto-trigger after `showDashboard()` if seen !== APP_VERSION
+- **Version**: `APP_VERSION` in `/version.js` — semver string (e.g., `'1.0.1'`). Classic script loaded before modules, also `importScripts`'d by SW. Single source of truth for both app version and cache name (`labcharts-v${APP_VERSION}`). Patch bumps bust cache but skip What's New; minor/major bumps show What's New
+- **Storage**: `labcharts-changelog-seen` → full semver string. Auto-trigger after `showDashboard()` compares major.minor only (via `getMajorMinor()`)
 - **HTML**: `#changelog-modal-overlay` + `#changelog-modal` with `role="dialog"`
 - **Data**: `CHANGELOG` array — `[{ version, date, title, items[] }]`, newest first. Auto-trigger shows latest 3; Settings shows all
 - **Trigger**: Settings → Display → "What's New" button calls `openChangelog(true)`
@@ -297,7 +297,7 @@ VitePress-powered docs at `/docs` (source in `docs/`). Config: `docs/.vitepress/
 
 ### PWA (Progressive Web App)
 
-Installable via `manifest.json` + `service-worker.js`. Cache: `labcharts-v63` (bump to bust). Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
+Installable via `manifest.json` + `service-worker.js`. Cache name: `labcharts-v${APP_VERSION}` (derived from `/version.js` via `importScripts`). Bump `APP_VERSION` in `version.js` to bust cache — no other file needs changing. Strategies: API/OpenRouter/Venice/Ollama → bypass SW entirely (no `event.respondWith`, avoids IPC stream buffering), Google Fonts → stale-while-revalidate, CDN → cache-first, app shell → stale-while-revalidate.
 
 ### Responsive Layout
 

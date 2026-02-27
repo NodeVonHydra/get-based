@@ -1,6 +1,8 @@
-const CACHE_NAME = 'labcharts-v63';
+importScripts('/version.js');
+const CACHE_NAME = `labcharts-v${self.APP_VERSION}`;
 
 const APP_SHELL = [
+  '/version.js',
   '/index.html',
   '/styles.css',
   '/js/main.js',

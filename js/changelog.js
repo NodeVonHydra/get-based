@@ -1,10 +1,15 @@
 // changelog.js — What's New modal, version tracking, auto-trigger on update
+// APP_VERSION comes from /version.js (loaded as classic script before modules)
 
 import { escapeHTML } from './utils.js';
 
-export const APP_VERSION = '1.0';
-
 const CHANGELOG = [
+  {
+    version: '1.0.1', date: '2026-02-27', title: 'Minor Tweaks',
+    items: [
+      'Minor tweaks and bug fixes',
+    ]
+  },
   {
     version: '1.0', date: '2026-02-25', title: 'Launch',
     items: [
@@ -18,12 +23,18 @@ const CHANGELOG = [
   },
 ];
 
+/** Extract major.minor from a semver string (e.g. '1.0.1' → '1.0') */
+function getMajorMinor(ver) {
+  const parts = String(ver).split('.');
+  return parts.slice(0, 2).join('.');
+}
+
 function getSeenVersion() {
   return localStorage.getItem('labcharts-changelog-seen') || '';
 }
 
 function markChangelogSeen() {
-  localStorage.setItem('labcharts-changelog-seen', String(APP_VERSION));
+  localStorage.setItem('labcharts-changelog-seen', String(window.APP_VERSION));
 }
 
 export function openChangelog(showAll) {
@@ -57,7 +68,9 @@ export function closeChangelog() {
 }
 
 export function maybeShowChangelog() {
-  if (getSeenVersion() !== String(APP_VERSION)) {
+  const seen = getSeenVersion();
+  // Only show What's New on minor/major bumps, not patch
+  if (getMajorMinor(seen) !== getMajorMinor(window.APP_VERSION)) {
     openChangelog(false);
   }
 }

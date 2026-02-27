@@ -30,7 +30,9 @@
   const indexSrc = await fetch('/app').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
-  assert('SW cache version bumped to v62', (await fetch('service-worker.js').then(r => r.text())).includes('labcharts-v63'));
+  const swAuditSrc = await fetch('service-worker.js').then(r => r.text());
+  assert('SW uses importScripts for version', swAuditSrc.includes("importScripts('/version.js')"));
+  assert('SW CACHE_NAME uses semver', swAuditSrc.includes('`labcharts-v${self.APP_VERSION}`'));
   assert('Umami analytics script present', indexSrc.includes('cloud.umami.is/script.js'));
   assert('Umami script is deferred', indexSrc.includes('defer src="https://cloud.umami.is/script.js"'));
 

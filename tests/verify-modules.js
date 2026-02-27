@@ -514,9 +514,9 @@
   // 20. SERVICE WORKER — cache version check
   // ═══════════════════════════════════════════════
   fetch('service-worker.js').then(r => r.text()).then(sw => {
-    const match = sw.match(/CACHE_NAME\s*=\s*'labcharts-v(\d+)'/);
-    assert('Service worker cache version is v17+', match && parseInt(match[1]) >= 17,
-      match ? `v${match[1]}` : 'not found');
+    assert('SW uses importScripts for version', sw.includes("importScripts('/version.js')"));
+    assert('SW CACHE_NAME uses semver template', sw.includes('`labcharts-v${self.APP_VERSION}`'));
+    assert('SW APP_SHELL includes version.js', sw.includes("'/version.js'"));
 
     const hasMainJs = sw.includes('/js/main.js');
     assert('Service worker caches js/main.js', hasMainJs);

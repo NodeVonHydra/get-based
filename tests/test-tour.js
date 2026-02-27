@@ -423,7 +423,8 @@
   const swSrc = await fetch('service-worker.js').then(r => r.text());
 
   assert('SW APP_SHELL includes /js/tour.js', swSrc.includes("'/js/tour.js'"));
-  assert('SW cache is v62', swSrc.includes('labcharts-v63'));
+  assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
+  assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 
   // ═══════════════════════════════════════
   // Restore original tour state
