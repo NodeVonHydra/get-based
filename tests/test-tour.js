@@ -54,7 +54,7 @@
   assert('Step 4: Context cards', tourSrc.includes("target: '.profile-context-cards', title: 'Lifestyle Context'"));
   assert('Step 5: Settings', tourSrc.includes("target: '.settings-btn', title: 'Settings'"));
   assert('Step 6: Feedback', tourSrc.includes("target: '.feedback-btn', title: 'Send Feedback'"));
-  assert('Step 7: Chat toggle', tourSrc.includes("target: '.chat-toggle-btn', title: 'Ask AI'"));
+  assert('Step 7: Chat FAB', tourSrc.includes("target: '#chat-fab', title: 'Ask AI'"));
 
   // Count only within TOUR_STEPS (before CYCLE_TOUR_STEPS)
   const tourStepsStart = tourSrc.indexOf('const TOUR_STEPS');
@@ -313,7 +313,7 @@
   assert('#sidebar-nav exists', !!document.getElementById('sidebar-nav'));
   assert('.settings-btn exists', !!document.querySelector('.settings-btn'));
   assert('.feedback-btn exists', !!document.querySelector('.feedback-btn'));
-  assert('.chat-toggle-btn exists', !!document.querySelector('.chat-toggle-btn'));
+  assert('#chat-fab exists', !!document.getElementById('chat-fab'));
   assert('.profile-context-cards exists', !!document.querySelector('.profile-context-cards'));
 
   // ═══════════════════════════════════════

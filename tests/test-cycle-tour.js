@@ -33,7 +33,7 @@
   assert('Has .cycle-period-log target', cycleStepBlock.includes('.cycle-period-log'));
   assert('Has .cycle-alert target', cycleStepBlock.includes('.cycle-alert'));
   assert('Has .chart-layers-wrapper target', cycleStepBlock.includes('.chart-layers-wrapper'));
-  assert('Has .chat-toggle-btn target', cycleStepBlock.includes('.chat-toggle-btn'));
+  assert('Has #chat-fab target', cycleStepBlock.includes('#chat-fab'));
 
   // --- 4. Generic engine: runTour function ---
   console.log('%c[4] Generic tour engine', 'font-weight:bold');

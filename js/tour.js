@@ -10,7 +10,7 @@ const TOUR_STEPS = [
   { target: '.profile-context-cards', title: 'Lifestyle Context', text: 'Tell the AI about your diet, sleep, exercise, and more. The more you fill in, the better your insights.', position: 'bottom' },
   { target: '.settings-btn', title: 'Settings', text: 'Configure your profile, display preferences, and connect an AI provider.', position: 'bottom' },
   { target: '.feedback-btn', title: 'Send Feedback', text: 'Found a bug or have a feature idea? Report it here.', position: 'bottom' },
-  { target: '.chat-toggle-btn', title: 'Ask AI', text: 'Chat with an AI analyst about your lab results. Requires an AI provider in Settings.', position: 'left' },
+  { target: '#chat-fab', title: 'Ask AI', text: 'Chat with an AI analyst about your lab results. Requires an AI provider in Settings.', position: 'left' },
 ];
 
 const CYCLE_TOUR_STEPS = [
@@ -21,7 +21,7 @@ const CYCLE_TOUR_STEPS = [
   { target: '.cycle-period-log', title: 'Period Log & Symptoms', text: 'Log each period with flow, symptoms, and notes. More entries = better auto-calculated stats and smarter alerts.', position: 'bottom' },
   { target: '.cycle-alert', title: 'Smart Alerts', text: 'Perimenopause pattern detection and heavy-flow iron alerts \u2014 cross-referencing your cycle with your lab results.', position: 'bottom' },
   { target: '.chart-layers-wrapper', title: 'Phase Bands on Charts', text: 'Toggle cycle phase bands in the Layers dropdown to see menstrual, follicular, ovulatory, and luteal shading on your charts.', position: 'bottom' },
-  { target: '.chat-toggle-btn', title: 'AI Knows Your Cycle', text: 'The AI chat factors in your cycle phase when interpreting every marker \u2014 ask it about any result for phase-aware insights.', position: 'left' },
+  { target: '#chat-fab', title: 'AI Knows Your Cycle', text: 'The AI chat factors in your cycle phase when interpreting every marker \u2014 ask it about any result for phase-aware insights.', position: 'left' },
 ];
 
 // Active tour state

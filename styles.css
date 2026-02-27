@@ -1111,13 +1111,19 @@ body {
 }
 .settings-theme-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 .settings-theme-btn:hover:not(.active) { background: var(--bg-hover); }
-/* Chat Toggle Button */
-.chat-toggle-btn {
-  padding: 5px 16px; border-radius: 20px; border: none;
-  background: var(--accent-gradient); color: white; font-size: 12px;
-  cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: inherit;
+/* Chat FAB */
+.chat-fab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 240;
+  width: 56px; height: 56px; border-radius: 50%; border: none;
+  background: var(--accent-gradient); color: white;
+  cursor: pointer; box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.chat-toggle-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 12px rgba(79, 140, 255, 0.3); }
+.chat-fab:hover { transform: scale(1.08); box-shadow: 0 4px 20px rgba(79, 140, 255, 0.4); }
+.chat-fab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chat-fab svg { width: 26px; height: 26px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chat-fab.hidden { display: none; }
 /* Chat Panel */
 .chat-backdrop {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -1524,7 +1530,6 @@ body {
 .chat-setup-btn:hover { opacity: 0.9; }
 @media (max-width: 768px) {
   .chat-panel { width: 100%; }
-  .chat-toggle-btn { padding: 4px 10px; font-size: 11px; }
   .chat-thread-rail.open {
     position: absolute; top: 0; left: 0; bottom: 0; width: 100%;
     z-index: 5; border-right: none;
@@ -2329,6 +2334,8 @@ body {
   .notification-container { right: 8px; left: 8px; }
   .notification-toast { min-width: 0; width: 100%; }
   .confirm-dialog { padding: 22px 18px; }
+  .chat-fab { width: 48px; height: 48px; bottom: 16px; right: 16px; }
+  .chat-fab svg { width: 22px; height: 22px; }
 }
 /* ═══ Mobile: 375px and below (smallest phones) ═══ */
 @media (max-width: 375px) {
@@ -2368,7 +2375,6 @@ body {
 @media (pointer: coarse) {
   .settings-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
   .glossary-btn { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
-  .chat-toggle-btn { min-height: 44px; padding: 6px 16px; }
   .range-toggle-btn { min-height: 44px; padding: 8px 12px; }
   .chat-thread-new-btn { width: 36px; height: 36px; }
   .chat-thread-item-action { width: 32px; height: 32px; font-size: 14px; }
