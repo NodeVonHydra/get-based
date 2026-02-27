@@ -5,6 +5,20 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.4', date: '2026-02-27', title: 'Simplified First Visit',
+    items: [
+      'New welcome hero — one focused card with drop zone and demo data instead of competing elements',
+      'Context cards now collapsed behind a toggle so first-time users aren\u2019t overwhelmed',
+    ]
+  },
+  {
+    version: '1.0.3', date: '2026-02-27', title: 'Chat Improvements',
+    items: [
+      'Floating chat bubble in the bottom-right corner — always one tap away',
+      'No API key? A friendly setup guide replaces the old error message',
+    ]
+  },
+  {
     version: '1.0.2', date: '2026-02-27', title: 'Pre-Lab Onboarding',
     items: [
       'No lab data? No problem — fill your 9 context cards and the AI recommends exactly which tests to get',

@@ -262,6 +262,68 @@
   })(), 'closeChatPanel should remove .hidden from FAB');
 
   // ═══════════════════════════════════════
+  // 9. Welcome Hero (empty-state simplification)
+  // ═══════════════════════════════════════
+  console.log('%c 9. Welcome Hero (Empty State) ', 'font-weight:bold;color:#f59e0b');
+
+  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+
+  // CSS checks
+  assert('.welcome-hero in CSS with text-align: center', cssSrc.includes('.welcome-hero') && cssSrc.includes('text-align: center'),
+    'Welcome hero should be centered');
+  assert('.welcome-hero h2 uses display font', cssSrc.includes('.welcome-hero h2') && cssSrc.includes('font-family: var(--font-display)'),
+    'Hero heading should use display font');
+  assert('.welcome-hero-subtitle in CSS', cssSrc.includes('.welcome-hero-subtitle'),
+    'Subtitle class should exist');
+  assert('.welcome-context-details in CSS', cssSrc.includes('.welcome-context-details'),
+    'Details wrapper should be styled');
+  assert('.welcome-context-summary in CSS with dashed border', cssSrc.includes('.welcome-context-summary') && cssSrc.includes('border: 1px dashed'),
+    'Summary should have dashed border');
+  assert('Custom disclosure triangle via ::before', cssSrc.includes(".welcome-context-summary::before") && cssSrc.includes("content: '\\25B8'"),
+    'Should use custom triangle character');
+  assert('Open state rotates triangle', cssSrc.includes('.welcome-context-details[open] > .welcome-context-summary::before') && cssSrc.includes('rotate(90deg)'),
+    'Triangle should rotate when open');
+  assert('Default marker hidden', cssSrc.includes('.welcome-context-summary::-webkit-details-marker') && cssSrc.includes('display: none'),
+    'Default disclosure marker should be hidden');
+  assert('Mobile override at 480px', cssSrc.includes('.welcome-hero { padding: 28px 14px 24px; }'),
+    'Welcome hero should have compact mobile padding');
+
+  // Dead CSS removed
+  assert('Dead .onboarding-step1 CSS removed', !cssSrc.includes('.onboarding-step1'),
+    'Old onboarding-step1 styles should be removed');
+  assert('Dead .onboarding-import-btn CSS removed', !cssSrc.includes('.onboarding-import-btn'),
+    'Old import button styles should be removed');
+
+  // Source structure checks
+  assert('!hasData branch renders welcome-hero', viewsSrc.includes("class=\"welcome-hero\"") && viewsSrc.includes('if (!hasData)'),
+    'Empty state should use welcome-hero class');
+  assert('No onboarding-step1 in views.js', !viewsSrc.includes('onboarding-step1'),
+    'Old onboarding step1 should be removed from views');
+  assert('Drop zone inside welcome hero', (() => {
+    const heroStart = viewsSrc.indexOf('welcome-hero');
+    const heroEnd = viewsSrc.indexOf('</div>\\n    </div>`;', heroStart);
+    const dropZoneInHero = viewsSrc.indexOf('id="drop-zone"', heroStart);
+    return heroStart !== -1 && dropZoneInHero !== -1 && dropZoneInHero > heroStart;
+  })(), 'Drop zone should be inside welcome hero');
+  assert('Demo cards inside welcome hero', (() => {
+    const heroStart = viewsSrc.indexOf('welcome-hero');
+    const detailsStart = viewsSrc.indexOf('welcome-context-details', heroStart);
+    const demoBetween = viewsSrc.substring(heroStart, detailsStart);
+    return demoBetween.includes('demo-cards');
+  })(), 'Demo cards should be inside welcome hero, before details');
+  assert('renderProfileContextCards inside details', (() => {
+    const detailsStart = viewsSrc.indexOf('welcome-context-details');
+    const detailsEnd = viewsSrc.indexOf('</details>', detailsStart);
+    const renderBetween = viewsSrc.substring(detailsStart, detailsEnd);
+    return renderBetween.includes('renderProfileContextCards()');
+  })(), 'Context cards should be inside collapsed details');
+  assert('Category header only in hasData path', (() => {
+    const catHeader = viewsSrc.indexOf('Dashboard Overview');
+    const hasDataComment = viewsSrc.indexOf('Has data: full dashboard');
+    return catHeader > hasDataComment;
+  })(), 'Dashboard Overview header should only appear in hasData path');
+
+  // ═══════════════════════════════════════
   // Results
   // ═══════════════════════════════════════
   console.log(`\n%c Results: ${pass} passed, ${fail} failed `, fail > 0
