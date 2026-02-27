@@ -3,3 +3,4 @@
 // Browser: <script src="version.js"> sets window.APP_VERSION
 // Service worker: importScripts('/version.js') sets self.APP_VERSION
 self.APP_VERSION = '1.0.1';
+self.APP_COMMIT = '59b7efd';

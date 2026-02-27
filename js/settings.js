@@ -115,6 +115,8 @@ export function openSettingsModal(tab) {
         <label class="settings-label">Changelog</label>
         <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
       </div>
+
+      <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')}${window.APP_COMMIT ? ` · <a href="https://github.com/elkimek/get-based/commit/${escapeHTML(window.APP_COMMIT)}" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none">${escapeHTML(window.APP_COMMIT)}</a>` : ''}</div>
     </div>
 
     <!-- AI Tab -->
