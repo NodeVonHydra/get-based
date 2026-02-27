@@ -1260,6 +1260,43 @@ function _getNoDataPrompts() {
 export function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
+
+  // No AI provider — show friendly setup guide instead of error
+  if (!hasAIProvider()) {
+    container.innerHTML = `<div class="chat-empty">
+      <div class="chat-empty-icon">🔑</div>
+      <div class="chat-setup-title">Set up an AI provider to start chatting</div>
+      <div class="chat-setup-guide">
+        <p>This chat uses an AI to analyze your labs, recommend tests, and answer health questions. You'll need an API key from one of these providers:</p>
+        <div class="chat-setup-providers">
+          <div class="chat-setup-provider">
+            <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
+            <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
+            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
+          </div>
+          <div class="chat-setup-provider">
+            <strong>Anthropic</strong><br>
+            <span class="chat-setup-detail">Direct access to Claude models.</span><br>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
+          </div>
+          <div class="chat-setup-provider">
+            <strong>Venice</strong><br>
+            <span class="chat-setup-detail">Privacy-focused cloud. Access to Claude, GPT, and open models.</span><br>
+            <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>
+          </div>
+          <div class="chat-setup-provider">
+            <strong>Ollama</strong><br>
+            <span class="chat-setup-detail">Run models locally on your machine. No API key needed.</span><br>
+            <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
+          </div>
+        </div>
+        <p>Once you have a key, paste it in Settings:</p>
+        <button class="chat-setup-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">Open AI Settings</button>
+      </div>
+    </div>`;
+    return;
+  }
+
   if (state.chatHistory.length === 0) {
     const personality = getActivePersonality();
     const noDataPrompts = _getNoDataPrompts();
@@ -1428,11 +1465,6 @@ export function toggleChatPanel() {
 }
 
 export async function openChatPanel(prefillMessage) {
-  if (!hasAIProvider()) {
-    showNotification("AI provider not configured. Opening settings...", "info");
-    setTimeout(() => window.openSettingsModal(), 500);
-    return;
-  }
   const panel = document.getElementById('chat-panel');
   const backdrop = document.getElementById('chat-backdrop');
   panel.classList.add('open');
@@ -1483,6 +1515,10 @@ function setSendButtonMode(btn, mode) {
 // SEND MESSAGE
 // ═══════════════════════════════════════════════
 export async function sendChatMessage() {
+  if (!hasAIProvider()) {
+    renderChatMessages(); // Re-render to show setup guide
+    return;
+  }
   // If currently streaming, abort and return (toggle behavior)
   if (_chatAbortController) {
     _chatAbortController.abort();

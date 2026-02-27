@@ -1505,6 +1505,23 @@ body {
   padding: 20px;
 }
 .chat-empty-icon { font-size: 32px; margin-bottom: 8px; }
+.chat-setup-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+.chat-setup-guide { text-align: left; max-width: 380px; font-size: 13px; line-height: 1.5; }
+.chat-setup-guide p { margin: 0 0 10px; }
+.chat-setup-providers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.chat-setup-provider { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); }
+.chat-setup-provider strong { font-size: 13px; }
+.chat-setup-rec { font-size: 11px; color: var(--accent); font-weight: 500; }
+.chat-setup-detail { font-size: 12px; color: var(--text-muted); }
+.chat-setup-provider a { font-size: 12px; color: var(--accent); text-decoration: none; }
+.chat-setup-provider a:hover { text-decoration: underline; }
+.chat-setup-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px;
+  border-radius: 8px; border: none; background: var(--accent-gradient);
+  color: white; font-size: 13px; font-weight: 500; cursor: pointer;
+  margin-top: 4px;
+}
+.chat-setup-btn:hover { opacity: 0.9; }
 @media (max-width: 768px) {
   .chat-panel { width: 100%; }
   .chat-toggle-btn { padding: 4px 10px; font-size: 11px; }
