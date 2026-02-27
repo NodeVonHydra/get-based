@@ -38,38 +38,18 @@ export function showDashboard(data) {
   const main = document.getElementById("main-content");
   const hasData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singlePoint && c.singleDate);
 
-  let html = `<div class="category-header"><h2>Dashboard Overview</h2>`;
-  if (hasData) {
-    html += `<p>Summary of all blood work results across ${data.dates.length} collection date${data.dates.length !== 1 ? 's' : ''}</p>`;
-  }
-  html += `</div>`;
-
-  // ── 1. Drop zone ──
-  html += `<div class="drop-zone" id="drop-zone">
-    <div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>`;
-
+  // ── Empty state: welcome hero + collapsed context ──
   if (!hasData) {
-    html += `<div class="onboarding-step1">
-      <div class="onboarding-steps">
-        <span class="onboarding-step active">1</span>
-        <span class="onboarding-step-line"></span>
-        <span class="onboarding-step">2</span>
-        <span class="onboarding-step-line"></span>
-        <span class="onboarding-step">3</span>
-      </div>
-      <div class="onboarding-step-labels">
-        <span class="onboarding-step-label active">Import</span>
-        <span class="onboarding-step-label">Profile</span>
-        <span class="onboarding-step-label">Ready</span>
-      </div>
-      <h3>Welcome to Get Based</h3>
-      <p>Import your first lab results to get started.</p>
-      <button class="onboarding-import-btn" onclick="document.getElementById('pdf-input').click()">Choose PDF or JSON file</button>
+    let html = `<div class="welcome-hero">
+      <h2>Welcome to Get Based</h2>
+      <p class="welcome-hero-subtitle">Import your blood work to track biomarker trends over time</p>
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-zone-icon">\uD83D\uDCC4</div>
+        <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+        <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>
       <div class="onboarding-divider">
         <span class="onboarding-divider-line"></span>
-        <span class="onboarding-divider-text">or try with demo data</span>
+        <span class="onboarding-divider-text">or explore with demo data</span>
         <span class="onboarding-divider-line"></span>
       </div>
       <div class="demo-cards">
@@ -85,13 +65,26 @@ export function showDashboard(data) {
         </button>
       </div>
     </div>`;
+    html += `<details class="welcome-context-details">
+      <summary class="welcome-context-summary">Don\u2019t have labs yet? Tell the AI about yourself</summary>`;
     html += renderProfileContextCards();
     if (state.profileSex === 'female') html += renderMenstrualCycleSection(data);
     html += renderSupplementsSection();
+    html += `</details>`;
     main.innerHTML = html;
     setupDropZone();
     return;
   }
+
+  // ── Has data: full dashboard ──
+  let html = `<div class="category-header"><h2>Dashboard Overview</h2>
+    <p>Summary of all blood work results across ${data.dates.length} collection date${data.dates.length !== 1 ? 's' : ''}</p></div>`;
+
+  // ── 1. Drop zone ──
+  html += `<div class="drop-zone" id="drop-zone">
+    <div class="drop-zone-icon">\uD83D\uDCC4</div>
+    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>`;
 
   // ── 2. Onboarding Banner (Step 2) ──
   html += renderOnboardingBanner();

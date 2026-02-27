@@ -141,7 +141,7 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 ### Onboarding Flow
 
-3-step guided setup: Step 1 (Import) when `!hasData`, Step 2 (Profile Banner) when data exists but sex/DOB unset, Step 3 (Completion toast). State: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped.
+Welcome hero (`!hasData`) → Step 2 (Profile Banner) when data exists but sex/DOB unset → Step 3 (Completion toast). Welcome hero (`.welcome-hero`) is a centered card with drop zone, demo data cards, and a collapsed `<details class="welcome-context-details">` toggle for context cards. State: `labcharts-{profileId}-onboarded` — absent=show, `"profile-set"`=complete, `"dismissed"`=skipped.
 
 ### Guided Tour (Spotlight)
 
@@ -170,10 +170,10 @@ Version-triggered changelog modal so users see what changed after each PWA updat
 
 ### Dashboard Section Order
 
-Flat layout (no collapsible toggles): 1) Drop zone, 2) Onboarding, 3) Interpretive Lens, 3b) Focus Card, 4) Context Cards, 5) Menstrual Cycle (female), 6) Supplements, 7) Key Trends + charts, 8) Trends & Alerts, 9) Data & Notes + Export.
+**Has data**: Flat layout: 1) Drop zone, 2) Onboarding Banner (step 2), 3) Interpretive Lens, 3b) Focus Card, 4) Context Cards, 5) Menstrual Cycle (female), 6) Supplements, 7) Key Trends + charts, 8) Trends & Alerts, 9) Data & Notes + Export.
 
 - **Trends & Alerts**: Trend alerts first (from `detectTrendAlerts()`), then critical flags from `getAllFlaggedMarkers()` — only markers >50% of **reference** range width past boundary. Excludes markers already in trends
-- **Empty state**: Onboarding Step 1 then sections 4-6 (user-input content)
+- **Empty state** (`!hasData`): Welcome hero (`.welcome-hero`) with drop zone + demo cards, then collapsed `<details class="welcome-context-details">` containing context cards + cycle + supplements
 
 ### Chart Layers Dropdown
 
