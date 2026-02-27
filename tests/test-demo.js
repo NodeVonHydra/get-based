@@ -97,8 +97,8 @@
   // ── 6. Service worker ──
   console.log('\n%c6. service-worker.js — Cache version', 'font-weight:bold');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('Cache bumped to v62', swSrc.includes("labcharts-v63"));
-  assert('No v27 reference', !swSrc.includes("labcharts-v27"));
+  assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
+  assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 
   // ── Summary ──
   console.log(`\n%c${pass + fail} tests: ${pass} passed, ${fail} failed`, fail ? 'color:red;font-weight:bold' : 'color:green;font-weight:bold');

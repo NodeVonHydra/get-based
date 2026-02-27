@@ -1,6 +1,6 @@
 // test-mobile.js — Browser-based verification of mobile responsiveness fixes
 // Run: fetch('tests/test-mobile.js').then(r=>r.text()).then(s=>Function(s)())
-(function() {
+(async function() {
   let passed = 0, failed = 0;
   const results = [];
 
@@ -107,8 +107,9 @@
 
   // ═══ Section 13: Service worker cache version ═══
   console.log('%c[13] Service Worker', 'font-weight:bold');
-  assert('service worker cache version check',
-    true, 'Manual check: should be labcharts-v27');
+  const swMobileSrc = await fetch('service-worker.js').then(r => r.text());
+  assert('SW uses importScripts for version', swMobileSrc.includes("importScripts('/version.js')"));
+  assert('SW CACHE_NAME uses semver', swMobileSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 
   // ═══ Summary ═══
   console.log('\n' + results.join('\n'));

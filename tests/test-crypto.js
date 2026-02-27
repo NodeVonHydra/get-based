@@ -178,7 +178,8 @@
     const swResponse = await fetch('service-worker.js');
     const swText = await swResponse.text();
     assert('Service worker contains /js/crypto.js', swText.includes('/js/crypto.js'));
-    assert('Service worker cache is v62', swText.includes("labcharts-v63"));
+    assert('SW uses importScripts for version', swText.includes("importScripts('/version.js')"));
+    assert('SW CACHE_NAME uses semver', swText.includes('`labcharts-v${self.APP_VERSION}`'));
   } catch (e) {
     assert('Service worker check', false, e.message);
   }
