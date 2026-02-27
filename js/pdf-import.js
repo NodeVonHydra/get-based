@@ -225,26 +225,6 @@ export function showImportPreview(parseResult) {
   }
   html += `</tbody></table>`;
 
-  // Specialty test warning
-  const SPECIALTY_PREFIXES = ['oat', 'urineAmino', 'urineAminoMetab', 'toxicElements', 'nutrientElements', 'oxidativeStress'];
-  const importHasSpecialty = markers.some(m => {
-    const key = (m.mappedKey || m.suggestedKey || '').split('.')[0];
-    return SPECIALTY_PREFIXES.some(p => key === p || key.startsWith(p));
-  });
-  if (importHasSpecialty) {
-    const existingHasSpecialty = (state.importedData.entries || []).some(entry =>
-      Object.keys(entry.markers || {}).some(k => {
-        const cat = k.split('.')[0];
-        return SPECIALTY_PREFIXES.some(p => cat === p || cat.startsWith(p));
-      })
-    );
-    if (existingHasSpecialty) {
-      html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--yellow);font-size:13px;line-height:1.5">\u26A0 You already have specialty test data. Different labs use different reference ranges for the same markers \u2014 status colors may not match your new lab's stated ranges.</div>`;
-    } else {
-      html += `<div style="background:rgba(79,140,255,0.10);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--accent);font-size:13px;line-height:1.5">\u2139 Reference ranges for specialty tests vary between laboratories \u2014 the ranges in this app may differ from your lab's stated ranges.</div>`;
-    }
-  }
-
   // Privacy notice
   if (parseResult.privacyMethod === 'ollama') {
     html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information scrubbed by local AI</div>`;

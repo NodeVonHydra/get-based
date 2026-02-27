@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Get Based is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files.
+Get Based is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 16 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (OAT, amino acids, toxic elements, etc.) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF.
 
 Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results. (Routstr provider disabled pending CORS fix — see `grep -r "ROUTSTR DISABLED"`)
 
@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
 - **`js/`** — 25 ES modules loaded via `js/main.js`:
-  - `schema.js` — `MARKER_SCHEMA`, `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
+  - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
@@ -41,7 +41,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
-- **`tests/`** — 14 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 15 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -58,7 +58,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 1. **Text extraction** (`extractPDFText`): pdf.js extracts text items with x, y coordinates, grouped by page
 2. **AI analysis** (`parseLabPDFWithAI`): sends text to AI with `buildMarkerReference()` (all known markers). AI maps results to `category.markerKey` format
 3. **Import preview**: matched/unmatched markers shown; user confirms before saving
-4. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges. Stored in `importedData.customMarkers`, merged into pipeline at runtime
+4. **Custom markers**: unknown markers (including all specialty lab markers like OAT, amino acids, toxic elements) auto-handled — AI suggests key, name, unit, ref ranges. Stored in `importedData.customMarkers`, merged into pipeline at runtime. Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
 5. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
 6. **PII obfuscation**: Ollama (preferred) or regex fallback replaces personal info before sending to AI
 
@@ -119,7 +119,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-14 browser-based test files run headlessly:
+15 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

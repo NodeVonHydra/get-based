@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.6', date: '2026-02-27', title: 'Specialty Lab & Token Savings',
+    items: [
+      'Improved support for Metabolomix+ and Mosaic OAT \u2014 each lab now uses its own reference ranges',
+      'Overall improvements on token costs for AI-powered PDF import',
+    ]
+  },
+  {
     version: '1.0.5', date: '2026-02-27', title: 'One-Click OpenRouter',
     items: [
       'Connect to OpenRouter with one click — no more copying API keys',
