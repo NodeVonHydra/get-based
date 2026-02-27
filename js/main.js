@@ -5,7 +5,7 @@ import './schema.js';
 import './constants.js';
 import './utils.js';
 import { getTheme, setTheme } from './theme.js';
-import './api.js';
+import { exchangeOpenRouterCode, saveOpenRouterKey, setAIProvider, fetchOpenRouterModels } from './api.js';
 import { saveProfiles, getActiveProfileId, setActiveProfileId, getProfileSex, getProfileDob, profileStorageKey, migrateProfileData, initProfilesCache } from './profile.js';
 import { updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback } from './data.js';
 import './pii.js';
@@ -34,6 +34,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initEncryption();
   // Initialize cross-tab sync
   initBroadcastChannel();
+
+  // Handle OpenRouter OAuth callback (?code=...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const oauthCode = urlParams.get('code');
+  if (oauthCode) {
+    history.replaceState(null, '', window.location.pathname);
+    try {
+      const key = await exchangeOpenRouterCode(oauthCode);
+      saveOpenRouterKey(key);
+      setAIProvider('openrouter');
+      fetchOpenRouterModels(key);
+      window._openSettingsAfterInit = 'ai';
+      window.showNotification('Connected to OpenRouter successfully!', 'success');
+    } catch (e) {
+      window.showNotification('OpenRouter connection failed: ' + e.message, 'error', 6000);
+    }
+  }
 
   // Migrate legacy data to profile system on first load
   if (!localStorage.getItem('labcharts-profiles')) {
@@ -81,6 +98,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   buildSidebar();
   window.showDashboard();
   maybeShowChangelog();
+  if (window._openSettingsAfterInit) {
+    window.openSettingsModal(window._openSettingsAfterInit);
+    delete window._openSettingsAfterInit;
+  }
   updateHeaderDates();
   updateHeaderRangeToggle();
   renderProfileDropdown();

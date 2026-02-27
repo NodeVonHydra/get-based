@@ -89,6 +89,45 @@ export function getOpenRouterModelDisplay() {
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
+
+// ─── OpenRouter OAuth PKCE ───
+export async function generatePKCE() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const codeVerifier = btoa(String.fromCharCode(...array)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+  const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return { codeVerifier, codeChallenge };
+}
+
+export async function startOpenRouterOAuth() {
+  const { codeVerifier, codeChallenge } = await generatePKCE();
+  sessionStorage.setItem('or_pkce_verifier', codeVerifier);
+  setAIProvider('openrouter');
+  const callbackUrl = window.location.origin + window.location.pathname;
+  window.location.href = 'https://openrouter.ai/auth?callback_url=' + encodeURIComponent(callbackUrl) + '&code_challenge=' + encodeURIComponent(codeChallenge) + '&code_challenge_method=S256';
+}
+
+export async function exchangeOpenRouterCode(code) {
+  const codeVerifier = sessionStorage.getItem('or_pkce_verifier');
+  if (!codeVerifier) throw new Error('Missing PKCE verifier. Please try connecting again.');
+  const res = await fetch('https://openrouter.ai/api/v1/auth/keys', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'Get Based'
+    },
+    body: JSON.stringify({ code, code_verifier: codeVerifier, code_challenge_method: 'S256' })
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    throw new Error(errBody?.error?.message || errBody?.message || `OpenRouter auth failed (${res.status})`);
+  }
+  const data = await res.json();
+  sessionStorage.removeItem('or_pkce_verifier');
+  return data.key;
+}
 // Curated: latest-gen medically capable models only (prefixes matched against IDs)
 const OPENROUTER_CURATED = [
   'anthropic/claude-sonnet-4', 'anthropic/claude-opus-4',
@@ -507,6 +546,7 @@ Object.assign(window, {
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
   fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing,
+  generatePKCE, startOpenRouterOAuth, exchangeOpenRouterCode,
   // ROUTSTR DISABLED: fetchRoutstrModels, getRoutstrPricing,
   deduplicateModels,
   renderModelPricingHint,

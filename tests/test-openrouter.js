@@ -230,6 +230,43 @@
   const rmSrc = await fetch('js/settings.js').then(r => r.text());
   assert('handleRemoveOpenRouterKey clears pricing cache', rmSrc.includes("removeItem('labcharts-openrouter-pricing')"));
 
+  // ─── 13. OAuth PKCE flow ───
+  console.log('\n13. OAuth PKCE flow');
+  // Window exports
+  assert('window.generatePKCE is function', typeof window.generatePKCE === 'function');
+  assert('window.startOpenRouterOAuth is function', typeof window.startOpenRouterOAuth === 'function');
+  assert('window.exchangeOpenRouterCode is function', typeof window.exchangeOpenRouterCode === 'function');
+  // generatePKCE returns valid PKCE params
+  const pkce = await window.generatePKCE();
+  assert('generatePKCE returns codeVerifier (43+ chars)', typeof pkce.codeVerifier === 'string' && pkce.codeVerifier.length >= 43);
+  assert('generatePKCE returns codeChallenge (43+ chars)', typeof pkce.codeChallenge === 'string' && pkce.codeChallenge.length >= 43);
+  assert('codeVerifier is base64url (no +/=)', !/[+=\/]/.test(pkce.codeVerifier));
+  assert('codeChallenge is base64url (no +/=)', !/[+=\/]/.test(pkce.codeChallenge));
+  // Source: sessionStorage usage for verifier
+  assert('startOpenRouterOAuth stores verifier in sessionStorage', apiSrc.includes("sessionStorage.setItem('or_pkce_verifier'"));
+  assert('exchangeOpenRouterCode reads verifier from sessionStorage', apiSrc.includes("sessionStorage.getItem('or_pkce_verifier'"));
+  // Source: correct OpenRouter auth URL and exchange endpoint
+  assert('startOpenRouterOAuth redirects to openrouter.ai/auth', apiSrc.includes('openrouter.ai/auth?callback_url='));
+  assert('exchangeOpenRouterCode posts to auth/keys endpoint', apiSrc.includes('openrouter.ai/api/v1/auth/keys'));
+  // Source: main.js checks for ?code= param
+  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  assert('main.js checks for code URL param', mainSrc.includes("urlParams.get('code')") || mainSrc.includes("get('code')"));
+  assert('main.js calls exchangeOpenRouterCode', mainSrc.includes('exchangeOpenRouterCode('));
+  assert('main.js cleans URL via replaceState', mainSrc.includes('history.replaceState'));
+  // CSS: .or-oauth-btn and .or-oauth-divider exist
+  const cssSrc = await fetch('styles.css').then(r => r.text());
+  assert('CSS: .or-oauth-btn defined', cssSrc.includes('.or-oauth-btn'));
+  assert('CSS: .or-oauth-divider defined', cssSrc.includes('.or-oauth-divider'));
+  // Settings source: OAuth button rendered in OpenRouter panel
+  assert('Settings renders or-oauth-btn in OpenRouter panel', settingsSrc.includes('or-oauth-btn'));
+  assert('Settings renders or-oauth-divider', settingsSrc.includes('or-oauth-divider'));
+  // Settings: OAuth button hidden when key exists
+  assert('OAuth button conditional on !currentKey', settingsSrc.includes("currentKey ? '' : '<button class=\"or-oauth-btn\""));
+  // Chat setup guide includes OAuth button
+  const chatSrc2 = await fetch('js/chat.js').then(r => r.text());
+  assert('Chat setup guide has or-oauth-btn', chatSrc2.includes('or-oauth-btn'));
+  assert('Chat setup guide has startOpenRouterOAuth onclick', chatSrc2.includes("onclick=\"startOpenRouterOAuth()\""));
+
   // ═══ SUMMARY ═══
   console.log('\n' + results.join('\n'));
   console.log(`\n=== ${passed} passed, ${failed} failed, ${passed + failed} total ===`);

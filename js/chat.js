@@ -1272,7 +1272,8 @@ export function renderChatMessages() {
           <div class="chat-setup-provider">
             <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
             <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
-            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
+            <button class="or-oauth-btn" style="margin-top:8px" onclick="startOpenRouterOAuth()">Connect with OpenRouter</button>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:var(--accent)">paste a key manually</a></div>
           </div>
           <div class="chat-setup-provider">
             <strong>Anthropic</strong><br>
