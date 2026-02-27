@@ -1103,6 +1103,21 @@ body {
 .ai-provider-desc {
   font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;
 }
+.or-oauth-btn {
+  width: 100%; padding: 10px 16px; border: none; border-radius: var(--radius);
+  background: var(--accent-gradient); color: white; font-weight: 600; font-size: 14px;
+  font-family: inherit; cursor: pointer; transition: all 0.2s;
+}
+.or-oauth-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+.or-oauth-divider {
+  display: flex; align-items: center; gap: 12px; margin: 12px 0;
+}
+.or-oauth-divider::before, .or-oauth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.or-oauth-divider span {
+  font-size: 11px; color: var(--text-muted); white-space: nowrap;
+}
 .settings-theme-toggle { display: flex; align-items: center; gap: 4px; }
 .settings-theme-btn {
   padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
