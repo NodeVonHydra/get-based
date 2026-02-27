@@ -301,7 +301,7 @@ export function renderAIProviderPanel(provider) {
   // Local AI (Ollama) panel
   const config = getOllamaConfig();
   return `<div class="ai-provider-panel">
-    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine.</div>
+    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine. Requires Apple M-chip, CPU with NPU, or a strong GPU.</div>
     <div class="ollama-status" id="ollama-status">
       <span class="ollama-status-dot" id="ollama-dot"></span>
       <span id="ollama-status-text">Checking connection...</span>

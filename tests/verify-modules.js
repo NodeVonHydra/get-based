@@ -260,7 +260,7 @@
   assert('Range toggle', !!document.getElementById('header-range-toggle'));
   assert('Settings button', !!document.querySelector('.settings-btn'));
   assert('Glossary button', !!document.querySelector('.glossary-btn'));
-  assert('Chat toggle button', !!document.querySelector('.chat-toggle-btn'));
+  assert('Chat FAB button', !!document.getElementById('chat-fab'));
   assert('Sidebar nav', !!document.getElementById('sidebar-nav'));
   assert('Main content', !!document.getElementById('main-content'));
   assert('Detail modal overlay', !!document.getElementById('modal-overlay'));

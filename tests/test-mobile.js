@@ -75,7 +75,7 @@
   assert('pointer:coarse media query exists', css.includes('pointer: coarse'));
   assert('settings-btn min-width 44px for touch', css.includes('settings-btn') && css.includes('min-width: 44px'));
   assert('glossary-btn min-width 44px for touch', css.includes('glossary-btn') && css.includes('min-width: 44px'));
-  assert('chat-toggle-btn min-height 44px for touch', css.includes('chat-toggle-btn') && css.includes('min-height: 44px'));
+  assert('chat-fab 56px (above 44px touch target)', css.includes('.chat-fab') && css.includes('width: 56px; height: 56px'));
   assert('modal-close min-width 44px for touch', css.includes('modal-close') && css.includes('min-width: 44px'));
 
   // ═══ Section 9: Hover-only interactions fixed for touch ═══

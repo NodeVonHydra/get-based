@@ -147,7 +147,7 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 
 7-step spotlight walkthrough for first-time users. Dims the page and highlights one element at a time with an explanatory tooltip.
 
-- **Steps**: 1) Welcome (centered, no target), 2) `#drop-zone` — Import, 3) `#sidebar-nav` — Category Navigation, 4) `.profile-context-cards` — Lifestyle Context, 5) `.settings-btn` — Settings, 6) `.feedback-btn` — Send Feedback, 7) `.chat-toggle-btn` — Ask AI
+- **Steps**: 1) Welcome (centered, no target), 2) `#drop-zone` — Import, 3) `#sidebar-nav` — Category Navigation, 4) `.profile-context-cards` — Lifestyle Context, 5) `.settings-btn` — Settings, 6) `.feedback-btn` — Send Feedback, 7) `#chat-fab` — Ask AI
 - **Auto-trigger**: `startTour(true)` called at end of `showDashboard()`. Checks `labcharts-{profileId}-tour` in localStorage — skips if `'completed'`
 - **Re-trigger**: Settings → Display → "Take a Tour" button calls `startTour(false)` (skips completion check)
 - **DOM**: Three fixed elements created dynamically — `#tour-overlay` (z-index 500, click-to-dismiss), `#tour-spotlight` (z-index 501, `box-shadow: 0 0 0 9999px` dimming technique), `#tour-tooltip` (z-index 502, card with title/text/dots/nav buttons)
@@ -155,7 +155,7 @@ AI-generated one-sentence insight at the top of the dashboard (after drop zone, 
 - **Navigation**: Skip/Back/Next/Done buttons. Progress dots show current step. Escape key dismisses via `endTour()`
 - **Cleanup**: `endTour()` removes all three DOM elements and stores completion flag
 - **Generic engine**: `runTour(steps, storageKey, auto)` — filters out steps whose target element is missing, creates DOM, starts navigation. `activeTour` object holds `{ steps, storageKey, currentStep }`
-- **Cycle tour**: 8-step cycle-specific tour (`CYCLE_TOUR_STEPS`). Steps: Welcome → `.cycle-summary` → `.cycle-draw-date` → `.cycle-draw-phases` → `.cycle-period-log` → `.cycle-alert` → `.chart-layers-wrapper` → `.chat-toggle-btn`. Auto-triggered via `startCycleTour(true)` after `saveMenstrualCycle()` with 600ms delay. Re-trigger via `?` button (`.cycle-tour-btn`) in cycle section header. Storage: `labcharts-{profileId}-cycleTour`
+- **Cycle tour**: 8-step cycle-specific tour (`CYCLE_TOUR_STEPS`). Steps: Welcome → `.cycle-summary` → `.cycle-draw-date` → `.cycle-draw-phases` → `.cycle-period-log` → `.cycle-alert` → `.chart-layers-wrapper` → `#chat-fab`. Auto-triggered via `startCycleTour(true)` after `saveMenstrualCycle()` with 600ms delay. Re-trigger via `?` button (`.cycle-tour-btn`) in cycle section header. Storage: `labcharts-{profileId}-cycleTour`
 
 ### What's New Modal
 
@@ -224,6 +224,10 @@ Two-path architecture replacing personal info with fake data before sending to A
 Empty-card guards prevent sending empty `{}` objects: `hasCardContent(obj)` in `utils.js` is the generic gate — returns `true` if any field has content (strings non-empty, arrays non-empty, `note` trimmed). Used for 7 cards (diagnoses, diet, exercise, sleep, stress, loveLife, environment). Light & Circadian uses custom `lc || autoLat` gate (external latitude). Menstrual cycle is sex-gated. Health goals and interpretive lens use type-specific checks. Staleness signals: global `NOTE:` when most recent labs are >90 days old, plus per-category `⚠ Last tested ~N months ago` after each stale category (catches old fatty acids alongside fresh CBC); `buildFocusContext()` includes `last labs <date>` in its header. `CHAT_SYSTEM_PROMPT` uses priority tiers (Core Rules → Priority Context → Lifestyle Context → No Lab Data State → Style) and instructs the AI to note stale data and treat missing fields as "user didn't provide" rather than assuming defaults. Focus card uses lightweight `buildFocusContext()` (~200-400 tokens) instead of full context. `askAIAboutMarker()` uses effective (phase-aware) ranges and includes trend direction. Chat prompt order: system prompt → lab data → persona → search instruction.
 
 **No-data path**: When no lab data exists, `buildLabContext()` skips sections 3-4 (lab values, flagged results) but still serializes all other sections (goals, lens, notes, conditions, supplements, cycle, lifestyle cards). Header changes to "Profile context" with a NOTE instructing the AI to recommend tests. `CHAT_SYSTEM_PROMPT` has a `## No Lab Data State` section for pre-lab advisor behavior. Chat prompts switch: 0 cards filled → encourage filling cards + general test advice; some cards filled → personalized test recommendations. Dashboard shows a `.context-section-subtitle` nudge below "What your GP won't ask you" when no labs present. Health dots use content-based check (`hasCardContent`) instead of old sentinel string — dots work based on context alone when cards are filled.
+
+### Chat FAB (Floating Action Button)
+
+Fixed bottom-right bubble (`#chat-fab`, `.chat-fab`) calling `toggleChatPanel()`. Z-index 240 (below chat backdrop 250) — naturally disappears when panel opens. `openChatPanel()` adds `.hidden`, `closeChatPanel()` removes it. Responsive: 48px at 480px breakpoint. Reduced motion handled by global `prefers-reduced-motion` rule.
 
 ### AI Chat Panel
 

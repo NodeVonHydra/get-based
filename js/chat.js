@@ -1286,7 +1286,7 @@ export function renderChatMessages() {
           </div>
           <div class="chat-setup-provider">
             <strong>Ollama</strong><br>
-            <span class="chat-setup-detail">Run models locally on your machine. No API key needed.</span><br>
+            <span class="chat-setup-detail">Run models locally. Requires Apple M-chip, CPU with NPU, or a strong GPU.</span><br>
             <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
           </div>
         </div>
@@ -1469,6 +1469,8 @@ export async function openChatPanel(prefillMessage) {
   const backdrop = document.getElementById('chat-backdrop');
   panel.classList.add('open');
   backdrop.classList.add('open');
+  const fab = document.getElementById('chat-fab');
+  if (fab) fab.classList.add('hidden');
   loadChatPersonality();
   updateChatHeaderTitle();
   updatePersonalityBar();
@@ -1493,6 +1495,8 @@ export async function openChatPanel(prefillMessage) {
 export function closeChatPanel() {
   document.getElementById('chat-panel').classList.remove('open');
   document.getElementById('chat-backdrop').classList.remove('open');
+  const fab = document.getElementById('chat-fab');
+  if (fab) fab.classList.remove('hidden');
 }
 
 // ═══════════════════════════════════════════════

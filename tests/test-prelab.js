@@ -215,6 +215,53 @@
     'CSS should define setup button styles');
 
   // ═══════════════════════════════════════
+  // 8. Floating Chat Bubble (FAB)
+  // ═══════════════════════════════════════
+  console.log('%c 8. Floating Chat Bubble (FAB) ', 'font-weight:bold;color:#f59e0b');
+
+  const htmlSrc = await fetch('index.html').then(r => r.text());
+
+  assert('FAB button exists in HTML', htmlSrc.includes('id="chat-fab"') && htmlSrc.includes('class="chat-fab"'),
+    'index.html should have #chat-fab with .chat-fab class');
+  assert('FAB has onclick=toggleChatPanel', htmlSrc.includes('chat-fab') && htmlSrc.includes('onclick="toggleChatPanel()"'),
+    'FAB should call toggleChatPanel on click');
+  assert('FAB has aria-label', htmlSrc.includes('chat-fab') && htmlSrc.includes('aria-label="Ask AI"'),
+    'FAB should be accessible');
+  assert('FAB contains SVG icon', (() => {
+    const fabStart = htmlSrc.indexOf('id="chat-fab"');
+    const fabEnd = htmlSrc.indexOf('</button>', fabStart);
+    const fabHtml = htmlSrc.substring(fabStart, fabEnd);
+    return fabHtml.includes('<svg');
+  })(), 'FAB should contain an inline SVG chat bubble icon');
+
+  // CSS checks
+  assert('.chat-fab in CSS with position: fixed', cssSrc.includes('.chat-fab') && cssSrc.includes('position: fixed'),
+    'FAB should be fixed position');
+  assert('.chat-fab z-index below backdrop', (() => {
+    const fabZ = cssSrc.match(/\.chat-fab\s*\{[^}]*z-index:\s*(\d+)/);
+    const backdropZ = cssSrc.match(/\.chat-backdrop\s*\{[^}]*z-index:\s*(\d+)/);
+    return fabZ && backdropZ && parseInt(fabZ[1]) < parseInt(backdropZ[1]);
+  })(), 'FAB z-index should be less than chat-backdrop z-index');
+  assert('.chat-fab.hidden hides FAB', cssSrc.includes('.chat-fab.hidden') && cssSrc.includes('display: none'),
+    '.chat-fab.hidden should set display: none');
+  assert('.chat-fab hover scale', cssSrc.includes('.chat-fab:hover') && cssSrc.includes('scale(1.08)'),
+    'FAB should scale up on hover');
+  assert('FAB responsive at 480px', (() => {
+    const idx480 = cssSrc.indexOf('.chat-fab { width: 48px');
+    return idx480 !== -1;
+  })(), 'FAB should shrink to 48px at 480px breakpoint');
+
+  // JS checks
+  assert('openChatPanel hides FAB', chatSrc.includes("getElementById('chat-fab')") && chatSrc.includes("fab.classList.add('hidden')"),
+    'openChatPanel should add .hidden to FAB');
+  assert('closeChatPanel shows FAB', (() => {
+    const closeStart = chatSrc.indexOf('export function closeChatPanel()');
+    const closeEnd = chatSrc.indexOf('\n// ═══', closeStart);
+    const closeBody = chatSrc.substring(closeStart, closeEnd);
+    return closeBody.includes("fab.classList.remove('hidden')");
+  })(), 'closeChatPanel should remove .hidden from FAB');
+
+  // ═══════════════════════════════════════
   // Results
   // ═══════════════════════════════════════
   console.log(`\n%c Results: ${pass} passed, ${fail} failed `, fail > 0
