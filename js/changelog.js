@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.2', date: '2026-02-27', title: 'Pre-Lab Onboarding',
+    items: [
+      'No lab data? No problem — fill your 9 context cards and the AI recommends exactly which tests to get',
+      'Chat prompts adapt to your state: card-filling encouragement, personalized test recommendations, or lab analysis',
+      'Dashboard nudge guides you through profile setup (sex, DOB, all 9 cards) before your first blood draw',
+      'Health dots now work on context alone — the AI rates your lifestyle cards even without lab results',
+    ]
+  },
+  {
     version: '1.0.1', date: '2026-02-27', title: 'Minor Tweaks',
     items: [
       'Minor tweaks and bug fixes',
