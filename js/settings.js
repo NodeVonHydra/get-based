@@ -116,7 +116,7 @@ export function openSettingsModal(tab) {
         <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
       </div>
 
-      <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')}${window.APP_COMMIT ? ` · <a href="https://github.com/elkimek/get-based/commit/${escapeHTML(window.APP_COMMIT)}" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none">${escapeHTML(window.APP_COMMIT)}</a>` : ''}</div>
+      <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')} · <span id="settings-commit-hash">···</span></div>
     </div>
 
     <!-- AI Tab -->
@@ -163,6 +163,16 @@ export function openSettingsModal(tab) {
   initSettingsOllamaCheck();
   initSettingsModelFetch();
   loadBackupSnapshots();
+  loadSettingsCommitHash();
+}
+
+function loadSettingsCommitHash() {
+  const el = document.getElementById('settings-commit-hash');
+  if (!el) return;
+  fetch('https://api.github.com/repos/elkimek/get-based/commits/main', { headers: { Accept: 'application/vnd.github.sha' } })
+    .then(r => r.ok ? r.text() : Promise.reject())
+    .then(sha => { const short = sha.slice(0, 7); const e = document.getElementById('settings-commit-hash'); if (e) e.innerHTML = `<a href="https://github.com/elkimek/get-based/commit/${short}" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none">${short}</a>`; })
+    .catch(() => { const e = document.getElementById('settings-commit-hash'); if (e) e.textContent = ''; });
 }
 
 export function switchSettingsTab(tabId) {
