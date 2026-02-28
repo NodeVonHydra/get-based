@@ -554,6 +554,7 @@ export function confirmImport() {
     window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
   }
   showNotification(`Imported ${importCount} markers from ${result.date}`, "success");
+  if (!_batchMode && typeof window.maybeShowEncryptionNudge === 'function') window.maybeShowEncryptionNudge();
 }
 
 export function removeImportedEntry(date) {
@@ -875,6 +876,7 @@ export async function handleBatchPDFs(pdfFiles) {
   if (failed > 0) parts.push(`${failed} failed`);
   if (retryImported > 0) parts.push(`${retryImported} recovered on retry`);
   showNotification(`Batch import complete: ${parts.join(', ')}`, imported > 0 ? 'success' : 'info');
+  if (imported > 0 && typeof window.maybeShowEncryptionNudge === 'function') window.maybeShowEncryptionNudge();
 }
 
 export async function showBatchImportProgress(step, fileName, current, total) {
