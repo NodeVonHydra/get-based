@@ -3,11 +3,31 @@
 import { state } from './state.js';
 import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
-import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
+import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getProfileLocation, updateLocationLat } from './profile.js';
 import { getOllamaConfig, checkOllama, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
 
+
+// ═══════════════════════════════════════════════
+// MODEL DROPDOWN HELPER
+// ═══════════════════════════════════════════════
+function buildModelOptions(provider, models, currentModel, labelFn) {
+  const rec = models.filter(function(m) { return isRecommendedModel(provider, m.id); });
+  const rest = models.filter(function(m) { return !isRecommendedModel(provider, m.id); });
+  let html = '';
+  if (rec.length) {
+    html += '<optgroup label="\u2605 Recommended for medical analysis">';
+    html += rec.map(function(m) { return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(labelFn(m)) + '</option>'; }).join('');
+    html += '</optgroup>';
+  }
+  if (rest.length) {
+    html += (rec.length ? '<optgroup label="Other models">' : '');
+    html += rest.map(function(m) { return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(labelFn(m)) + '</option>'; }).join('');
+    if (rec.length) html += '</optgroup>';
+  }
+  return html;
+}
 
 // ═══════════════════════════════════════════════
 // SETTINGS MODAL
@@ -134,7 +154,7 @@ export function openSettingsModal(tab) {
       <div class="settings-group-title">Provider</div>
 
       <div class="settings-section">
-        <div class="ai-provider-desc" style="margin-bottom:10px">For medical data like blood work, state-of-the-art models give the most accurate analysis. Claude is recommended — fastest and best results.</div>
+        <div class="ai-model-tip">Use a state-of-the-art model (Claude, GPT, Gemini) for medical data.<br>Stick with the same model across imports to keep marker keys consistent.</div>
         <div class="ai-provider-toggle">
           <button class="ai-provider-btn${provider === 'openrouter' ? ' active' : ''}" data-provider="openrouter" onclick="switchAIProvider('openrouter')"><svg class="ai-provider-logo" viewBox="0 0 512 512" fill="currentColor" stroke="currentColor"><path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90" fill="none"/><path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z" stroke="none"/><path d="M0 249C15 249 73 261.945 103 278.945C133 295.945 133 295.945 195 339.945C273.497 395.652 329 377 420 377" stroke-width="90" fill="none"/><path d="M508 376.445L354.25 287.678L354.25 465.213L508 376.445Z" stroke="none"/></svg> OpenRouter</button>
           <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></svg> Claude</button>
@@ -222,10 +242,7 @@ export function renderAIProviderPanel(provider) {
     const currentModel = getAnthropicModel();
     let modelHtml;
     if (cachedModels.length > 0) {
-      const opts = cachedModels.map(function(m) {
-        const label = m.display_name || m.id;
-        return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + label + '</option>';
-      }).join('');
+      const opts = buildModelOptions('anthropic', cachedModels, currentModel, function(m) { return m.display_name || m.id; });
       modelHtml = `<div style="margin-top:12px" id="anthropic-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
         <select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">${opts}</select>
@@ -254,10 +271,7 @@ export function renderAIProviderPanel(provider) {
     let cachedORModels = []; try { cachedORModels = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]'); } catch(e) {}
     let orModelHtml;
     if (cachedORModels.length > 0) {
-      const opts = cachedORModels.map(function(m) {
-        const label = m.name || m.id;
-        return '<option value="' + m.id + '"' + (orModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
-      }).join('');
+      const opts = buildModelOptions('openrouter', cachedORModels, orModel, function(m) { return m.name || m.id; });
       orModelHtml = `<div style="margin-top:12px" id="openrouter-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
         <select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="setOpenRouterModel(this.value);updateOpenRouterModelPricing(this.value)">${opts}</select>
@@ -290,10 +304,7 @@ export function renderAIProviderPanel(provider) {
     let cachedVeniceModels = []; try { cachedVeniceModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
     let veniceModelHtml;
     if (cachedVeniceModels.length > 0) {
-      const opts = cachedVeniceModels.map(function(m) {
-        const label = m.name || m.id;
-        return '<option value="' + m.id + '"' + (veniceModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
-      }).join('');
+      const opts = buildModelOptions('venice', cachedVeniceModels, veniceModel, function(m) { return m.name || m.id; });
       veniceModelHtml = `<div style="margin-top:12px" id="venice-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
         <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">${opts}</select>
@@ -676,10 +687,7 @@ export function renderAnthropicModelDropdown(models) {
   const area = document.getElementById('anthropic-model-area');
   if (!area || !models.length) return;
   const currentModel = getAnthropicModel();
-  const opts = models.map(function(m) {
-    const label = m.display_name || m.id;
-    return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + label + '</option>';
-  }).join('');
+  const opts = buildModelOptions('anthropic', models, currentModel, function(m) { return m.display_name || m.id; });
   area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
     '<select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">' + opts + '</select>' +
     '<div id="anthropic-model-pricing" style="margin-top:4px">' + renderModelPricingHint('anthropic', currentModel) + '</div>';
@@ -722,10 +730,7 @@ export function renderVeniceModelDropdown(models) {
   const area = document.getElementById('venice-model-area');
   if (!area || !models.length) return;
   const currentModel = getVeniceModel();
-  const opts = models.map(function(m) {
-    const label = m.name || m.id;
-    return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
-  }).join('');
+  const opts = buildModelOptions('venice', models, currentModel, function(m) { return m.name || m.id; });
   area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
     '<select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">' + opts + '</select>' +
     '<div id="venice-model-pricing" style="margin-top:4px">' + renderModelPricingHint('venice', currentModel) + '</div>';
@@ -774,10 +779,7 @@ export function renderOpenRouterModelDropdown(models) {
   const area = document.getElementById('openrouter-model-area');
   if (!area || !models.length) return;
   const currentModel = getOpenRouterModel();
-  const opts = models.map(function(m) {
-    const label = m.name || m.id;
-    return '<option value="' + m.id + '"' + (currentModel === m.id ? ' selected' : '') + '>' + escapeHTML(label) + '</option>';
-  }).join('');
+  const opts = buildModelOptions('openrouter', models, currentModel, function(m) { return m.name || m.id; });
   area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
     '<select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="setOpenRouterModel(this.value);updateOpenRouterModelPricing(this.value)">' + opts + '</select>' +
     '<div id="openrouter-model-pricing" style="margin-top:4px">' + renderModelPricingHint('openrouter', currentModel) + '</div>';

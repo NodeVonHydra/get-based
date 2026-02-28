@@ -137,6 +137,39 @@ const OPENROUTER_CURATED = [
   'qwen/qwen', 'qwen/qwq',
   'x-ai/grok',
 ];
+// ─── Recommended models for medical analysis ───
+// Update when a new generation launches. Each provider uses different ID formats:
+//   OpenRouter: "provider/model-version"  (dots: 4.6)
+//   Anthropic:  "claude-model-version"    (hyphens: 4-6, with date suffix)
+//   Venice:     "model-version"           (hyphens: 4-6, no provider prefix)
+// To check current IDs, run in console:
+//   JSON.parse(localStorage.getItem('labcharts-openrouter-models')||'[]').map(m=>m.id)
+const OPENROUTER_RECOMMENDED = [
+  'anthropic/claude-sonnet-4.6', 'anthropic/claude-opus-4.6',
+  'openai/gpt-5.2',
+  'google/gemini-3.1-pro', 'google/gemini-3-pro',
+  'x-ai/grok-4',
+];
+export function isRecommendedModel(provider, modelId) {
+  if (provider === 'openrouter') return OPENROUTER_RECOMMENDED.some(function(prefix) { return modelId.startsWith(prefix); });
+  if (provider === 'anthropic') return /sonnet-4-6|opus-4-6/.test(modelId);
+  if (provider === 'venice') return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[23](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
+  return false; // Ollama — local models, can't tier
+}
+export function getActiveModelId() {
+  const provider = getAIProvider();
+  if (provider === 'anthropic') return getAnthropicModel();
+  if (provider === 'venice') return getVeniceModel();
+  if (provider === 'openrouter') return getOpenRouterModel();
+  return getOllamaMainModel();
+}
+export function getActiveModelDisplay() {
+  const provider = getAIProvider();
+  if (provider === 'anthropic') return getAnthropicModelDisplay();
+  if (provider === 'venice') return getVeniceModelDisplay();
+  if (provider === 'openrouter') return getOpenRouterModelDisplay();
+  return getOllamaMainModel();
+}
 // Exclude specialized variants not suited for medical analysis
 const OPENROUTER_EXCLUDE = ['codex', 'audio', 'image', 'oss', 'safeguard', 'coder'];
 export async function fetchOpenRouterModels(key) {
@@ -155,6 +188,13 @@ export async function fetchOpenRouterModels(key) {
     // Deduplicate: strip date/size suffixes after provider/ prefix
     const models = deduplicateModels(all, function(id) {
       return id.replace(/:\d{4}-\d{2}-\d{2}$/, '').replace(/-\d{8}$/, '');
+    });
+    // Sort recommended models first, then alphabetical within each group
+    models.sort(function(a, b) {
+      const aRec = OPENROUTER_RECOMMENDED.some(function(p) { return a.id.startsWith(p); });
+      const bRec = OPENROUTER_RECOMMENDED.some(function(p) { return b.id.startsWith(p); });
+      if (aRec !== bRec) return aRec ? -1 : 1;
+      return (a.name || a.id).localeCompare(b.name || b.id);
     });
     // Extract per-million-token pricing from API response
     const pricingCache = {};
@@ -561,6 +601,8 @@ Object.assign(window, {
   generatePKCE, startOpenRouterOAuth, exchangeOpenRouterCode,
   // ROUTSTR DISABLED: fetchRoutstrModels, getRoutstrPricing,
   deduplicateModels,
+  isRecommendedModel,
+  getActiveModelId, getActiveModelDisplay,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
