@@ -7,7 +7,7 @@ const CHANGELOG = [
   {
     version: '1.1.0', date: '2026-02-28', title: 'Specialty Labs & Brand Refresh',
     items: [
-      'Specialty lab support \u2014 OAT, DUTCH, HTMA, GI results now import with their own reference ranges and sidebar sections',
+      'Specialty lab support (beta) \u2014 Metabolomix+ results now import with their own reference ranges and sidebar section',
       'Brand refresh \u2014 new getbased gradient wordmark, SVG header icons, cleaner layout',
       'Batch import improvements \u2014 auto-retry on failure, single dashboard refresh at the end',
       'Ollama PII obfuscation is now opt-in (Settings \u2192 Privacy)',
