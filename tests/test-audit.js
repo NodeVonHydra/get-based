@@ -11,16 +11,16 @@
   console.log('%c Pre-Release Audit Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
   // ═══════════════════════════════════════
-  // 1. PhenoAge unit conversions (CRITICAL)
+  // 1. PhenoAge SI coefficients (CRITICAL)
   // ═══════════════════════════════════════
-  console.log('%c 1. PhenoAge Unit Conversions ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 1. PhenoAge SI Coefficients ', 'font-weight:bold;color:#f59e0b');
 
   const dataSrc = await fetch('js/data.js').then(r => r.text());
-  assert('PhenoAge converts albumin g/L to g/dL', dataSrc.includes('albumin_si / 10'));
-  assert('PhenoAge converts creatinine µmol/L to mg/dL', dataSrc.includes('creatinine_si / 88.4'));
-  assert('PhenoAge converts glucose mmol/L to mg/dL', dataSrc.includes('glucose_si * 18.016'));
-  assert('PhenoAge converts lymphocytes fraction to %', dataSrc.includes('lymphPct_si * 100'));
-  assert('PhenoAge converts ALP µkat/L to U/L', dataSrc.includes('alp_si * 60'));
+  assert('PhenoAge uses SI albumin directly', dataSrc.includes('0.0336  * albumin_si'));
+  assert('PhenoAge uses SI creatinine directly', dataSrc.includes('0.0095  * creatinine_si'));
+  assert('PhenoAge uses SI glucose directly', dataSrc.includes('0.1953  * glucose_si'));
+  assert('PhenoAge uses SI lymphocytes directly', dataSrc.includes('0.0120  * lymphPct_si'));
+  assert('PhenoAge uses SI ALP directly', dataSrc.includes('0.00188 * alp_si'));
 
   // ═══════════════════════════════════════
   // 2. Service Worker registration (CRITICAL)

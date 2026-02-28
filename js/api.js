@@ -270,6 +270,18 @@ export async function validateApiKey(key) {
   }
 }
 
+async function _fetchWithRetry(url, options, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    const res = await fetch(url, options);
+    if (res.status !== 429 || i === retries) return res;
+    const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
+    const delay = Math.max(retryAfter * 1000, (i + 1) * 5000);
+    if (isDebugMode()) console.log(`[API] Rate limited, retry ${i + 1}/${retries} in ${delay / 1000}s`);
+    if (options.signal?.aborted) return res;
+    await new Promise(r => setTimeout(r, delay));
+  }
+}
+
 export async function callAnthropicAPI({ system, messages, maxTokens, onStream, signal }) {
   const key = getApiKey();
   if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
@@ -284,7 +296,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
   const timeoutSignal = AbortSignal.timeout(300000);
   const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await _fetchWithRetry('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -430,7 +442,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
 
   let res;
   try {
-    res = await fetch(endpoint, {
+    res = await _fetchWithRetry(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

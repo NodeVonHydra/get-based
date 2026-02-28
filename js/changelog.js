@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.8', date: '2026-02-28', title: 'Import & UX Polish',
+    items: [
+      'Ollama PII is now opt-in \u2014 toggle it on in Settings \u2192 Privacy instead of auto-detecting',
+      'Batch import retries failed files automatically after a cooldown delay',
+      'Batch import no longer triggers dashboard refresh after every file \u2014 one update at the end',
+      'Data entries moved to Settings \u2192 Data tab; dashboard shows only Notes with a card design',
+      'Fixed PhenoAge calculation that showed N/A due to unit conversion overflow',
+    ]
+  },
+  {
     version: '1.0.7', date: '2026-02-28', title: 'Test-Type Sidebar Grouping',
     items: [
       'AI now auto-detects test type (OAT, DUTCH, HTMA, GI, blood) and keeps specialty markers separate from blood work',
