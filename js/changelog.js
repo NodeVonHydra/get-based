@@ -5,37 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.0.9', date: '2026-02-28', title: 'Brand & Header Refresh',
+    version: '1.1.0', date: '2026-02-28', title: 'Specialty Labs & Brand Refresh',
     items: [
-      'Brand rename: "Get Based" → getbased — lowercase wordmark with gradient text',
-      'Header icons: replaced emoji icons with clean SVGs, added ₿ Donate button',
-      'Decluttered header: Glossary and Docs moved to Settings > Display tab',
-      'Added BRAND.md — brand manual covering name, colors, typography, and guidelines',
-    ]
-  },
-  {
-    version: '1.0.8', date: '2026-02-28', title: 'Import & UX Polish',
-    items: [
-      'Ollama PII is now opt-in \u2014 toggle it on in Settings \u2192 Privacy instead of auto-detecting',
-      'Batch import retries failed files automatically after a cooldown delay',
-      'Batch import no longer triggers dashboard refresh after every file \u2014 one update at the end',
-      'Data entries moved to Settings \u2192 Data tab; dashboard shows only Notes with a card design',
-      'Fixed PhenoAge calculation that showed N/A due to unit conversion overflow',
-    ]
-  },
-  {
-    version: '1.0.7', date: '2026-02-28', title: 'Test-Type Sidebar Grouping',
-    items: [
-      'AI now auto-detects test type (OAT, DUTCH, HTMA, GI, blood) and keeps specialty markers separate from blood work',
-      'Sidebar groups specialty categories under collapsible headers \u2014 OAT, DUTCH, HTMA each get their own section',
-      'Collapse state persists across page loads; search expands groups to show matches',
-    ]
-  },
-  {
-    version: '1.0.6', date: '2026-02-27', title: 'Specialty Lab & Token Savings',
-    items: [
-      'Improved support for Metabolomix+ and Mosaic OAT \u2014 each lab now uses its own reference ranges',
-      'Overall improvements on token costs for AI-powered PDF import',
+      'Specialty lab support \u2014 OAT, DUTCH, HTMA, GI results now import with their own reference ranges and sidebar sections',
+      'Brand refresh \u2014 new getbased gradient wordmark, SVG header icons, cleaner layout',
+      'Batch import improvements \u2014 auto-retry on failure, single dashboard refresh at the end',
+      'Ollama PII obfuscation is now opt-in (Settings \u2192 Privacy)',
+      '\u20bf Donate button in header \u2014 support the project with Bitcoin',
     ]
   },
   {
