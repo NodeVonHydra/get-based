@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Get Based
+  name: getbased
   text: Blood Work Dashboard
   tagline: Track biomarker trends, import any lab PDF, and get AI-powered health insights — all stored locally in your browser.
   actions:

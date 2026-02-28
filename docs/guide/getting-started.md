@@ -1,6 +1,6 @@
 # Getting Started
 
-Get Based is a blood work dashboard that turns your lab reports into interactive charts, trend analysis, and AI-powered interpretation. The app starts empty — your data is loaded by you, stored locally in your browser, and never uploaded anywhere by default.
+getbased is a blood work dashboard that turns your lab reports into interactive charts, trend analysis, and AI-powered interpretation. The app starts empty — your data is loaded by you, stored locally in your browser, and never uploaded anywhere by default.
 
 ## Open the App
 
@@ -18,9 +18,9 @@ Then open `http://localhost:8000` in your browser. A local server is required be
 
 ## Install as a PWA
 
-Get Based is installable as a Progressive Web App on desktop and mobile. Look for the install prompt in your browser's address bar, or use your browser menu:
+getbased is installable as a Progressive Web App on desktop and mobile. Look for the install prompt in your browser's address bar, or use your browser menu:
 
-- **Chrome / Edge**: address bar → install icon, or menu → "Install Get Based"
+- **Chrome / Edge**: address bar → install icon, or menu → "Install getbased"
 - **Safari (iOS)**: Share → Add to Home Screen
 - **Firefox**: menu → Install
 

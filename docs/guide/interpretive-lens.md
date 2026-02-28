@@ -21,7 +21,7 @@ The AI does not need you to explain who these people are. If it knows their publ
 
 ## How It Shapes AI Analysis
 
-Every AI interaction in Get Based — the Focus Card, the chat panel, and per-marker explanations — includes your Interpretive Lens in the context. The AI will:
+Every AI interaction in getbased — the Focus Card, the chat panel, and per-marker explanations — includes your Interpretive Lens in the context. The AI will:
 
 - Frame its analysis through the paradigms you listed
 - Draw on the research traditions those experts represent

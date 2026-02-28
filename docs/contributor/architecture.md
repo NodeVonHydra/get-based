@@ -2,7 +2,7 @@
 
 ## Zero-build philosophy
 
-Get Based has no bundler, no package manager, and no compile step. It uses native ES modules (`<script type="module">`) supported by every modern browser. The development workflow is:
+getbased has no bundler, no package manager, and no compile step. It uses native ES modules (`<script type="module">`) supported by every modern browser. The development workflow is:
 
 1. Edit a file
 2. Reload the browser

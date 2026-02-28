@@ -18,7 +18,7 @@ Required for PhenoAge (biological age calculation). PhenoAge uses a validated fo
 
 ### Location (Country and Postal Code)
 
-Your location is used to auto-detect a latitude band for the **Light & Circadian** context card. Latitude influences UV exposure availability, seasonal light patterns, and how the AI interprets your circadian context. Get Based maps your country and postal code to one of five latitude bands — no precise location is stored or transmitted.
+Your location is used to auto-detect a latitude band for the **Light & Circadian** context card. Latitude influences UV exposure availability, seasonal light patterns, and how the AI interprets your circadian context. getbased maps your country and postal code to one of five latitude bands — no precise location is stored or transmitted.
 
 ## Display
 

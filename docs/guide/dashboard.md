@@ -1,6 +1,6 @@
 # Dashboard
 
-The dashboard is your home base in Get Based. It displays everything in a single scrollable page — no tabs to juggle, no hidden sections. The layout flows from top to bottom in a fixed order.
+The dashboard is your home base in getbased. It displays everything in a single scrollable page — no tabs to juggle, no hidden sections. The layout flows from top to bottom in a fixed order.
 
 ## Dashboard Layout
 

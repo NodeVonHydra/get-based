@@ -1,6 +1,6 @@
 # Contributor Quick Start
 
-Welcome. Get Based is a zero-build, native ES module web app. There is no install step, no compiler, and no package manager required to run it locally.
+Welcome. getbased is a zero-build, native ES module web app. There is no install step, no compiler, and no package manager required to run it locally.
 
 ## Prerequisites
 

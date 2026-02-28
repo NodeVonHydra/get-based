@@ -1,6 +1,6 @@
 # Deployment
 
-Get Based is deployed on Vercel. The app is static — no server-side code, no API routes, no backend. Vercel serves the files directly and injects security headers.
+getbased is deployed on Vercel. The app is static — no server-side code, no API routes, no backend. Vercel serves the files directly and injects security headers.
 
 ## Vercel configuration
 
@@ -111,8 +111,8 @@ The API bypass is critical for streaming. If the service worker intercepts a str
 
 ```json
 {
-  "name": "Get Based",
-  "short_name": "Get Based",
+  "name": "getbased",
+  "short_name": "getbased",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1117",

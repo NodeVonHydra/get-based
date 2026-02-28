@@ -357,7 +357,7 @@ Standalone creative prompt — no lab data involved:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  SYSTEM: "You are a persona designer for Get Based.  │
+│  SYSTEM: "You are a persona designer for getbased.  │
 │  Create a thorough persona covering:"                 │
 │    1. Identity & Background                           │
 │    2. Communication Style                             │

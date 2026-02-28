@@ -1,12 +1,12 @@
 # Guided Tour
 
-The guided tour is a step-by-step walkthrough that introduces the main features of Get Based. The page dims and a spotlight highlights one element at a time, with a tooltip explaining what it does.
+The guided tour is a step-by-step walkthrough that introduces the main features of getbased. The page dims and a spotlight highlights one element at a time, with a tooltip explaining what it does.
 
 ## The App Tour (7 Steps)
 
 The main tour covers seven stops:
 
-1. **Welcome** — A brief introduction to Get Based
+1. **Welcome** — A brief introduction to getbased
 2. **Drop Zone** — Where to import your lab PDFs or JSON files
 3. **Sidebar Navigation** — How to move between biomarker categories
 4. **Context Cards** — The lifestyle cards that give AI analysis more context
@@ -16,7 +16,7 @@ The main tour covers seven stops:
 
 ## Auto-Trigger on First Visit
 
-The tour starts automatically the first time you open the dashboard. It will not run again after you complete or skip it — Get Based remembers your progress.
+The tour starts automatically the first time you open the dashboard. It will not run again after you complete or skip it — getbased remembers your progress.
 
 ## Navigating the Tour
 
