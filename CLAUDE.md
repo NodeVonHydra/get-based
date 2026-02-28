@@ -29,7 +29,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `supplements.js` — supplement editor + render section
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
-  - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone
+  - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone. AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import, PDF report, `clearAllData`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
   - `settings.js` — settings modal, provider panels, privacy section
@@ -37,7 +37,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — first-visit guided tour (spotlight walkthrough) + cycle tour
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
-  - `nav.js` — sidebar, date range filter, chart layers
+  - `nav.js` — sidebar (with collapsible test-type groups), date range filter, chart layers
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
@@ -53,14 +53,15 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 4. `singlePoint` categories (fattyAcids) have `singlePoint: true` — grid cards instead of trend charts
 5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
 
-### AI-Powered PDF Import Pipeline
+### PDF Import Pipeline
 
 1. **Text extraction** (`extractPDFText`): pdf.js extracts text items with x, y coordinates, grouped by page
-2. **AI analysis** (`parseLabPDFWithAI`): sends text to AI with `buildMarkerReference()` (all known markers). AI maps results to `category.markerKey` format
-3. **Import preview**: matched/unmatched markers shown; user confirms before saving
-4. **Custom markers**: unknown markers (including all specialty lab markers like OAT, amino acids, toxic elements) auto-handled — AI suggests key, name, unit, ref ranges. Stored in `importedData.customMarkers`, merged into pipeline at runtime. Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
-5. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
-6. **PII obfuscation**: Ollama (preferred) or regex fallback replaces personal info before sending to AI
+2. **PII obfuscation**: Ollama (preferred) or regex fallback replaces personal info before sending to AI
+3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs
+4. **Import preview**: matched/unmatched/new markers shown; user confirms before saving
+5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
+6. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
+7. **Sidebar grouping**: categories with `group` field (e.g., "OAT") render under collapsible sidebar headers. `toggleNavGroup()`, collapse state persisted in localStorage
 
 ### Profile Context Cards
 

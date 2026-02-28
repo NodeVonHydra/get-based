@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.7', date: '2026-02-28', title: 'Test-Type Sidebar Grouping',
+    items: [
+      'AI now auto-detects test type (OAT, DUTCH, HTMA, GI, blood) and keeps specialty markers separate from blood work',
+      'Sidebar groups specialty categories under collapsible headers \u2014 OAT, DUTCH, HTMA each get their own section',
+      'Collapse state persists across page loads; search expands groups to show matches',
+    ]
+  },
+  {
     version: '1.0.6', date: '2026-02-27', title: 'Specialty Lab & Token Savings',
     items: [
       'Improved support for Metabolomix+ and Mosaic OAT \u2014 each lab now uses its own reference ranges',

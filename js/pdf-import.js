@@ -8,6 +8,7 @@ import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
+
 // ═══════════════════════════════════════════════
 // AI-POWERED PDF IMPORT
 // ═══════════════════════════════════════════════
@@ -118,7 +119,7 @@ export function tryParseJSON(str) {
   }
 }
 
-export async function parseLabPDFWithAI(pdfText, fileName) {
+export async function parseLabPDFWithAI(pdfText, fileName, onProgress) {
   const markerRef = buildMarkerReference();
   const system = `You are a lab report data extraction assistant. You extract biomarker results from lab report text and map them to a known set of marker keys.
 
@@ -141,24 +142,47 @@ Your task:
 4. Only map to a marker if you're confident it's the correct match
 5. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
 6. Skip non-numeric results (text-only findings, interpretive notes)
-7. For markers that do NOT match any known key (mappedKey is null), also return:
-   - suggestedKey: a "category.camelCaseKey" string. Use an existing category from the reference if the marker fits (e.g. "biochemistry", "hormones", "vitamins"), otherwise use "custom". The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
+7. Identify the type of lab test this PDF represents. Return as "testType" field:
+   - "blood" for standard blood panels (CBC, metabolic, lipids, hormones, etc.)
+   - "OAT" for Organic Acids Tests (Mosaic, Genova, Great Plains)
+   - "Metabolomix+" for Genova Metabolomix+ profiles (combo: organic acids + amino acids + fatty acids)
+   - "DUTCH" for dried urine hormone panels
+   - "HTMA" for Hair Tissue Mineral Analysis
+   - "GI" for stool tests (GI-MAP, Gut Zoomer)
+   - Or a descriptive name for other specialty tests
+8. CRITICAL for specialty tests (testType ≠ "blood"): You MUST NOT set mappedKey to any standard blood work category key (biochemistry, hormones, electrolytes, lipids, iron, proteins, thyroid, vitamins, diabetes, tumorMarkers, coagulation, hematology, differential, fattyAcids, boneMetabolism). Even if a marker name matches (e.g., "Creatinine" in a urine OAT test is NOT "biochemistry.creatinine" which is serum). Always use test-type-prefixed keys from the reference list (oatMicrobial, oatMetabolic, etc.) or set mappedKey to null so it becomes a new custom marker. Different specimen types = different markers.
+9. For markers that do NOT match any known key (mappedKey is null), also return:
+   - suggestedKey: a "category.camelCaseKey" string. For specialty tests (testType ≠ "blood"), ALWAYS use a test-type-prefixed category (e.g., "oatNutritional", "dutchHormones"). Never use standard blood work categories for specialty test markers. The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
    - suggestedName: a clean English display name for the marker
+   - suggestedCategoryLabel: short category label (e.g., "Microbial Overgrowth")
+   - suggestedGroup: test type group (e.g., "OAT", "DUTCH", "HTMA") — omit for standard blood work
 
 Return ONLY valid JSON in this exact format, no other text:
 {
+  "testType": "blood",
   "date": "YYYY-MM-DD",
   "markers": [
     {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker", "unit": "mg/dL", "refMin": 70, "refMax": 100},
-    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "biochemistry.someMarker", "suggestedName": "Some Marker", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
+    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "oatMicrobial.someMarker", "suggestedName": "Some Marker", "suggestedCategoryLabel": "Microbial Overgrowth", "suggestedGroup": "OAT", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
   ]
 }`;
 
   const provider = getAIProvider();
+  const maxTokens = 32768;
+  // Stream AI response to report real-time progress during analysis (15% → 90%)
+  let onStream;
+  if (onProgress) {
+    let lastPct = -1;
+    onStream = (text) => {
+      const pct = Math.min(15 + Math.round((text.length / (maxTokens * 3)) * 75), 90);
+      if (pct !== lastPct) { lastPct = pct; onProgress(pct); }
+    };
+  }
   const { text: response, usage } = await callClaudeAPI({
     system,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report${fileName ? ' (file: ' + fileName + ')' : ''}:\n\n${pdfText}` }],
-    maxTokens: 16384
+    maxTokens,
+    onStream
   });
 
   // Parse JSON from response (handle markdown code blocks, truncated output)
@@ -170,19 +194,61 @@ Return ONLY valid JSON in this exact format, no other text:
   if (jsonStart > 0) jsonStr = jsonStr.slice(jsonStart);
   const parsed = tryParseJSON(jsonStr);
 
+  const testType = parsed.testType || 'blood';
+  const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
     date: parsed.date || null,
-    markers: (parsed.markers || []).map(m => ({
-      rawName: m.rawName,
-      value: typeof m.value === 'number' ? m.value : parseFloat(String(m.value).replace(',', '.')),
-      mappedKey: m.mappedKey || null,
-      matched: !!m.mappedKey,
-      suggestedKey: m.suggestedKey || null,
-      suggestedName: m.suggestedName || null,
-      unit: m.unit || null,
-      refMin: m.refMin != null ? m.refMin : null,
-      refMax: m.refMax != null ? m.refMax : null
-    })).filter(m => !isNaN(m.value)),
+    testType,
+    markers: (parsed.markers || []).map(m => {
+      let mappedKey = m.mappedKey || null;
+      let matched = !!mappedKey;
+      // Guard: never allow standard blood work mappings for specialty tests
+      if (matched && testType !== 'blood') {
+        const catKey = mappedKey.split('.')[0];
+        if (standardCats.has(catKey)) {
+          if (isDebugMode()) console.log(`[Import Guard] Demoted ${mappedKey} — standard category in ${testType} test`);
+          // Preserve AI's suggested fields or construct fallback from the standard category
+          if (!m.suggestedKey) {
+            const markerPart = mappedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+            const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
+            const originalCat = MARKER_SCHEMA[catKey];
+            const catSuffix = catKey.charAt(0).toUpperCase() + catKey.slice(1);
+            m.suggestedKey = `${prefix}${catSuffix}.${markerPart}`;
+            m.suggestedName = m.suggestedName || (originalCat?.markers?.[markerPart]?.name) || m.rawName;
+            m.suggestedCategoryLabel = m.suggestedCategoryLabel || (originalCat?.label) || catSuffix;
+            m.suggestedGroup = m.suggestedGroup || testType;
+          }
+          mappedKey = null;
+          matched = false;
+        }
+      }
+      // Guard: also rewrite suggestedKey if AI used a standard category for specialty test
+      if (!matched && m.suggestedKey && testType !== 'blood') {
+        const sugCat = m.suggestedKey.split('.')[0];
+        if (standardCats.has(sugCat)) {
+          const markerPart = m.suggestedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+          const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
+          const catSuffix = sugCat.charAt(0).toUpperCase() + sugCat.slice(1);
+          if (isDebugMode()) console.log(`[Import Guard] Rewrote suggestedKey ${m.suggestedKey} → ${prefix}${catSuffix}.${markerPart}`);
+          m.suggestedKey = `${prefix}${catSuffix}.${markerPart}`;
+          m.suggestedCategoryLabel = m.suggestedCategoryLabel || MARKER_SCHEMA[sugCat]?.label || catSuffix;
+          m.suggestedGroup = testType;
+        }
+      }
+      return {
+        rawName: m.rawName,
+        value: typeof m.value === 'number' ? m.value : parseFloat(String(m.value).replace(',', '.')),
+        mappedKey,
+        matched,
+        suggestedKey: m.suggestedKey || null,
+        suggestedName: m.suggestedName || null,
+        suggestedCategoryLabel: m.suggestedCategoryLabel || null,
+        unit: m.unit || null,
+        refMin: m.refMin != null ? m.refMin : null,
+        refMax: m.refMax != null ? m.refMax : null,
+        group: m.suggestedGroup || m.group || (testType !== 'blood' ? testType : null) || null
+      };
+    }).filter(m => !isNaN(m.value)),
     fileName,
     usage,
     provider
@@ -244,6 +310,21 @@ export function showImportPreview(parseResult) {
     const totalTokens = (ci.inputTokens || 0) + (ci.outputTokens || 0);
     const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : ci.provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
     html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">\ud83d\udcca ${escapeHTML(modelLabel)} \u00b7 ${totalTokens.toLocaleString()} tokens \u00b7 ${formatCost(ci.cost)}</div>`;
+  }
+  // Model mismatch warning
+  if (parseResult.costInfo?.modelId) {
+    const currentModel = parseResult.costInfo.modelId;
+    const prevModels = new Set();
+    for (const e of (state.importedData?.entries || [])) {
+      if (e.importedWith?.modelId && e.importedWith.modelId !== currentModel) {
+        prevModels.add(e.importedWith.modelId);
+      }
+    }
+    if (prevModels.size > 0) {
+      const prevList = [...prevModels].map(m => escapeHTML(m)).join(', ');
+      html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--yellow);font-size:13px">
+        &#9888; Previous imports used <strong>${prevList}</strong>. Using a different model may cause marker key mismatches and break trend lines.</div>`;
+    }
   }
   // Debug: timings and diff button
   if (isDebugMode()) {
@@ -307,7 +388,13 @@ export function confirmImport() {
     entry = { date: result.date, markers: {} };
     state.importedData.entries.push(entry);
   }
+  entry.importedWith = {
+    provider: result.costInfo?.provider || null,
+    modelId: result.costInfo?.modelId || null
+  };
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
+  // For non-blood imports, testType is the authoritative sidebar group for all markers
+  const importGroup = (result.testType && result.testType !== 'blood') ? result.testType : null;
   // Auto-create custom markers for matched specialty keys (uses PDF's reference ranges)
   if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of matched) {
@@ -319,7 +406,8 @@ export function confirmImport() {
         refMin: m.refMin != null ? m.refMin : def.refMin,
         refMax: m.refMax != null ? m.refMax : def.refMax,
         categoryLabel: def.categoryLabel,
-        icon: def.icon
+        icon: def.icon,
+        group: importGroup || def.group || null
       };
     }
   }
@@ -330,15 +418,16 @@ export function confirmImport() {
     // Save definition only if not already defined
     if (!state.importedData.customMarkers[m.suggestedKey]) {
       const [catKey] = m.suggestedKey.split('.');
-      // Determine category label: use schema label if category exists, else title-case the key
+      // Determine category label: use schema label if category exists, else AI-suggested or title-case the key
       const schemaCategory = MARKER_SCHEMA[catKey];
-      const categoryLabel = schemaCategory ? schemaCategory.label : catKey.charAt(0).toUpperCase() + catKey.slice(1);
+      const categoryLabel = schemaCategory ? schemaCategory.label : m.suggestedCategoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1);
       state.importedData.customMarkers[m.suggestedKey] = {
         name: m.suggestedName || m.rawName,
         unit: m.unit || '',
         refMin: m.refMin,
         refMax: m.refMax,
-        categoryLabel
+        categoryLabel,
+        group: importGroup || m.group || null
       };
     }
   }
@@ -400,10 +489,21 @@ export function setupDropZone() {
   });
 }
 
-export async function showImportProgress(step, fileName) {
-  const dropZone = document.getElementById("drop-zone");
-  if (!dropZone) return;
-  let html = '<div class="import-progress">';
+// Weighted step percentages: text extraction and PII are fast, AI analysis is the bulk
+const STEP_START_PCT = [5, 10, 15, 95];
+
+function _updateProgressPct(pct) {
+  const fill = document.querySelector('.import-progress-bar-fill');
+  const label = document.querySelector('.import-progress-pct');
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = pct + '%';
+}
+
+function _buildProgressHTML(step, fileName) {
+  const pct = STEP_START_PCT[step] || 0;
+  let html = `<div class="import-progress-bar"><div class="import-progress-bar-fill" style="width:${pct}%"></div></div>`;
+  html += `<div class="import-progress-pct">${pct}%</div>`;
+  html += '<div class="import-progress">';
   for (let i = 0; i < IMPORT_STEPS.length; i++) {
     const isDone = i < step;
     const isActive = i === step;
@@ -417,7 +517,13 @@ export async function showImportProgress(step, fileName) {
   }
   if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
   html += '</div>';
-  dropZone.innerHTML = html;
+  return html;
+}
+
+export async function showImportProgress(step, fileName) {
+  const dropZone = document.getElementById("drop-zone");
+  if (!dropZone) return;
+  dropZone.innerHTML = _buildProgressHTML(step, fileName);
   // Yield to browser so it actually paints the progress before heavy work continues
   await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 }
@@ -431,15 +537,17 @@ export function hideImportProgress() {
 }
 
 export async function handlePDFFile(file) {
-  if (!hasAIProvider()) {
-    showNotification("AI provider not configured. Opening settings...", "info");
-    setTimeout(() => window.openSettingsModal(), 500);
-    return;
-  }
   try {
     await showImportProgress(0, file.name);
     const pdfText = await extractPDFText(file);
     if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
+
+    if (!hasAIProvider()) {
+      hideImportProgress();
+      showNotification("AI provider not configured. Opening settings...", "info");
+      setTimeout(() => window.openSettingsModal(), 500);
+      return;
+    }
 
     // PII obfuscation step
     await showImportProgress(1, file.name);
@@ -493,7 +601,7 @@ export async function handlePDFFile(file) {
 
     await showImportProgress(2, file.name);
     const analysisStart = performance.now();
-    const result = await parseLabPDFWithAI(textForAI, file.name);
+    const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
     const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
     if (isDebugMode()) console.log(`[Analysis] Parsed in ${analysisTime}s`);
     result.privacyMethod = privacyMethod;
@@ -582,7 +690,7 @@ export async function handleBatchPDFs(pdfFiles) {
 
       await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
       const analysisStart = performance.now();
-      const result = await parseLabPDFWithAI(textForAI, file.name);
+      const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
       const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
       if (isDebugMode()) console.log(`[Analysis] ${file.name} parsed in ${analysisTime}s`);
       result.privacyMethod = privacyMethod;
@@ -619,20 +727,7 @@ export async function showBatchImportProgress(step, fileName, current, total) {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
   let html = `<div class="batch-progress-counter">Processing file ${current} of ${total}</div>`;
-  html += '<div class="import-progress">';
-  for (let i = 0; i < IMPORT_STEPS.length; i++) {
-    const isDone = i < step;
-    const isActive = i === step;
-    const cls = isDone ? "done" : isActive ? "active" : "";
-    const icon = isDone
-      ? '<span class="step-icon">\u2713</span>'
-      : isActive
-        ? '<span class="step-icon"><span class="progress-spinner"></span></span>'
-        : '<span class="step-icon">\u25CB</span>';
-    html += `<div class="progress-step ${cls}">${icon}<span>${IMPORT_STEPS[i]}${isActive ? "..." : ""}</span></div>`;
-  }
-  if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
-  html += '</div>';
+  html += _buildProgressHTML(step, fileName);
   dropZone.innerHTML = html;
   await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 }

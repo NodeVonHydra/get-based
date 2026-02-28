@@ -146,6 +146,20 @@ body {
   padding: 1px 7px; border-radius: 10px; color: var(--red); font-weight: 600;
   box-shadow: 0 0 6px rgba(248, 113, 113, 0.15);
 }
+.sidebar-group-header {
+  display: flex; align-items: center; gap: 8px; padding: 8px 20px; margin-top: 8px;
+  cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); user-select: none;
+}
+.sidebar-group-header:hover { color: var(--text-secondary); }
+.sidebar-group-header .flag-count {
+  font-family: var(--font-mono); font-size: 10px; background: var(--red-bg);
+  padding: 0 5px; border-radius: 8px; color: var(--red); font-weight: 600;
+}
+.sidebar-group-arrow {
+  margin-left: auto; font-size: 10px; transition: transform 0.15s;
+}
+.sidebar-group-header:not(.collapsed) .sidebar-group-arrow { transform: rotate(90deg); }
 .main { flex: 1; padding: 24px 32px; max-width: calc(100vw - 260px); }
 .app-disclaimer { font-size: 11px; color: var(--text-muted); text-align: center; margin: 32px 0 8px; line-height: 1.5; }
 .app-footer-version { font-size: 11px; color: var(--text-muted); text-align: center; margin: 4px 0 16px; font-family: var(--font-mono); opacity: 0.6; }
@@ -377,6 +391,8 @@ body {
     display: flex; flex-wrap: wrap; padding: 8px; gap: 4px;
   }
   .sidebar-title { display: none; }
+  .sidebar-group-header { display: none; }
+  .sidebar-group-items { display: flex !important; flex-wrap: wrap; gap: 4px; }
   .nav-item { padding: 8px 12px; font-size: 12px; border-left: none; border-radius: var(--radius-sm); }
   .nav-item.active { border-left: none; background: var(--accent); color: white; }
   .main { max-width: 100%; padding: 20px; }
@@ -470,6 +486,18 @@ body {
   animation: progressSpin 0.8s linear infinite;
 }
 @keyframes progressSpin { to { transform: rotate(360deg); } }
+.import-progress-bar {
+  width: 100%; max-width: 280px; height: 6px; background: var(--border);
+  border-radius: 3px; margin: 0 auto 4px; overflow: hidden;
+}
+.import-progress-bar-fill {
+  height: 100%; background: var(--accent-gradient); border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.import-progress-pct {
+  text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 12px; font-variant-numeric: tabular-nums;
+}
 .import-progress-filename {
   font-size: 12px; color: var(--text-muted); margin-top: 4px;
   align-self: center;
