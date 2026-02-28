@@ -123,8 +123,17 @@ export function migrateProfileData(data) {
         data.customMarkers[key] = {
           name: def.name, unit: def.unit,
           refMin: def.refMin, refMax: def.refMax,
-          categoryLabel: def.categoryLabel, icon: def.icon
+          categoryLabel: def.categoryLabel, icon: def.icon,
+          group: def.group || null
         };
+      }
+    }
+  }
+  // Backfill group for existing customMarkers missing it
+  if (data.customMarkers) {
+    for (const [key, cm] of Object.entries(data.customMarkers)) {
+      if (cm.group === undefined && SPECIALTY_MARKER_DEFS[key]) {
+        cm.group = SPECIALTY_MARKER_DEFS[key].group || null;
       }
     }
   }

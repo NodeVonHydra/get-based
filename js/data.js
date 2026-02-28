@@ -99,6 +99,8 @@ export function getActiveData() {
       data.categories[catKey] = {
         label: def.categoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1),
         icon: def.icon || '\uD83D\uDD16',
+        singlePoint: !!def.singlePoint,
+        group: def.group || null,
         markers: {}
       };
     }

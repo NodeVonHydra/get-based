@@ -145,7 +145,7 @@
   assert('Nav items have tabindex', navSrc.includes('tabindex="0"'));
   assert('Nav items have role=button', navSrc.includes('role="button"'));
   assert('Nav items have keyboard handler', navSrc.includes('onkeydown'));
-  assert('Category labels escaped in sidebar', navSrc.includes('escapeHTML(cat.label)'));
+  assert('Category labels escaped in sidebar', navSrc.includes('escapeHTML(label)') || navSrc.includes('escapeHTML(cat.label)'));
 
   const mainSrc = await fetch('js/main.js').then(r => r.text());
   assert('Focus trap for modals', mainSrc.includes('e.key === "Tab"') && mainSrc.includes('focusable'));
