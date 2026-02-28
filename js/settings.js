@@ -156,12 +156,6 @@ export function openSettingsModal(tab) {
 
     <!-- Data Tab -->
     <div class="settings-tab-panel${_activeSettingsTab === 'data' ? ' active' : ''}" data-tab-panel="data">
-      <div class="settings-group-title">Imported Data</div>
-
-      <div class="settings-section" id="data-entries-section">
-        ${renderDataEntriesSection()}
-      </div>
-
       <div class="settings-group-title">Security</div>
 
       <div class="settings-section" id="encryption-section">
@@ -172,6 +166,12 @@ export function openSettingsModal(tab) {
 
       <div class="settings-section" id="backup-section">
         ${renderBackupSection()}
+      </div>
+
+      <div class="settings-group-title">Imported Data</div>
+
+      <div class="settings-section" id="data-entries-section">
+        ${renderDataEntriesSection()}
       </div>
     </div>`;
   overlay.classList.add('show');
