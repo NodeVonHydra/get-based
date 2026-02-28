@@ -68,7 +68,16 @@ export async function checkOllama(url) {
   }
 }
 
+export function isOllamaPIIEnabled() {
+  return localStorage.getItem('labcharts-ollama-pii-enabled') === 'true';
+}
+
+export function setOllamaPIIEnabled(enabled) {
+  localStorage.setItem('labcharts-ollama-pii-enabled', enabled ? 'true' : 'false');
+}
+
 export async function checkOllamaPII() {
+  if (!isOllamaPIIEnabled()) return { available: false, models: [] };
   return checkOllama(getOllamaPIIUrl());
 }
 
@@ -296,4 +305,4 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
   });
 }
 
-Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, showPIIDiffViewer });
+Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, showPIIDiffViewer, isOllamaPIIEnabled, setOllamaPIIEnabled });

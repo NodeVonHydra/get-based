@@ -5,7 +5,7 @@ import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEna
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getProfileLocation, updateLocationLat } from './profile.js';
-import { getOllamaConfig, checkOllama, saveOllamaConfig } from './pii.js';
+import { getOllamaConfig, checkOllama, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
 
 
@@ -146,6 +146,12 @@ export function openSettingsModal(tab) {
 
     <!-- Data Tab -->
     <div class="settings-tab-panel${_activeSettingsTab === 'data' ? ' active' : ''}" data-tab-panel="data">
+      <div class="settings-group-title">Imported Data</div>
+
+      <div class="settings-section" id="data-entries-section">
+        ${renderDataEntriesSection()}
+      </div>
+
       <div class="settings-group-title">Security</div>
 
       <div class="settings-section" id="encryption-section">
@@ -191,6 +197,7 @@ export function switchSettingsTab(tabId) {
     initSettingsModelFetch();
   }
   if (tabId === 'data') {
+    refreshDataEntriesSection();
     loadBackupSnapshots();
   }
   if (tabId === 'profile') {
@@ -327,6 +334,7 @@ export function renderAIProviderPanel(provider) {
 
 export function renderPrivacySection() {
   const piiUrl = getOllamaPIIUrl();
+  const piiEnabled = isOllamaPIIEnabled();
   return `<div class="ollama-settings">
     <div class="ai-provider-desc" style="margin-bottom:10px">Before your lab PDF is sent to AI for analysis, personal information (name, date of birth, ID numbers, address) is detected and replaced with fake data. Only lab results and marker values reach the AI provider.</div>
     <div class="privacy-status-card" id="privacy-status-card">
@@ -336,7 +344,25 @@ export function renderPrivacySection() {
         <div class="privacy-status-detail" id="privacy-status-detail"></div>
       </div>
     </div>
-    <div class="privacy-configure-toggle" onclick="togglePrivacyConfigure()">
+    <div style="margin:12px 0">
+      <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
+        <input type="checkbox" id="ollama-pii-toggle" style="margin-top:2px" ${piiEnabled ? 'checked' : ''} onchange="toggleOllamaPII(this.checked)">
+        <span>Use local AI for privacy protection<br><span style="font-size:11px;color:var(--text-muted)">Requires Ollama running locally. When disabled, regex pattern matching is used instead</span></span>
+      </label>
+    </div>
+    <div style="margin-top:4px">
+      <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
+        <input type="checkbox" id="pii-review-toggle" style="margin-top:2px" ${isPIIReviewEnabled() ? 'checked' : ''} onchange="setPIIReviewEnabled(this.checked)">
+        <span>Review obfuscated text before sending to AI<br><span style="font-size:11px;color:var(--text-muted)">Pause after privacy protection to inspect what AI will receive</span></span>
+      </label>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
+        Show privacy details in import preview
+      </label>
+    </div>
+    <div class="privacy-configure-toggle" onclick="togglePrivacyConfigure()" style="margin-top:12px">
       <span class="privacy-configure-arrow" id="privacy-configure-arrow">&#9654;</span>
       Configure Local AI
     </div>
@@ -358,18 +384,6 @@ export function renderPrivacySection() {
           <select class="api-key-input" id="pii-model-select" style="margin-top:4px" onchange="setOllamaPIIModel(this.value)"></select>
         </div>
       </div>
-      <div style="margin-top:8px">
-        <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
-          <input type="checkbox" id="pii-review-toggle" style="margin-top:2px" ${isPIIReviewEnabled() ? 'checked' : ''} onchange="setPIIReviewEnabled(this.checked)">
-          <span>Review obfuscated text before sending to AI<br><span style="font-size:11px;color:var(--text-muted)">Pause after privacy protection to inspect what AI will receive</span></span>
-        </label>
-      </div>
-      <div style="margin-top:8px">
-        <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
-          <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
-          Show privacy details in import preview
-        </label>
-      </div>
     </div>
   </div>`;
 }
@@ -383,14 +397,28 @@ export function togglePrivacyConfigure() {
   if (arrow) arrow.innerHTML = open ? '&#9654;' : '&#9660;';
 }
 
+export function toggleOllamaPII(enabled) {
+  setOllamaPIIEnabled(enabled);
+  updatePrivacyStatusCard();
+  if (enabled) {
+    // Expand the configure panel so user can set up Ollama
+    const body = document.getElementById('privacy-configure-body');
+    const arrow = document.getElementById('privacy-configure-arrow');
+    if (body) body.style.display = 'block';
+    if (arrow) arrow.innerHTML = '&#9660;';
+  }
+}
+
 export async function updatePrivacyStatusCard(enhanced) {
   const icon = document.getElementById('privacy-status-icon');
   const title = document.getElementById('privacy-status-title');
   const detail = document.getElementById('privacy-status-detail');
   const card = document.getElementById('privacy-status-card');
   if (!title || !detail || !card) return;
+  // If opt-in is off, always show basic
+  if (!isOllamaPIIEnabled()) { enhanced = false; }
   // If not passed explicitly, check PII Ollama
-  if (enhanced === undefined) {
+  else if (enhanced === undefined) {
     try {
       const piiUrl = getOllamaPIIUrl();
       const resp = await fetch(`${piiUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
@@ -572,6 +600,9 @@ export async function testPIIOllamaConnection() {
     } else {
       dot.classList.add('connected');
       setOllamaPIIUrl(url);
+      setOllamaPIIEnabled(true);
+      const toggle = document.getElementById('ollama-pii-toggle');
+      if (toggle) toggle.checked = true;
       let currentPII = getOllamaPIIModel();
       if (!models.includes(currentPII)) { currentPII = models[0]; setOllamaPIIModel(currentPII); }
       text.textContent = `Connected — using ${currentPII}`;
@@ -754,6 +785,36 @@ export function renderRoutstrModelDropdown(models) { ... }
 
 
 
+export function renderDataEntriesSection() {
+  const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
+  if (entries.length === 0) {
+    return '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No imported data yet. Drop a PDF or JSON file on the dashboard to get started.</div>';
+  }
+  const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+  let html = '';
+  for (const entry of sorted) {
+    const d = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const cnt = Object.keys(entry.markers).length;
+    const modelLabel = entry.importedWith?.modelId ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${escapeHTML(entry.importedWith.modelId)}</span>` : '';
+    html += `<div class="imported-entry">
+      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${modelLabel}</span>
+      <div class="ie-actions">
+        <button class="ie-remove" onclick="removeImportedEntry('${entry.date}');refreshDataEntriesSection()">Remove</button>
+      </div>
+    </div>`;
+  }
+  html += `<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+    <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+    <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
+    <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
+  return html;
+}
+
+export function refreshDataEntriesSection() {
+  const el = document.getElementById('data-entries-section');
+  if (el) el.innerHTML = renderDataEntriesSection();
+}
+
 Object.assign(window, {
   openSettingsModal,
   closeSettingsModal,
@@ -761,6 +822,7 @@ Object.assign(window, {
   renderAIProviderPanel,
   renderPrivacySection,
   togglePrivacyConfigure,
+  toggleOllamaPII,
   updatePrivacyStatusCard,
   switchAIProvider,
   initSettingsModelFetch,
@@ -786,4 +848,6 @@ Object.assign(window, {
   handleRemoveRoutstrKey,
   renderRoutstrModelDropdown,
   */
+  renderDataEntriesSection,
+  refreshDataEntriesSection,
 });

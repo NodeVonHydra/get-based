@@ -299,18 +299,18 @@ export function getActiveData() {
       let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
       if (age <= 0) return null;
 
-      // Levine 2018 coefficients expect NHANES units (g/dL, mg/dL, mg/dL, %, U/L)
-      // Convert SI → NHANES: albumin g/L→g/dL (/10), creatinine µmol/L→mg/dL (/88.4),
-      // glucose mmol/L→mg/dL (*18.016), lymphocytes fraction→% (*100), ALP µkat/L→U/L (*60)
+      // Levine 2018 coefficients — calibrated for SI units as stored in the schema:
+      // albumin g/L, creatinine µmol/L, glucose mmol/L, CRP mg/L (ln),
+      // lymphocytes fraction 0–1, MCV fL, RDW %, ALP µkat/L, WBC 10^9/L
       const xb = -19.907
-        - 0.0336  * (albumin_si / 10)
-        + 0.0095  * (creatinine_si / 88.4)
-        + 0.1953  * (glucose_si * 18.016)
+        - 0.0336  * albumin_si
+        + 0.0095  * creatinine_si
+        + 0.1953  * glucose_si
         + 0.0954  * Math.log(crp)
-        - 0.0120  * (lymphPct_si * 100)
+        - 0.0120  * lymphPct_si
         + 0.0268  * mcv
         + 0.3306  * rdw
-        + 0.00188 * (alp_si * 60)
+        + 0.00188 * alp_si
         + 0.0554  * wbc
         + 0.0804  * age;
 

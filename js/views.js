@@ -170,54 +170,33 @@ export function showDashboard(data) {
     html += `</div>`;
   }
 
-  // ── 9. Data & Notes (bottom) ──
-  const hasEntries = state.importedData.entries && state.importedData.entries.length > 0;
+  // ── 9. Notes (bottom) ──
   const hasNotes = state.importedData.notes && state.importedData.notes.length > 0;
-  if (hasEntries || hasNotes) {
-    const entryCount = (state.importedData.entries || []).length;
+  {
     const noteCount = (state.importedData.notes || []).length;
-    const dataBadge = [entryCount ? `${entryCount} entries` : '', noteCount ? `${noteCount} notes` : ''].filter(Boolean).join(', ');
-    html += `<div style="margin-top:20px"><span class="context-section-title">Data & Notes (${dataBadge})</span></div>`;
-    html += `<div class="imported-entries">`;
+    const noteBadge = noteCount > 0 ? ` (${noteCount})` : '';
+    html += `<div style="margin-top:20px"><span class="context-section-title">Notes${noteBadge}</span></div>`;
+    html += `<div class="notes-section">`;
     html += `<button class="add-note-btn" onclick="openNoteEditor()">+ Add Note</button>`;
-    const items = [];
-    if (hasEntries) {
-      for (const entry of state.importedData.entries) {
-        items.push({ type: 'entry', date: entry.date, entry });
-      }
-    }
     if (hasNotes) {
-      for (let i = 0; i < state.importedData.notes.length; i++) {
-        items.push({ type: 'note', date: state.importedData.notes[i].date, noteIdx: i, note: state.importedData.notes[i] });
-      }
-    }
-    items.sort((a, b) => a.date.localeCompare(b.date));
-    for (const item of items) {
-      const d = new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      if (item.type === 'entry') {
-        const cnt = Object.keys(item.entry.markers).length;
-        html += `<div class="imported-entry">
-          <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span></span>
-          <div class="ie-actions">
-            <button class="ie-remove" onclick="removeImportedEntry('${item.entry.date}')">\u2715 Remove</button>
-          </div>
-        </div>`;
-      } else {
-        const preview = escapeHTML(item.note.text.length > 80 ? item.note.text.slice(0, 80) + '...' : item.note.text);
-        html += `<div class="note-row" onclick="openNoteEditor(null, ${item.noteIdx})">
-          <span class="note-row-icon">\uD83D\uDCDD</span>
-          <span class="note-row-date">${d}</span>
-          <span class="note-row-text">${preview}</span>
-          <div class="note-row-actions">
-            <button class="ie-remove" onclick="event.stopPropagation();deleteNote(${item.noteIdx})">\u2715</button>
+      const notes = state.importedData.notes
+        .map((note, i) => ({ note, idx: i }))
+        .sort((a, b) => a.note.date.localeCompare(b.note.date));
+      for (const { note, idx } of notes) {
+        const d = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const preview = escapeHTML(note.text.length > 200 ? note.text.slice(0, 200) + '...' : note.text);
+        html += `<div class="note-card" onclick="openNoteEditor(null, ${idx})">
+          <div class="note-card-date">${d}</div>
+          <div class="note-card-text">${preview}</div>
+          <div class="note-card-actions">
+            <button class="note-card-action" onclick="event.stopPropagation();openNoteEditor(null, ${idx})">Edit</button>
+            <button class="note-card-action note-card-action-delete" onclick="event.stopPropagation();deleteNote(${idx})">Delete</button>
           </div>
         </div>`;
       }
+    } else {
+      html += `<div style="color:var(--text-muted);font-size:13px;padding:12px 0;font-style:italic">No notes yet — add notes to track context around your lab results</div>`;
     }
-    html += `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-      <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
-      <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
-      <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
     html += `</div>`;
   }
 

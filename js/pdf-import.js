@@ -445,10 +445,13 @@ export function confirmImport() {
   } else {
     window.closeImportModal();
   }
-  window.buildSidebar();
-  window.updateHeaderDates();
-  const activeNav = document.querySelector(".nav-item.active");
-  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  // During batch mode, defer expensive UI refreshes until the batch completes
+  if (!_batchMode) {
+    window.buildSidebar();
+    window.updateHeaderDates();
+    const activeNav = document.querySelector(".nav-item.active");
+    window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
+  }
   showNotification(`Imported ${importCount} markers from ${result.date}`, "success");
 }
 
@@ -631,95 +634,133 @@ export async function handlePDFFile(file) {
 // ═══════════════════════════════════════════════
 // BATCH PDF IMPORT
 // ═══════════════════════════════════════════════
+let _batchMode = false;
+
+async function _processBatchFile(file, ollama, fileNum, totalFiles) {
+  await showBatchImportProgress(0, file.name, fileNum, totalFiles);
+  const pdfText = await extractPDFText(file);
+  if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); return 'empty'; }
+
+  // PII obfuscation
+  await showBatchImportProgress(1, file.name, fileNum, totalFiles);
+  let textForAI = pdfText;
+  let privacyMethod = null;
+  let privacyReplacements = 0;
+  let privacyOriginal = null;
+  let piiTime = 0;
+  if (ollama.available) {
+    try {
+      const piiStart = performance.now();
+      textForAI = await sanitizeWithOllama(pdfText);
+      piiTime = Math.round((performance.now() - piiStart) / 1000);
+      privacyMethod = 'ollama';
+      privacyOriginal = pdfText;
+    } catch (e) {
+      if (isDebugMode()) console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
+      try {
+        const r = obfuscatePDFText(pdfText);
+        textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
+        privacyMethod = 'regex';
+      } catch (e2) {
+        showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+        return 'pii-fail';
+      }
+    }
+  } else {
+    try {
+      const r = obfuscatePDFText(pdfText);
+      textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
+      privacyMethod = 'regex';
+    } catch (e) {
+      showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+      return 'pii-fail';
+    }
+  }
+  if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
+
+  if (isPIIReviewEnabled()) {
+    const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
+    if (decision === 'cancel') { return 'skipped'; }
+  }
+
+  await showBatchImportProgress(2, file.name, fileNum, totalFiles);
+  const analysisStart = performance.now();
+  const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
+  const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
+  if (isDebugMode()) console.log(`[Analysis] ${file.name} parsed in ${analysisTime}s`);
+  result.privacyMethod = privacyMethod;
+  result.privacyReplacements = privacyReplacements;
+  result.timings = { pii: piiTime, analysis: analysisTime };
+  const prov = result.provider || getAIProvider();
+  const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+  result.costInfo = {
+    provider: prov, modelId: mid,
+    inputTokens: result.usage?.inputTokens || 0,
+    outputTokens: result.usage?.outputTokens || 0,
+    cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
+  };
+  if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
+  if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); return 'no-markers'; }
+  await showBatchImportProgress(3, file.name, fileNum, totalFiles);
+  const action = await showImportPreviewAsync(result, file.name, fileNum, totalFiles);
+  return action === 'skip' ? 'skipped' : 'imported';
+}
+
 export async function handleBatchPDFs(pdfFiles) {
   if (!hasAIProvider()) {
     showNotification("AI provider not configured. Opening settings...", "info");
     setTimeout(() => window.openSettingsModal(), 500);
     return;
   }
+  _batchMode = true;
   const ollama = await checkOllamaPII();
   let imported = 0, skipped = 0, failed = 0;
+  const failedFiles = [];
   for (let i = 0; i < pdfFiles.length; i++) {
     const file = pdfFiles[i];
     try {
-      await showBatchImportProgress(0, file.name, i + 1, pdfFiles.length);
-      const pdfText = await extractPDFText(file);
-      if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); failed++; continue; }
-
-      // PII obfuscation
-      await showBatchImportProgress(1, file.name, i + 1, pdfFiles.length);
-      let textForAI = pdfText;
-      let privacyMethod = null;
-      let privacyReplacements = 0;
-      let privacyOriginal = null;
-      let piiTime = 0;
-      if (ollama.available) {
-        try {
-          const piiStart = performance.now();
-          textForAI = await sanitizeWithOllama(pdfText);
-          piiTime = Math.round((performance.now() - piiStart) / 1000);
-          privacyMethod = 'ollama';
-          privacyOriginal = pdfText;
-        } catch (e) {
-          if (isDebugMode()) console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
-          try {
-            const r = obfuscatePDFText(pdfText);
-            textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
-            privacyMethod = 'regex';
-          } catch (e2) {
-            showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
-            failed++; continue;
-          }
-        }
-      } else {
-        try {
-          const r = obfuscatePDFText(pdfText);
-          textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
-          privacyMethod = 'regex';
-        } catch (e) {
-          showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
-          failed++; continue;
-        }
-      }
-      if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
-
-      if (isPIIReviewEnabled()) {
-        const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
-        if (decision === 'cancel') { skipped++; continue; }
-      }
-
-      await showBatchImportProgress(2, file.name, i + 1, pdfFiles.length);
-      const analysisStart = performance.now();
-      const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
-      const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
-      if (isDebugMode()) console.log(`[Analysis] ${file.name} parsed in ${analysisTime}s`);
-      result.privacyMethod = privacyMethod;
-      result.privacyReplacements = privacyReplacements;
-      result.timings = { pii: piiTime, analysis: analysisTime };
-      const prov = result.provider || getAIProvider();
-      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
-      result.costInfo = {
-        provider: prov, modelId: mid,
-        inputTokens: result.usage?.inputTokens || 0,
-        outputTokens: result.usage?.outputTokens || 0,
-        cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
-      };
-      if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
-      if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); failed++; continue; }
-      await showBatchImportProgress(3, file.name, i + 1, pdfFiles.length);
-      const action = await showImportPreviewAsync(result, file.name, i + 1, pdfFiles.length);
-      if (action === 'skip') { skipped++; } else { imported++; }
+      const result = await _processBatchFile(file, ollama, i + 1, pdfFiles.length);
+      if (result === 'imported') imported++;
+      else if (result === 'skipped') skipped++;
+      else if (result === 'empty' || result === 'pii-fail' || result === 'no-markers') failed++;
     } catch (err) {
       if (isDebugMode()) console.error(`Batch import error (${file.name}):`, err);
       showNotification(`Error: ${file.name} — ${err.message}`, 'error');
-      failed++;
+      failedFiles.push({ file, error: err.message });
     }
   }
+  // Retry failed files once (rate limit / API error recovery)
+  let retryImported = 0, retryFailed = 0;
+  if (failedFiles.length > 0) {
+    showNotification(`Retrying ${failedFiles.length} failed file(s)...`, 'info');
+    await new Promise(r => setTimeout(r, 5000));
+    for (let i = 0; i < failedFiles.length; i++) {
+      const { file } = failedFiles[i];
+      try {
+        const result = await _processBatchFile(file, ollama, i + 1, failedFiles.length);
+        if (result === 'imported') { retryImported++; imported++; }
+        else if (result === 'skipped') skipped++;
+        else failed++;
+      } catch (err) {
+        if (isDebugMode()) console.error(`Retry failed (${file.name}):`, err);
+        retryFailed++;
+        failed++;
+      }
+      if (i < failedFiles.length - 1) await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+  _batchMode = false;
+  // Refresh UI once after all files processed
+  window.buildSidebar();
+  window.updateHeaderDates();
+  const activeNav = document.querySelector(".nav-item.active");
+  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
   hideImportProgress();
   const parts = [];
   if (imported > 0) parts.push(`${imported} imported`);
   if (skipped > 0) parts.push(`${skipped} skipped`);
   if (failed > 0) parts.push(`${failed} failed`);
+  if (retryImported > 0) parts.push(`${retryImported} recovered on retry`);
   showNotification(`Batch import complete: ${parts.join(', ')}`, imported > 0 ? 'success' : 'info');
 }
 
