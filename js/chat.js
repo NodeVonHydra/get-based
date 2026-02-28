@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay } from './api.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
 // ═══════════════════════════════════════════════
@@ -951,6 +951,13 @@ export function updateChatHeaderTitle() {
     const p = getActivePersonality();
     el.textContent = p.name;
   }
+  updateChatHeaderModel();
+}
+
+export function updateChatHeaderModel() {
+  const el = document.querySelector('.chat-header-model');
+  if (!el) return;
+  el.textContent = hasAIProvider() ? getActiveModelDisplay() : '';
 }
 
 export function updatePersonalityBar() {
@@ -1332,11 +1339,12 @@ export function renderChatMessages() {
     html += `<div class="chat-msg ${cls}${autoClass}">${renderMarkdown(msg.content)}${stoppedNote}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
-        const provider = getAIProvider();
-        const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
-        const cost = calculateCost(provider, modelId, msg.usage.inputTokens, msg.usage.outputTokens);
+        const mId = msg.modelId || getActiveModelId();
+        const mProvider = msg.modelId ? (msg.modelId.includes('/') ? 'openrouter' : getAIProvider()) : getAIProvider();
+        const cost = calculateCost(mProvider, mId, msg.usage.inputTokens, msg.usage.outputTokens);
         const totalTokens = (msg.usage.inputTokens || 0) + (msg.usage.outputTokens || 0);
-        html += `<div class="chat-cost-footnote">${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens</div>`;
+        const mName = msg.modelDisplay || getActiveModelDisplay();
+        html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens</div>`;
       }
       html += buildActionBar(i);
     }
@@ -1625,6 +1633,11 @@ export async function sendChatMessage() {
       container.appendChild(labelEl);
     }
 
+    // Capture model info before API call (user may switch models mid-conversation)
+    const _msgModelId = getActiveModelId();
+    const _msgModelDisplay = getActiveModelDisplay();
+    const _msgProvider = getAIProvider();
+
     // Create AI message placeholder
     const aiMsgEl = document.createElement('div');
     aiMsgEl.className = 'chat-msg chat-ai';
@@ -1675,18 +1688,16 @@ export async function sendChatMessage() {
     aiMsgEl.innerHTML = renderMarkdown(displayText);
     // Cost footnote
     if (usage && (usage.inputTokens || usage.outputTokens)) {
-      const provider = getAIProvider();
-      const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
-      const cost = calculateCost(provider, modelId, usage.inputTokens, usage.outputTokens);
+      const cost = calculateCost(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
       const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
       const footnote = document.createElement('div');
       footnote.className = 'chat-cost-footnote';
-      footnote.textContent = `${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
       aiMsgEl.appendChild(footnote);
     }
 
     // Build assistant message object with context snapshot
-    const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon };
+    const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
     }
@@ -1951,6 +1962,10 @@ async function runDiscussionRound(personas, steerPrompt) {
       labelEl.textContent = `${personality.icon || ''} ${personality.name}`;
       container.appendChild(labelEl);
 
+      const _dMsgModelId = getActiveModelId();
+      const _dMsgModelDisplay = getActiveModelDisplay();
+      const _dMsgProvider = getAIProvider();
+
       const aiMsgEl = document.createElement('div');
       aiMsgEl.className = 'chat-msg chat-ai';
       aiMsgEl.style.whiteSpace = 'pre-wrap';
@@ -1984,17 +1999,15 @@ async function runDiscussionRound(personas, steerPrompt) {
       aiMsgEl.innerHTML = renderMarkdown(fullText);
 
       if (usage && (usage.inputTokens || usage.outputTokens)) {
-        const provider = getAIProvider();
-        const modelId = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
-        const cost = calculateCost(provider, modelId, usage.inputTokens, usage.outputTokens);
+        const cost = calculateCost(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
         const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
         const footnote = document.createElement('div');
         footnote.className = 'chat-cost-footnote';
-        footnote.textContent = `${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
         aiMsgEl.appendChild(footnote);
       }
 
-      const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon };
+      const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon, modelId: _dMsgModelId, modelDisplay: _dMsgModelDisplay };
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
       }
@@ -2125,6 +2138,7 @@ Object.assign(window, {
   setChatPersonality,
   loadChatPersonality,
   updateChatHeaderTitle,
+  updateChatHeaderModel,
   updatePersonalityBar,
   togglePersonalityBar,
   saveCustomPersonality,

@@ -42,6 +42,12 @@ function checkDuplicateHash(pdfText) {
   return null;
 }
 
+// Normalize model IDs for comparison across providers
+// "anthropic/claude-sonnet-4.6" / "claude-sonnet-4-6" / "claude-sonnet-4.6" → "claude-sonnet-4-6"
+function normalizeModelId(id) {
+  return id.replace(/^[^/]+\//, '').replace(/-\d{8}$/, '').replace(/\./g, '-');
+}
+
 function checkModelMismatch() {
   const provider = getAIProvider();
   const currentModel = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
@@ -49,7 +55,8 @@ function checkModelMismatch() {
   const entries = (state.importedData?.entries || []).filter(e => e.importedWith?.modelId);
   if (entries.length === 0) return null;
   const lastEntry = entries[entries.length - 1];
-  if (lastEntry.importedWith.modelId === currentModel) return null;
+  // Compare normalized IDs to avoid false positives across providers
+  if (normalizeModelId(lastEntry.importedWith.modelId) === normalizeModelId(currentModel)) return null;
   return {
     currentModel,
     prevModel: lastEntry.importedWith.modelId,
