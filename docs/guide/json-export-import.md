@@ -1,6 +1,6 @@
 # JSON Export & Import
 
-Get Based can export all your data to a JSON file and import it back. This is useful for backups, transferring data between devices or browsers, and sharing data with another Get Based instance.
+getbased can export all your data to a JSON file and import it back. This is useful for backups, transferring data between devices or browsers, and sharing data with another getbased instance.
 
 ## Exporting Your Data
 
@@ -28,7 +28,7 @@ Before doing a large batch import or clearing data, export a JSON backup first. 
 
 You import a JSON file the same way you import a PDF — by dropping it on the **drop zone** at the top of the dashboard.
 
-Get Based detects JSON files automatically and handles them differently from PDFs:
+getbased detects JSON files automatically and handles them differently from PDFs:
 
 - Lab entries are **merged by date**: if the JSON has data for a date that already exists, the values are combined rather than overwritten
 - Notes are **deduplicated**: the same note won't appear twice
@@ -43,16 +43,16 @@ If you import a JSON file that was exported from a different profile or device, 
 
 ## Transferring Between Devices
 
-To move Get Based data to a new computer or browser:
+To move getbased data to a new computer or browser:
 
 1. Export JSON on the old device
-2. Open Get Based on the new device
+2. Open getbased on the new device
 3. Drop the JSON file onto the drop zone
 
 All your historical lab data, charts, and context will appear immediately.
 
 ## Automatic Backups
 
-Get Based also creates automatic snapshots in the background as you add data. Up to 5 snapshots are kept, and you can restore any of them from **Settings → Backup & Restore**. These backups are stored in your browser's IndexedDB and do not leave your device.
+getbased also creates automatic snapshots in the background as you add data. Up to 5 snapshots are kept, and you can restore any of them from **Settings → Backup & Restore**. These backups are stored in your browser's IndexedDB and do not leave your device.
 
 JSON export gives you a portable file you can store anywhere (external drive, cloud storage, etc.), while automatic backups are browser-local snapshots for quick recovery.

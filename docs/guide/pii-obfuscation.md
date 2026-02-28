@@ -1,6 +1,6 @@
 # PII Obfuscation
 
-When you import a lab PDF, Get Based strips out your personal information before the text is sent to any AI provider. Your name, address, date of birth, ID numbers, and contact details are replaced with fake placeholder data. The AI only ever sees the lab results themselves.
+When you import a lab PDF, getbased strips out your personal information before the text is sent to any AI provider. Your name, address, date of birth, ID numbers, and contact details are replaced with fake placeholder data. The AI only ever sees the lab results themselves.
 
 ## What Gets Stripped
 
@@ -17,33 +17,27 @@ Lab result lines and collection dates are specifically protected and left intact
 
 ## Two Obfuscation Methods
 
-### Ollama (Preferred)
+### Regex (Always active)
 
-If you have [Ollama](./ai-providers.md#ollama-fully-local) running locally, Get Based uses it to intelligently strip PII. A dedicated language model reads the full PDF text, identifies personal information contextually, and replaces it with realistic fake data.
-
-This method is more accurate than regex — it catches edge cases like names embedded in unusual places — and runs entirely on your machine. Nothing is sent anywhere during the obfuscation step.
-
-Get Based detects Ollama automatically. If it's running, PII stripping via Ollama happens silently in the background.
-
-::: tip Separate PII model
-You can configure a separate Ollama model specifically for PII stripping in **Settings → PDF Import Privacy**. This lets you use a small, fast model for obfuscation and a larger, more capable model for the actual lab analysis.
-:::
-
-### Regex Fallback
-
-If Ollama is not available, Get Based falls back to a rule-based approach. It scans the PDF text for known PII patterns (label-based detection for fields like "Name:", "Address:", "DOB:", and pattern-based detection for ID formats, emails, and phone numbers) and replaces them automatically.
+getbased always runs a rule-based scan on the PDF text. It looks for known PII patterns (label-based detection for fields like "Name:", "Address:", "DOB:", and pattern-based detection for ID formats, emails, and phone numbers) and replaces them automatically.
 
 The regex approach is fast and works without any local software, but may miss unusual formatting that the Ollama approach would catch.
 
-## First-Time Warning
+### Ollama (Opt-in)
 
-If you drop a PDF and Ollama is not running, Get Based shows a one-time warning explaining that the regex fallback will be used. You can choose to continue or cancel and set up Ollama first. This warning appears once per browser session.
+If you have [Ollama](./ai-providers.md#ollama-fully-local) running locally, you can enable AI-powered PII stripping in **Settings → Privacy**. When enabled, a dedicated language model reads the full PDF text, identifies personal information contextually, and replaces it with realistic fake data.
+
+This method is more accurate than regex — it catches edge cases like names embedded in unusual places — and runs entirely on your machine. Nothing is sent anywhere during the obfuscation step.
+
+::: tip Separate PII model
+You can configure a separate Ollama model specifically for PII stripping in **Settings → Privacy**. This lets you use a small, fast model for obfuscation and a larger, more capable model for the actual lab analysis.
+:::
 
 ## Configure PII Settings
 
-Open **Settings → PDF Import Privacy** to:
+Open **Settings → Privacy** to:
 
-- See which obfuscation method is currently active (Ollama or regex)
+- Toggle Ollama-based PII obfuscation on or off
 - Configure the Ollama server URL and PII model
 - Enable debug mode to view a diff of what was replaced (useful for verifying the obfuscation worked correctly)
 

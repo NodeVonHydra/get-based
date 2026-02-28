@@ -1,6 +1,6 @@
 # Custom Markers
 
-Get Based has a built-in schema of 287+ biomarkers across 15 categories. When you import a PDF that contains a result the app doesn't recognize — a specialty marker, a newer test, or one with an unusual name — it's automatically created as a **custom marker** rather than being discarded.
+getbased has a built-in schema of 287+ biomarkers across 16 categories. When you import a PDF that contains a result the app doesn't recognize — a specialty marker, a newer test, or one with an unusual name — it's automatically created as a **custom marker** rather than being discarded.
 
 ## How Custom Markers Are Created
 
@@ -26,6 +26,12 @@ Once created, custom markers are treated the same as built-in markers throughout
 ## Category Assignment
 
 If a custom marker belongs to a category that doesn't exist yet in the built-in schema, a new category is created automatically with a bookmark icon. It appears in the sidebar alongside the standard categories.
+
+## Specialty Lab Pipeline
+
+For non-blood tests (OAT, DUTCH, HTMA, etc.), custom markers are created with a **group** field that determines their sidebar placement. The AI assigns test-type-prefixed categories (e.g., `oatNutritional`, `dutchHormones`) and groups them under collapsible sidebar headers.
+
+This means an OAT import creates categories like "Nutritional Markers" and "Microbial Overgrowth" — all organized under an **OAT** header in the sidebar. See [Specialty Labs](./specialty-labs.md) for the full details.
 
 ## Editing Custom Markers
 

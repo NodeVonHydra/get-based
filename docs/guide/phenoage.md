@@ -1,6 +1,6 @@
 # PhenoAge (Biological Age)
 
-PhenoAge is a calculated estimate of your biological age — how old your body appears to be based on blood markers — as opposed to your chronological age. Get Based computes it automatically using the formula published by Morgan Levine et al. in 2018.
+PhenoAge is a calculated estimate of your biological age — how old your body appears to be based on blood markers — as opposed to your chronological age. getbased computes it automatically using the formula published by Morgan Levine et al. in 2018.
 
 ## What It Measures
 

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Get Based',
+  title: 'getbased',
   description: 'Blood work dashboard for tracking biomarker trends over time',
   base: '/docs/',
   outDir: '../dist-docs',
@@ -12,7 +12,7 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/icon.svg',
-    siteTitle: 'Get Based',
+    siteTitle: 'getbased',
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
@@ -38,6 +38,7 @@ export default defineConfig({
             { text: 'Manual Entry', link: '/guide/manual-entry' },
             { text: 'JSON Export & Import', link: '/guide/json-export-import' },
             { text: 'Custom Markers', link: '/guide/custom-markers' },
+            { text: 'Specialty Labs', link: '/guide/specialty-labs' },
             { text: 'PII Obfuscation', link: '/guide/pii-obfuscation' }
           ]
         },
@@ -115,7 +116,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the GPL-3.0 License.',
-      copyright: 'Copyright © 2026 Get Based'
+      copyright: 'Copyright © 2026 getbased'
     }
   }
 })

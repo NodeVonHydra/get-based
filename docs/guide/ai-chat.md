@@ -4,7 +4,15 @@ The AI Chat panel lets you have a conversation about your lab results with an AI
 
 ## Opening the Chat
 
-Click the **Ask AI** button in the top-right corner of the header to slide the chat panel open. Click it again or press **Escape** to close it.
+Click the **chat bubble** in the bottom-right corner of the screen to slide the chat panel open. You can also click the **Ask AI** button in the header. Press **Escape** to close it.
+
+::: tip Chat FAB
+The floating chat bubble (FAB) is always visible in the bottom-right corner, giving you one-tap access to the AI from any screen.
+:::
+
+## Setup Guide
+
+If no AI provider is configured, the chat panel shows a setup guide instead of the conversation view. The guide explains your provider options and includes a **Connect with OpenRouter** button for one-click OAuth setup — no API key needed. Once connected, the chat is ready immediately.
 
 ## What the AI Knows
 
@@ -18,6 +26,10 @@ Every message you send includes a full snapshot of your data:
 - For female profiles: menstrual cycle data and phase context
 
 You do not need to paste your results into the chat. Just ask your question.
+
+## Active Model Display
+
+The chat header shows the name of your currently active AI model, so you always know which model is responding. Each message also includes a cost footnote showing the estimated token cost for that exchange.
 
 ## Personalities
 
