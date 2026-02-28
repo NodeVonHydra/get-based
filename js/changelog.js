@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.1.2', date: '2026-02-28', title: 'Documentation Update',
+    items: [
+      'New Specialty Labs guide page covering OAT, DUTCH, HTMA, and other non-blood test imports',
+      'Updated 6 guide pages with OpenRouter OAuth, model tiers, pre-flight checks, chat FAB, Ollama opt-in PII, and batch retry',
+      'Brand rename across all docs — "Get Based" → "getbased" per brand guidelines',
+    ]
+  },
+  {
     version: '1.1.1', date: '2026-02-28', title: 'Model Guidance',
     items: [
       'Model dropdowns now split into Recommended and Other sections across all providers',
