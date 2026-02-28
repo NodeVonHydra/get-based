@@ -41,12 +41,12 @@ export function showDashboard(data) {
   // ── Empty state: welcome hero + collapsed context ──
   if (!hasData) {
     let html = `<div class="welcome-hero">
-      <h2>Welcome to Get Based</h2>
+      <h2>Welcome to getbased</h2>
       <p class="welcome-hero-subtitle">Import your blood work to track biomarker trends over time</p>
       <div class="drop-zone" id="drop-zone">
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
         <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-        <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>
+        <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div></div>
       <div class="onboarding-divider">
         <span class="onboarding-divider-line"></span>
         <span class="onboarding-divider-text">or explore with demo data</span>
@@ -84,7 +84,7 @@ export function showDashboard(data) {
   html += `<div class="drop-zone" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or Get Based JSON export</div></div>`;
+    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div></div>`;
 
   // ── 2. Onboarding Banner (Step 2) ──
   html += renderOnboardingBanner();

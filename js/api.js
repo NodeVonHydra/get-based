@@ -116,7 +116,7 @@ export async function exchangeOpenRouterCode(code) {
     headers: {
       'Content-Type': 'application/json',
       'HTTP-Referer': window.location.origin,
-      'X-Title': 'Get Based'
+      'X-Title': 'getbased'
     },
     body: JSON.stringify({ code, code_verifier: codeVerifier, code_challenge_method: 'S256' })
   });
@@ -514,7 +514,7 @@ export async function callOpenRouterAPI(opts) {
   return callOpenAICompatibleAPI(
     'https://openrouter.ai/api/v1/chat/completions',
     key, getOpenRouterModel(), 'OpenRouter', opts,
-    { 'HTTP-Referer': window.location.origin, 'X-Title': 'Get Based' }
+    { 'HTTP-Referer': window.location.origin, 'X-Title': 'getbased' }
   );
 }
 

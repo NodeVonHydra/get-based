@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.0.9', date: '2026-02-28', title: 'Brand & Header Refresh',
+    items: [
+      'Brand rename: "Get Based" → getbased — lowercase wordmark with gradient text',
+      'Header icons: replaced emoji icons with clean SVGs, added ₿ Donate button',
+      'Decluttered header: Glossary and Docs moved to Settings > Display tab',
+      'Added BRAND.md — brand manual covering name, colors, typography, and guidelines',
+    ]
+  },
+  {
     version: '1.0.8', date: '2026-02-28', title: 'Import & UX Polish',
     items: [
       'Ollama PII is now opt-in \u2014 toggle it on in Settings \u2192 Privacy instead of auto-detecting',

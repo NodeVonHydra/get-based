@@ -27,7 +27,7 @@
   assert('hasAIProvider handles openrouter', apiSrc.includes("provider === 'openrouter') return hasOpenRouterKey()"));
   assert('callClaudeAPI handles openrouter', apiSrc.includes("provider === 'openrouter') return callOpenRouterAPI("));
   assert('callOpenRouterAPI sends HTTP-Referer', apiSrc.includes("'HTTP-Referer'"));
-  assert('callOpenRouterAPI sends X-Title', apiSrc.includes("'X-Title': 'Get Based'"));
+  assert('callOpenRouterAPI sends X-Title', apiSrc.includes("'X-Title': 'getbased'"));
   assert('OpenRouter default model is claude-sonnet-4-6', apiSrc.includes("'anthropic/claude-sonnet-4-6'"));
   assert('OpenRouter API endpoint', apiSrc.includes('openrouter.ai/api/v1/chat/completions'));
   assert('OpenRouter models endpoint', apiSrc.includes('openrouter.ai/api/v1/models'));

@@ -48,7 +48,7 @@
   // ═══════════════════════════════════════
   console.log('%c 2. Tour Steps Content ', 'font-weight:bold;color:#f59e0b');
 
-  assert('Step 1: Welcome (null target)', tourSrc.includes("target: null, title: 'Welcome to Get Based'"));
+  assert('Step 1: Welcome (null target)', tourSrc.includes("target: null, title: 'Welcome to getbased'"));
   assert('Step 2: Drop zone', tourSrc.includes("target: '#drop-zone', title: 'Import Your Results'"));
   assert('Step 3: Sidebar nav', tourSrc.includes("target: '#sidebar-nav', title: 'Category Navigation'"));
   assert('Step 4: Context cards', tourSrc.includes("target: '.profile-context-cards', title: 'Lifestyle Context'"));
@@ -102,7 +102,7 @@
   assert('Tooltip centering transform', tooltip && tooltip.style.transform === 'translate(-50%, -50%)');
 
   assert('Tooltip has title h4', !!tooltip.querySelector('h4'));
-  assert('Title is "Welcome to Get Based"', tooltip.querySelector('h4')?.textContent === 'Welcome to Get Based');
+  assert('Title is "Welcome to getbased"', tooltip.querySelector('h4')?.textContent === 'Welcome to getbased');
   assert('Tooltip has description p', !!tooltip.querySelector('p'));
   assert('Description mentions blood work dashboard', tooltip.querySelector('p')?.textContent.includes('personal blood work dashboard'));
 
@@ -173,7 +173,7 @@
   await wait(50);
 
   const tooltip3 = document.getElementById('tour-tooltip');
-  assert('Back to step 0 shows Welcome title', tooltip3?.querySelector('h4')?.textContent === 'Welcome to Get Based');
+  assert('Back to step 0 shows Welcome title', tooltip3?.querySelector('h4')?.textContent === 'Welcome to getbased');
   const dots3 = tooltip3.querySelectorAll('.tour-dot');
   assert('First dot active again after going back', dots3[0]?.classList.contains('active'));
   assert('Spotlight hidden again on welcome step', document.getElementById('tour-spotlight')?.style.display === 'none');
@@ -322,7 +322,7 @@
   console.log('%c 17. Full Walkthrough (Steps 0-6) ', 'font-weight:bold;color:#f59e0b');
 
   const expectedTitles = [
-    'Welcome to Get Based', 'Import Your Results', 'Category Navigation',
+    'Welcome to getbased', 'Import Your Results', 'Category Navigation',
     'Lifestyle Context', 'Settings', 'Send Feedback', 'Ask AI'
   ];
 

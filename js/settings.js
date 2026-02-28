@@ -107,6 +107,16 @@ export function openSettingsModal(tab) {
       </div>
 
       <div class="settings-section">
+        <label class="settings-label">Marker Glossary</label>
+        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openGlossary(),300)">Open Glossary</button>
+      </div>
+
+      <div class="settings-section">
+        <label class="settings-label">Documentation</label>
+        <a href="/docs" class="import-btn import-btn-secondary" style="text-decoration:none;text-align:center">Open Docs</a>
+      </div>
+
+      <div class="settings-section">
         <label class="settings-label">Guided Tour</label>
         <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Take a Tour</button>
       </div>
