@@ -106,7 +106,7 @@ IMPORTANT: Your medical analysis must remain accurate, evidence-based, and groun
   }
 ];
 
-export const CHAT_SYSTEM_PROMPT = `You are an AI lab analyst for the Get Based blood work dashboard.
+export const CHAT_SYSTEM_PROMPT = `You are an AI lab analyst for the getbased blood work dashboard.
 
 ## Core Rules
 - You are NOT a doctor. Always recommend consulting a physician for medical decisions.

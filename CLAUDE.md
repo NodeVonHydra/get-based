@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Get Based is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 16 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (OAT, amino acids, toxic elements, etc.) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF.
+getbased is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 16 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (OAT, amino acids, toxic elements, etc.) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF.
 
 Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or local Ollama) for AI-powered PDF import and an AI chat panel for interpreting results. (Routstr provider disabled pending CORS fix — see `grep -r "ROUTSTR DISABLED"`)
 
@@ -12,6 +12,7 @@ Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or local Ollama) for AI-powe
 
 No build system, no bundler, no package manager. Native ES modules (`<script type="module">`).
 
+- **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
 - **`js/`** — 25 ES modules loaded via `js/main.js`:
@@ -96,6 +97,10 @@ Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI
 - **Venice**: OpenAI-compatible via shared helper. Key: `labcharts-venice-key`
 - **Ollama**: `/api/chat` + newline-delimited JSON streaming. Local only
 - **Routstr**: Disabled — all code commented with `ROUTSTR DISABLED` markers
+
+### Header
+
+Logo: gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Buttons: Settings (gear) → Feedback (bug) → Discord (brand SVG) → ₿ Donate (orange text, BTCPay). Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
 
 ### Dashboard Section Order
 
