@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.1.1', date: '2026-02-28', title: 'Model Guidance',
+    items: [
+      'Model dropdowns now split into Recommended and Other sections across all providers',
+      'Active model shown in chat header and per-message cost footnotes',
+      'Settings AI tab has a prominent guidance callout for model quality and consistency',
+      'Switching providers with the same model no longer triggers a false mismatch warning',
+    ]
+  },
+  {
     version: '1.1.0', date: '2026-02-28', title: 'Specialty Labs & Brand Refresh',
     items: [
       'Specialty lab support (beta) \u2014 Metabolomix+ results now import with their own reference ranges and sidebar section',
