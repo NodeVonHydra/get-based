@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.1.3', date: '2026-02-28', title: 'Encryption Nudge',
+    items: [
+      'One-time prompt to enable encryption after your first PDF import',
+      'Dismiss with "Not Now" or enable directly — never shown again once dismissed or encryption is on',
+    ]
+  },
+  {
     version: '1.1.2', date: '2026-02-28', title: 'Documentation Update',
     items: [
       'New Specialty Labs guide page covering OAT, DUTCH, HTMA, and other non-blood test imports',

@@ -318,6 +318,41 @@ export function showEnableEncryptionModal() {
   setTimeout(() => input1.focus(), 50);
 }
 
+export function maybeShowEncryptionNudge() {
+  if (getEncryptionEnabled()) return;
+  if (localStorage.getItem('labcharts-encryption-nudge-dismissed')) return;
+  setTimeout(() => {
+    let overlay = document.getElementById('passphrase-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'passphrase-overlay';
+      overlay.className = 'passphrase-overlay';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `
+      <div class="passphrase-dialog" role="dialog" aria-modal="true" aria-label="Enable encryption">
+        <div class="passphrase-icon">&#128274;</div>
+        <h3 class="passphrase-title">Protect Your Data</h3>
+        <p class="passphrase-desc">Your lab results are stored in your browser's local storage, where browser extensions and anyone with filesystem access can read them. Set a passphrase to encrypt your data at rest.</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="passphrase-btn passphrase-btn-secondary" id="encryption-nudge-dismiss">Not Now</button>
+          <button class="passphrase-btn passphrase-btn-primary" id="encryption-nudge-enable">Enable Encryption</button>
+        </div>
+      </div>`;
+    overlay.style.display = 'flex';
+    document.getElementById('encryption-nudge-dismiss').addEventListener('click', () => {
+      localStorage.setItem('labcharts-encryption-nudge-dismissed', 'true');
+      overlay.style.display = 'none';
+      overlay.innerHTML = '';
+    });
+    document.getElementById('encryption-nudge-enable').addEventListener('click', () => {
+      overlay.style.display = 'none';
+      overlay.innerHTML = '';
+      showEnableEncryptionModal();
+    });
+  }, 800);
+}
+
 async function migrateSensitiveKeys() {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -881,6 +916,7 @@ Object.assign(window, {
   encryptedSetItem,
   encryptedGetItem,
   showEnableEncryptionModal,
+  maybeShowEncryptionNudge,
   disableEncryption,
   changePassphrase,
   exportEncryptedBackup,
