@@ -3,11 +3,119 @@
 import { state } from './state.js';
 import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, calculateCost, formatCost } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
-import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled } from './utils.js';
+import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
+
+// ═══════════════════════════════════════════════
+// PRE-FLIGHT CHECKS (before spending tokens)
+// ═══════════════════════════════════════════════
+function _showPreflightConfirm(message, confirmLabel = 'Import Anyway') {
+  return new Promise(resolve => {
+    let overlay = document.getElementById('confirm-dialog-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'confirm-dialog-overlay';
+      overlay.className = 'confirm-overlay';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `<div class="confirm-dialog" role="alertdialog" aria-modal="true">
+      <p class="confirm-message">${message}</p>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-btn-cancel" id="confirm-cancel">Cancel</button>
+        <button class="confirm-btn confirm-btn-danger" id="confirm-ok">${escapeHTML(confirmLabel)}</button>
+      </div></div>`;
+    overlay.classList.add('show');
+    document.getElementById('confirm-ok').onclick = () => { overlay.classList.remove('show'); resolve(true); };
+    document.getElementById('confirm-cancel').onclick = () => { overlay.classList.remove('show'); resolve(false); };
+    overlay.onclick = (e) => { if (e.target === overlay) { overlay.classList.remove('show'); resolve(false); } };
+  });
+}
+
+function checkDuplicateHash(pdfText) {
+  const hash = hashString(pdfText);
+  for (const e of (state.importedData?.entries || [])) {
+    if (e.importHash === hash) return e.date;
+  }
+  return null;
+}
+
+function checkModelMismatch() {
+  const provider = getAIProvider();
+  const currentModel = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+  // Find the most recent entry with a different model
+  const entries = (state.importedData?.entries || []).filter(e => e.importedWith?.modelId);
+  if (entries.length === 0) return null;
+  const lastEntry = entries[entries.length - 1];
+  if (lastEntry.importedWith.modelId === currentModel) return null;
+  return {
+    currentModel,
+    prevModel: lastEntry.importedWith.modelId,
+    prevProvider: lastEntry.importedWith.provider
+  };
+}
+
+function tryAutoSwitchModel(prevModel, prevProvider) {
+  // Try to switch to the previous model/provider combo
+  if (prevProvider && prevProvider !== getAIProvider()) {
+    setAIProvider(prevProvider);
+  }
+  const provider = getAIProvider();
+  if (provider === 'openrouter') setOpenRouterModel(prevModel);
+  else if (provider === 'anthropic') setAnthropicModel(prevModel);
+  else if (provider === 'venice') setVeniceModel(prevModel);
+  else if (provider === 'ollama') setOllamaMainModel(prevModel);
+}
+
+function _showModelMismatchDialog(mismatch) {
+  return new Promise(resolve => {
+    let overlay = document.getElementById('confirm-dialog-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'confirm-dialog-overlay';
+      overlay.className = 'confirm-overlay';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `<div class="confirm-dialog" role="alertdialog" aria-modal="true">
+      <p class="confirm-message">Previous imports used <strong>${escapeHTML(mismatch.prevModel)}</strong>. Using <strong>${escapeHTML(mismatch.currentModel)}</strong> may cause marker key mismatches and break trend lines.</p>
+      <div class="confirm-actions" style="flex-wrap:wrap;gap:8px">
+        <button class="confirm-btn confirm-btn-cancel" id="confirm-cancel">Cancel</button>
+        <button class="confirm-btn" id="confirm-continue" style="background:var(--yellow);color:#000">Continue Anyway</button>
+        <button class="confirm-btn confirm-btn-danger" id="confirm-switch">Switch to ${escapeHTML(mismatch.prevModel.split('/').pop())}</button>
+      </div></div>`;
+    overlay.classList.add('show');
+    document.getElementById('confirm-switch').onclick = () => {
+      tryAutoSwitchModel(mismatch.prevModel, mismatch.prevProvider);
+      overlay.classList.remove('show');
+      resolve('switched');
+    };
+    document.getElementById('confirm-continue').onclick = () => { overlay.classList.remove('show'); resolve('continue'); };
+    document.getElementById('confirm-cancel').onclick = () => { overlay.classList.remove('show'); resolve('cancel'); };
+    overlay.onclick = (e) => { if (e.target === overlay) { overlay.classList.remove('show'); resolve('cancel'); } };
+  });
+}
+
+async function runPreflightChecks(pdfText) {
+  // 1. Duplicate file check (hash-based)
+  const dupDate = checkDuplicateHash(pdfText);
+  if (dupDate) {
+    const dateLabel = new Date(dupDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const proceed = await _showPreflightConfirm(
+      `This file was already imported (<strong>${dateLabel}</strong>). Importing again will use tokens and may overwrite existing values.`
+    );
+    if (!proceed) return false;
+  }
+  // 2. Model mismatch check
+  const mismatch = checkModelMismatch();
+  if (mismatch) {
+    const result = await _showModelMismatchDialog(mismatch);
+    if (result === 'cancel') return false;
+    // 'switched' or 'continue' both proceed with import
+  }
+  return true;
+}
 
 // ═══════════════════════════════════════════════
 // AI-POWERED PDF IMPORT
@@ -311,21 +419,6 @@ export function showImportPreview(parseResult) {
     const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : ci.provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
     html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">\ud83d\udcca ${escapeHTML(modelLabel)} \u00b7 ${totalTokens.toLocaleString()} tokens \u00b7 ${formatCost(ci.cost)}</div>`;
   }
-  // Model mismatch warning
-  if (parseResult.costInfo?.modelId) {
-    const currentModel = parseResult.costInfo.modelId;
-    const prevModels = new Set();
-    for (const e of (state.importedData?.entries || [])) {
-      if (e.importedWith?.modelId && e.importedWith.modelId !== currentModel) {
-        prevModels.add(e.importedWith.modelId);
-      }
-    }
-    if (prevModels.size > 0) {
-      const prevList = [...prevModels].map(m => escapeHTML(m)).join(', ');
-      html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-top:12px;color:var(--yellow);font-size:13px">
-        &#9888; Previous imports used <strong>${prevList}</strong>. Using a different model may cause marker key mismatches and break trend lines.</div>`;
-    }
-  }
   // Debug: timings and diff button
   if (isDebugMode()) {
     const t = parseResult.timings;
@@ -392,6 +485,7 @@ export function confirmImport() {
     provider: result.costInfo?.provider || null,
     modelId: result.costInfo?.modelId || null
   };
+  if (result.importHash) entry.importHash = result.importHash;
   for (const m of matched) entry.markers[m.mappedKey] = m.value;
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood') ? result.testType : null;
@@ -552,6 +646,12 @@ export async function handlePDFFile(file) {
       return;
     }
 
+    // Pre-flight checks — before spending tokens
+    hideImportProgress();
+    const preflight = await runPreflightChecks(pdfText);
+    if (!preflight) return;
+    await showImportProgress(0, file.name);
+
     // PII obfuscation step
     await showImportProgress(1, file.name);
     let textForAI = pdfText;
@@ -618,6 +718,7 @@ export async function handlePDFFile(file) {
       outputTokens: result.usage?.outputTokens || 0,
       cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
     };
+    result.importHash = hashString(pdfText);
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
@@ -640,6 +741,10 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   await showBatchImportProgress(0, file.name, fileNum, totalFiles);
   const pdfText = await extractPDFText(file);
   if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); return 'empty'; }
+
+  // Pre-flight checks — before spending tokens
+  const preflight = await runPreflightChecks(pdfText);
+  if (!preflight) return 'skipped';
 
   // PII obfuscation
   await showBatchImportProgress(1, file.name, fileNum, totalFiles);
@@ -699,6 +804,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
     outputTokens: result.usage?.outputTokens || 0,
     cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
   };
+  result.importHash = hashString(pdfText);
   if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
   if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); return 'no-markers'; }
   await showBatchImportProgress(3, file.name, fileNum, totalFiles);

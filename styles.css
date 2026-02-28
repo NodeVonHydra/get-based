@@ -315,6 +315,8 @@ body {
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 .modal-overlay.show .modal { transform: scale(1) translateY(0); opacity: 1; }
+.modal-nudge { animation: modal-nudge 0.3s ease; }
+@keyframes modal-nudge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); box-shadow: 0 0 0 2px var(--accent); } }
 .modal-close {
   position: absolute; top: 16px; right: 16px;
   background: none; border: none; color: var(--text-muted);
@@ -2194,6 +2196,16 @@ body {
 }
 .pii-diff-highlight-removed { background: rgba(239,68,68,0.12); border-radius: 2px; }
 .pii-diff-highlight-added { background: rgba(34,197,94,0.12); border-radius: 2px; }
+.pii-search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pii-search-input {
+  flex: 1; padding: 8px 12px; background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px; font-family: inherit;
+}
+.pii-search-input:focus { border-color: var(--accent); outline: none; }
+.pii-search-count { font-size: 12px; white-space: nowrap; }
+.pii-search-warn { color: var(--danger); font-weight: 600; }
+.pii-search-clear { color: var(--success); }
+.pii-search-hit { background: rgba(251,191,36,0.35); color: inherit; border-radius: 2px; padding: 0 1px; }
 .chat-cost-footnote {
   font-size: 11px;
   color: var(--text-muted);

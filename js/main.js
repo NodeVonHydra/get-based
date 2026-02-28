@@ -126,7 +126,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ═══════════════════════════════════════════════
 document.addEventListener("click", e => {
   if (e.target.id === "modal-overlay") window.closeModal();
-  if (e.target.id === "import-modal-overlay") window.closeImportModal();
+  if (e.target.id === "import-modal-overlay") {
+    const importModal = document.getElementById("import-modal");
+    if (!importModal.innerHTML.trim()) { window.closeImportModal(); }
+    else { importModal.classList.add("modal-nudge"); importModal.addEventListener("animationend", () => importModal.classList.remove("modal-nudge"), { once: true }); }
+  }
   if (e.target.id === "settings-modal-overlay") window.closeSettingsModal();
   if (e.target.id === "glossary-modal-overlay") window.closeGlossary();
   if (e.target.id === "changelog-modal-overlay") window.closeChangelog();
@@ -147,7 +151,10 @@ document.addEventListener("keydown", e => {
     const chatPanel = document.getElementById("chat-panel");
     if (chatPanel && chatPanel.classList.contains("open")) { window.closeChatPanel(); return; }
     const importOverlay = document.getElementById("import-modal-overlay");
-    if (importOverlay && importOverlay.classList.contains("show")) { window.closeImportModal(); return; }
+    if (importOverlay && importOverlay.classList.contains("show")) {
+      if (!document.getElementById("import-modal").innerHTML.trim()) window.closeImportModal();
+      return;
+    }
     const changelogOverlay = document.getElementById("changelog-modal-overlay");
     if (changelogOverlay && changelogOverlay.classList.contains("show")) { window.closeChangelog(); return; }
     const feedbackOverlay = document.getElementById("feedback-modal-overlay");

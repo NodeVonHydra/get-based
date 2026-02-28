@@ -214,7 +214,8 @@ export function obfuscatePDFText(pdfText) {
   });
 
   // Phone numbers (international and local)
-  text = text.replace(/(?:\+\d{1,3}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b/g, (match, offset) => {
+  // Require +country code OR leading tel/phone/fax label to avoid matching reference ranges like "150-380"
+  text = text.replace(/(?:(?:\+\d{1,3}[\s-]?)\(?\d{2,3}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b)|(?:(?:tel|phone|fax|mobil|telefon)\.?[\s:]+\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{3,4}\b)/gi, (match, offset) => {
     if (isProtectedLine(offset)) return match;
     const lineStart = text.lastIndexOf('\n', offset) + 1;
     const lineEnd = text.indexOf('\n', offset);
@@ -289,6 +290,10 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
       <div class="pii-diff-modal">
         <h3>&#128274; Review — This is what AI will receive</h3>
         <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">Personal information on the left has been replaced with fake data on the right. Verify no sensitive data remains before sending.</p>
+        <div class="pii-search-bar">
+          <input type="text" class="pii-search-input" id="pii-search-input" placeholder="Search for your name, address, phone\u2026" autocomplete="off">
+          <span class="pii-search-count" id="pii-search-count"></span>
+        </div>
         <div class="pii-diff-viewer">
           <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
           <div class="pii-diff-right"><div class="pii-diff-header">Sent to AI</div>${rightHtml}</div>
@@ -300,6 +305,47 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
       </div>`;
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('show'));
+
+    // PII search — highlights matches in the "Sent to AI" column
+    const searchInput = overlay.querySelector('#pii-search-input');
+    const searchCount = overlay.querySelector('#pii-search-count');
+    const rightPanel = overlay.querySelector('.pii-diff-right');
+    const rightDivs = rightPanel.querySelectorAll('div:not(.pii-diff-header)');
+    const obfLines = obfuscatedText.split('\n');
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim();
+      let total = 0;
+      rightDivs.forEach((div, i) => {
+        const line = obfLines[i] || '';
+        if (!query || query.length < 2) {
+          div.innerHTML = escapeHTML(line) || '&nbsp;';
+          return;
+        }
+        const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        const matches = line.match(regex);
+        if (matches) {
+          total += matches.length;
+          div.innerHTML = escapeHTML(line).replace(
+            new RegExp(escapeHTML(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+            m => `<mark class="pii-search-hit">${m}</mark>`
+          );
+        } else {
+          div.innerHTML = escapeHTML(line) || '&nbsp;';
+        }
+      });
+      if (!query || query.length < 2) {
+        searchCount.textContent = '';
+        searchCount.className = 'pii-search-count';
+      } else if (total > 0) {
+        searchCount.textContent = `${total} found — PII may still be present`;
+        searchCount.className = 'pii-search-count pii-search-warn';
+      } else {
+        searchCount.textContent = 'Not found';
+        searchCount.className = 'pii-search-count pii-search-clear';
+      }
+    });
+
     overlay.querySelector('#pii-review-send').addEventListener('click', () => { overlay.remove(); resolve('send'); });
     overlay.querySelector('#pii-review-cancel').addEventListener('click', () => { overlay.remove(); resolve('cancel'); });
   });
