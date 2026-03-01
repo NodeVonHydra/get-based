@@ -9,3 +9,4 @@ test-*.json
 node_modules/
 dist-docs/
 docs/.vitepress/cache/
+BingSiteAuth.xml
