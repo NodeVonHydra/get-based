@@ -5,6 +5,7 @@ export default defineConfig({
   description: 'Blood work dashboard for tracking biomarker trends over time',
   base: '/docs/',
   outDir: '../dist-docs',
+  lastUpdated: true,
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/docs/icon.svg' }]
