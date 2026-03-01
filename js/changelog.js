@@ -8,7 +8,7 @@ const CHANGELOG = [
     version: '1.1.4', date: '2026-03-01', title: 'Diet & Digestion',
     items: [
       'Diet card extended to "Diet & Digestion" with 10 new fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities',
-      'Digestive health data wired into AI context — the AI considers GI symptoms when interpreting all biomarkers, not just gut-specific ones',
+      'Digestive health data wired into AI context for a fuller health picture',
     ]
   },
   {
