@@ -1,71 +1,64 @@
-# Get Based
+# getbased — Open-Source Blood Work Dashboard with AI
 
-Evidence-based health tracking. Know your baseline, aim for optimal.
+**getbased** is a free, open-source blood work dashboard that turns lab PDFs into interactive charts and AI-powered health insights. Track 287+ biomarkers over time, detect trends, and get personalized interpretations — all stored locally in your browser with no account required.
 
-Drop any lab PDF, get interactive charts, trend detection, and AI that understands your full health context — not just reference ranges.
+**[Live app](https://app.getbased.health)** · **[Documentation](https://getbased.health/docs)** · **[Discord](https://discord.gg/zJdVB9zgQB)**
 
-![Get Based Dashboard](screenshot.png)
-
----
-
-## Why "Get Based"?
-
-Most people get blood work done and never look at it again. A doctor glances at it for 30 seconds, says "everything looks normal," and moves on. But **normal isn't optimal** — reference ranges are built from population averages, not from what's best for you.
-
-Get Based gives you the tools to actually understand your health data:
-
-- **Evidence-based** — AI analysis grounded in your real lab values and lifestyle, not generic advice
-- **Know your baseline** — track 287+ biomarkers over time to see what's changing and why
-- **Aim for optimal** — optimal ranges, trend detection, and calculated markers like biological age (PhenoAge) go beyond "in range"
-- **Your data, your control** — local-first, encrypted, open source. No accounts, no cloud lock-in
+![getbased Dashboard](screenshot.png)
 
 ---
 
-## Features
+## What it does
 
-### Data Import
-- Drop any lab PDF — AI maps results to 287+ known markers automatically
-- Handles any lab format, any language, any country
-- Markers not in the schema are auto-created as custom markers and tracked too
-- Batch import multiple PDFs in one go
-- JSON export/import for backup and transfer between devices
-- Manual entry if you don't have a PDF
+- **AI-powered PDF import** — drop any lab report (any format, language, or country) and AI extracts and maps results to 287+ known biomarkers automatically
+- **Biomarker trend charts** — interactive line charts with reference bands, optimal ranges, and trend detection across 16 categories (biochemistry, hormones, lipids, hematology, thyroid, and more)
+- **AI chat** — ask questions about your results with full health context, not just reference ranges
+- **Specialty lab support** — OAT has first-class support (165 markers); DUTCH, HTMA, GI maps, and other non-blood tests flow through the custom marker pipeline
+- **Calculated markers** — PhenoAge (biological age), HOMA-IR, free water deficit, lipid ratios
+- **Trend alerts** — sudden changes and linear regression flagged on the dashboard
+- **Correlation viewer** — compare any two markers, heatmap view
+- **Compare dates** — side-by-side comparison of any two lab dates
+- **Manual entry** — add results without a PDF
+- **Marker glossary** — searchable reference for all markers with values and ranges
+- **Interpretive lens** — frame AI analysis through specific scientific paradigms or experts
+- **9 lifestyle context cards** — diet & digestion, sleep, exercise, stress, light & circadian, environment, and more — each gets an AI health rating and enriches all interpretations
+- **Menstrual cycle tracking** — phase-aware reference ranges for estradiol and progesterone, cycle phase bands on charts
+- **Supplement & medication timeline** — overlaid on charts to correlate with biomarker changes
+- **PDF reports** — export a full health report as PDF
+- **Batch import** — process multiple lab PDFs in one go
 
-### Analysis
-- Interactive line charts with reference bands, optimal ranges, and trend detection
-- 15 biomarker categories: biochemistry, hormones, lipids, hematology, thyroid, and more
-- Calculated markers: PhenoAge (biological age), HOMA-IR, free water deficit, lipid ratios
-- Trend alerts: sudden changes and linear regression, both flagged on the dashboard
-- Correlation viewer across any two markers
-- Compare any two dates side by side
-- Menstrual cycle tracking with phase-aware reference ranges for estradiol and progesterone
-- Supplement and medication timeline overlaid on charts
-- 9 lifestyle context cards (diet, sleep, light, stress, environment, and more) — each gets an AI health rating
+## Privacy and data ownership
 
-### Privacy
-- All data stored locally in your browser (localStorage + IndexedDB)
-- Personal info stripped from PDFs before anything is sent to AI (regex fallback or local Ollama)
-- AES-256-GCM encryption at rest with passphrase-based key derivation
-- Automatic backups via IndexedDB, 5 snapshots, one-click restore
+- All data stored locally in your browser (localStorage + IndexedDB) — nothing on a server
+- Personal info stripped from PDFs before AI processing (regex + optional local Ollama)
+- AES-256-GCM encryption at rest
+- Automatic backups (5 snapshots, one-click restore)
 - Run Ollama locally and nothing leaves your machine at all
+- No account, no sign-up, no tracking
 
-### AI Providers
-- **Anthropic Claude** — best results for medical data, pay per use
-- **OpenRouter** — one key, 200+ models (Claude, GPT, Gemini, DeepSeek, Grok, and more)
-- **Venice AI** — privacy-first, nothing stored or logged on their end
-- **Ollama** — fully local, completely offline, free forever
+## AI providers
 
-Switch providers anytime in Settings. The app falls back gracefully if no provider is configured — all non-AI features work without one.
+| Provider | Description |
+|---|---|
+| **OpenRouter** | Model marketplace — one key, 200+ models (Claude, GPT, Gemini, Grok, DeepSeek). Recommended for most users. |
+| **Anthropic** | Direct Claude API. Best accuracy on medical data. |
+| **Venice AI** | Privacy cloud — access GPT, Grok, DeepSeek with nothing logged. |
+| **Ollama** | Fully local inference. Completely offline. Free forever. |
 
----
+Switch providers anytime. All non-AI features work without a provider configured.
 
-## Documentation
+## How it compares
 
-Full documentation at [getbased.health/docs](https://getbased.health/docs) — user guide, contributor architecture reference, module docs, and deployment guide.
-
-## Community
-
-Join the [Discord](https://discord.gg/zJdVB9zgQB) — questions, feature ideas, and health optimization discussion.
+| | getbased | Typical blood test apps |
+|---|---|---|
+| Open source | GPL-3.0 | Closed source |
+| Cost | Free | Free tier + paid upsell |
+| Data storage | Local browser, encrypted | Cloud (their servers) |
+| AI providers | 4 choices (including fully local) | Locked to one |
+| Lab import | Any PDF, any format, any language | Specific labs/formats only |
+| Biomarkers | 287+ standard + unlimited custom | Limited set |
+| Lifestyle context | 9 cards inform all AI analysis | None or basic |
+| Account required | No | Yes |
 
 ---
 
@@ -77,63 +70,30 @@ cd get-based
 node dev-server.js
 ```
 
-Then open `http://localhost:8000` in your browser.
-
-You need an AI provider API key (Anthropic, OpenRouter, or Venice) or a local Ollama instance for PDF import and chat features. All other features work without one.
-
----
-
-## AI Providers
-
-| Provider | Description |
-|---|---|
-| Anthropic | Direct Claude API. Recommended for best accuracy on medical data. |
-| OpenRouter | Model marketplace. One key, many models. Pay with card or crypto. |
-| Venice AI | Privacy cloud. Access GPT, Grok, DeepSeek — nothing is logged. |
-| Ollama | Local inference. Fully offline. Nothing leaves your machine. |
-
-Configure your provider in Settings after opening the app.
-
----
+Open `http://localhost:8000`. You need an AI provider API key or local Ollama for PDF import and chat. All other features work without one.
 
 ## Tech stack
 
-- No build tools, no bundler, no package manager
-- Pure ES modules via `<script type="module">` — 24 modules under `js/`
-- Chart.js 4.4.7 for charts
-- pdf.js 3.11.174 for PDF text extraction
+No build tools, no bundler, no package manager. Pure ES modules — 26 files under `js/`.
+
+- Chart.js for interactive charts
+- pdf.js for PDF text extraction
 - All dependencies loaded from CDN with SRI integrity hashes
-- Google Fonts: Inter, Outfit, JetBrains Mono
-
----
-
-## PWA
-
-Get Based is installable as a Progressive Web App. The service worker caches the full app shell so it works offline. AI features (PDF import, chat) require a network connection to your provider — everything else works without one.
-
----
+- Installable as a PWA (works offline for non-AI features)
 
 ## Testing
 
-13 browser-based test files cover source inspection, DOM behavior, CSS, and live feature logic. Run all of them headlessly:
+16 browser-based test files run headlessly:
 
 ```bash
 ./run-tests.sh
 ```
 
-This starts a local server if one isn't running, runs all tests via headless Chrome (Puppeteer), and exits with code 0 or 1. Requires Puppeteer — install with `npm i -g puppeteer` or `npx puppeteer`.
-
----
-
-## Roadmap
-
-See the [project board](https://github.com/users/elkimek/projects/2) for planned features and ideas. Contributions welcome.
+Starts a local server, runs all tests via Puppeteer, exits 0/1.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md). Project board: [planned features](https://github.com/users/elkimek/projects/2).
 
 ## License
 
