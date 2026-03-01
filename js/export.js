@@ -32,7 +32,7 @@ export function exportPDFReport() {
     return parts.join('. ');
   };
   if (state.importedData.diagnoses) contextSections.push({ title: 'Medical Conditions', text: fmtCtx(state.importedData.diagnoses) });
-  if (state.importedData.diet) contextSections.push({ title: 'Diet', text: fmtCtx(state.importedData.diet) });
+  if (state.importedData.diet) contextSections.push({ title: 'Diet & Digestion', text: fmtCtx(state.importedData.diet) });
   if (state.importedData.exercise) contextSections.push({ title: 'Exercise & Movement', text: fmtCtx(state.importedData.exercise) });
   if (state.importedData.sleepRest) contextSections.push({ title: 'Sleep & Rest', text: fmtCtx(state.importedData.sleepRest) });
   if (state.importedData.lightCircadian) contextSections.push({ title: 'Light & Circadian', text: fmtCtx(state.importedData.lightCircadian) });

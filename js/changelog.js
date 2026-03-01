@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.1.4', date: '2026-03-01', title: 'Diet & Digestion',
+    items: [
+      'Diet card extended to "Diet & Digestion" with 10 new fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities',
+      'Digestive health data included in AI context for interpreting gut-related biomarkers',
+    ]
+  },
+  {
     version: '1.1.3', date: '2026-02-28', title: 'Encryption Nudge',
     items: [
       'One-time prompt to enable encryption after your first PDF import',

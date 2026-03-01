@@ -471,19 +471,31 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
-  // ── 9. Diet ("what lifestyle context?") ──
+  // ── 9. Diet & Digestion ("what lifestyle context?") ──
   const diet = state.importedData.diet;
   if (hasCardContent(diet)) {
-    ctx += `## Diet\n`;
+    ctx += `## Diet & Digestion\n`;
     const parts = [];
     if (diet.type) parts.push(`Type: ${diet.type}`);
     if (diet.pattern) parts.push(`Pattern: ${diet.pattern}`);
     if (diet.restrictions && diet.restrictions.length) parts.push(`Restrictions: ${diet.restrictions.join(', ')}`);
-    ctx += parts.join('. ') + '\n';
+    if (parts.length) ctx += parts.join('. ') + '\n';
     if (diet.breakfast) ctx += `Breakfast${diet.breakfastTime ? ' (' + formatTime(diet.breakfastTime) + ')' : ''}: ${diet.breakfast}\n`;
     if (diet.lunch) ctx += `Lunch${diet.lunchTime ? ' (' + formatTime(diet.lunchTime) + ')' : ''}: ${diet.lunch}\n`;
     if (diet.dinner) ctx += `Dinner${diet.dinnerTime ? ' (' + formatTime(diet.dinnerTime) + ')' : ''}: ${diet.dinner}\n`;
     if (diet.snacks) ctx += `Snacks${diet.snacksTime ? ' (' + formatTime(diet.snacksTime) + ')' : ''}: ${diet.snacks}\n`;
+    const dParts = [];
+    if (diet.bowelFrequency) dParts.push(`Bowel frequency: ${diet.bowelFrequency}`);
+    if (diet.stoolConsistency) dParts.push(`Stool consistency: ${diet.stoolConsistency}`);
+    if (diet.bloating && diet.bloating !== 'none') dParts.push(`Bloating: ${diet.bloating}`);
+    if (diet.gas && diet.gas !== 'none') dParts.push(`Gas: ${diet.gas}`);
+    if (diet.acidReflux && diet.acidReflux !== 'none') dParts.push(`Acid reflux: ${diet.acidReflux}`);
+    if (diet.burping && diet.burping !== 'none') dParts.push(`Burping: ${diet.burping}`);
+    if (diet.nausea && diet.nausea !== 'none') dParts.push(`Nausea: ${diet.nausea}`);
+    if (diet.appetite && diet.appetite !== 'normal') dParts.push(`Appetite: ${diet.appetite}`);
+    if (diet.abdominalPain && diet.abdominalPain !== 'none') dParts.push(`Abdominal pain: ${diet.abdominalPain}`);
+    if (diet.foodSensitivities && diet.foodSensitivities.length) dParts.push(`Food sensitivities: ${diet.foodSensitivities.join(', ')}`);
+    if (dParts.length) ctx += dParts.join('. ') + '\n';
     if (diet.note) ctx += `Notes: ${diet.note}\n`;
     ctx += '\n';
   }
@@ -616,7 +628,7 @@ export function getContextSummary() {
   // Context cards
   const diag = state.importedData.diagnoses;
   if (diag && ((diag.conditions && diag.conditions.length) || diag.note)) areas.push({ label: 'Medical Conditions', detail: diag.conditions ? `${diag.conditions.length} condition${diag.conditions.length !== 1 ? 's' : ''}` : 'notes' });
-  if (state.importedData.diet) areas.push({ label: 'Diet', detail: state.importedData.diet.type || 'filled' });
+  if (state.importedData.diet) areas.push({ label: 'Diet & Digestion', detail: state.importedData.diet.type || 'filled' });
   if (state.importedData.exercise) areas.push({ label: 'Exercise', detail: state.importedData.exercise.frequency || 'filled' });
   if (state.importedData.sleepRest) areas.push({ label: 'Sleep & Rest', detail: state.importedData.sleepRest.duration || 'filled' });
   const lc = state.importedData.lightCircadian;
