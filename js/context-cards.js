@@ -1,7 +1,7 @@
 // context-cards.js — 9 context card editors, summaries, health dots, interpretive lens
 
 import { state } from './state.js';
-import { COMMON_CONDITIONS, DIET_TYPES, DIET_RESTRICTIONS, DIET_PATTERNS, EXERCISE_FREQ, EXERCISE_TYPES, EXERCISE_INTENSITY, DAILY_MOVEMENT, SLEEP_DURATIONS, SLEEP_QUALITY, SLEEP_SCHEDULE, SLEEP_ROOM_TEMP, SLEEP_ISSUES, SLEEP_ENVIRONMENT, SLEEP_PRACTICES, LIGHT_AM, LIGHT_DAYTIME, LIGHT_UV, LIGHT_EVENING, LIGHT_COLD, LIGHT_GROUNDING, LIGHT_SCREEN_TIME, LIGHT_TECH_ENV, LIGHT_MEAL_TIMING, STRESS_LEVELS, STRESS_SOURCES, STRESS_MGMT, LOVE_STATUS, LOVE_SATISFACTION, LOVE_LIBIDO, LOVE_FREQUENCY, LOVE_ORGASM, LOVE_RELATIONSHIP, LOVE_CONCERNS, ENV_SETTING, ENV_CLIMATE, ENV_WATER, ENV_WATER_CONCERNS, ENV_EMF, ENV_EMF_MITIGATION, ENV_HOME_LIGHT, ENV_AIR, ENV_TOXINS, ENV_BUILDING } from './constants.js';
+import { COMMON_CONDITIONS, DIET_TYPES, DIET_RESTRICTIONS, DIET_PATTERNS, BOWEL_FREQUENCY, STOOL_CONSISTENCY, BLOATING_SEVERITY, GAS_SEVERITY, ACID_REFLUX, BURPING, NAUSEA, APPETITE, ABDOMINAL_PAIN, FOOD_SENSITIVITIES, EXERCISE_FREQ, EXERCISE_TYPES, EXERCISE_INTENSITY, DAILY_MOVEMENT, SLEEP_DURATIONS, SLEEP_QUALITY, SLEEP_SCHEDULE, SLEEP_ROOM_TEMP, SLEEP_ISSUES, SLEEP_ENVIRONMENT, SLEEP_PRACTICES, LIGHT_AM, LIGHT_DAYTIME, LIGHT_UV, LIGHT_EVENING, LIGHT_COLD, LIGHT_GROUNDING, LIGHT_SCREEN_TIME, LIGHT_TECH_ENV, LIGHT_MEAL_TIMING, STRESS_LEVELS, STRESS_SOURCES, STRESS_MGMT, LOVE_STATUS, LOVE_SATISFACTION, LOVE_LIBIDO, LOVE_FREQUENCY, LOVE_ORGASM, LOVE_RELATIONSHIP, LOVE_CONCERNS, ENV_SETTING, ENV_CLIMATE, ENV_WATER, ENV_WATER_CONCERNS, ENV_EMF, ENV_EMF_MITIGATION, ENV_HOME_LIGHT, ENV_AIR, ENV_TOXINS, ENV_BUILDING } from './constants.js';
 import { escapeHTML, hashString, showNotification, hasCardContent } from './utils.js';
 import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
@@ -33,6 +33,16 @@ export function getDietSummary(d) {
   if (d.lunch) parts.push('L: ' + d.lunch);
   if (d.dinner) parts.push('D: ' + d.dinner);
   if (d.snacks) parts.push('S: ' + d.snacks);
+  if (d.bowelFrequency) parts.push(d.bowelFrequency);
+  if (d.stoolConsistency) parts.push(d.stoolConsistency);
+  if (d.bloating && d.bloating !== 'none') parts.push('bloating: ' + d.bloating);
+  if (d.gas && d.gas !== 'none') parts.push('gas: ' + d.gas);
+  if (d.acidReflux && d.acidReflux !== 'none') parts.push('reflux: ' + d.acidReflux);
+  if (d.burping && d.burping !== 'none') parts.push('burping: ' + d.burping);
+  if (d.nausea && d.nausea !== 'none') parts.push('nausea: ' + d.nausea);
+  if (d.appetite && d.appetite !== 'normal') parts.push('appetite: ' + d.appetite);
+  if (d.abdominalPain && d.abdominalPain !== 'none') parts.push('pain: ' + d.abdominalPain);
+  if (d.foodSensitivities && d.foodSensitivities.length) parts.push('sensitivities: ' + d.foodSensitivities.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
 }
@@ -137,7 +147,7 @@ export function renderProfileContextCards() {
   const cardDefs = [
     { key: 'healthGoals', emoji: '\uD83C\uDFAF', label: 'Health Goals', editor: 'openHealthGoalsEditor', tooltip: 'Define what you\'re trying to solve or improve. AI prioritizes analysis around your stated goals.', placeholder: 'Add health goals', summaryFn: getGoalsSummary },
     { key: 'diagnoses', emoji: '\uD83C\uDFE5', label: 'Medical Conditions', editor: 'openDiagnosesEditor', tooltip: 'Diagnoses directly affect how lab markers should be interpreted — what\'s abnormal for most may be expected for you.', placeholder: 'Add medical conditions', summaryFn: () => getConditionsSummary(state.importedData.diagnoses) },
-    { key: 'diet', emoji: '\uD83E\uDD57', label: 'Diet', editor: 'openDietEditor', tooltip: 'Nutrition has a major impact on blood markers — keto raises LDL, vegetarian diets affect B12 and iron.', placeholder: 'Describe your diet', summaryFn: () => getDietSummary(state.importedData.diet) },
+    { key: 'diet', emoji: '\uD83E\uDD57', label: 'Diet & Digestion', editor: 'openDietEditor', tooltip: 'Nutrition and digestion directly affect blood markers — diet type impacts lipids, B12, iron; GI symptoms correlate with inflammation and nutrient absorption.', placeholder: 'Describe your diet & digestion', summaryFn: () => getDietSummary(state.importedData.diet) },
     { key: 'exercise', emoji: '\uD83C\uDFCB\uFE0F', label: 'Exercise', editor: 'openExerciseEditor', tooltip: 'Training type and intensity affect CK, liver enzymes, cholesterol, and inflammatory markers.', placeholder: 'Describe your routine', summaryFn: () => getExerciseSummary(state.importedData.exercise) },
     { key: 'sleepRest', emoji: '\uD83D\uDE34', label: 'Sleep & Rest', editor: 'openSleepRestEditor', tooltip: 'Sleep duration and quality directly affect inflammation, insulin sensitivity, cortisol, and immune function.', placeholder: 'Describe your sleep', summaryFn: () => getSleepSummary(state.importedData.sleepRest) },
     { key: 'lightCircadian', emoji: '\u2600\uFE0F', label: 'Light & Circadian', editor: 'openLightCircadianEditor', tooltip: 'Light, cold, grounding, screen time, and meal timing drive circadian rhythm, hormones, melatonin, cortisol, and metabolic health.', placeholder: 'Describe your light habits', summaryFn: () => getLightCircadianSummary(state.importedData.lightCircadian) },
@@ -537,10 +547,10 @@ export function clearDiagnoses() {
 export function openDietEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = state.importedData.diet || { type: null, restrictions: [], pattern: null, breakfast: '', lunch: '', dinner: '', snacks: '', note: '' };
+  const current = state.importedData.diet || { type: null, restrictions: [], pattern: null, breakfast: '', lunch: '', dinner: '', snacks: '', note: '', bowelFrequency: null, stoolConsistency: null, bloating: null, gas: null, acidReflux: null, burping: null, nausea: null, appetite: null, abdominalPain: null, foodSensitivities: [] };
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>Diet</h3>
-    <div class="modal-unit">Describe your typical diet. The AI will factor this in when interpreting your labs.</div>
+    <h3>Diet & Digestion</h3>
+    <div class="modal-unit">Describe your typical diet and digestive health. The AI will factor this in when interpreting your labs.</div>
     ${renderSelectField('Diet type', 'diet-type', DIET_TYPES, current.type)}
     ${renderSelectField('Eating pattern', 'diet-pattern', DIET_PATTERNS, current.pattern)}
     ${renderTagsField('Restrictions', 'diet-restrictions', DIET_RESTRICTIONS, current.restrictions)}
@@ -551,6 +561,18 @@ export function openDietEditor() {
       <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-dinner-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.dinnerTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-dinner" placeholder="Dinner — e.g. salmon, rice, vegetables" value="${escapeHTML(current.dinner || '')}"></div>
       <div class="ctx-meal-row"><input type="text" class="ctx-meal-time" id="diet-snacks-time" placeholder="${getTimePlaceholder()}" value="${escapeHTML(formatTime(current.snacksTime || ''))}"><input class="ctx-note-input ctx-meal-input" id="diet-snacks" placeholder="Snacks — e.g. nuts, fruit, dark chocolate" value="${escapeHTML(current.snacks || '')}"></div>
     </div>
+    <div class="ctx-editor-divider"></div>
+    <div class="ctx-field-group"><label class="ctx-field-label">Digestion</label></div>
+    ${renderSelectField('Bowel frequency', 'diet-bowel', BOWEL_FREQUENCY, current.bowelFrequency || null)}
+    ${renderSelectField('Stool consistency', 'diet-stool', STOOL_CONSISTENCY, current.stoolConsistency || null)}
+    ${renderSelectField('Bloating', 'diet-bloating', BLOATING_SEVERITY, current.bloating || null)}
+    ${renderSelectField('Gas', 'diet-gas', GAS_SEVERITY, current.gas || null)}
+    ${renderSelectField('Acid reflux', 'diet-reflux', ACID_REFLUX, current.acidReflux || null)}
+    ${renderSelectField('Burping', 'diet-burping', BURPING, current.burping || null)}
+    ${renderSelectField('Nausea', 'diet-nausea', NAUSEA, current.nausea || null)}
+    ${renderSelectField('Appetite', 'diet-appetite', APPETITE, current.appetite || null)}
+    ${renderSelectField('Abdominal pain', 'diet-abdpain', ABDOMINAL_PAIN, current.abdominalPain || null)}
+    ${renderTagsField('Food sensitivities', 'diet-sensitivities', FOOD_SENSITIVITIES, current.foodSensitivities || [])}
     ${renderNoteField(current.note)}
     ${contextEditorActions(state.importedData.diet != null, 'saveDiet', 'clearDiet')}`;
   overlay.classList.add("show");
@@ -568,18 +590,28 @@ export function saveDiet() {
   const dinnerTime = parseTimeInput((document.getElementById('diet-dinner-time') || {}).value || '');
   const snacks = (document.getElementById('diet-snacks') || {}).value || '';
   const snacksTime = parseTimeInput((document.getElementById('diet-snacks-time') || {}).value || '');
+  const bowelFrequency = getSelectedOption('diet-bowel');
+  const stoolConsistency = getSelectedOption('diet-stool');
+  const bloating = getSelectedOption('diet-bloating');
+  const gas = getSelectedOption('diet-gas');
+  const acidReflux = getSelectedOption('diet-reflux');
+  const burping = getSelectedOption('diet-burping');
+  const nausea = getSelectedOption('diet-nausea');
+  const appetite = getSelectedOption('diet-appetite');
+  const abdominalPain = getSelectedOption('diet-abdpain');
+  const foodSensitivities = getSelectedTags('diet-sensitivities');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!type && !pattern && restrictions.length === 0 && !breakfast.trim() && !lunch.trim() && !dinner.trim() && !snacks.trim() && !note.trim()) {
+  if (!type && !pattern && restrictions.length === 0 && !breakfast.trim() && !lunch.trim() && !dinner.trim() && !snacks.trim() && !bowelFrequency && !stoolConsistency && !bloating && !gas && !acidReflux && !burping && !nausea && !appetite && !abdominalPain && foodSensitivities.length === 0 && !note.trim()) {
     state.importedData.diet = null;
   } else {
-    state.importedData.diet = { type, restrictions, pattern, breakfast: breakfast.trim(), breakfastTime, lunch: lunch.trim(), lunchTime, dinner: dinner.trim(), dinnerTime, snacks: snacks.trim(), snacksTime, note: note.trim() };
+    state.importedData.diet = { type, restrictions, pattern, breakfast: breakfast.trim(), breakfastTime, lunch: lunch.trim(), lunchTime, dinner: dinner.trim(), dinnerTime, snacks: snacks.trim(), snacksTime, bowelFrequency, stoolConsistency, bloating, gas, acidReflux, burping, nausea, appetite, abdominalPain, foodSensitivities, note: note.trim() };
   }
-  saveAndRefresh('Diet saved');
+  saveAndRefresh('Diet & Digestion saved');
 }
 
 export function clearDiet() {
   state.importedData.diet = null;
-  saveAndRefresh('Diet cleared');
+  saveAndRefresh('Diet & Digestion cleared');
 }
 
 // ═══════════════════════════════════════════════

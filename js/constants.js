@@ -54,6 +54,17 @@ export const ENV_HOME_LIGHT = ['mostly LED lighting', 'incandescent bulbs', 'ful
 export const ENV_AIR = ['HEPA air purifier', 'open windows daily', 'houseplants', 'air quality monitor', 'near highway/traffic', 'industrial area nearby', 'wildfire smoke region', 'high pollen area'];
 export const ENV_TOXINS = ['mold exposure', 'heavy metals (lead/mercury)', 'pesticide exposure', 'plastic containers for food', 'non-stick cookware (PFAS)', 'conventional cleaning products', 'new car/furniture off-gassing', 'amalgam dental fillings', 'BPA/phthalate exposure', 'organic food mostly'];
 export const ENV_BUILDING = ['new construction (<5yr)', 'old building (pre-1970)', 'concrete/steel', 'wood frame', 'natural materials', 'carpet (VOCs)', 'hardwood/tile floors'];
+// Diet & Digestion
+export const BOWEL_FREQUENCY = ['1x/day', '2x/day', '3+/day', 'every other day', 'irregular'];
+export const STOOL_CONSISTENCY = ['hard/pellets', 'firm', 'smooth', 'soft', 'loose', 'watery'];
+export const BLOATING_SEVERITY = ['none', 'mild', 'moderate', 'severe'];
+export const GAS_SEVERITY = ['none', 'mild', 'moderate', 'excessive'];
+export const ACID_REFLUX = ['none', 'occasional', 'frequent', 'daily'];
+export const BURPING = ['none', 'occasional', 'frequent', 'after meals'];
+export const NAUSEA = ['none', 'occasional', 'frequent', 'daily'];
+export const APPETITE = ['normal', 'low', 'excessive', 'variable'];
+export const ABDOMINAL_PAIN = ['none', 'occasional', 'frequent', 'chronic'];
+export const FOOD_SENSITIVITIES = ['gluten', 'dairy', 'eggs', 'soy', 'nuts', 'FODMAPs', 'histamine', 'nightshades', 'corn', 'shellfish'];
 
 // ── Menstrual cycle symptoms ──
 export const PERIOD_SYMPTOMS = [
@@ -125,7 +136,7 @@ export const CHAT_SYSTEM_PROMPT = `You are an AI lab analyst for the getbased bl
 - User notes: consider medication changes, supplement starts, fasting status, symptoms noted on specific dates.
 
 ## Lifestyle Context (apply when present)
-- Diet: consider nutritional influence (e.g. keto raises LDL, vegetarian affects B12/iron, high protein affects creatinine).
+- Diet & Digestion: consider nutritional influence (e.g. keto raises LDL, vegetarian affects B12/iron, high protein affects creatinine). Consider digestive symptoms — bloating, reflux, irregular bowel habits, and food sensitivities may indicate malabsorption, inflammation, or dysbiosis affecting nutrient markers and inflammatory labs.
 - Exercise: consider training effects (e.g. heavy lifting raises CK/AST/ALT, endurance raises HDL, overtraining elevates hs-CRP).
 - Sleep: consider recovery and inflammation effects (e.g. poor sleep raises hs-CRP, cortisol, insulin resistance; sleep apnea affects RBC/hemoglobin).
 - Light & circadian: consider UV/vitamin D synthesis, morning light/cortisol awakening, cold exposure/thyroid and brown fat, grounding/inflammation, latitude/seasonal patterns.
