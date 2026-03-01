@@ -73,6 +73,11 @@ const server = http.createServer((req, res) => {
     res.writeHead(404); res.end('Not found'); return;
   }
 
+  // Route: /blog and /blog/{slug} → blog.html (mirrors Vercel rewrites)
+  if (hasSite && (pathname === '/blog' || /^\/blog\/[^/]+$/.test(pathname))) {
+    return serveFile(res, path.join(SITE_DIR, 'blog.html'));
+  }
+
   // Static files from site repo (e.g. /thank-you.html, /icon.svg)
   // Skip files that also exist in the app root to avoid shadowing (index.html, vercel.json, etc.)
   if (hasSite) {
