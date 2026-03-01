@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 25 ES modules loaded via `js/main.js`:
+- **`js/`** — 26 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
@@ -42,7 +42,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
-- **`tests/`** — 15 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 16 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -125,7 +125,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-15 browser-based test files run headlessly:
+16 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
