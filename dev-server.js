@@ -77,6 +77,47 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // API: GET-fetch a URL and return the HTML body (for Shop Fill search scraping)
+  if (pathname === '/api/fetch-page') {
+    const target = url.searchParams.get('url');
+    if (!target) { res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end('{"error":"missing url param"}'); return; }
+    const mod = target.startsWith('https') ? https : http;
+    const fetchPage = (fetchUrl, depth) => {
+      const fetchMod = fetchUrl.startsWith('https') ? https : http;
+      fetchMod.get(fetchUrl, {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Accept-Language': 'cs,sk,en;q=0.5',
+        },
+      }, (pageRes) => {
+        // Follow one redirect
+        if (depth === 0 && [301, 302, 307, 308].includes(pageRes.statusCode) && pageRes.headers.location) {
+          const loc = new URL(pageRes.headers.location, fetchUrl).href;
+          return fetchPage(loc, 1);
+        }
+        let body = '';
+        let bytes = 0;
+        const MAX = 80 * 1024;
+        pageRes.setEncoding('utf8');
+        pageRes.on('data', (chunk) => {
+          if (bytes < MAX) { body += chunk; bytes += Buffer.byteLength(chunk); }
+        });
+        pageRes.on('end', () => {
+          if (bytes > MAX) body = body.slice(0, MAX);
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ status: pageRes.statusCode, html: body }));
+        });
+      }).on('error', (e) => {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ status: 0, error: e.message }));
+      }).on('timeout', function() { this.destroy(); });
+    };
+    fetchPage(target, 0);
+    return;
+  }
+
   // API: deploy catalog JSON from editor to data/
   if (pathname === '/api/deploy-catalog' && req.method === 'POST') {
     let body = '';
