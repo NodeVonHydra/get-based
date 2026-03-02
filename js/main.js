@@ -13,6 +13,7 @@ import './pii.js';
 import './charts.js';
 import './notes.js';
 import './supplements.js';
+import './recommendations.js';
 import './cycle.js';
 import './context-cards.js';
 // emf.js is lazy-loaded on first use (1053 lines, only needed when user opens EMF editor)

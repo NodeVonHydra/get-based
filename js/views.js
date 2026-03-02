@@ -1177,6 +1177,14 @@ export function showDetailModal(id) {
       </div>
     </div>
   </div>`;
+  // Recommendation placeholder — only for flagged markers
+  const _lastVal = nonNull.length ? nonNull[nonNull.length-1].v : null;
+  const _lastIdx = nonNull.length ? nonNull[nonNull.length-1].i : null;
+  const _lastRi = _lastIdx !== null ? { min: marker.refMin, max: marker.refMax } : null;
+  const _markerStatus = _lastRi ? getStatus(_lastVal, _lastRi.min, _lastRi.max) : 'missing';
+  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.isProductRecsEnabled && window.isProductRecsEnabled()) {
+    html += `<div id="rec-modal-${id}"></div>`;
+  }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   // Show delete link for custom markers only
@@ -1185,6 +1193,11 @@ export function showDetailModal(id) {
   }
   modal.innerHTML = html;
   overlay.classList.add("show");
+  // Async-fill recommendation section
+  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.renderRecommendationSection) {
+    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3 })
+      .then(h => { const el = document.getElementById('rec-modal-' + id); if (h && el) el.innerHTML = h; });
+  }
   setTimeout(() => {
     if (document.getElementById("chart-modal")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);
   }, 50);

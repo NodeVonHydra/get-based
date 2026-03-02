@@ -105,6 +105,14 @@ export function openSettingsModal(tab) {
         <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
       </div>
 
+      <div class="settings-section">
+        <label class="settings-label">Product Recommendations</label>
+        <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+          <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked)">
+          Show vetted supplement and product options
+        </label>
+      </div>
+
       <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')} · <span id="settings-commit-hash">···</span></div>
     </div>
 

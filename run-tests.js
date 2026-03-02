@@ -32,7 +32,8 @@ const TEST_FILES = [
   'tests/test-venice-e2ee.js',
   'tests/test-change-history.js',
   'tests/test-sync.js',
-  'tests/test-biometrics.js'
+  'tests/test-biometrics.js',
+  'tests/test-recommendations.js'
 ];
 
 const PORT = process.env.PORT || 8000;

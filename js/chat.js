@@ -3442,12 +3442,34 @@ export async function sendChatMessage() {
     }
     state.chatHistory.push(assistantMsg);
 
+    // Detect supplement slots from AI text and attach recs
+    const _recSlots = window.detectSupplementSlots ? window.detectSupplementSlots(displayText) : [];
+    if (_recSlots.length) assistantMsg.recSlots = _recSlots;
+
     // Append action bar
     const msgIndex = state.chatHistory.length - 1;
     const actionBarHtml = buildActionBar(msgIndex);
     const actionBarContainer = document.createElement('div');
     actionBarContainer.innerHTML = actionBarHtml;
     while (actionBarContainer.firstChild) aiMsgEl.appendChild(actionBarContainer.firstChild);
+
+    // Async-render supplement recommendations before action bar
+    if (_recSlots.length && window.renderRecommendationSection) {
+      Promise.all(_recSlots.slice(0, 1).map(slot =>
+        window.renderRecommendationSection(slot, { label: 'What can help', maxProducts: 2 })
+      )).then(htmlArr => {
+        const combined = htmlArr.filter(Boolean).join('');
+        if (combined && aiMsgEl.isConnected) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'rec-chat-wrapper';
+          wrapper.innerHTML = combined;
+          // Insert before the action bar
+          const actionBar = aiMsgEl.querySelector('.chat-action-bar');
+          if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);
+          else aiMsgEl.appendChild(wrapper);
+        }
+      });
+    }
 
     container.scrollTop = container.scrollHeight;
     saveChatHistory();

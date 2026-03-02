@@ -33,6 +33,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `supplements.js` — supplement editor + render section
   - `supplement-warnings.js` — mitochondrial compound warnings for supplements (108 entries, PubMed-cited)
   - `food-contaminants.js` — diet card pesticide/plastic contaminant scanner (EWG Dirty Dozen, PlasticList)
+  - `recommendations.js` — lazy-loaded catalog, slot matching, product rendering for supplement & lifestyle recs (3 touchpoints: detail modal, chat, context cards). `buildDNAHints(slotKey)` connects genetics to recs via `snpHints` in snp-health.json
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens, `recordChange()` for change history
   - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports

@@ -266,6 +266,31 @@ export function applyAISummary(key, text, color) {
     el.textContent = '';
     el.classList.remove('ctx-ai-summary-visible');
   }
+  // Lifestyle recommendation: "What can help" link → popover for yellow/red cards
+  const recId = 'ctx-rec-' + key;
+  if ((color === 'yellow' || color === 'red') && window.getSlotsForCard && window.loadCatalog) {
+    let recEl = document.getElementById(recId);
+    if (recEl) return; // Already rendered
+    window.loadCatalog().then(catalog => {
+      if (!catalog) return;
+      const slots = window.getSlotsForCard(catalog, key);
+      if (!slots.length) return;
+      // Check existing again (async)
+      if (document.getElementById(recId)) return;
+      recEl = document.createElement('span');
+      recEl.id = recId;
+      recEl.className = 'ctx-rec-link';
+      recEl.textContent = 'What can help \u2192';
+      recEl.onclick = e => {
+        e.stopPropagation();
+        window.openRecPopover(key, slots[0], recEl);
+      };
+      el.parentNode.insertBefore(recEl, el.nextSibling);
+    });
+  } else {
+    const oldRec = document.getElementById(recId);
+    if (oldRec) oldRec.remove();
+  }
 }
 
 export function getCardFingerprint(key) {

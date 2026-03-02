@@ -1,0 +1,803 @@
+{
+  "region": "CZSK",
+  "countries": [
+    "czechia",
+    "czech republic",
+    "česko",
+    "slovakia",
+    "slovensko"
+  ],
+  "slots": {
+    "vitamins.vitaminD": {
+      "freeActions": [
+        "15-30 min midday sunlight with skin exposed",
+        "Spend time outdoors — even overcast sky provides some UVB"
+      ],
+      "productForms": [
+        "UVB light panel",
+        "Red light + UVB combo panel"
+      ],
+      "foodForms": [
+        "Fatty fish (salmon, sardines)",
+        "Cod liver oil",
+        "Pasture-raised egg yolks"
+      ],
+      "forms": [
+        "D3 + K2 combo",
+        "D3 liquid drops",
+        "D3 high-dose (5000+ IU)"
+      ],
+      "label": "Vitamin D3"
+    },
+    "vitamins.vitaminA": {
+      "foodForms": [
+        "Beef/lamb liver",
+        "Cod liver oil",
+        "Pasture-raised egg yolks"
+      ],
+      "forms": [
+        "Retinyl palmitate",
+        "Cod liver oil (supplement)",
+        "Beta-carotene"
+      ],
+      "label": "Vitamin A"
+    },
+    "vitamins.vitaminB12": {
+      "foodForms": [
+        "Beef liver",
+        "Sardines",
+        "Clams/mussels",
+        "Pasture-raised eggs"
+      ],
+      "forms": [
+        "Methylcobalamin",
+        "Hydroxocobalamin",
+        "Adenosylcobalamin"
+      ],
+      "label": "Vitamin B12"
+    },
+    "electrolytes.magnesium": {
+      "freeActions": [
+        "Epsom salt baths (transdermal magnesium absorption)"
+      ],
+      "foodForms": [
+        "Pumpkin seeds",
+        "Dark chocolate (85%+)",
+        "Almonds",
+        "Spinach/Swiss chard"
+      ],
+      "forms": [
+        "Magnesium Glycinate",
+        "Magnesium L-Threonate",
+        "Magnesium Taurate",
+        "Magnesium Citrate",
+        "Magnesium Malate"
+      ],
+      "label": "Magnesium"
+    },
+    "electrolytes.potassium": {
+      "foodForms": [
+        "Avocado",
+        "Potato (with skin)",
+        "Coconut water",
+        "Sweet potato"
+      ],
+      "forms": [
+        "Potassium citrate",
+        "Potassium bicarbonate",
+        "Potassium chloride"
+      ],
+      "label": "Potassium"
+    },
+    "electrolytes.zinc": {
+      "foodForms": [
+        "Oysters",
+        "Beef (grass-fed)",
+        "Pumpkin seeds",
+        "Dark chocolate (85%+)"
+      ],
+      "forms": [
+        "Zinc picolinate",
+        "Zinc carnosine",
+        "Zinc bisglycinate"
+      ],
+      "label": "Zinc"
+    },
+    "electrolytes.copper": {
+      "foodForms": [
+        "Beef liver",
+        "Oysters",
+        "Dark chocolate (85%+)",
+        "Cashews"
+      ],
+      "forms": [
+        "Copper bisglycinate",
+        "Copper sebacate"
+      ],
+      "label": "Copper"
+    },
+    "iron.ferritin": {
+      "freeActions": [
+        "Cook in cast iron (leaches bioavailable iron into food)"
+      ],
+      "foodForms": [
+        "Beef liver",
+        "Red meat (grass-fed)",
+        "Sardines",
+        "Dark poultry (thigh)"
+      ],
+      "forms": [
+        "Iron Bisglycinate",
+        "Heme iron polypeptide",
+        "Lactoferrin + iron"
+      ],
+      "label": "Iron"
+    },
+    "lipids.hdl": {
+      "freeActions": [
+        "Regular aerobic exercise (raises HDL naturally)",
+        "Reduce refined carbs and seed oils"
+      ],
+      "foodForms": [
+        "Wild salmon",
+        "Sardines (canned, olive oil)",
+        "Mackerel",
+        "Anchovies"
+      ],
+      "forms": [
+        "Triglyceride-form fish oil",
+        "High-EPA concentrate",
+        "High-DHA concentrate",
+        "Algal DHA/EPA"
+      ],
+      "label": "Omega-3 (HDL)"
+    },
+    "lipids.triglycerides": {
+      "freeActions": [
+        "Cut sugar and refined carbs (biggest dietary driver of high TG)",
+        "Regular exercise"
+      ],
+      "foodForms": [
+        "Fatty fish (same as HDL)"
+      ],
+      "forms": [
+        "High-EPA fish oil (2-4g EPA)",
+        "Algal EPA"
+      ],
+      "label": "Omega-3 (Triglycerides)"
+    },
+    "lipids.ldl": {
+      "freeActions": [
+        "Daily movement — even walking lowers LDL",
+        "Reduce processed food and seed oils"
+      ],
+      "foodForms": [
+        "Oats/soluble fiber",
+        "Cruciferous vegetables"
+      ],
+      "forms": [
+        "Berberine HCl",
+        "Plant sterols/stanols",
+        "Red yeast rice",
+        "Citrus bergamot"
+      ],
+      "label": "LDL support"
+    },
+    "thyroid.tsh": {
+      "foodForms": [
+        "Brazil nuts (2/day)",
+        "Sardines",
+        "Organ meats"
+      ],
+      "forms": [
+        "Selenomethionine",
+        "Selenium + Zinc combo"
+      ],
+      "label": "Selenium (Thyroid)"
+    },
+    "thyroid.ft3": {
+      "freeActions": [
+        "Manage stress (cortisol blocks T4→T3 conversion)",
+        "Sleep 7-9h (thyroid hormone conversion peaks during sleep)"
+      ],
+      "foodForms": [
+        "Brazil nuts + pumpkin seeds",
+        "Oysters"
+      ],
+      "forms": [
+        "Selenomethionine + Zinc picolinate",
+        "Ashwagandha (KSM-66)"
+      ],
+      "label": "T4→T3 conversion"
+    },
+    "hormones.testosterone": {
+      "freeActions": [
+        "Heavy compound lifts (squat, deadlift, press)",
+        "Sleep 7-9h in a dark cold room",
+        "Reduce alcohol",
+        "Morning sunlight on skin (supports circadian-linked T production)"
+      ],
+      "foodForms": [
+        "Oysters",
+        "Beef liver",
+        "Whole eggs (pasture-raised)",
+        "Pomegranate"
+      ],
+      "forms": [
+        "Tongkat Ali",
+        "Ashwagandha (KSM-66)",
+        "Fadogia Agrestis",
+        "Boron (6-10mg)"
+      ],
+      "label": "Testosterone support"
+    },
+    "hormones.shbg": {
+      "forms": [
+        "Boron (calcium fructoborate)",
+        "Stinging nettle root"
+      ],
+      "label": "SHBG (Boron)"
+    },
+    "hormones.dheaS": {
+      "freeActions": [
+        "Sleep 7-9h (DHEA is produced during deep sleep)",
+        "Reduce chronic stress (cortisol steals the same precursor)"
+      ],
+      "forms": [
+        "DHEA 25mg",
+        "DHEA 50mg",
+        "7-Keto DHEA"
+      ],
+      "label": "DHEA (body makes)"
+    },
+    "hormones.estradiol": {
+      "freeActions": [
+        "Reduce body fat (adipose tissue aromatizes testosterone → estrogen)",
+        "Reduce alcohol (impairs estrogen clearance)"
+      ],
+      "foodForms": [
+        "Cruciferous vegetables",
+        "Citrus fruits"
+      ],
+      "forms": [
+        "DIM",
+        "Calcium D-Glucarate",
+        "DIM + CDG combo"
+      ],
+      "label": "Estrogen metabolism"
+    },
+    "hormones.insulin": {
+      "freeActions": [
+        "Walk 15 min after meals (most effective glucose intervention)",
+        "Eat protein/fat before carbs (blunts glucose spike)",
+        "Resistance training (improves insulin sensitivity for 24-48h)"
+      ],
+      "foodForms": [
+        "Apple cider vinegar",
+        "Berries",
+        "Ceylon cinnamon",
+        "Fiber-rich meals"
+      ],
+      "forms": [
+        "Berberine HCl",
+        "Dihydroberberine",
+        "Chromium picolinate",
+        "Ceylon cinnamon extract"
+      ],
+      "label": "Insulin / glucose"
+    },
+    "hormones.igf1": {
+      "freeActions": [
+        "Resistance training (strongest natural IGF-1 stimulus)",
+        "Sleep 7-9h (GH/IGF-1 axis peaks during deep sleep)"
+      ],
+      "foodForms": [
+        "Adequate protein (1.6-2.2g/kg)"
+      ],
+      "forms": [
+        "Colostrum"
+      ],
+      "label": "IGF-1 (body makes)"
+    },
+    "biochemistry.glucose": {
+      "freeActions": [
+        "Post-meal walks",
+        "Eat protein/fat before carbs",
+        "Resistance training"
+      ],
+      "foodForms": [
+        "Same as insulin"
+      ],
+      "forms": [
+        "Berberine HCl",
+        "Dihydroberberine",
+        "Chromium picolinate",
+        "Alpha Lipoic Acid"
+      ],
+      "label": "Glucose support"
+    },
+    "biochemistry.ast": {
+      "freeActions": [
+        "Reduce/eliminate alcohol",
+        "Avoid unnecessary medications (esp. NSAIDs, acetaminophen)"
+      ],
+      "foodForms": [
+        "Cruciferous vegetables",
+        "Garlic/onion (alliums)",
+        "Pasture-raised eggs"
+      ],
+      "forms": [
+        "NAC (N-Acetyl Cysteine)",
+        "Milk Thistle (Silymarin)",
+        "TUDCA"
+      ],
+      "label": "Liver support"
+    },
+    "biochemistry.ggt": {
+      "freeActions": [
+        "Eliminate alcohol (GGT is the most sensitive alcohol marker)",
+        "Regular exercise (upregulates glutathione synthesis)"
+      ],
+      "foodForms": [
+        "Same sulfur foods as liver"
+      ],
+      "forms": [
+        "NAC",
+        "Liposomal glutathione",
+        "Milk Thistle"
+      ],
+      "label": "Glutathione / GGT"
+    },
+    "biochemistry.uricAcid": {
+      "freeActions": [
+        "Stay well hydrated (dilutes uric acid, aids excretion)",
+        "Reduce fructose / high-purine foods (beer, organ meats, shellfish)"
+      ],
+      "foodForms": [
+        "Tart cherries/juice",
+        "Vitamin C foods (bell pepper, citrus, kiwi)"
+      ],
+      "forms": [
+        "Vitamin C",
+        "Tart cherry extract",
+        "Quercetin"
+      ],
+      "label": "Uric acid"
+    },
+    "proteins.hsCRP": {
+      "freeActions": [
+        "Sleep 7-9h (sleep deprivation raises CRP)",
+        "Reduce seed oils and ultra-processed food",
+        "Regular moderate exercise (intense overtraining raises CRP)"
+      ],
+      "foodForms": [
+        "Fatty fish",
+        "Turmeric + black pepper",
+        "Ginger",
+        "Dark leafy greens"
+      ],
+      "forms": [
+        "High-EPA fish oil",
+        "Curcumin (liposomal)",
+        "NAC",
+        "SPMs"
+      ],
+      "label": "Inflammation (hs-CRP)"
+    },
+    "coagulation.homocysteine": {
+      "foodForms": [
+        "Beef liver",
+        "Dark leafy greens (folate)",
+        "Eggs (choline)",
+        "Beets (betaine)"
+      ],
+      "forms": [
+        "B12 + Folate + B6 (P5P)",
+        "TMG (Betaine)",
+        "Riboflavin (B2)"
+      ],
+      "label": "Homocysteine / methylation"
+    },
+    "hematology.mcv": {
+      "foodForms": [
+        "B12 foods (liver, sardines)",
+        "Folate foods (leafy greens, legumes)"
+      ],
+      "forms": [
+        "Methylcobalamin sublingual",
+        "5-MTHF (Methylfolate)",
+        "B12 + Folate combo"
+      ],
+      "label": "MCV (macrocytic)"
+    },
+    "hematology.rdwcv": {
+      "forms": [
+        "Iron Bisglycinate",
+        "B12 + Folate",
+        "Iron + B12 + Folate combo"
+      ],
+      "label": "RDW-CV"
+    },
+    "fattyAcids.omega3Index": {
+      "foodForms": [
+        "Wild salmon",
+        "Sardines",
+        "Mackerel",
+        "Anchovies"
+      ],
+      "forms": [
+        "Triglyceride-form fish oil",
+        "High-EPA concentrate",
+        "High-DHA concentrate",
+        "Algal DHA/EPA"
+      ],
+      "label": "Omega-3 Index"
+    },
+    "boneMetabolism.osteocalcin": {
+      "freeActions": [
+        "Weight-bearing exercise (walking, running, lifting — stimulates osteoblasts)"
+      ],
+      "foodForms": [
+        "Natto",
+        "Hard aged cheese (Gouda)",
+        "Pasture-raised egg yolks",
+        "Grass-fed butter/ghee"
+      ],
+      "forms": [
+        "K2 MK-7 (100-200mcg)",
+        "K2 MK-4 (high-dose)",
+        "D3 + K2 combo"
+      ],
+      "label": "Vitamin K2 (bone)"
+    },
+    "calculatedRatios.tgHdlRatio": {
+      "freeActions": [
+        "Cut sugar/refined carbs + regular exercise (addresses both sides of the ratio)"
+      ],
+      "foodForms": [
+        "Fatty fish + reduce refined carbs"
+      ],
+      "forms": [
+        "High-EPA fish oil + Berberine",
+        "Omega-3 alone",
+        "Berberine alone"
+      ],
+      "label": "TG/HDL ratio"
+    },
+    "calculatedRatios.copperZincRatio": {
+      "foodForms": [
+        "Oysters (balanced Cu+Zn)",
+        "Pumpkin seeds + dark chocolate (zinc-dominant)"
+      ],
+      "forms": [
+        "Zinc picolinate"
+      ],
+      "label": "Cu/Zn ratio"
+    },
+    "calculatedRatios.nlr": {
+      "freeActions": [
+        "Sleep, stress management, moderate exercise (same as hs-CRP)"
+      ],
+      "foodForms": [
+        "Anti-inflammatory diet (same as hs-CRP)"
+      ],
+      "forms": [
+        "Omega-3 (high-EPA)",
+        "Curcumin (liposomal)",
+        "Vitamin D3"
+      ],
+      "label": "NLR (inflammation)"
+    },
+    "light.blueBlockers": {
+      "freeActions": [
+        "Avoid screens 1-2h before bed",
+        "Use built-in Night Shift / Night Light on devices",
+        "Dim room lights after sunset"
+      ],
+      "card": "Light & Circadian",
+      "forms": [
+        "Blue light glasses (evening/red)",
+        "Blue light glasses (daytime/clear)",
+        "Red/amber book light"
+      ],
+      "label": "Blue light blocking"
+    },
+    "light.morningLight": {
+      "freeActions": [
+        "Go outside within 30 min of waking (even overcast works)",
+        "Have coffee/breakfast outside or by a window"
+      ],
+      "card": "Light & Circadian",
+      "forms": [
+        "10,000 lux light therapy lamp",
+        "Dawn simulator alarm clock"
+      ],
+      "label": "Morning light therapy"
+    },
+    "light.coldExposure": {
+      "freeActions": [
+        "End shower with 30-90s cold water",
+        "Cold face splash (triggers dive reflex, lowers heart rate)"
+      ],
+      "card": "Light & Circadian",
+      "forms": [
+        "Cold plunge tub",
+        "Portable ice bath barrel",
+        "Cold face immersion bowl"
+      ],
+      "label": "Cold exposure"
+    },
+    "light.grounding": {
+      "freeActions": [
+        "Walk barefoot on grass, soil, or sand for 15-30 min",
+        "Sit or stand on natural ground while working outside"
+      ],
+      "card": "Light & Circadian",
+      "forms": [
+        "Grounding mat (desk/floor)",
+        "Grounding sheet (bed)",
+        "Grounding shoes"
+      ],
+      "label": "Grounding / Earthing"
+    },
+    "light.screenTime": {
+      "freeActions": [
+        "20-20-20 rule (every 20 min, look 20 feet away for 20 sec)",
+        "Take regular screen breaks — walk, stretch, look outside"
+      ],
+      "card": "Light & Circadian",
+      "forms": [
+        "Daytime blue light glasses",
+        "Monitor light bar",
+        "E-ink monitor/tablet"
+      ],
+      "label": "Screen time mitigation"
+    },
+    "sleep.blackout": {
+      "freeActions": [
+        "Cover LED standby lights with tape",
+        "Use existing towels/blankets over curtain rod"
+      ],
+      "card": "Sleep & Rest",
+      "forms": [
+        "Blackout curtains",
+        "Sleep mask (contoured)"
+      ],
+      "label": "Blackout / light blocking"
+    },
+    "sleep.mouthTape": {
+      "freeActions": [
+        "Practice nasal breathing during the day to build the habit",
+        "Clear sinuses before bed (steam, saline rinse)"
+      ],
+      "card": "Sleep & Rest",
+      "forms": [
+        "Sleep mouth tape (hypoallergenic)"
+      ],
+      "label": "Nasal breathing (sleep)"
+    },
+    "sleep.cooling": {
+      "freeActions": [
+        "Open a window or crack the door (18-19°C ideal)",
+        "Lighter bedding — swap duvet for a sheet in summer"
+      ],
+      "card": "Sleep & Rest",
+      "forms": [
+        "Cooling mattress pad (water-based)",
+        "Cooling pillow",
+        "Bedroom fan"
+      ],
+      "label": "Sleep cooling"
+    },
+    "env.waterFilter": {
+      "freeActions": [
+        "Check local water quality report (know what you are filtering for)"
+      ],
+      "card": "Environment",
+      "forms": [
+        "Reverse osmosis (under-sink)",
+        "Gravity-fed filter",
+        "Countertop RO",
+        "Shower filter"
+      ],
+      "label": "Water filtration"
+    },
+    "env.cookware": {
+      "card": "Environment",
+      "forms": [
+        "Cast iron skillet",
+        "Stainless steel cookware",
+        "Carbon steel pan"
+      ],
+      "label": "PFAS-free cookware"
+    },
+    "env.glassContainers": {
+      "freeActions": [
+        "Never microwave food in plastic",
+        "Reuse glass jars from store-bought food"
+      ],
+      "card": "Environment",
+      "forms": [
+        "Glass food storage containers",
+        "Stainless steel containers",
+        "Glass water bottle"
+      ],
+      "label": "Glass/steel food storage"
+    },
+    "env.wifiTimer": {
+      "freeActions": [
+        "Turn WiFi router off at night manually",
+        "Use airplane mode on phone while sleeping"
+      ],
+      "card": "Environment",
+      "forms": [
+        "WiFi outlet timer",
+        "Ethernet adapter + cable"
+      ],
+      "label": "EMF reduction (WiFi)"
+    },
+    "env.airPurifier": {
+      "freeActions": [
+        "Open windows regularly for cross-ventilation",
+        "Keep houseplants (snake plant, pothos, peace lily)"
+      ],
+      "card": "Environment",
+      "forms": [
+        "HEPA air purifier",
+        "Air quality monitor"
+      ],
+      "label": "Air purification"
+    },
+    "env.moldTest": {
+      "freeActions": [
+        "Visually inspect wet areas (bathroom, kitchen, basement, window frames)",
+        "Fix any water leaks promptly — mold needs moisture"
+      ],
+      "card": "Environment",
+      "forms": [
+        "ERMI / HERTSMI-2 mold test kit",
+        "HEPA + carbon filter purifier"
+      ],
+      "label": "Mold testing"
+    },
+    "env.lighting": {
+      "freeActions": [
+        "Use candles or dimmed lights in the evening",
+        "Turn off overhead lights — use a single side lamp instead"
+      ],
+      "card": "Environment",
+      "forms": [
+        "Incandescent bulbs",
+        "Low-blue LED bulbs (<2700K)",
+        "Red LED bulbs"
+      ],
+      "label": "Healthier indoor lighting"
+    },
+    "exercise.standingDesk": {
+      "freeActions": [
+        "Set a timer — stand and walk for 2 min every 30 min",
+        "Take phone calls standing or walking",
+        "Stack books to create a makeshift standing desk"
+      ],
+      "card": "Exercise",
+      "forms": [
+        "Standing desk converter",
+        "Under-desk walking pad"
+      ],
+      "label": "Movement at desk"
+    },
+    "diet.digestiveEnzymes": {
+      "freeActions": [
+        "Chew food thoroughly (digestion starts in the mouth)",
+        "Don't drink large amounts of water with meals (dilutes stomach acid)",
+        "Eat slowly and without screens"
+      ],
+      "card": "Diet & Digestion",
+      "forms": [
+        "Broad-spectrum digestive enzymes",
+        "Betaine HCl + Pepsin",
+        "Ox bile supplement"
+      ],
+      "label": "Digestive enzyme support"
+    },
+    "diet.lactase": {
+      "freeActions": [
+        "Try fermented dairy first (yogurt, kefir, aged cheese — bacteria pre-digest lactose)"
+      ],
+      "card": "Diet & Digestion",
+      "forms": [
+        "Lactase enzyme"
+      ],
+      "label": "Lactose/dairy support"
+    },
+    "diet.dao": {
+      "freeActions": [
+        "Eat food fresh — histamine builds up in leftovers, aged foods, fermented foods",
+        "Keep a food diary to identify personal triggers"
+      ],
+      "card": "Diet & Digestion",
+      "forms": [
+        "DAO enzyme supplement",
+        "Quercetin + Vitamin C"
+      ],
+      "label": "Histamine intolerance"
+    },
+    "diet.reflux": {
+      "freeActions": [
+        "Don't eat within 3h of lying down",
+        "Elevate head of bed 15-20cm (gravity keeps acid down)",
+        "Eat smaller meals, chew thoroughly"
+      ],
+      "card": "Diet & Digestion",
+      "forms": [
+        "Betaine HCl + Pepsin",
+        "DGL (Deglycyrrhizinated Licorice)",
+        "Zinc Carnosine"
+      ],
+      "label": "Reflux support"
+    },
+    "stress.adaptogens": {
+      "freeActions": [
+        "Box breathing (4-4-4-4) or 4-7-8 breathing — free, instant cortisol reduction",
+        "Time in nature (even 20 min lowers cortisol measurably)",
+        "Journaling, meditation, or prayer"
+      ],
+      "card": "Stress",
+      "forms": [
+        "Ashwagandha (KSM-66)",
+        "L-Theanine",
+        "Magnesium Glycinate",
+        "HRV biofeedback device"
+      ],
+      "label": "Stress / HPA axis"
+    }
+  },
+  "shops": [
+    {
+      "id": "easylight",
+      "name": "Easylight",
+      "url": {
+        "CZ": "",
+        "SK": "https://easylight.sk"
+      },
+      "affiliateType": "coupon_code",
+      "affiliateParam": null,
+      "affiliateCode": null,
+      "couponCode": "Getbased",
+      "couponDiscount": "10%",
+      "affiliateUrl": null,
+      "commission": 10,
+      "status": "active",
+      "note": null
+    }
+  ],
+  "products": {
+    "vitamins.vitaminD": [
+      {
+        "type": "product",
+        "form": "UVB light panel",
+        "brand": "Mitochondriak",
+        "name": "Infrapanel Mitochondriak Maxi UVB",
+        "shop": "easylight",
+        "url": "https://www.easylight.sk/cs/infrapanel-mitochondriak-maxi-uvb/",
+        "affiliateUrl": null,
+        "priceCZK": null,
+        "priceEUR": null,
+        "dosage": null,
+        "servings": null,
+        "certifications": null,
+        "notes": "Full-body UVB + infrared panel enabling endogenous vitamin D3 synthesis via skin UVB exposure; Maxi size variant",
+        "regions": [
+          "CZ",
+          "SK"
+        ],
+        "langUrls": {
+          "cs": "https://www.easylight.sk/cs/infrapanel-mitochondriak-maxi-uvb/",
+          "sk": "https://www.easylight.sk/sk/infrapanel-mitochondriak-maxi-uvb/"
+        },
+        "lastChecked": "2026-03-02T05:15:18.298Z"
+      }
+    ]
+  },
+  "exportedAt": "2026-03-02T09:04:28.199Z"
+}
