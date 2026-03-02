@@ -12,6 +12,7 @@ import './pii.js';
 import './charts.js';
 import './notes.js';
 import './supplements.js';
+import './recommendations.js';
 import './cycle.js';
 import './context-cards.js';
 import './pdf-import.js';

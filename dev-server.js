@@ -35,9 +35,60 @@ function serveFile(res, filePath) {
   });
 }
 
+const https = require('https');
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
+
+  // API: HEAD-check a URL and return the real status code (bypasses browser CORS)
+  if (pathname === '/api/check-url') {
+    const target = url.searchParams.get('url');
+    if (!target) { res.writeHead(400, { 'Access-Control-Allow-Origin': '*' }); res.end('{"error":"missing url param"}'); return; }
+    const mod = target.startsWith('https') ? https : http;
+    const headReq = mod.request(target, { method: 'HEAD', timeout: 6000 }, (headRes) => {
+      // Follow one redirect
+      if ([301, 302, 307, 308].includes(headRes.statusCode) && headRes.headers.location) {
+        const loc = new URL(headRes.headers.location, target).href;
+        const mod2 = loc.startsWith('https') ? https : http;
+        mod2.request(loc, { method: 'HEAD', timeout: 6000 }, (r2) => {
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ status: r2.statusCode, redirected: loc }));
+        }).on('error', (e) => {
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify({ status: 0, error: e.message }));
+        }).end();
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ status: headRes.statusCode }));
+    });
+    headReq.on('error', (e) => {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ status: 0, error: e.message }));
+    });
+    headReq.on('timeout', () => { headReq.destroy(); });
+    headReq.end();
+    return;
+  }
+
+  // API: deploy catalog JSON from editor to data/
+  if (pathname === '/api/deploy-catalog' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        JSON.parse(body); // validate
+        fs.writeFileSync(path.join(ROOT, 'data', 'recommendations-czsk.json'), body);
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('OK');
+      } catch(e) {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Invalid JSON: ' + e.message);
+      }
+    });
+    return;
+  }
 
   // Route: / → landing page (if site repo found) or app
   if (pathname === '/') {

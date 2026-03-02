@@ -30,6 +30,7 @@ const APP_SHELL = [
   '/js/changelog.js',
   '/js/nav.js',
   '/js/views.js',
+  '/js/recommendations.js',
   '/js/crypto.js',
   '/icon.svg',
   '/icon-192.png',

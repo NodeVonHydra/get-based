@@ -719,10 +719,23 @@ export function showDetailModal(id) {
     const dir = ch > 0 ? "increased" : ch < 0 ? "decreased" : "unchanged";
     html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${escapeHTML(marker.unit)} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
   }
+  // Recommendation placeholder — only for flagged markers
+  const _lastVal = nonNull.length ? nonNull[nonNull.length-1].v : null;
+  const _lastIdx = nonNull.length ? nonNull[nonNull.length-1].i : null;
+  const _lastRi = _lastIdx !== null ? { min: marker.refMin, max: marker.refMax } : null;
+  const _markerStatus = _lastRi ? getStatus(_lastVal, _lastRi.min, _lastRi.max) : 'missing';
+  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.isProductRecsEnabled && window.isProductRecsEnabled()) {
+    html += `<div id="rec-modal-${id}"></div>`;
+  }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   modal.innerHTML = html;
   overlay.classList.add("show");
+  // Async-fill recommendation section
+  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.renderRecommendationSection) {
+    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3 })
+      .then(h => { const el = document.getElementById('rec-modal-' + id); if (h && el) el.innerHTML = h; });
+  }
   setTimeout(() => {
     if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);
   }, 50);

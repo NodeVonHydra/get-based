@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.2.0', date: '2026-03-02', title: 'Supplement & Lifestyle Recommendations',
+    items: [
+      'Flagged markers show supplement guidance in the detail modal — free actions, food sources, and vetted products, always collapsed',
+      'AI chat responses mentioning supplements attach a "Vetted options" section with curated products',
+      'Context card health dots (yellow/red) show "Tools that help" with relevant lifestyle products',
+      'Toggle product recommendations on/off in Settings → Display',
+      'AI system prompt now guides supplement advice: food first, specific forms, evidence-based doses',
+    ]
+  },
+  {
     version: '1.1.4', date: '2026-03-01', title: 'Diet & Digestion',
     items: [
       'Diet card extended to "Diet & Digestion" with 10 new fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities',
