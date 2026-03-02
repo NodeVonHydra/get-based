@@ -110,7 +110,15 @@ function buildProductRow(product) {
 }
 
 function buildDisclosureFooter() {
-  return `<div class="rec-disclosure">Affiliate links support getbased <span class="rec-disclosure-help" onclick="event.stopPropagation();markRecDisclosureSeen()" title="Brands cannot pay for placement. We earn a small commission when you buy through our links \u2014 this is how getbased stays free.">[?]</span></div>`;
+  return `<div class="rec-disclosure">Affiliate disclosure: We earn a small commission from links below. Brands cannot pay for placement.</div>`;
+}
+
+function _buildDisclosureBanner() {
+  if (hasSeenDisclosure()) return '';
+  return `<div class="rec-disclosure-banner">
+    These suggestions are informational, not medical advice. Always consult your healthcare provider before starting supplements. Affiliate links earn a small commission\u00a0\u2014 brands cannot pay for placement.
+    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');w.nextElementSibling.classList.remove('rec-gated');w.remove()">Got it</button>
+  </div>`;
 }
 
 // Sync core — builds HTML from cached catalog, no promises
@@ -171,6 +179,7 @@ function _renderRecSection(slotKey, opts = {}) {
   if (drugProducts.length) {
     inner += `<div class="rec-section-label">PHARMACEUTICALS</div>`;
     for (const dp of drugProducts) inner += buildProductRow(dp);
+    inner += `<div class="rec-drug-warning">Pharmaceutical-grade compounds may require medical supervision and can interact with medications. Consult your physician before use.</div>`;
   }
 
   if (otherProducts.length) {
@@ -180,7 +189,8 @@ function _renderRecSection(slotKey, opts = {}) {
 
   if (!inner) return '';
   const hasProducts = products.length > 0;
-  return `<details class="rec-details" onclick="event.stopPropagation()">
+  const gated = !hasSeenDisclosure() ? ' rec-gated' : '';
+  return `${_buildDisclosureBanner()}<details class="rec-details${gated}" onclick="event.stopPropagation();if(this.classList.contains('rec-gated')){this.open=false;const b=this.previousElementSibling;if(b){b.classList.remove('rec-nudge');void b.offsetWidth;b.classList.add('rec-nudge')}}">
     <summary class="rec-summary">${escapeHTML(label)}</summary>
     <div class="rec-content">${inner}${hasProducts ? buildDisclosureFooter() : ''}</div>
   </details>`;

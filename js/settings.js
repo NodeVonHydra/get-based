@@ -111,6 +111,7 @@ export function openSettingsModal(tab) {
           <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked)">
           Show vetted supplement and product options
         </label>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Suggestions are for informational purposes only and do not constitute medical advice.</div>
       </div>
 
       <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')} · <span id="settings-commit-hash">···</span></div>
