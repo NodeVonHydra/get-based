@@ -65,8 +65,8 @@ export function getProductsForSlot(catalog, slotKey, region) {
   if (!catalog || !catalog.products) return [];
   const products = catalog.products[slotKey];
   if (!products || !products.length) return [];
-  // CZSK region matches CZ + SK products; EU matches EU products
-  const regionCodes = region === 'CZSK' ? ['CZ', 'SK'] : ['EU'];
+  // CZSK users see CZ + SK + EU + INTL products; EU users see EU + INTL
+  const regionCodes = region === 'CZSK' ? ['CZ', 'SK', 'EU', 'INTL'] : ['EU', 'INTL'];
   return products.filter(p => p.regions && p.regions.some(r => regionCodes.includes(r)));
 }
 
@@ -124,9 +124,12 @@ function _renderRecSection(slotKey, opts = {}) {
   const region = getUserRegion();
   const products = getProductsForSlot(_catalog, slotKey, region);
 
+  const knownTypes = ['food', 'supplement', 'product', 'drug'];
   const foodProducts = products.filter(p => p.type === 'food').slice(0, maxProducts);
   const toolProducts = products.filter(p => p.type === 'product').slice(0, maxProducts);
   const suppProducts = products.filter(p => p.type === 'supplement').slice(0, maxProducts);
+  const drugProducts = products.filter(p => p.type === 'drug').slice(0, maxProducts);
+  const otherProducts = products.filter(p => !knownTypes.includes(p.type)).slice(0, maxProducts);
 
   let inner = '';
 
@@ -163,6 +166,16 @@ function _renderRecSection(slotKey, opts = {}) {
   } else if (slot.forms && slot.forms.length) {
     inner += `<div class="rec-section-label">LOOK FOR</div>`;
     inner += `<div class="rec-item-form">${slot.forms.map(f => escapeHTML(f)).join(', ')}</div>`;
+  }
+
+  if (drugProducts.length) {
+    inner += `<div class="rec-section-label">PHARMACEUTICALS</div>`;
+    for (const dp of drugProducts) inner += buildProductRow(dp);
+  }
+
+  if (otherProducts.length) {
+    inner += `<div class="rec-section-label">OTHER</div>`;
+    for (const op of otherProducts) inner += buildProductRow(op);
   }
 
   if (!inner) return '';
