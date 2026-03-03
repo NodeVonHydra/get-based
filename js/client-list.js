@@ -12,6 +12,9 @@ let _tagFilter = '';
 let _editingId = null;
 let _pendingAvatar = undefined; // undefined = no change, null = remove, string = new dataURL
 
+// escapeHTML doesn't escape single quotes — needed for onclick="fn('${val}')" contexts
+function _escAttr(str) { return escapeHTML(str).replace(/'/g, '&#39;'); }
+
 // ═══════════════════════════════════════════════
 // AVATAR HELPERS
 // ═══════════════════════════════════════════════
@@ -57,6 +60,7 @@ export function openClientList() {
   if (!overlay) return;
   renderClientList();
   overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
   requestAnimationFrame(() => {
     const input = document.getElementById('cl-search');
     if (input) input.focus();
@@ -66,6 +70,7 @@ export function openClientList() {
 export function closeClientList() {
   const overlay = document.getElementById('client-list-overlay');
   if (overlay) overlay.classList.remove('show');
+  document.body.style.overflow = '';
   _editingId = null;
 }
 
@@ -140,7 +145,7 @@ function renderClientList() {
     html += `<div class="cl-tag-filters">`;
     for (const tag of allTags) {
       const active = _tagFilter === tag;
-      html += `<button class="cl-tag-chip${active ? ' active' : ''}" onclick="window._clTagFilter('${escapeHTML(tag)}')">${escapeHTML(tag)}</button>`;
+      html += `<button class="cl-tag-chip${active ? ' active' : ''}" onclick="window._clTagFilter('${_escAttr(tag)}')">${escapeHTML(tag)}</button>`;
     }
     if (_tagFilter) {
       html += `<button class="cl-tag-chip cl-tag-clear" onclick="window._clTagFilter('')">Clear</button>`;
@@ -155,20 +160,24 @@ function renderClientList() {
   for (const p of sorted) {
     html += _renderClientRow(p, activeId);
   }
-  html += `</div>`;
 
-  // Archived collapsed section
+  // Archived collapsed section — inside .cl-list so it scrolls
   if (archived.length > 0 && _statusFilter !== 'archived') {
     html += `<details class="cl-archived-section">
-      <summary class="cl-archived-header">Archived (${archived.length})</summary>
-      <div class="cl-list">`;
+      <summary class="cl-archived-header">Archived (${archived.length})</summary>`;
     for (const p of archived) {
       html += _renderClientRow(p, activeId);
     }
-    html += `</div></details>`;
+    html += `</details>`;
   }
+  html += `</div>`;
+  // Shared context menu — outside .cl-list so it's not clipped by overflow
+  html += `<div class="cl-row-menu" id="cl-active-menu"></div>`;
 
   modal.innerHTML = html;
+  // Close floating menus on list scroll
+  const list = modal.querySelector('.cl-list');
+  if (list) list.addEventListener('scroll', _closeMenus);
 }
 
 function _renderClientRow(p, activeId) {
@@ -201,22 +210,6 @@ function _renderClientRow(p, activeId) {
     <div class="cl-row-actions" onclick="event.stopPropagation()">
       <button class="cl-row-edit" onclick="openClientForm('${p.id}')" title="Edit">Edit</button>
       <button class="cl-row-menu-btn" onclick="window._clToggleMenu(event, '${p.id}')" title="More">&ctdot;</button>
-      <div class="cl-row-menu" id="cl-menu-${p.id}">
-        ${p.pinned
-          ? `<div class="cl-menu-item" onclick="window._clUnpin('${p.id}')">Unpin</div>`
-          : `<div class="cl-menu-item" onclick="window._clPin('${p.id}')">Pin</div>`}
-        ${p.status === 'flagged'
-          ? `<div class="cl-menu-item" onclick="window._clUnflag('${p.id}')">Unflag</div>`
-          : `<div class="cl-menu-item" onclick="window._clFlag('${p.id}')">Flag</div>`}
-        <div class="cl-menu-sep"></div>
-        <div class="cl-menu-item" onclick="window._clExport('${p.id}')">Export</div>
-        <div class="cl-menu-item" onclick="window._clExportChat('${p.id}')">Export with Chat</div>
-        <div class="cl-menu-sep"></div>
-        ${p.status === 'archived'
-          ? `<div class="cl-menu-item" onclick="window._clUnarchive('${p.id}')">Unarchive</div>`
-          : `<div class="cl-menu-item" onclick="window._clArchive('${p.id}')">Archive</div>`}
-        <div class="cl-menu-item cl-menu-danger" onclick="window._clDelete('${p.id}')">Delete</div>
-      </div>
     </div>
   </div>`;
 }
@@ -317,7 +310,7 @@ export function openClientForm(profileId) {
     <div class="cl-form-row">
       <label class="cl-form-label">Tags</label>
       <div class="cl-tags-wrap" id="cl-tags-wrap">
-        ${tags.map(t => `<span class="cl-tag-pill">${escapeHTML(t)}<button type="button" class="cl-tag-remove" onclick="window._clRemoveTag(this, '${escapeHTML(t)}')">&times;</button></span>`).join('')}
+        ${tags.map(t => `<span class="cl-tag-pill">${escapeHTML(t)}<button type="button" class="cl-tag-remove" onclick="window._clRemoveTag(this)">&times;</button></span>`).join('')}
         <input type="text" class="cl-tag-input" id="cl-tag-input" placeholder="Add tag + Enter" onkeydown="window._clTagKeydown(event)">
       </div>
     </div>
@@ -372,6 +365,11 @@ function _clSaveForm(e) {
   if (_editingId) {
     // Update existing profile
     updateProfileMeta(_editingId, { name, sex, dob, location: { country, zip }, tags, notes, status, ...avatarUpdate });
+    // If editing the active profile, sync runtime state so data pipeline uses fresh values
+    if (_editingId === state.currentProfile) {
+      if (sex !== undefined) state.profileSex = sex;
+      if (dob !== undefined) state.profileDob = dob;
+    }
     window.renderProfileButton();
     window.showNotification(`"${name}" updated`, 'info');
   } else {
@@ -446,7 +444,7 @@ function _clTagKeydown(e) {
   if (existing.includes(val.toLowerCase())) { input.value = ''; return; }
   const pill = document.createElement('span');
   pill.className = 'cl-tag-pill';
-  pill.innerHTML = `${escapeHTML(val)}<button type="button" class="cl-tag-remove" onclick="window._clRemoveTag(this, '${escapeHTML(val)}')">&times;</button>`;
+  pill.innerHTML = `${escapeHTML(val)}<button type="button" class="cl-tag-remove" onclick="window._clRemoveTag(this)">&times;</button>`;
   const wrap = document.getElementById('cl-tags-wrap');
   wrap.insertBefore(pill, input);
   input.value = '';
@@ -486,10 +484,55 @@ function _clTagFilter(val) { _tagFilter = (_tagFilter === val) ? '' : val; rende
 
 function _clToggleMenu(e, id) {
   e.stopPropagation();
-  // Close all other menus first
-  document.querySelectorAll('.cl-row-menu.show').forEach(m => m.classList.remove('show'));
-  const menu = document.getElementById(`cl-menu-${id}`);
-  if (menu) menu.classList.toggle('show');
+  const menu = document.getElementById('cl-active-menu');
+  if (!menu) return;
+  // Toggle off if already open for this profile
+  if (menu.classList.contains('show') && menu.dataset.profileId === id) {
+    menu.classList.remove('show');
+    return;
+  }
+  // Build menu items for this profile
+  const profiles = getProfiles();
+  const p = profiles.find(pr => pr.id === id);
+  if (!p) return;
+  menu.dataset.profileId = id;
+  menu.innerHTML =
+    (p.pinned
+      ? `<div class="cl-menu-item" onclick="window._clUnpin('${id}')">Unpin</div>`
+      : `<div class="cl-menu-item" onclick="window._clPin('${id}')">Pin</div>`) +
+    (p.status === 'flagged'
+      ? `<div class="cl-menu-item" onclick="window._clUnflag('${id}')">Unflag</div>`
+      : `<div class="cl-menu-item" onclick="window._clFlag('${id}')">Flag</div>`) +
+    `<div class="cl-menu-sep"></div>` +
+    `<div class="cl-menu-item" onclick="window._clExport('${id}')">Export</div>` +
+    `<div class="cl-menu-item" onclick="window._clExportChat('${id}')">Export with Chat</div>` +
+    `<div class="cl-menu-sep"></div>` +
+    (p.status === 'archived'
+      ? `<div class="cl-menu-item" onclick="window._clUnarchive('${id}')">Unarchive</div>`
+      : `<div class="cl-menu-item" onclick="window._clArchive('${id}')">Archive</div>`) +
+    `<div class="cl-menu-item cl-menu-danger" onclick="window._clDelete('${id}')">Delete</div>`;
+  // Position relative to the modal (absolute positioned child)
+  const btn = e.currentTarget;
+  const modal = menu.parentElement;
+  const modalRect = modal.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  menu.style.right = (modalRect.right - btnRect.right) + 'px';
+  // Show first so we can measure menu height
+  menu.classList.add('show');
+  const menuH = menu.offsetHeight;
+  const modalH = modalRect.height;
+  const btnBottom = btnRect.bottom - modalRect.top;
+  const btnTop = btnRect.top - modalRect.top;
+  // Prefer below; flip above if more space there
+  const spaceBelow = modalH - btnBottom;
+  const spaceAbove = btnTop;
+  let top;
+  if (spaceBelow >= menuH + 8 || spaceBelow >= spaceAbove) {
+    top = btnBottom + 4;
+  } else {
+    top = btnTop - menuH - 4;
+  }
+  menu.style.top = top + 'px';
 }
 
 function _clPin(id) { updateProfileMeta(id, { pinned: true }); renderClientList(); }
@@ -498,16 +541,14 @@ function _clFlag(id) { updateProfileMeta(id, { status: 'flagged' }); renderClien
 function _clUnflag(id) { updateProfileMeta(id, { status: 'active' }); renderClientList(); window.renderProfileButton(); }
 function _clArchive(id) { updateProfileMeta(id, { status: 'archived' }); renderClientList(); window.renderProfileButton(); }
 function _clUnarchive(id) { updateProfileMeta(id, { status: 'active' }); renderClientList(); window.renderProfileButton(); }
-function _closeMenus() { document.querySelectorAll('.cl-row-menu.show').forEach(m => m.classList.remove('show')); }
+function _closeMenus() { const m = document.getElementById('cl-active-menu'); if (m) m.classList.remove('show'); }
 function _clExport(id) { _closeMenus(); window.exportClientJSON(id); }
 function _clExportChat(id) { _closeMenus(); window.exportClientJSON(id, true); }
-function _clDelete(id) { deleteProfile(id); renderClientList(); }
+function _clDelete(id) { _closeMenus(); deleteProfile(id, () => renderClientList()); }
 
 // Close context menus on click outside
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.cl-row-menu-btn')) {
-    document.querySelectorAll('.cl-row-menu.show').forEach(m => m.classList.remove('show'));
-  }
+  if (!e.target.closest('.cl-row-menu-btn')) _closeMenus();
 });
 
 Object.assign(window, {

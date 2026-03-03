@@ -138,11 +138,11 @@ export function openChangelog(showAll) {
   html += `<h3>What's New</h3>`;
 
   for (const entry of entries) {
-    html += `<div class="cl-entry">`;
-    html += `<div class="cl-header"><span class="cl-version">v${escapeHTML(entry.version)} — ${escapeHTML(entry.title)}</span><span class="cl-date">${escapeHTML(entry.date)}</span></div>`;
-    html += '<ul class="cl-items">';
+    html += `<div class="changelog-entry">`;
+    html += `<div class="changelog-header"><span class="changelog-version">v${escapeHTML(entry.version)} — ${escapeHTML(entry.title)}</span><span class="changelog-date">${escapeHTML(entry.date)}</span></div>`;
+    html += '<ul class="changelog-items">';
     for (const item of entry.items) {
-      html += `<li class="cl-item">${escapeHTML(item)}</li>`;
+      html += `<li class="changelog-item">${escapeHTML(item)}</li>`;
     }
     html += '</ul></div>';
   }
