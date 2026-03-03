@@ -852,10 +852,10 @@ export async function pickFolderForBackup() {
     const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
     // Trial write to verify access
     const testFile = await handle.getFileHandle('getbased-backup-latest.json', { create: true });
-    const json = await window.buildAllDataBundle();
-    if (json) {
+    const snapshot = buildBackupSnapshot();
+    if (snapshot) {
       const writable = await testFile.createWritable();
-      await writable.write(json);
+      await writable.write(JSON.stringify(snapshot, null, 2));
       await writable.close();
     }
     await saveFolderHandle(handle);
@@ -916,8 +916,9 @@ async function writeFolderBackup() {
       refreshFolderBackupUI();
       return;
     }
-    const json = await window.buildAllDataBundle();
-    if (!json) return;
+    const snapshot = buildBackupSnapshot();
+    if (!snapshot) return;
+    const json = JSON.stringify(snapshot, null, 2);
     // Always write latest
     const latestFile = await _folderHandle.getFileHandle('getbased-backup-latest.json', { create: true });
     const w1 = await latestFile.createWritable();
