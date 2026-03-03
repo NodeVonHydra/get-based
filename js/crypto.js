@@ -353,6 +353,65 @@ export function maybeShowEncryptionNudge() {
   }, 800);
 }
 
+export function maybeShowBackupNudge() {
+  // Skip if no profiles exist
+  const profiles = localStorage.getItem('labcharts-profiles');
+  if (!profiles) return;
+  try { if (JSON.parse(profiles).length === 0) return; } catch { return; }
+  // Skip if folder backup is active and healthy
+  if (_folderHandle && !_folderPermissionLost) return;
+  // Skip if snoozed
+  const snoozedUntil = localStorage.getItem('labcharts-backup-nudge-snoozed-until');
+  if (snoozedUntil && Date.now() < Number(snoozedUntil)) return;
+  // Skip if backed up within 30 days (manual download or folder backup)
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const lastManual = localStorage.getItem('labcharts-last-manual-backup');
+  const lastFolder = localStorage.getItem('labcharts-folder-backup-last');
+  const mostRecent = Math.max(
+    lastManual ? new Date(lastManual).getTime() : 0,
+    lastFolder ? new Date(lastFolder).getTime() : 0
+  );
+  if (mostRecent > 0 && (Date.now() - mostRecent) < THIRTY_DAYS) return;
+  // Skip if another overlay is already showing
+  const overlay = document.getElementById('passphrase-overlay');
+  if (overlay && overlay.style.display === 'flex') return;
+
+  setTimeout(() => {
+    // Re-check overlay (encryption nudge may have appeared during delay)
+    const ov = document.getElementById('passphrase-overlay');
+    if (ov && ov.style.display === 'flex') return;
+
+    let el = document.getElementById('passphrase-overlay');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'passphrase-overlay';
+      el.className = 'passphrase-overlay';
+      document.body.appendChild(el);
+    }
+    el.innerHTML = `
+      <div class="passphrase-dialog" role="dialog" aria-modal="true" aria-label="Backup reminder">
+        <div class="passphrase-icon">&#128190;</div>
+        <h3 class="passphrase-title">Back Up Your Data</h3>
+        <p class="passphrase-desc">Your lab results only exist in this browser. Download a backup to protect against data loss.</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="passphrase-btn passphrase-btn-secondary" id="backup-nudge-snooze">Not Now</button>
+          <button class="passphrase-btn passphrase-btn-primary" id="backup-nudge-download">Download Now</button>
+        </div>
+      </div>`;
+    el.style.display = 'flex';
+    document.getElementById('backup-nudge-snooze').addEventListener('click', () => {
+      localStorage.setItem('labcharts-backup-nudge-snoozed-until', String(Date.now() + THIRTY_DAYS));
+      el.style.display = 'none';
+      el.innerHTML = '';
+    });
+    document.getElementById('backup-nudge-download').addEventListener('click', () => {
+      el.style.display = 'none';
+      el.innerHTML = '';
+      exportEncryptedBackup();
+    });
+  }, 500);
+}
+
 async function migrateSensitiveKeys() {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -603,6 +662,7 @@ export function exportEncryptedBackup() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  localStorage.setItem('labcharts-last-manual-backup', new Date().toISOString());
   showNotification('Backup exported successfully', 'success');
 }
 
@@ -1116,6 +1176,7 @@ Object.assign(window, {
   encryptedGetItem,
   showEnableEncryptionModal,
   maybeShowEncryptionNudge,
+  maybeShowBackupNudge,
   disableEncryption,
   changePassphrase,
   exportEncryptedBackup,
