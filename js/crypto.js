@@ -666,19 +666,28 @@ export function importEncryptedBackup(file) {
 // ═══════════════════════════════════════════════
 const BACKUP_DB_NAME = 'labcharts-backups';
 const BACKUP_STORE = 'snapshots';
+const FOLDER_HANDLE_STORE = 'folder-handle';
 const MAX_SNAPSHOTS = 5;
 const AUTO_BACKUP_COOLDOWN = 10000;
 let _autoBackupTimer = null;
 let _dbPromise = null;
 
+// Folder backup state
+let _folderHandle = null;
+let _folderPermissionLost = false;
+let _folderWriteInProgress = false;
+
 export function openBackupDB() {
   if (_dbPromise) return _dbPromise;
   _dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(BACKUP_DB_NAME, 1);
-    req.onupgradeneeded = () => {
+    const req = indexedDB.open(BACKUP_DB_NAME, 2);
+    req.onupgradeneeded = (e) => {
       const db = req.result;
       if (!db.objectStoreNames.contains(BACKUP_STORE)) {
         db.createObjectStore(BACKUP_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains(FOLDER_HANDLE_STORE)) {
+        db.createObjectStore(FOLDER_HANDLE_STORE);
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -720,6 +729,8 @@ async function performAutoBackup() {
     await new Promise((resolve) => { tx2.oncomplete = resolve; tx2.onerror = resolve; });
     localStorage.setItem('labcharts-last-autobackup', snapshot.createdAt);
     showNotification('Auto-backup saved', 'info', 2000);
+    // Fire-and-forget folder backup alongside IndexedDB
+    writeFolderBackup();
   } catch { /* silent — auto-backup is best-effort */ }
 }
 
@@ -786,6 +797,192 @@ export async function restoreAutoBackup(id) {
       setTimeout(() => location.reload(), 1000);
     }
   );
+}
+
+// ═══════════════════════════════════════════════
+// FOLDER BACKUP (File System Access API)
+// ═══════════════════════════════════════════════
+function isFolderBackupSupported() {
+  return typeof window.showDirectoryPicker === 'function';
+}
+
+async function saveFolderHandle(handle) {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readwrite');
+  tx.objectStore(FOLDER_HANDLE_STORE).put(handle, 'handle');
+  await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+}
+
+async function loadFolderHandle() {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readonly');
+  const req = tx.objectStore(FOLDER_HANDLE_STORE).get('handle');
+  return new Promise((resolve) => {
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+
+async function clearFolderHandle() {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readwrite');
+  tx.objectStore(FOLDER_HANDLE_STORE).delete('handle');
+  await new Promise((resolve) => { tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+
+export async function initFolderBackup() {
+  if (!isFolderBackupSupported()) return;
+  try {
+    const handle = await loadFolderHandle();
+    if (!handle) return;
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      _folderHandle = handle;
+      _folderPermissionLost = false;
+    } else {
+      _folderHandle = handle;
+      _folderPermissionLost = true;
+    }
+  } catch { /* silent — folder may have been deleted */ }
+}
+
+export async function pickFolderForBackup() {
+  if (!isFolderBackupSupported()) return;
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    // Trial write to verify access
+    const testFile = await handle.getFileHandle('getbased-backup-latest.json', { create: true });
+    const json = await window.buildAllDataBundle();
+    if (json) {
+      const writable = await testFile.createWritable();
+      await writable.write(json);
+      await writable.close();
+    }
+    await saveFolderHandle(handle);
+    _folderHandle = handle;
+    _folderPermissionLost = false;
+    localStorage.setItem('labcharts-folder-backup-last', new Date().toISOString());
+    showNotification(`Backup folder set: ${handle.name}`, 'success');
+    refreshFolderBackupUI();
+  } catch (err) {
+    if (err.name === 'AbortError') return; // user cancelled picker
+    showNotification('Could not set backup folder: ' + err.message, 'error');
+  }
+}
+
+export async function reauthorizeFolderBackup() {
+  if (!_folderHandle) return;
+  try {
+    const perm = await _folderHandle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      _folderPermissionLost = false;
+      showNotification('Folder access restored', 'success');
+      refreshFolderBackupUI();
+    } else {
+      showNotification('Permission denied — try picking the folder again', 'error');
+    }
+  } catch (err) {
+    showNotification('Could not restore access: ' + err.message, 'error');
+  }
+}
+
+export function removeFolderBackup() {
+  showConfirmDialog('Stop backing up to this folder?', async () => {
+    _folderHandle = null;
+    _folderPermissionLost = false;
+    await clearFolderHandle();
+    localStorage.removeItem('labcharts-folder-backup-last');
+    showNotification('Folder backup removed', 'info');
+    refreshFolderBackupUI();
+  });
+}
+
+export function getFolderBackupState() {
+  return {
+    supported: isFolderBackupSupported(),
+    folderName: _folderHandle ? _folderHandle.name : null,
+    permissionLost: _folderPermissionLost,
+    lastBackup: localStorage.getItem('labcharts-folder-backup-last') || null
+  };
+}
+
+async function writeFolderBackup() {
+  if (!_folderHandle || _folderPermissionLost || _folderWriteInProgress) return;
+  _folderWriteInProgress = true;
+  try {
+    const perm = await _folderHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      _folderPermissionLost = true;
+      refreshFolderBackupUI();
+      return;
+    }
+    const json = await window.buildAllDataBundle();
+    if (!json) return;
+    // Always write latest
+    const latestFile = await _folderHandle.getFileHandle('getbased-backup-latest.json', { create: true });
+    const w1 = await latestFile.createWritable();
+    await w1.write(json);
+    await w1.close();
+    // Daily file (once per calendar day)
+    const today = new Date().toISOString().slice(0, 10);
+    const dailyName = `getbased-backup-${today}.json`;
+    try {
+      await _folderHandle.getFileHandle(dailyName, { create: false });
+      // Already exists — skip
+    } catch {
+      // Doesn't exist — create it
+      const dailyFile = await _folderHandle.getFileHandle(dailyName, { create: true });
+      const w2 = await dailyFile.createWritable();
+      await w2.write(json);
+      await w2.close();
+    }
+    localStorage.setItem('labcharts-folder-backup-last', new Date().toISOString());
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      _folderPermissionLost = true;
+      refreshFolderBackupUI();
+    } else if (err.name === 'QuotaExceededError') {
+      showNotification('Backup folder is full — free up disk space', 'error');
+    } else {
+      showNotification('Folder backup failed: ' + err.message, 'error');
+    }
+  } finally {
+    _folderWriteInProgress = false;
+  }
+}
+
+function refreshFolderBackupUI() {
+  const el = document.getElementById('backup-folder-section');
+  if (el) el.innerHTML = renderFolderBackupSection();
+}
+
+function renderFolderBackupSection() {
+  if (!isFolderBackupSupported()) return '';
+  const st = getFolderBackupState();
+  let html = '<div class="backup-folder-section">';
+  html += '<div class="backup-folder-desc">Sync backups to a local folder (Proton Drive, Dropbox, NAS, etc.)</div>';
+  if (!st.folderName) {
+    // No folder set
+    html += '<button class="import-btn import-btn-secondary" onclick="pickFolderForBackup()">Set backup folder</button>';
+  } else if (st.permissionLost) {
+    // Permission lost
+    html += `<div class="backup-folder-status backup-folder-status-warn">Folder: ${escapeHTML(st.folderName)} — access lost</div>`;
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="import-btn import-btn-primary" onclick="reauthorizeFolderBackup()">Restore access</button>';
+    html += '<button class="import-btn import-btn-secondary" onclick="removeFolderBackup()">Remove</button>';
+    html += '</div>';
+  } else {
+    // Active
+    const lastLabel = st.lastBackup ? new Date(st.lastBackup).toLocaleString() : 'never';
+    html += `<div class="backup-folder-status backup-folder-status-ok">Folder: ${escapeHTML(st.folderName)}</div>`;
+    html += `<div class="backup-folder-meta">Last folder backup: ${escapeHTML(lastLabel)}</div>`;
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="import-btn import-btn-secondary" onclick="pickFolderForBackup()">Change folder</button>';
+    html += '<button class="import-btn import-btn-secondary" onclick="removeFolderBackup()">Remove</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
 }
 
 // ═══════════════════════════════════════════════
@@ -868,7 +1065,8 @@ export function renderBackupSection() {
     <span class="privacy-configure-arrow" id="backup-snapshots-arrow">&#9654;</span>
     Recent snapshots
   </div>
-  <div class="backup-snapshot-list" id="backup-snapshot-list" style="display:none"></div>`;
+  <div class="backup-snapshot-list" id="backup-snapshot-list" style="display:none"></div>
+  <div id="backup-folder-section">${renderFolderBackupSection()}</div>`;
 }
 
 export async function loadBackupSnapshots() {
@@ -932,4 +1130,9 @@ Object.assign(window, {
   openBackupDB,
   loadBackupSnapshots,
   toggleBackupSnapshots,
+  initFolderBackup,
+  pickFolderForBackup,
+  reauthorizeFolderBackup,
+  removeFolderBackup,
+  getFolderBackupState,
 });
