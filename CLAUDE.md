@@ -15,14 +15,14 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 26 ES modules loaded via `js/main.js`:
+- **`js/`** — 27 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
   - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers
-  - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, profile dropdown
+  - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + Ollama PII obfuscation, diff viewer
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
@@ -31,14 +31,15 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
   - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone. AI detects test type and uses prefixed categories for specialty labs
-  - `export.js` — JSON export/import, PDF report, `clearAllData`
+  - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
   - `settings.js` — settings modal, provider panels, privacy section
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — first-visit guided tour (spotlight walkthrough) + cycle tour
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
-  - `nav.js` — sidebar (with collapsible test-type groups), date range filter, chart layers
+  - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete)
+  - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
@@ -100,7 +101,7 @@ Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI
 
 ### Header
 
-Logo: gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Buttons: Settings (gear) → Feedback (bug) → Discord (brand SVG) → ₿ Donate (orange text, BTCPay). Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
+Logo: gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Profile: compact button with colored avatar dot + name — opens Client List modal. Buttons: Settings (gear) → Feedback (bug) → Discord (brand SVG) → ₿ Donate (orange text, BTCPay). Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
 
 ### Dashboard Section Order
 

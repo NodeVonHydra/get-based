@@ -816,7 +816,8 @@ export function renderDataEntriesSection() {
     </div>`;
   }
   html += `<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-    <button class="import-btn import-btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+    <button class="import-btn import-btn-secondary" onclick="exportClientJSON(window.getActiveProfileId())">Export Client</button>
+    <button class="import-btn import-btn-secondary" onclick="exportAllDataJSON()" title="Full backup — all profiles, data, and chat history">Export All Clients</button>
     <button class="import-btn import-btn-secondary" onclick="exportPDFReport()">Export Report</button>
     <button class="import-btn import-btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button></div>`;
   return html;
