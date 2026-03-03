@@ -118,18 +118,32 @@
   }
 
   // ═══════════════════════════════════════════════
-  // 8. main.js calls initFolderBackup
+  // 8. Backup nudge
+  // ═══════════════════════════════════════════════
+  assert('window.maybeShowBackupNudge exists', typeof window.maybeShowBackupNudge === 'function');
+  try {
+    const src = await fetch('js/crypto.js').then(r => r.text());
+    assert('crypto.js has labcharts-last-manual-backup', src.includes('labcharts-last-manual-backup'));
+    assert('crypto.js has backup-nudge-snoozed-until', src.includes('backup-nudge-snoozed-until'));
+    assert('crypto.js has maybeShowBackupNudge function', src.includes('function maybeShowBackupNudge'));
+  } catch (e) {
+    assert('backup nudge source inspection', false, e.message);
+  }
+
+  // ═══════════════════════════════════════════════
+  // 9. main.js calls initFolderBackup and maybeShowBackupNudge
   // ═══════════════════════════════════════════════
   try {
     const src = await fetch('js/main.js').then(r => r.text());
     assert('main.js imports initFolderBackup', src.includes('initFolderBackup'));
     assert('main.js awaits initFolderBackup', src.includes('await initFolderBackup()'));
+    assert('main.js imports maybeShowBackupNudge', src.includes('maybeShowBackupNudge'));
   } catch (e) {
     assert('main.js folder backup init', false, e.message);
   }
 
   // ═══════════════════════════════════════════════
-  // 9. export.js has buildAllDataBundle
+  // 10. export.js has buildAllDataBundle
   // ═══════════════════════════════════════════════
   try {
     const src = await fetch('js/export.js').then(r => r.text());
