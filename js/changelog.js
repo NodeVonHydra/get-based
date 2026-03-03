@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.2.2', date: '2026-03-03', title: 'Folder Backup',
+    items: [
+      'Auto-backup to a local folder (Proton Drive, Dropbox, NAS, etc.)',
+      'Writes getbased-backup-latest.json + daily dated snapshots',
+      'Persists folder access across sessions, restores on reopen',
+    ]
+  },
+  {
     version: '1.2.1', date: '2026-03-03', title: 'Export Upgrade',
     items: [
       'Per-client export from the Client List \u22ee menu',

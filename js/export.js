@@ -347,9 +347,9 @@ export async function exportClientJSON(profileId, includeChat = false) {
   showNotification(`Exported "${profile.name}"`, 'success');
 }
 
-export async function exportAllDataJSON() {
+export async function buildAllDataBundle() {
   const profiles = getProfiles();
-  if (profiles.length === 0) { showNotification('No profiles to export', 'error'); return; }
+  if (profiles.length === 0) return null;
   const bundle = { version: 2, type: 'database', exportedAt: new Date().toISOString(), profiles: [] };
   for (const p of profiles) {
     const raw = await encryptedGetItem(profileStorageKey(p.id, 'imported'));
@@ -365,7 +365,14 @@ export async function exportAllDataJSON() {
     if (chat) entry.chat = chat;
     bundle.profiles.push(entry);
   }
-  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  return JSON.stringify(bundle, null, 2);
+}
+
+export async function exportAllDataJSON() {
+  const json = await buildAllDataBundle();
+  if (!json) { showNotification('No profiles to export', 'error'); return; }
+  const bundle = JSON.parse(json);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -696,4 +703,4 @@ export async function loadDemoData(sex = 'male') {
   }
 }
 
-Object.assign(window, { exportPDFReport, exportDataJSON, exportClientJSON, exportAllDataJSON, importDataJSON, clearAllData, loadDemoData });
+Object.assign(window, { exportPDFReport, exportDataJSON, exportClientJSON, exportAllDataJSON, buildAllDataBundle, importDataJSON, clearAllData, loadDemoData });
