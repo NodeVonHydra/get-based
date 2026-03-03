@@ -1,10 +1,9 @@
 // nav.js — Sidebar, compact profile button
 
 import { state } from './state.js';
-import { escapeHTML, showNotification } from './utils.js';
+import { escapeHTML, hashString } from './utils.js';
 import { getActiveData, countFlagged } from './data.js';
 import { getProfiles } from './profile.js';
-import { hashString } from './utils.js';
 
 function _buildNavItem(key, cat) {
   const markers = Object.values(cat.markers);

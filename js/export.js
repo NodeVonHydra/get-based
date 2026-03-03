@@ -321,7 +321,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
   if (!data || !data.entries || data.entries.length === 0) { showNotification('No data to export for this client', 'error'); return; }
   const exportObj = {
     version: 2, exportedAt: new Date().toISOString(),
-    profile: { name: profile.name, sex: profile.sex || null, dob: profile.dob || null, location: profile.location || null },
+    profile: { name: profile.name, sex: profile.sex || null, dob: profile.dob || null, location: profile.location || null, tags: profile.tags || [], notes: profile.notes || '', status: profile.status || 'active', avatar: profile.avatar || null, pinned: profile.pinned || false },
     entries: data.entries || [], notes: data.notes || [], supplements: data.supplements || [],
     diagnoses: data.diagnoses || null, diet: data.diet || null, exercise: data.exercise || null,
     sleepRest: data.sleepRest || null, lightCircadian: data.lightCircadian || null,
@@ -379,12 +379,12 @@ export async function exportAllDataJSON() {
 
 export function importDataJSON(file) {
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const json = JSON.parse(e.target.result);
       // Database bundle — multi-profile import
       if (json.type === 'database' && Array.isArray(json.profiles)) {
-        _importDatabaseBundle(json);
+        await _importDatabaseBundle(json);
         return;
       }
       if (!json.entries || !Array.isArray(json.entries)) {
@@ -628,7 +628,8 @@ async function _importDatabaseBundle(json) {
   // Switch to the first imported profile (so user lands on real data, not empty default)
   const targetId = firstImportedId || state.currentProfile;
   await loadProfile(targetId);
-  showNotification(`Imported ${json.profiles.length} profile${json.profiles.length !== 1 ? 's' : ''} (${created} new, ${merged} merged)`, 'success');
+  const total = created + merged;
+  showNotification(`Imported ${total} profile${total !== 1 ? 's' : ''} (${created} new, ${merged} merged)`, 'success');
 }
 
 export function clearAllData() {

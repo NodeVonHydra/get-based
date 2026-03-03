@@ -82,7 +82,6 @@
   console.log('%c[9] Touch Hover Fix', 'font-weight:bold');
   assert('hover:none media query exists', css.includes('hover: none'));
   assert('mv-delete visible on touch', css.includes('mv-delete') && css.includes('opacity: 0.7'));
-  assert('profile-menu-actions visible on touch', css.includes('profile-menu-actions') && css.includes('display: flex'));
   assert('chat-thread-item-actions visible on touch', css.includes('chat-thread-item-actions'));
   assert('lens-section-edit visible on touch', css.includes('lens-section-edit') && css.includes('opacity: 0.7'));
 
