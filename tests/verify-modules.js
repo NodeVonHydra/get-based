@@ -91,6 +91,11 @@
     'renderInterpretiveLensSection'
   ];
 
+  // client-list.js (3)
+  const clientListExports = [
+    'openClientList','closeClientList','openClientForm'
+  ];
+
   // cycle.js (10)
   const cycleExports = [
     'getCyclePhase','getNextBestDrawDate','getBloodDrawPhases',
@@ -116,9 +121,9 @@
     'registerRefreshCallback'
   ];
 
-  // export.js (4)
+  // export.js (6)
   const exportExports = [
-    'exportPDFReport','exportDataJSON','importDataJSON','clearAllData'
+    'exportPDFReport','exportDataJSON','exportClientJSON','exportAllDataJSON','importDataJSON','clearAllData'
   ];
 
   // glossary.js (3)
@@ -126,10 +131,10 @@
     'openGlossary','closeGlossary','filterGlossary'
   ];
 
-  // nav.js (6)
+  // nav.js (5)
   const navExports = [
-    'buildSidebar','filterSidebar','renderProfileDropdown',
-    'toggleProfileMenu','promptCreateProfile','promptRenameProfile'
+    'buildSidebar','filterSidebar','toggleNavGroup',
+    'renderProfileDropdown','renderProfileButton','getAvatarColor'
   ];
 
   // notes.js (3)
@@ -163,6 +168,7 @@
     'getProfileLocation','setProfileLocation',
     'getLocationCache','setLocationCache',
     'latitudeToBand','updateLocationLat','getLatitudeFromLocation',
+    'updateProfileMeta','getAllTags','touchProfileTimestamp',
     'loadProfile','getActiveProfileId','setActiveProfileId',
     'switchSex','switchDob',
     'detectLatitudeWithAI'
@@ -221,6 +227,7 @@
     'api.js': apiExports,
     'charts.js': chartsExports,
     'chat.js': chatExports,
+    'client-list.js': clientListExports,
     'context-cards.js': contextCardsExports,
     'cycle.js': cycleExports,
     'data.js': dataExports,
@@ -498,6 +505,8 @@
   // ═══════════════════════════════════════════════
   assert('exportPDFReport is function', typeof window.exportPDFReport === 'function');
   assert('exportDataJSON is function', typeof window.exportDataJSON === 'function');
+  assert('exportClientJSON is function', typeof window.exportClientJSON === 'function');
+  assert('exportAllDataJSON is function', typeof window.exportAllDataJSON === 'function');
   assert('clearAllData is function', typeof window.clearAllData === 'function');
 
   // ═══════════════════════════════════════════════

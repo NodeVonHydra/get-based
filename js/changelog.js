@@ -5,6 +5,24 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.2.1', date: '2026-03-03', title: 'Export Upgrade',
+    items: [
+      'Export a single client from the Client List \u22ee menu \u2014 downloads their data without switching profiles',
+      'Export All Clients \u2014 full database backup (all profiles + data) from Client List header or Settings \u203a Data',
+      'Exports now include chat history, threads, and custom personalities',
+      'Import a database bundle into a new browser \u2014 auto-creates profiles and merges overlapping data',
+    ]
+  },
+  {
+    version: '1.2.0', date: '2026-03-03', title: 'Client Management',
+    items: [
+      'New Client List modal — search, sort, filter, and manage all profiles from one place',
+      'Extended profile metadata: tags, practitioner notes, status (active/flagged/archived), pinned profiles',
+      'Inline client create/edit form replaces prompt() dialogs with full fields (name, sex, DOB, location, tags, notes, status)',
+      'Compact header button with colored avatar dot — opens Client List on click',
+    ]
+  },
+  {
     version: '1.1.4', date: '2026-03-01', title: 'Diet & Digestion',
     items: [
       'Diet card extended to "Diet & Digestion" with 10 new fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities',
@@ -120,11 +138,11 @@ export function openChangelog(showAll) {
   html += `<h3>What's New</h3>`;
 
   for (const entry of entries) {
-    html += `<div class="cl-entry">`;
-    html += `<div class="cl-header"><span class="cl-version">v${escapeHTML(entry.version)} — ${escapeHTML(entry.title)}</span><span class="cl-date">${escapeHTML(entry.date)}</span></div>`;
-    html += '<ul class="cl-items">';
+    html += `<div class="changelog-entry">`;
+    html += `<div class="changelog-header"><span class="changelog-version">v${escapeHTML(entry.version)} — ${escapeHTML(entry.title)}</span><span class="changelog-date">${escapeHTML(entry.date)}</span></div>`;
+    html += '<ul class="changelog-items">';
     for (const item of entry.items) {
-      html += `<li class="cl-item">${escapeHTML(item)}</li>`;
+      html += `<li class="changelog-item">${escapeHTML(item)}</li>`;
     }
     html += '</ul></div>';
   }

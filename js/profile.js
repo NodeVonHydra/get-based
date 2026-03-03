@@ -20,6 +20,22 @@ export async function initProfilesCache() {
   const raw = await encryptedGetItem('labcharts-profiles');
   try { state.profiles = raw ? JSON.parse(raw) : []; }
   catch(e) { state.profiles = []; }
+  migrateProfiles(state.profiles);
+}
+
+// Backfill new profile-level fields (tags, notes, status, timestamps, pinned)
+function migrateProfiles(profiles) {
+  let changed = false;
+  const now = Date.now();
+  for (const p of profiles) {
+    if (!Array.isArray(p.tags)) { p.tags = []; changed = true; }
+    if (typeof p.notes !== 'string') { p.notes = ''; changed = true; }
+    if (!p.status) { p.status = 'active'; changed = true; }
+    if (!p.createdAt) { p.createdAt = now; changed = true; }
+    if (!p.lastUpdated) { p.lastUpdated = now; changed = true; }
+    if (typeof p.pinned !== 'boolean') { p.pinned = false; changed = true; }
+  }
+  if (changed) saveProfiles(profiles);
 }
 
 export async function saveProfiles(profiles) {
@@ -180,13 +196,26 @@ export async function loadProfile(profileId) {
   window.showDashboard();
   window.updateHeaderDates();
   window.updateHeaderRangeToggle();
-  window.renderProfileDropdown();
+  window.renderProfileButton();
 }
 
-export function createProfile(name) {
+export function createProfile(name, opts = {}) {
   const profiles = getProfiles();
   const id = Date.now().toString(36);
-  profiles.push({ id, name });
+  const now = Date.now();
+  profiles.push({
+    id, name,
+    sex: opts.sex || null,
+    dob: opts.dob || null,
+    location: opts.location || { country: '', zip: '' },
+    tags: opts.tags || [],
+    notes: opts.notes || '',
+    status: opts.status || 'active',
+    avatar: opts.avatar || null,
+    createdAt: now,
+    lastUpdated: now,
+    pinned: false
+  });
   saveProfiles(profiles);
   return id;
 }
@@ -194,10 +223,36 @@ export function createProfile(name) {
 export function renameProfile(profileId, newName) {
   const profiles = getProfiles();
   const p = profiles.find(p => p.id === profileId);
-  if (p) { p.name = newName; saveProfiles(profiles); }
+  if (p) { p.name = newName; p.lastUpdated = Date.now(); saveProfiles(profiles); }
 }
 
-export function deleteProfile(profileId) {
+export function updateProfileMeta(profileId, updates) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (!p) return;
+  for (const [key, val] of Object.entries(updates)) {
+    if (key === 'id' || key === 'createdAt') continue;
+    p[key] = val;
+  }
+  p.lastUpdated = Date.now();
+  saveProfiles(profiles);
+}
+
+export function getAllTags() {
+  const tags = new Set();
+  for (const p of getProfiles()) {
+    if (Array.isArray(p.tags)) p.tags.forEach(t => tags.add(t));
+  }
+  return [...tags].sort();
+}
+
+export function touchProfileTimestamp(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === profileId);
+  if (p) { p.lastUpdated = Date.now(); saveProfiles(profiles); }
+}
+
+export function deleteProfile(profileId, onComplete) {
   const profiles = getProfiles();
   if (profiles.length <= 1) { showNotification("Cannot delete the last profile", "error"); return; }
   window.showConfirmDialog('Delete this profile and all its data? This cannot be undone.', () => {
@@ -232,9 +287,10 @@ export function deleteProfile(profileId) {
     if (state.currentProfile === profileId) {
       loadProfile(updated[0].id);
     } else {
-      window.renderProfileDropdown();
+      window.renderProfileButton();
     }
     showNotification('Profile deleted', 'info');
+    if (onComplete) onComplete();
   });
 }
 
@@ -483,6 +539,9 @@ Object.assign(window, {
   latitudeToBand,
   updateLocationLat,
   getLatitudeFromLocation,
+  updateProfileMeta,
+  getAllTags,
+  touchProfileTimestamp,
   // Additional functions needed by other modules or HTML handlers
   loadProfile,
   getActiveProfileId,

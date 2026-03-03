@@ -1,9 +1,9 @@
-// nav.js — Sidebar, profile dropdown
+// nav.js — Sidebar, compact profile button
 
 import { state } from './state.js';
-import { escapeHTML, showNotification } from './utils.js';
+import { escapeHTML, hashString } from './utils.js';
 import { getActiveData, countFlagged } from './data.js';
-import { getProfiles, createProfile, renameProfile, switchProfile } from './profile.js';
+import { getProfiles } from './profile.js';
 
 function _buildNavItem(key, cat) {
   const markers = Object.values(cat.markers);
@@ -131,74 +131,31 @@ export function filterSidebar() {
   });
 }
 
-export function renderProfileDropdown() {
+// Avatar color palette — 10 distinct hues that work on dark & light
+const AVATAR_COLORS = ['#4f8cff','#f472b6','#34d399','#fbbf24','#a78bfa','#f87171','#38bdf8','#fb923c','#22d3ee','#a3e635'];
+
+export function getAvatarColor(id) {
+  const h = parseInt(hashString(id || ''), 36);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+export function renderProfileButton() {
   const container = document.getElementById('profile-selector');
   if (!container) return;
   const profiles = getProfiles();
   const active = profiles.find(p => p.id === state.currentProfile) || profiles[0];
   if (!active) return;
-
-  let html = `<div class="profile-dropdown">
-    <button class="profile-dropdown-btn" onclick="toggleProfileMenu()">
-      <span class="profile-label">${escapeHTML(active.name)}</span>
-      <span class="profile-arrow">\u25BC</span>
-    </button>
-    <div class="profile-menu" id="profile-menu">`;
-
-  for (const p of profiles) {
-    const isActive = p.id === state.currentProfile;
-    html += `<div class="profile-menu-item${isActive ? ' active' : ''}" onclick="switchProfile('${p.id}')">
-      <span class="profile-name">${escapeHTML(p.name)}</span>
-      <span class="profile-menu-actions">
-        <button class="profile-menu-action" onclick="event.stopPropagation();promptRenameProfile('${p.id}')" title="Rename">Rename</button>
-        <button class="profile-menu-action delete" onclick="event.stopPropagation();deleteProfile('${p.id}')" title="Delete">\u2715</button>
-      </span>
-    </div>`;
-  }
-
-  html += `<div class="profile-menu-divider"></div>
-    <div class="profile-menu-new" onclick="promptCreateProfile()">+ New Profile</div>
-    </div></div>`;
-  container.innerHTML = html;
+  const dot = active.avatar
+    ? `<img class="profile-compact-dot profile-compact-img" src="${active.avatar}" alt="">`
+    : `<span class="profile-compact-dot" style="background:${getAvatarColor(active.id)}">${escapeHTML((active.name || '?')[0].toUpperCase())}</span>`;
+  container.innerHTML = `<button class="profile-compact-btn" onclick="openClientList()" title="Manage clients">
+    ${dot}
+    <span class="profile-compact-name">${escapeHTML(active.name)}</span>
+    <span class="profile-compact-arrow">\u25BC</span>
+  </button>`;
 }
 
-export function toggleProfileMenu() {
-  const menu = document.getElementById('profile-menu');
-  const btn = document.querySelector('.profile-dropdown-btn');
-  if (!menu) return;
-  const show = !menu.classList.contains('show');
-  menu.classList.toggle('show', show);
-  if (btn) btn.classList.toggle('open', show);
-}
+// Keep renderProfileDropdown as alias for backward compat (tests, other modules)
+export function renderProfileDropdown() { renderProfileButton(); }
 
-export function promptCreateProfile() {
-  const name = prompt('Enter profile name:');
-  if (!name || !name.trim()) return;
-  const id = createProfile(name.trim());
-  toggleProfileMenu();
-  switchProfile(id);
-}
-
-export function promptRenameProfile(id) {
-  const profiles = getProfiles();
-  const p = profiles.find(p => p.id === id);
-  if (!p) return;
-  const name = prompt('Rename profile:', p.name);
-  if (!name || !name.trim() || name.trim() === p.name) return;
-  renameProfile(id, name.trim());
-  renderProfileDropdown();
-  showNotification(`Profile renamed to "${name.trim()}"`, 'info');
-}
-
-// Close profile menu on click outside
-document.addEventListener('click', (e) => {
-  const dropdown = document.querySelector('.profile-dropdown');
-  if (dropdown && !dropdown.contains(e.target)) {
-    const menu = document.getElementById('profile-menu');
-    const btn = document.querySelector('.profile-dropdown-btn');
-    if (menu) menu.classList.remove('show');
-    if (btn) btn.classList.remove('open');
-  }
-});
-
-Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, renderProfileDropdown, toggleProfileMenu, promptCreateProfile, promptRenameProfile });
+Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, renderProfileDropdown, renderProfileButton, getAvatarColor });
