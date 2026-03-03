@@ -3,8 +3,9 @@
 import { state } from './state.js';
 import { getStatus, formatValue, showNotification, showConfirmDialog, getTrend } from './utils.js';
 import { getActiveData, filterDatesByRange, getEffectiveRange, getAllFlaggedMarkers, getLatestValueIndex, saveImportedData } from './data.js';
-import { getProfiles, profileStorageKey } from './profile.js';
+import { getProfiles, profileStorageKey, createProfile, updateProfileMeta, loadProfile, saveProfiles } from './profile.js';
 import { getBloodDrawPhases } from './cycle.js';
+import { encryptedGetItem, encryptedSetItem, getEncryptionEnabled } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // PDF REPORT EXPORT
@@ -259,37 +260,121 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
 // ═══════════════════════════════════════════════
 // JSON EXPORT / IMPORT
 // ═══════════════════════════════════════════════
+// CHAT EXPORT/IMPORT HELPERS
+// ═══════════════════════════════════════════════
+async function _exportChatData(profileId) {
+  const threadsRaw = await encryptedGetItem(`labcharts-${profileId}-chat-threads`);
+  let threads;
+  try { threads = threadsRaw ? JSON.parse(threadsRaw) : []; } catch { threads = []; }
+  if (!threads.length) return null;
+  const messages = {};
+  for (const t of threads) {
+    const raw = await encryptedGetItem(`labcharts-${profileId}-chat-t_${t.id}`);
+    try { messages[t.id] = raw ? JSON.parse(raw) : []; } catch { messages[t.id] = []; }
+  }
+  const personality = localStorage.getItem(`labcharts-${profileId}-chatPersonality`) || null;
+  const customRaw = localStorage.getItem(`labcharts-${profileId}-chatPersonalityCustom`) || null;
+  let customPersonalities;
+  try { customPersonalities = customRaw ? JSON.parse(customRaw) : null; } catch { customPersonalities = null; }
+  return { threads, messages, personality, customPersonalities };
+}
+
+async function _importChatData(profileId, chat) {
+  if (!chat || !Array.isArray(chat.threads)) return;
+  // Read existing threads to merge
+  const existingRaw = localStorage.getItem(`labcharts-${profileId}-chat-threads`);
+  let existing;
+  try { existing = existingRaw ? JSON.parse(existingRaw) : []; } catch { existing = []; }
+  const existingIds = new Set(existing.map(t => t.id));
+  for (const t of chat.threads) {
+    if (existingIds.has(t.id)) continue;
+    existing.push(t);
+    // Write thread messages
+    const msgs = (chat.messages && chat.messages[t.id]) || [];
+    const value = JSON.stringify(msgs);
+    if (getEncryptionEnabled()) { await encryptedSetItem(`labcharts-${profileId}-chat-t_${t.id}`, value); }
+    else { localStorage.setItem(`labcharts-${profileId}-chat-t_${t.id}`, value); }
+  }
+  localStorage.setItem(`labcharts-${profileId}-chat-threads`, JSON.stringify(existing));
+  // Restore personality + custom personas (only if not already set)
+  if (chat.personality && !localStorage.getItem(`labcharts-${profileId}-chatPersonality`)) {
+    localStorage.setItem(`labcharts-${profileId}-chatPersonality`, chat.personality);
+  }
+  if (chat.customPersonalities && !localStorage.getItem(`labcharts-${profileId}-chatPersonalityCustom`)) {
+    localStorage.setItem(`labcharts-${profileId}-chatPersonalityCustom`, JSON.stringify(chat.customPersonalities));
+  }
+}
+
+// ═══════════════════════════════════════════════
+// Legacy alias — calls exportClientJSON for the active profile
 export function exportDataJSON() {
-  const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
-  const notes = (state.importedData && state.importedData.notes) ? state.importedData.notes : [];
-  if (entries.length === 0 && notes.length === 0) { showNotification("No data to export", "error"); return; }
-  const diagnoses = state.importedData.diagnoses || null;
-  const diet = state.importedData.diet || null;
-  const exercise = state.importedData.exercise || null;
-  const sleepRest = state.importedData.sleepRest || null;
-  const lightCircadian = state.importedData.lightCircadian || null;
-  const stress = state.importedData.stress || null;
-  const loveLife = state.importedData.loveLife || null;
-  const environment = state.importedData.environment || null;
-  const interpretiveLens = state.importedData.interpretiveLens || '';
-  const contextNotes = state.importedData.contextNotes || '';
-  const customMarkers = state.importedData.customMarkers || {};
-  const supplements = state.importedData.supplements || [];
-  const healthGoals = state.importedData.healthGoals || [];
-  const menstrualCycle = state.importedData.menstrualCycle || null;
-  const exportObj = { version: 2, exportedAt: new Date().toISOString(), entries, notes, supplements, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, contextNotes, healthGoals, customMarkers, menstrualCycle };
+  exportClientJSON(state.currentProfile);
+}
+
+export async function exportClientJSON(profileId, includeChat = false) {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) { showNotification('Profile not found', 'error'); return; }
+  const raw = await encryptedGetItem(profileStorageKey(profileId, 'imported'));
+  let data;
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+  if (!data || !data.entries || data.entries.length === 0) { showNotification('No data to export for this client', 'error'); return; }
+  const exportObj = {
+    version: 2, exportedAt: new Date().toISOString(),
+    profile: { name: profile.name, sex: profile.sex || null, dob: profile.dob || null, location: profile.location || null },
+    entries: data.entries || [], notes: data.notes || [], supplements: data.supplements || [],
+    diagnoses: data.diagnoses || null, diet: data.diet || null, exercise: data.exercise || null,
+    sleepRest: data.sleepRest || null, lightCircadian: data.lightCircadian || null,
+    stress: data.stress || null, loveLife: data.loveLife || null, environment: data.environment || null,
+    interpretiveLens: data.interpretiveLens || '', contextNotes: data.contextNotes || '',
+    healthGoals: data.healthGoals || [], customMarkers: data.customMarkers || {},
+    menstrualCycle: data.menstrualCycle || null
+  };
+  if (includeChat) {
+    const chat = await _exportChatData(profileId);
+    if (chat) exportObj.chat = chat;
+  }
   const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const profiles = getProfiles();
-  const profileName = (profiles.find(p => p.id === state.currentProfile) || { name: 'export' }).name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  a.download = `getbased-${profileName}-${new Date().toISOString().slice(0, 10)}.json`;
+  const safeName = profile.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  a.download = `getbased-${safeName}-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showNotification('Data exported successfully', 'success');
+  showNotification(`Exported "${profile.name}"`, 'success');
+}
+
+export async function exportAllDataJSON() {
+  const profiles = getProfiles();
+  if (profiles.length === 0) { showNotification('No profiles to export', 'error'); return; }
+  const bundle = { version: 2, type: 'database', exportedAt: new Date().toISOString(), profiles: [] };
+  for (const p of profiles) {
+    const raw = await encryptedGetItem(profileStorageKey(p.id, 'imported'));
+    let data;
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+    const chat = await _exportChatData(p.id);
+    const entry = {
+      id: p.id, name: p.name, sex: p.sex || null, dob: p.dob || null,
+      location: p.location || null, tags: p.tags || [], notes: p.notes || '',
+      status: p.status || 'active', avatar: p.avatar || null, pinned: p.pinned || false,
+      data: data
+    };
+    if (chat) entry.chat = chat;
+    bundle.profiles.push(entry);
+  }
+  const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `getbased-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showNotification(`Exported ${bundle.profiles.length} client${bundle.profiles.length !== 1 ? 's' : ''}`, 'success');
 }
 
 export function importDataJSON(file) {
@@ -297,6 +382,11 @@ export function importDataJSON(file) {
   reader.onload = (e) => {
     try {
       const json = JSON.parse(e.target.result);
+      // Database bundle — multi-profile import
+      if (json.type === 'database' && Array.isArray(json.profiles)) {
+        _importDatabaseBundle(json);
+        return;
+      }
       if (!json.entries || !Array.isArray(json.entries)) {
         showNotification('Invalid JSON format: missing entries array', 'error');
         return;
@@ -425,6 +515,7 @@ export function importDataJSON(file) {
         }
       }
       saveImportedData();
+      if (json.chat) _importChatData(state.currentProfile, json.chat);
       window.buildSidebar();
       window.updateHeaderDates();
       window.navigate('dashboard');
@@ -436,14 +527,150 @@ export function importDataJSON(file) {
   reader.readAsText(file);
 }
 
+async function _importDatabaseBundle(json) {
+  const profiles = getProfiles();
+  let created = 0, merged = 0, firstImportedId = null;
+  for (const bp of json.profiles) {
+    if (!bp.name && !bp.id) continue;
+    // Match by id first, then by name
+    let existing = profiles.find(p => p.id === bp.id);
+    if (!existing && bp.name) existing = profiles.find(p => p.name === bp.name);
+    const importData = bp.data || {};
+    if (existing) {
+      // Merge into existing profile — update metadata from bundle
+      if (!firstImportedId) firstImportedId = existing.id;
+      const meta = {};
+      if (bp.name) meta.name = bp.name;
+      if (bp.sex) meta.sex = bp.sex;
+      if (bp.dob) meta.dob = bp.dob;
+      if (bp.location) meta.location = bp.location;
+      if (Array.isArray(bp.tags) && bp.tags.length) meta.tags = bp.tags;
+      if (bp.notes) meta.notes = bp.notes;
+      if (bp.status && bp.status !== 'active') meta.status = bp.status;
+      if (bp.avatar) meta.avatar = bp.avatar;
+      if (bp.pinned) meta.pinned = bp.pinned;
+      if (Object.keys(meta).length) updateProfileMeta(existing.id, meta);
+      const storageKey = profileStorageKey(existing.id, 'imported');
+      const raw = await encryptedGetItem(storageKey);
+      let current;
+      try { current = raw ? JSON.parse(raw) : {}; } catch { current = {}; }
+      if (!current.entries) current.entries = [];
+      // Entries: date-keyed upsert
+      if (Array.isArray(importData.entries)) {
+        for (const entry of importData.entries) {
+          if (!entry.date || !entry.markers) continue;
+          current.entries = current.entries.filter(ex => ex.date !== entry.date);
+          current.entries.push(entry);
+        }
+      }
+      // Notes: deduplicate by date+text
+      if (Array.isArray(importData.notes)) {
+        if (!current.notes) current.notes = [];
+        for (const n of importData.notes) {
+          if (!n.date || !n.text) continue;
+          if (!current.notes.some(x => x.date === n.date && x.text === n.text)) current.notes.push(n);
+        }
+      }
+      // Supplements: deduplicate by name+startDate
+      if (Array.isArray(importData.supplements)) {
+        if (!current.supplements) current.supplements = [];
+        for (const s of importData.supplements) {
+          if (!s.name || !s.startDate) continue;
+          if (!current.supplements.some(x => x.name === s.name && x.startDate === s.startDate)) current.supplements.push(s);
+        }
+      }
+      // Health goals: deduplicate by text
+      if (Array.isArray(importData.healthGoals)) {
+        if (!current.healthGoals) current.healthGoals = [];
+        for (const g of importData.healthGoals) {
+          if (!g.text) continue;
+          if (!current.healthGoals.some(x => x.text === g.text)) current.healthGoals.push(g);
+        }
+      }
+      // Custom markers: merge (don't overwrite existing)
+      if (importData.customMarkers && typeof importData.customMarkers === 'object') {
+        if (!current.customMarkers) current.customMarkers = {};
+        for (const [key, def] of Object.entries(importData.customMarkers)) {
+          if (!current.customMarkers[key]) current.customMarkers[key] = def;
+        }
+      }
+      // Context fields: replace if present in bundle
+      for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle']) {
+        if (importData[field] != null) current[field] = importData[field];
+      }
+      if (importData.interpretiveLens) current.interpretiveLens = importData.interpretiveLens;
+      if (importData.contextNotes) current.contextNotes = importData.contextNotes;
+      // Save
+      const value = JSON.stringify(current);
+      if (getEncryptionEnabled()) { await encryptedSetItem(storageKey, value); }
+      else { localStorage.setItem(storageKey, value); }
+      if (bp.chat) await _importChatData(existing.id, bp.chat);
+      merged++;
+    } else {
+      // Create new profile
+      const id = createProfile(bp.name || 'Imported', {
+        sex: bp.sex || null, dob: bp.dob || null,
+        location: bp.location || { country: '', zip: '' },
+        tags: bp.tags || [], notes: bp.notes || '',
+        status: bp.status || 'active', avatar: bp.avatar || null
+      });
+      if (!firstImportedId) firstImportedId = id;
+      if (bp.pinned) updateProfileMeta(id, { pinned: true });
+      // Write data
+      const storageKey = profileStorageKey(id, 'imported');
+      const value = JSON.stringify(importData);
+      if (getEncryptionEnabled()) { await encryptedSetItem(storageKey, value); }
+      else { localStorage.setItem(storageKey, value); }
+      if (bp.chat) await _importChatData(id, bp.chat);
+      created++;
+    }
+  }
+  // Switch to the first imported profile (so user lands on real data, not empty default)
+  const targetId = firstImportedId || state.currentProfile;
+  await loadProfile(targetId);
+  showNotification(`Imported ${json.profiles.length} profile${json.profiles.length !== 1 ? 's' : ''} (${created} new, ${merged} merged)`, 'success');
+}
+
 export function clearAllData() {
-  showConfirmDialog('Are you sure you want to clear all imported data? This cannot be undone.', () => {
+  const profiles = getProfiles();
+  const msg = profiles.length > 1
+    ? `Clear ALL data across ${profiles.length} profiles? This cannot be undone.`
+    : 'Are you sure you want to clear all imported data? This cannot be undone.';
+  showConfirmDialog(msg, () => {
+    // Wipe storage for every profile
+    for (const p of profiles) {
+      const id = p.id;
+      localStorage.removeItem(profileStorageKey(id, 'imported'));
+      localStorage.removeItem(profileStorageKey(id, 'units'));
+      localStorage.removeItem(profileStorageKey(id, 'suppOverlay'));
+      localStorage.removeItem(profileStorageKey(id, 'noteOverlay'));
+      localStorage.removeItem(profileStorageKey(id, 'rangeMode'));
+      localStorage.removeItem(`labcharts-${id}-chat`);
+      const threadIndexRaw = localStorage.getItem(`labcharts-${id}-chat-threads`);
+      if (threadIndexRaw) {
+        try { for (const t of JSON.parse(threadIndexRaw)) localStorage.removeItem(`labcharts-${id}-chat-t_${t.id}`); } catch {}
+        localStorage.removeItem(`labcharts-${id}-chat-threads`);
+      }
+      localStorage.removeItem(`labcharts-${id}-chatRailOpen`);
+      localStorage.removeItem(`labcharts-${id}-chatPersonality`);
+      localStorage.removeItem(`labcharts-${id}-chatPersonalityCustom`);
+      localStorage.removeItem(`labcharts-${id}-focusCard`);
+      localStorage.removeItem(`labcharts-${id}-contextHealth`);
+      localStorage.removeItem(`labcharts-${id}-onboarded`);
+      localStorage.removeItem(`labcharts-${id}-tour`);
+      localStorage.removeItem(`labcharts-${id}-cycleTour`);
+      localStorage.removeItem(`labcharts-${id}-phaseOverlay`);
+    }
+    // Reset to single default profile
+    const defaultId = profiles[0]?.id || 'default';
+    const defaultName = profiles[0]?.name || 'Profile 1';
+    saveProfiles([{ id: defaultId, name: defaultName, sex: null, dob: null, location: { country: '', zip: '' }, tags: [], notes: '', status: 'active', avatar: null, createdAt: Date.now(), lastUpdated: Date.now(), pinned: false }]);
     state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, menstrualCycle: null };
-    localStorage.removeItem(profileStorageKey(state.currentProfile, 'contextHealth'));
-    localStorage.removeItem(`labcharts-${state.currentProfile}-focusCard`);
-    localStorage.removeItem(profileStorageKey(state.currentProfile, 'imported'));
+    state.currentProfile = defaultId;
+    localStorage.setItem('labcharts-active-profile', defaultId);
     window.buildSidebar();
     window.updateHeaderDates();
+    window.renderProfileButton();
     window.navigate('dashboard');
     showNotification('All data cleared', 'info');
   });
@@ -468,4 +695,4 @@ export async function loadDemoData(sex = 'male') {
   }
 }
 
-Object.assign(window, { exportPDFReport, exportDataJSON, importDataJSON, clearAllData, loadDemoData });
+Object.assign(window, { exportPDFReport, exportDataJSON, exportClientJSON, exportAllDataJSON, importDataJSON, clearAllData, loadDemoData });
