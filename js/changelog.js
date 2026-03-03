@@ -7,91 +7,86 @@ const CHANGELOG = [
   {
     version: '1.2.1', date: '2026-03-03', title: 'Export Upgrade',
     items: [
-      'Export a single client from the Client List \u22ee menu \u2014 downloads their data without switching profiles',
-      'Export All Clients \u2014 full database backup (all profiles + data) from Client List header or Settings \u203a Data',
-      'Exports now include chat history, threads, and custom personalities',
-      'Import a database bundle into a new browser \u2014 auto-creates profiles and merges overlapping data',
+      'Per-client export from the Client List \u22ee menu',
+      'Export All Clients \u2014 full database backup from Client List or Settings',
+      'Exports include chat history, threads, and custom personalities',
+      'Database bundle import with auto-merge across browsers',
     ]
   },
   {
     version: '1.2.0', date: '2026-03-03', title: 'Client Management',
     items: [
-      'New Client List modal — search, sort, filter, and manage all profiles from one place',
-      'Extended profile metadata: tags, practitioner notes, status (active/flagged/archived), pinned profiles',
-      'Inline client create/edit form replaces prompt() dialogs with full fields (name, sex, DOB, location, tags, notes, status)',
-      'Compact header button with colored avatar dot — opens Client List on click',
+      'Client List modal \u2014 search, sort, filter, and manage all profiles',
+      'Profile tags, notes, status (active/flagged/archived), and pinning',
+      'Full client form replaces prompt dialogs (name, sex, DOB, location, avatar)',
+      'Compact header button with avatar dot opens Client List',
     ]
   },
   {
     version: '1.1.4', date: '2026-03-01', title: 'Diet & Digestion',
     items: [
-      'Diet card extended to "Diet & Digestion" with 10 new fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities',
-      'Digestive health data wired into AI context for a fuller health picture',
+      '10 new digestion fields on the Diet card (bowel, bloating, reflux, etc.)',
+      'Digestive health included in AI context',
     ]
   },
   {
     version: '1.1.3', date: '2026-02-28', title: 'Encryption Nudge',
     items: [
-      'One-time prompt to enable encryption after your first PDF import',
-      'Dismiss with "Not Now" or enable directly — never shown again once dismissed or encryption is on',
+      'One-time prompt to enable encryption after first PDF import',
     ]
   },
   {
     version: '1.1.2', date: '2026-02-28', title: 'Documentation Update',
     items: [
-      'New Specialty Labs guide page covering OAT, DUTCH, HTMA, and other non-blood test imports',
-      'Updated 6 guide pages with OpenRouter OAuth, model tiers, pre-flight checks, chat FAB, Ollama opt-in PII, and batch retry',
-      'Brand rename across all docs — "Get Based" → "getbased" per brand guidelines',
+      'New Specialty Labs guide (OAT, DUTCH, HTMA)',
+      'Updated 6 guide pages with latest features',
     ]
   },
   {
     version: '1.1.1', date: '2026-02-28', title: 'Model Guidance',
     items: [
-      'Model dropdowns now split into Recommended and Other sections across all providers',
-      'Active model shown in chat header and per-message cost footnotes',
-      'Settings AI tab has a prominent guidance callout for model quality and consistency',
-      'Switching providers with the same model no longer triggers a false mismatch warning',
+      'Model dropdowns split into Recommended / Other tiers',
+      'Active model shown in chat header with per-message cost',
+      'Cross-provider model mismatch warning fixed',
     ]
   },
   {
     version: '1.1.0', date: '2026-02-28', title: 'Specialty Labs & Brand Refresh',
     items: [
-      'Specialty lab support (beta) \u2014 OAT, amino acids, fatty acids, toxic elements, and more import with their own reference ranges and sidebar sections',
-      'Brand refresh \u2014 new getbased gradient wordmark, SVG header icons, cleaner layout',
-      'Batch import improvements \u2014 auto-retry on failure, single dashboard refresh at the end',
-      'Ollama PII obfuscation is now opt-in (Settings \u2192 Privacy)',
-      '\u20bf Donate button in header \u2014 support the project with Bitcoin',
+      'Specialty lab support (beta) \u2014 OAT, amino acids, fatty acids, toxic elements',
+      'Brand refresh \u2014 getbased gradient wordmark, SVG icons, cleaner layout',
+      'Batch import auto-retry and single dashboard refresh',
+      'Ollama PII obfuscation now opt-in (Settings \u2192 Privacy)',
+      '\u20bf Donate button in header',
     ]
   },
   {
     version: '1.0.5', date: '2026-02-27', title: 'One-Click OpenRouter',
     items: [
-      'Connect to OpenRouter with one click — no more copying API keys',
-      'OAuth button in chat setup guide and Settings for instant connection',
-      'OpenRouter is now the first provider tab in Settings',
+      'One-click OAuth connect \u2014 no more copying API keys',
+      'OpenRouter is now the default provider tab',
     ]
   },
   {
     version: '1.0.4', date: '2026-02-27', title: 'Simplified First Visit',
     items: [
-      'New welcome hero — one focused card with drop zone and demo data instead of competing elements',
-      'Context cards now collapsed behind a toggle so first-time users aren\u2019t overwhelmed',
+      'Welcome hero with drop zone and demo data',
+      'Context cards collapsed by default for new users',
     ]
   },
   {
     version: '1.0.3', date: '2026-02-27', title: 'Chat Improvements',
     items: [
-      'Floating chat bubble in the bottom-right corner — always one tap away',
-      'No API key? A friendly setup guide replaces the old error message',
+      'Floating chat bubble \u2014 always one tap away',
+      'Setup guide when no API key is configured',
     ]
   },
   {
     version: '1.0.2', date: '2026-02-27', title: 'Pre-Lab Onboarding',
     items: [
-      'No lab data? No problem — fill your 9 context cards and the AI recommends exactly which tests to get',
-      'Chat prompts adapt to your state: card-filling encouragement, personalized test recommendations, or lab analysis',
-      'Dashboard nudge guides you through profile setup (sex, DOB, all 9 cards) before your first blood draw',
-      'Health dots now work on context alone — the AI rates your lifestyle cards even without lab results',
+      'No lab data? Fill context cards and get personalized test recommendations',
+      'Chat prompts adapt to your state (pre-lab, onboarding, analysis)',
+      'Health dots work on context alone, even without lab results',
     ]
   },
   {
@@ -103,12 +98,12 @@ const CHANGELOG = [
   {
     version: '1.0', date: '2026-02-25', title: 'Launch',
     items: [
-      'AI-powered PDF import — drop any lab report, any language',
+      'AI-powered PDF import \u2014 any lab report, any language',
       '287+ biomarkers across 26 categories with interactive charts',
-      'AI chat with customizable personalities for interpreting your results',
-      'Menstrual cycle-aware lab interpretation with phase-specific ranges',
+      'AI chat with customizable personalities',
+      'Menstrual cycle-aware interpretation with phase-specific ranges',
       '9 lifestyle context cards that shape AI analysis',
-      'Fully private — all data stays in your browser',
+      'Fully private \u2014 all data stays in your browser',
     ]
   },
 ];
