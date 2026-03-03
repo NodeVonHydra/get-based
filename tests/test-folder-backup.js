@@ -112,6 +112,7 @@
     assert('crypto.js has showDirectoryPicker check', src.includes('showDirectoryPicker'));
     assert('crypto.js has folder-handle store constant', src.includes("'folder-handle'"));
     assert('performAutoBackup calls writeFolderBackup', src.includes('writeFolderBackup()'));
+    assert('writeFolderBackup uses buildBackupSnapshot', src.includes('buildBackupSnapshot()'));
   } catch (e) {
     assert('crypto.js source inspection', false, e.message);
   }
