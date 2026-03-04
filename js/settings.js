@@ -5,7 +5,7 @@ import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEna
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getProfileLocation, updateLocationLat } from './profile.js';
-import { getOllamaConfig, checkOllama, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
+import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
 
 
@@ -327,10 +327,17 @@ export function renderAIProviderPanel(provider) {
       <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
-  // Local AI (Ollama) panel
+  // Local AI (Ollama / OpenAI-compatible) panel
   const config = getOllamaConfig();
+  const isOpenAI = config.mode === 'openai';
   return `<div class="ai-provider-panel">
-    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine. Requires Apple M-chip, CPU with NPU, or a strong GPU.</div>
+    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine. Works with Ollama, LM Studio, Jan, llama.cpp, LocalAI, and others.</div>
+    <div style="margin-bottom:10px">
+      <div class="ai-provider-toggle" style="max-width:320px">
+        <button class="ai-provider-btn${!isOpenAI ? ' active' : ''}" data-ollama-mode="ollama" onclick="switchOllamaMode('ollama')">Ollama</button>
+        <button class="ai-provider-btn${isOpenAI ? ' active' : ''}" data-ollama-mode="openai" onclick="switchOllamaMode('openai')">OpenAI Compatible</button>
+      </div>
+    </div>
     <div class="ollama-status" id="ollama-status">
       <span class="ollama-status-dot" id="ollama-dot"></span>
       <span id="ollama-status-text">Checking connection...</span>
@@ -338,17 +345,23 @@ export function renderAIProviderPanel(provider) {
     <div style="margin-top:8px">
       <label style="font-size:12px;color:var(--text-muted)">Server address</label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-        <input type="text" class="api-key-input" id="ollama-url-input" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
+        <input type="text" class="api-key-input" id="ollama-url-input" value="${config.url}" placeholder="${isOpenAI ? 'http://localhost:1234' : 'http://localhost:11434'}" style="flex:1">
         <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
       </div>
+    </div>
+    <div id="ollama-apikey-section" style="margin-top:8px;${isOpenAI ? '' : 'display:none'}">
+      <label style="font-size:12px;color:var(--text-muted)">API Key <span style="font-size:11px">(optional — most local servers don't need one)</span></label>
+      <input type="password" class="api-key-input" id="ollama-apikey-input" value="${escapeHTML(config.apiKey)}" placeholder="Leave empty if not required" style="margin-top:4px">
     </div>
     <div id="ollama-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
       <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
       <div style="margin-top:4px">${renderModelPricingHint('ollama', '')}</div>
     </div>
-    <div class="api-key-notice" style="margin-top:12px">
-      Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.
+    <div class="api-key-notice" id="ollama-help-notice" style="margin-top:12px">
+      ${isOpenAI
+        ? 'Works with any server that exposes <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code> — <a href="https://lmstudio.ai" target="_blank" rel="noopener" style="color:var(--accent)">LM Studio</a>, <a href="https://jan.ai" target="_blank" rel="noopener" style="color:var(--accent)">Jan</a>, llama.cpp, LocalAI, and others.'
+        : 'Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.'}
     </div>
   </div>`;
 }
@@ -478,6 +491,37 @@ export function switchAIProvider(provider) {
   initSettingsModelFetch();
 }
 
+export function switchOllamaMode(mode) {
+  const config = getOllamaConfig();
+  saveOllamaConfig({ ...config, mode });
+  // Toggle API key visibility
+  const keySection = document.getElementById('ollama-apikey-section');
+  if (keySection) keySection.style.display = mode === 'openai' ? '' : 'none';
+  // Update mode toggle buttons
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.querySelectorAll('[data-ollama-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.ollamaMode === mode));
+  }
+  // Update placeholder
+  const urlInput = document.getElementById('ollama-url-input');
+  if (urlInput) urlInput.placeholder = mode === 'openai' ? 'http://localhost:1234' : 'http://localhost:11434';
+  // Update help notice
+  const notice = document.getElementById('ollama-help-notice');
+  if (notice) {
+    notice.innerHTML = mode === 'openai'
+      ? 'Works with any server that exposes <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code> — <a href="https://lmstudio.ai" target="_blank" rel="noopener" style="color:var(--accent)">LM Studio</a>, <a href="https://jan.ai" target="_blank" rel="noopener" style="color:var(--accent)">Jan</a>, llama.cpp, LocalAI, and others.'
+      : 'Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.';
+  }
+  // Reset status
+  const dot = document.getElementById('ollama-dot');
+  const text = document.getElementById('ollama-status-text');
+  if (dot) dot.className = 'ollama-status-dot';
+  if (text) text.textContent = 'Click Test to check';
+  // Hide model section
+  const modelSection = document.getElementById('ollama-model-section');
+  if (modelSection) modelSection.style.display = 'none';
+}
+
 export function initSettingsModelFetch() {
   const key = getApiKey();
   if (key && document.getElementById('anthropic-model-area')) {
@@ -500,13 +544,16 @@ export function initSettingsModelFetch() {
 }
 
 export function initSettingsOllamaCheck() {
-  const mainUrl = getOllamaConfig().url;
+  const config = getOllamaConfig();
+  const mainUrl = config.url;
+  const isOpenAI = config.mode === 'openai';
   const piiUrl = getOllamaPIIUrl();
   const sameUrl = mainUrl === piiUrl;
 
-  // Check main Ollama if the panel is visible (Ollama provider selected)
+  // Check main Ollama/OpenAI-compatible if the panel is visible (Ollama provider selected)
   if (document.getElementById('ollama-dot')) {
-    checkOllama().then(result => {
+    const checkFn = isOpenAI ? checkOpenAICompatible(mainUrl, config.apiKey) : checkOllama();
+    checkFn.then(result => {
       const dot = document.getElementById('ollama-dot');
       const text = document.getElementById('ollama-status-text');
       const modelSection = document.getElementById('ollama-model-section');
@@ -570,19 +617,24 @@ export async function testOllamaConnection() {
   const modelSelect = document.getElementById('ollama-model-select');
   if (!urlInput || !text) return;
   const url = urlInput.value.trim().replace(/\/+$/, '');
+  const config = getOllamaConfig();
+  const isOpenAI = config.mode === 'openai';
+  const apiKeyInput = document.getElementById('ollama-apikey-input');
+  const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
   text.textContent = 'Testing...';
   dot.className = 'ollama-status-dot';
   try {
-    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    const result = isOpenAI
+      ? await checkOpenAICompatible(url, apiKey)
+      : await checkOllama(url);
+    if (!result.available) throw new Error('Not reachable');
+    const models = result.models;
     if (models.length === 0) {
       dot.classList.add('disconnected');
-      text.textContent = 'Connected but no models found. Run: ollama pull llama3.2';
+      text.textContent = isOpenAI ? 'Connected but no models found. Load a model in your server.' : 'Connected but no models found. Run: ollama pull llama3.2';
     } else {
       dot.classList.add('connected');
-      saveOllamaConfig({ url, model: models[0] });
+      saveOllamaConfig({ ...config, url, model: models[0], apiKey: isOpenAI ? apiKey : config.apiKey });
       if (!localStorage.getItem('labcharts-ollama-model')) setOllamaMainModel(models[0]);
       text.textContent = `Connected (${getOllamaMainModel()})`;
       if (modelSection && modelSelect) {
@@ -596,7 +648,7 @@ export async function testOllamaConnection() {
     updatePrivacyStatusCard();
   } catch {
     dot.classList.add('disconnected');
-    text.textContent = 'Not connected — check URL and ensure Ollama is running';
+    text.textContent = isOpenAI ? 'Not connected — check URL and ensure your server is running' : 'Not connected — check URL and ensure Ollama is running';
   }
 }
 
@@ -841,6 +893,7 @@ Object.assign(window, {
   initSettingsModelFetch,
   initSettingsOllamaCheck,
   updateSettingsUI,
+  switchOllamaMode,
   testOllamaConnection,
   testPIIOllamaConnection,
   updateAnthropicModelPricing,

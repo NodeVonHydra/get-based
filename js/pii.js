@@ -50,8 +50,9 @@ export function fakePatientId() { return randomDigits(10); }
 // OLLAMA INTEGRATION
 // ═══════════════════════════════════════════════
 export function getOllamaConfig() {
-  try { return JSON.parse(localStorage.getItem('labcharts-ollama')) || { url: 'http://localhost:11434', model: 'llama3.2' }; }
-  catch { return { url: 'http://localhost:11434', model: 'llama3.2' }; }
+  const defaults = { url: 'http://localhost:11434', model: 'llama3.2', mode: 'ollama', apiKey: '' };
+  try { return { ...defaults, ...JSON.parse(localStorage.getItem('labcharts-ollama')) }; }
+  catch { return defaults; }
 }
 export function saveOllamaConfig(config) { localStorage.setItem('labcharts-ollama', JSON.stringify(config)); }
 
@@ -62,6 +63,21 @@ export async function checkOllama(url) {
     if (!resp.ok) return { available: false, models: [] };
     const data = await resp.json();
     const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    return { available: true, models };
+  } catch {
+    return { available: false, models: [] };
+  }
+}
+
+export async function checkOpenAICompatible(url, apiKey) {
+  const baseUrl = (url || getOllamaConfig().url).replace(/\/+$/, '');
+  try {
+    const headers = {};
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+    const resp = await fetch(`${baseUrl}/v1/models`, { headers, signal: AbortSignal.timeout(3000) });
+    if (!resp.ok) return { available: false, models: [] };
+    const data = await resp.json();
+    const models = (data.data || []).map(m => m.id).filter(Boolean);
     return { available: true, models };
   } catch {
     return { available: false, models: [] };
@@ -351,4 +367,4 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
   });
 }
 
-Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, showPIIDiffViewer, isOllamaPIIEnabled, setOllamaPIIEnabled });
+Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, checkOpenAICompatible, showPIIDiffViewer, isOllamaPIIEnabled, setOllamaPIIEnabled });

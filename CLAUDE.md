@@ -96,7 +96,7 @@ Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI
 - **OpenRouter** (recommended, first tab): OpenAI-compatible marketplace, 200+ models. `callOpenAICompatibleAPI` with attribution headers. Curated model whitelist (`OPENROUTER_CURATED`) + exclusion list + `OPENROUTER_RECOMMENDED` tier (sorted first, shown in optgroup). Dynamic pricing cached from API. **OAuth PKCE**: `generatePKCE()` + `startOpenRouterOAuth()` + `exchangeOpenRouterCode()` for one-click connect. `main.js` handles `?code=` callback. Button in Settings + chat setup guide. Constraint: callback must be HTTPS or `http://localhost:3000`
 - **Anthropic**: Messages API + SSE streaming. Key: `labcharts-api-key`
 - **Venice**: OpenAI-compatible via shared helper. Key: `labcharts-venice-key`
-- **Ollama**: `/api/chat` + newline-delimited JSON streaming. Local only
+- **Ollama / OpenAI Compatible**: Mode toggle in same panel. Ollama mode: `/api/chat` + newline-delimited JSON. OpenAI Compatible mode: `callOpenAICompatibleLocalAPI` via shared helper — works with LM Studio, Jan, llama.cpp, LocalAI. Config stored in `labcharts-ollama` JSON blob: `{ url, model, mode: 'ollama'|'openai', apiKey }`
 - **Routstr**: Disabled — all code commented with `ROUTSTR DISABLED` markers
 
 ### Header
