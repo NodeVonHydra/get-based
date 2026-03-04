@@ -2544,6 +2544,14 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   margin-bottom: 10px; text-align: center;
 }
 .passphrase-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+.passphrase-strength { margin-bottom: 10px; }
+.passphrase-strength-bars { display: flex; gap: 4px; margin-bottom: 8px; }
+.passphrase-strength-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background 0.2s; }
+.passphrase-rules { list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--text-secondary); }
+.passphrase-rules li { padding: 1px 0; }
+.passphrase-rules li::before { content: '\2715'; margin-right: 6px; color: var(--text-secondary); font-size: 10px; }
+.passphrase-rules li.met { color: var(--green); }
+.passphrase-rules li.met::before { content: '\2713'; color: var(--green); }
 .passphrase-error {
   font-size: 13px; color: var(--red); min-height: 20px; margin-bottom: 8px;
 }
