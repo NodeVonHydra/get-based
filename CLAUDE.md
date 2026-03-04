@@ -31,7 +31,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
   - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone. AI detects test type and uses prefixed categories for specialty labs
-  - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`
+  - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
   - `settings.js` — settings modal, provider panels, privacy section
   - `glossary.js` — marker glossary modal
@@ -43,7 +43,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
-- **`tests/`** — 16 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 17 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -126,7 +126,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-16 browser-based test files run headlessly:
+17 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

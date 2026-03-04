@@ -239,6 +239,26 @@ function renderPassphraseForm(overlay, onSuccess) {
 }
 
 // ═══════════════════════════════════════════════
+// PASSPHRASE VALIDATION
+// ═══════════════════════════════════════════════
+function validatePassphrase(p) {
+  if (p.length < 8) return { valid: false, message: 'At least 8 characters' };
+  if (!/[a-z]/.test(p)) return { valid: false, message: 'At least 1 lowercase letter' };
+  if (!/[A-Z]/.test(p)) return { valid: false, message: 'At least 1 uppercase letter' };
+  if (!/[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)) return { valid: false, message: 'At least 1 special character' };
+  return { valid: true, message: '' };
+}
+
+function getPassphraseStrength(p) {
+  let score = 0;
+  if (p.length >= 8) score++;
+  if (/[a-z]/.test(p)) score++;
+  if (/[A-Z]/.test(p)) score++;
+  if (/[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)) score++;
+  return score; // 0–4
+}
+
+// ═══════════════════════════════════════════════
 // ENABLE / DISABLE ENCRYPTION
 // ═══════════════════════════════════════════════
 export function showEnableEncryptionModal() {
@@ -256,6 +276,20 @@ export function showEnableEncryptionModal() {
       <p class="passphrase-desc">Set a passphrase to encrypt your medical data at rest. <strong>If you forget this passphrase, your data cannot be recovered.</strong></p>
       <input type="password" class="passphrase-input" id="passphrase-set-input" placeholder="Enter passphrase" autocomplete="new-password" autofocus>
       <input type="password" class="passphrase-input" id="passphrase-confirm-input" placeholder="Confirm passphrase" autocomplete="new-password">
+      <div class="passphrase-strength" id="passphrase-strength">
+        <div class="passphrase-strength-bars">
+          <div class="passphrase-strength-bar" data-index="0"></div>
+          <div class="passphrase-strength-bar" data-index="1"></div>
+          <div class="passphrase-strength-bar" data-index="2"></div>
+          <div class="passphrase-strength-bar" data-index="3"></div>
+        </div>
+        <ul class="passphrase-rules" id="passphrase-rules">
+          <li data-rule="length">At least 8 characters</li>
+          <li data-rule="lower">At least 1 lowercase letter</li>
+          <li data-rule="upper">At least 1 uppercase letter</li>
+          <li data-rule="special">At least 1 special character</li>
+        </ul>
+      </div>
       <div class="passphrase-error" id="passphrase-set-error"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="passphrase-btn passphrase-btn-secondary" id="passphrase-set-cancel">Cancel</button>
@@ -270,6 +304,23 @@ export function showEnableEncryptionModal() {
   const cancelBtn = document.getElementById('passphrase-set-cancel');
   const errorEl = document.getElementById('passphrase-set-error');
 
+  // Live strength meter
+  const strengthBars = overlay.querySelectorAll('.passphrase-strength-bar');
+  const ruleItems = overlay.querySelectorAll('.passphrase-rules li');
+  const barColors = ['var(--red)', 'var(--orange)', 'var(--yellow)', 'var(--green)'];
+
+  function updateStrengthMeter() {
+    const p = input1.value;
+    const score = getPassphraseStrength(p);
+    strengthBars.forEach((bar, i) => {
+      bar.style.background = i < score ? barColors[score - 1] : 'var(--border)';
+    });
+    // Update checklist
+    const checks = [p.length >= 8, /[a-z]/.test(p), /[A-Z]/.test(p), /[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)];
+    ruleItems.forEach((li, i) => li.classList.toggle('met', checks[i]));
+  }
+  input1.addEventListener('input', updateStrengthMeter);
+
   cancelBtn.addEventListener('click', () => {
     overlay.style.display = 'none';
     overlay.innerHTML = '';
@@ -279,7 +330,8 @@ export function showEnableEncryptionModal() {
     const p1 = input1.value;
     const p2 = input2.value;
     if (!p1) { errorEl.textContent = 'Please enter a passphrase'; return; }
-    if (p1.length < 4) { errorEl.textContent = 'Passphrase must be at least 4 characters'; return; }
+    const validation = validatePassphrase(p1);
+    if (!validation.valid) { errorEl.textContent = validation.message; return; }
     if (p1 !== p2) { errorEl.textContent = 'Passphrases do not match'; return; }
 
     btn.disabled = true;
@@ -351,6 +403,65 @@ export function maybeShowEncryptionNudge() {
       showEnableEncryptionModal();
     });
   }, 800);
+}
+
+export function maybeShowBackupNudge() {
+  // Skip if no profiles exist
+  const profiles = localStorage.getItem('labcharts-profiles');
+  if (!profiles) return;
+  try { if (JSON.parse(profiles).length === 0) return; } catch { return; }
+  // Skip if folder backup is active and healthy
+  if (_folderHandle && !_folderPermissionLost) return;
+  // Skip if snoozed
+  const snoozedUntil = localStorage.getItem('labcharts-backup-nudge-snoozed-until');
+  if (snoozedUntil && Date.now() < Number(snoozedUntil)) return;
+  // Skip if backed up within 30 days (manual download or folder backup)
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const lastManual = localStorage.getItem('labcharts-last-manual-backup');
+  const lastFolder = localStorage.getItem('labcharts-folder-backup-last');
+  const mostRecent = Math.max(
+    lastManual ? new Date(lastManual).getTime() : 0,
+    lastFolder ? new Date(lastFolder).getTime() : 0
+  );
+  if (mostRecent > 0 && (Date.now() - mostRecent) < THIRTY_DAYS) return;
+  // Skip if another overlay is already showing
+  const overlay = document.getElementById('passphrase-overlay');
+  if (overlay && overlay.style.display === 'flex') return;
+
+  setTimeout(() => {
+    // Re-check overlay (encryption nudge may have appeared during delay)
+    const ov = document.getElementById('passphrase-overlay');
+    if (ov && ov.style.display === 'flex') return;
+
+    let el = document.getElementById('passphrase-overlay');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'passphrase-overlay';
+      el.className = 'passphrase-overlay';
+      document.body.appendChild(el);
+    }
+    el.innerHTML = `
+      <div class="passphrase-dialog" role="dialog" aria-modal="true" aria-label="Backup reminder">
+        <div class="passphrase-icon">&#128190;</div>
+        <h3 class="passphrase-title">Back Up Your Data</h3>
+        <p class="passphrase-desc">Your lab results only exist in this browser. Download a backup to protect against data loss.</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="passphrase-btn passphrase-btn-secondary" id="backup-nudge-snooze">Not Now</button>
+          <button class="passphrase-btn passphrase-btn-primary" id="backup-nudge-download">Download Now</button>
+        </div>
+      </div>`;
+    el.style.display = 'flex';
+    document.getElementById('backup-nudge-snooze').addEventListener('click', () => {
+      localStorage.setItem('labcharts-backup-nudge-snoozed-until', String(Date.now() + THIRTY_DAYS));
+      el.style.display = 'none';
+      el.innerHTML = '';
+    });
+    document.getElementById('backup-nudge-download').addEventListener('click', () => {
+      el.style.display = 'none';
+      el.innerHTML = '';
+      exportEncryptedBackup();
+    });
+  }, 500);
 }
 
 async function migrateSensitiveKeys() {
@@ -603,6 +714,7 @@ export function exportEncryptedBackup() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  localStorage.setItem('labcharts-last-manual-backup', new Date().toISOString());
   showNotification('Backup exported successfully', 'success');
 }
 
@@ -666,19 +778,28 @@ export function importEncryptedBackup(file) {
 // ═══════════════════════════════════════════════
 const BACKUP_DB_NAME = 'labcharts-backups';
 const BACKUP_STORE = 'snapshots';
+const FOLDER_HANDLE_STORE = 'folder-handle';
 const MAX_SNAPSHOTS = 5;
 const AUTO_BACKUP_COOLDOWN = 10000;
 let _autoBackupTimer = null;
 let _dbPromise = null;
 
+// Folder backup state
+let _folderHandle = null;
+let _folderPermissionLost = false;
+let _folderWriteInProgress = false;
+
 export function openBackupDB() {
   if (_dbPromise) return _dbPromise;
   _dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(BACKUP_DB_NAME, 1);
-    req.onupgradeneeded = () => {
+    const req = indexedDB.open(BACKUP_DB_NAME, 2);
+    req.onupgradeneeded = (e) => {
       const db = req.result;
       if (!db.objectStoreNames.contains(BACKUP_STORE)) {
         db.createObjectStore(BACKUP_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains(FOLDER_HANDLE_STORE)) {
+        db.createObjectStore(FOLDER_HANDLE_STORE);
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -720,6 +841,8 @@ async function performAutoBackup() {
     await new Promise((resolve) => { tx2.oncomplete = resolve; tx2.onerror = resolve; });
     localStorage.setItem('labcharts-last-autobackup', snapshot.createdAt);
     showNotification('Auto-backup saved', 'info', 2000);
+    // Fire-and-forget folder backup alongside IndexedDB
+    writeFolderBackup();
   } catch { /* silent — auto-backup is best-effort */ }
 }
 
@@ -786,6 +909,193 @@ export async function restoreAutoBackup(id) {
       setTimeout(() => location.reload(), 1000);
     }
   );
+}
+
+// ═══════════════════════════════════════════════
+// FOLDER BACKUP (File System Access API)
+// ═══════════════════════════════════════════════
+function isFolderBackupSupported() {
+  return typeof window.showDirectoryPicker === 'function';
+}
+
+async function saveFolderHandle(handle) {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readwrite');
+  tx.objectStore(FOLDER_HANDLE_STORE).put(handle, 'handle');
+  await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); });
+}
+
+async function loadFolderHandle() {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readonly');
+  const req = tx.objectStore(FOLDER_HANDLE_STORE).get('handle');
+  return new Promise((resolve) => {
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+
+async function clearFolderHandle() {
+  const db = await openBackupDB();
+  const tx = db.transaction(FOLDER_HANDLE_STORE, 'readwrite');
+  tx.objectStore(FOLDER_HANDLE_STORE).delete('handle');
+  await new Promise((resolve) => { tx.oncomplete = resolve; tx.onerror = resolve; });
+}
+
+export async function initFolderBackup() {
+  if (!isFolderBackupSupported()) return;
+  try {
+    const handle = await loadFolderHandle();
+    if (!handle) return;
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      _folderHandle = handle;
+      _folderPermissionLost = false;
+    } else {
+      _folderHandle = handle;
+      _folderPermissionLost = true;
+    }
+  } catch { /* silent — folder may have been deleted */ }
+}
+
+export async function pickFolderForBackup() {
+  if (!isFolderBackupSupported()) return;
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    // Trial write to verify access
+    const testFile = await handle.getFileHandle('getbased-backup-latest.json', { create: true });
+    const snapshot = buildBackupSnapshot();
+    if (snapshot) {
+      const writable = await testFile.createWritable();
+      await writable.write(JSON.stringify(snapshot, null, 2));
+      await writable.close();
+    }
+    await saveFolderHandle(handle);
+    _folderHandle = handle;
+    _folderPermissionLost = false;
+    localStorage.setItem('labcharts-folder-backup-last', new Date().toISOString());
+    showNotification(`Backup folder set: ${handle.name}`, 'success');
+    refreshFolderBackupUI();
+  } catch (err) {
+    if (err.name === 'AbortError') return; // user cancelled picker
+    showNotification('Could not set backup folder: ' + err.message, 'error');
+  }
+}
+
+export async function reauthorizeFolderBackup() {
+  if (!_folderHandle) return;
+  try {
+    const perm = await _folderHandle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      _folderPermissionLost = false;
+      showNotification('Folder access restored', 'success');
+      refreshFolderBackupUI();
+    } else {
+      showNotification('Permission denied — try picking the folder again', 'error');
+    }
+  } catch (err) {
+    showNotification('Could not restore access: ' + err.message, 'error');
+  }
+}
+
+export function removeFolderBackup() {
+  showConfirmDialog('Stop backing up to this folder?', async () => {
+    _folderHandle = null;
+    _folderPermissionLost = false;
+    await clearFolderHandle();
+    localStorage.removeItem('labcharts-folder-backup-last');
+    showNotification('Folder backup removed', 'info');
+    refreshFolderBackupUI();
+  });
+}
+
+export function getFolderBackupState() {
+  return {
+    supported: isFolderBackupSupported(),
+    folderName: _folderHandle ? _folderHandle.name : null,
+    permissionLost: _folderPermissionLost,
+    lastBackup: localStorage.getItem('labcharts-folder-backup-last') || null
+  };
+}
+
+async function writeFolderBackup() {
+  if (!_folderHandle || _folderPermissionLost || _folderWriteInProgress) return;
+  _folderWriteInProgress = true;
+  try {
+    const perm = await _folderHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      _folderPermissionLost = true;
+      refreshFolderBackupUI();
+      return;
+    }
+    const snapshot = buildBackupSnapshot();
+    if (!snapshot) return;
+    const json = JSON.stringify(snapshot, null, 2);
+    // Always write latest
+    const latestFile = await _folderHandle.getFileHandle('getbased-backup-latest.json', { create: true });
+    const w1 = await latestFile.createWritable();
+    await w1.write(json);
+    await w1.close();
+    // Daily file (once per calendar day)
+    const today = new Date().toISOString().slice(0, 10);
+    const dailyName = `getbased-backup-${today}.json`;
+    try {
+      await _folderHandle.getFileHandle(dailyName, { create: false });
+      // Already exists — skip
+    } catch {
+      // Doesn't exist — create it
+      const dailyFile = await _folderHandle.getFileHandle(dailyName, { create: true });
+      const w2 = await dailyFile.createWritable();
+      await w2.write(json);
+      await w2.close();
+    }
+    localStorage.setItem('labcharts-folder-backup-last', new Date().toISOString());
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      _folderPermissionLost = true;
+      refreshFolderBackupUI();
+    } else if (err.name === 'QuotaExceededError') {
+      showNotification('Backup folder is full — free up disk space', 'error');
+    } else {
+      showNotification('Folder backup failed: ' + err.message, 'error');
+    }
+  } finally {
+    _folderWriteInProgress = false;
+  }
+}
+
+function refreshFolderBackupUI() {
+  const el = document.getElementById('backup-folder-section');
+  if (el) el.innerHTML = renderFolderBackupSection();
+}
+
+function renderFolderBackupSection() {
+  if (!isFolderBackupSupported()) return '';
+  const st = getFolderBackupState();
+  let html = '<div class="backup-folder-section">';
+  html += '<div class="backup-folder-desc">Sync backups to a local folder (Proton Drive, Dropbox, NAS, etc.)</div>';
+  if (!st.folderName) {
+    // No folder set
+    html += '<button class="import-btn import-btn-secondary" onclick="pickFolderForBackup()">Set backup folder</button>';
+  } else if (st.permissionLost) {
+    // Permission lost
+    html += `<div class="backup-folder-status backup-folder-status-warn">Folder: ${escapeHTML(st.folderName)} — access lost</div>`;
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="import-btn import-btn-primary" onclick="reauthorizeFolderBackup()">Restore access</button>';
+    html += '<button class="import-btn import-btn-secondary" onclick="removeFolderBackup()">Remove</button>';
+    html += '</div>';
+  } else {
+    // Active
+    const lastLabel = st.lastBackup ? new Date(st.lastBackup).toLocaleString() : 'never';
+    html += `<div class="backup-folder-status backup-folder-status-ok">Folder: ${escapeHTML(st.folderName)}</div>`;
+    html += `<div class="backup-folder-meta">Last folder backup: ${escapeHTML(lastLabel)}</div>`;
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="import-btn import-btn-secondary" onclick="pickFolderForBackup()">Change folder</button>';
+    html += '<button class="import-btn import-btn-secondary" onclick="removeFolderBackup()">Remove</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
 }
 
 // ═══════════════════════════════════════════════
@@ -868,7 +1178,8 @@ export function renderBackupSection() {
     <span class="privacy-configure-arrow" id="backup-snapshots-arrow">&#9654;</span>
     Recent snapshots
   </div>
-  <div class="backup-snapshot-list" id="backup-snapshot-list" style="display:none"></div>`;
+  <div class="backup-snapshot-list" id="backup-snapshot-list" style="display:none"></div>
+  <div id="backup-folder-section">${renderFolderBackupSection()}</div>`;
 }
 
 export async function loadBackupSnapshots() {
@@ -917,6 +1228,7 @@ Object.assign(window, {
   encryptedGetItem,
   showEnableEncryptionModal,
   maybeShowEncryptionNudge,
+  maybeShowBackupNudge,
   disableEncryption,
   changePassphrase,
   exportEncryptedBackup,
@@ -932,4 +1244,9 @@ Object.assign(window, {
   openBackupDB,
   loadBackupSnapshots,
   toggleBackupSnapshots,
+  initFolderBackup,
+  pickFolderForBackup,
+  reauthorizeFolderBackup,
+  removeFolderBackup,
+  getFolderBackupState,
 });

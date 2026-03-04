@@ -7,6 +7,7 @@ const puppeteer = require('puppeteer');
 
 const TEST_FILES = [
   'tests/test-crypto.js',
+  'tests/test-folder-backup.js',
   'tests/test-chat-threads.js',
   'tests/test-chat-actions.js',
   'tests/test-mobile.js',
