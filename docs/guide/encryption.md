@@ -19,31 +19,50 @@ When you open getbased, you are prompted for your passphrase to decrypt and load
 There is no passphrase recovery. If you forget your passphrase, your data cannot be decrypted. Make sure to export a plaintext JSON backup before enabling encryption, or store your passphrase somewhere safe.
 :::
 
-## Automatic Backups
+### Passphrase Requirements
 
-getbased automatically backs up your data using **IndexedDB** as a secondary storage layer. Backups happen in the background:
+Passphrases must meet all four rules:
+
+- At least **8 characters**
+- At least **1 lowercase** letter
+- At least **1 uppercase** letter
+- At least **1 special character** (`!@#$%^&*` etc.)
+
+A live strength meter with a color-coded bar and checklist shows your progress as you type. The encryption button is disabled until all rules pass.
+
+### Encryption Nudge
+
+After your first PDF import, getbased shows a one-time prompt suggesting you enable encryption. This is a reminder, not a requirement — you can dismiss it and enable encryption later from Settings.
+
+## Three Backup Layers
+
+getbased protects your data with three independent backup mechanisms:
+
+### 1. IndexedDB Auto-Backup
+
+Automatic in-browser snapshots happen in the background:
 
 - A backup is triggered 60 seconds after any data change (debounced — rapid changes only trigger one backup)
 - Up to **5 snapshots** are stored; the oldest is pruned when a new one is added
 - Each snapshot includes all your lab entries, context cards, notes, supplements, cycle data, and per-profile preferences
 
-## Restoring a Backup
+Go to **Settings → Data → Backup & Restore** to see your saved snapshots. Each entry shows the date and time it was created. Click **Restore** next to any snapshot to roll back.
 
-Go to **Settings → Backup & Restore** to see your saved snapshots. Each entry shows the date and time it was created. Click **Restore** next to any snapshot to:
+### 2. Folder Backup
 
-1. See a confirmation prompt
-2. Write that snapshot back to localStorage
-3. Reload the app with the restored data
+Auto-save to a local folder on your computer — Proton Drive, Dropbox, NAS, or any location you trust. This uses the File System Access API (Chromium browsers only). See [Folder Backup](./folder-backup.md) for full details.
 
-This is useful if you accidentally clear data, import a bad file, or just want to roll back to an earlier state.
+### 3. Manual JSON Export
+
+Download a plaintext copy of all your data at any time. Store it somewhere safe (a password manager, encrypted drive, or offline backup). See [JSON Export & Import](./json-export-import.md) for details.
+
+### Backup Reminder
+
+If you haven't configured folder backup and haven't manually exported in over 30 days, getbased shows a gentle reminder nudge. You can snooze it for another 30 days or set up folder backup to dismiss it permanently.
 
 ::: tip
-You can also restore a backup even without a passphrase configured — backups follow the same encryption state as your main data at the time they were created.
+You can restore a backup even without a passphrase configured — backups follow the same encryption state as your main data at the time they were created.
 :::
-
-## Manual Export
-
-For an additional safety net, use **Export JSON** in the Data & Notes section to download a plaintext copy of all your data at any time. Store it somewhere safe (a password manager, encrypted drive, or offline backup). See [JSON Export & Import](/guide/json-export-import) for details.
 
 ## What Is and Is Not Encrypted
 
