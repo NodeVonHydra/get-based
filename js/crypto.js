@@ -239,6 +239,26 @@ function renderPassphraseForm(overlay, onSuccess) {
 }
 
 // ═══════════════════════════════════════════════
+// PASSPHRASE VALIDATION
+// ═══════════════════════════════════════════════
+function validatePassphrase(p) {
+  if (p.length < 8) return { valid: false, message: 'At least 8 characters' };
+  if (!/[a-z]/.test(p)) return { valid: false, message: 'At least 1 lowercase letter' };
+  if (!/[A-Z]/.test(p)) return { valid: false, message: 'At least 1 uppercase letter' };
+  if (!/[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)) return { valid: false, message: 'At least 1 special character' };
+  return { valid: true, message: '' };
+}
+
+function getPassphraseStrength(p) {
+  let score = 0;
+  if (p.length >= 8) score++;
+  if (/[a-z]/.test(p)) score++;
+  if (/[A-Z]/.test(p)) score++;
+  if (/[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)) score++;
+  return score; // 0–4
+}
+
+// ═══════════════════════════════════════════════
 // ENABLE / DISABLE ENCRYPTION
 // ═══════════════════════════════════════════════
 export function showEnableEncryptionModal() {
@@ -256,6 +276,20 @@ export function showEnableEncryptionModal() {
       <p class="passphrase-desc">Set a passphrase to encrypt your medical data at rest. <strong>If you forget this passphrase, your data cannot be recovered.</strong></p>
       <input type="password" class="passphrase-input" id="passphrase-set-input" placeholder="Enter passphrase" autocomplete="new-password" autofocus>
       <input type="password" class="passphrase-input" id="passphrase-confirm-input" placeholder="Confirm passphrase" autocomplete="new-password">
+      <div class="passphrase-strength" id="passphrase-strength">
+        <div class="passphrase-strength-bars">
+          <div class="passphrase-strength-bar" data-index="0"></div>
+          <div class="passphrase-strength-bar" data-index="1"></div>
+          <div class="passphrase-strength-bar" data-index="2"></div>
+          <div class="passphrase-strength-bar" data-index="3"></div>
+        </div>
+        <ul class="passphrase-rules" id="passphrase-rules">
+          <li data-rule="length">At least 8 characters</li>
+          <li data-rule="lower">At least 1 lowercase letter</li>
+          <li data-rule="upper">At least 1 uppercase letter</li>
+          <li data-rule="special">At least 1 special character</li>
+        </ul>
+      </div>
       <div class="passphrase-error" id="passphrase-set-error"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button class="passphrase-btn passphrase-btn-secondary" id="passphrase-set-cancel">Cancel</button>
@@ -270,6 +304,23 @@ export function showEnableEncryptionModal() {
   const cancelBtn = document.getElementById('passphrase-set-cancel');
   const errorEl = document.getElementById('passphrase-set-error');
 
+  // Live strength meter
+  const strengthBars = overlay.querySelectorAll('.passphrase-strength-bar');
+  const ruleItems = overlay.querySelectorAll('.passphrase-rules li');
+  const barColors = ['var(--red)', 'var(--orange)', 'var(--yellow)', 'var(--green)'];
+
+  function updateStrengthMeter() {
+    const p = input1.value;
+    const score = getPassphraseStrength(p);
+    strengthBars.forEach((bar, i) => {
+      bar.style.background = i < score ? barColors[score - 1] : 'var(--border)';
+    });
+    // Update checklist
+    const checks = [p.length >= 8, /[a-z]/.test(p), /[A-Z]/.test(p), /[!@#$%^&*()\-_=+\[\]{};:'",.<>?/\\|`~]/.test(p)];
+    ruleItems.forEach((li, i) => li.classList.toggle('met', checks[i]));
+  }
+  input1.addEventListener('input', updateStrengthMeter);
+
   cancelBtn.addEventListener('click', () => {
     overlay.style.display = 'none';
     overlay.innerHTML = '';
@@ -279,7 +330,8 @@ export function showEnableEncryptionModal() {
     const p1 = input1.value;
     const p2 = input2.value;
     if (!p1) { errorEl.textContent = 'Please enter a passphrase'; return; }
-    if (p1.length < 4) { errorEl.textContent = 'Passphrase must be at least 4 characters'; return; }
+    const validation = validatePassphrase(p1);
+    if (!validation.valid) { errorEl.textContent = validation.message; return; }
     if (p1 !== p2) { errorEl.textContent = 'Passphrases do not match'; return; }
 
     btn.disabled = true;
