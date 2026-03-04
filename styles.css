@@ -161,10 +161,16 @@ body {
 }
 .sidebar-group-header:not(.collapsed) .sidebar-group-arrow { transform: rotate(90deg); }
 .main { flex: 1; padding: 24px 32px; max-width: calc(100vw - 260px); }
-.app-disclaimer { font-size: 11px; color: var(--text-muted); text-align: center; margin: 32px 0 8px; line-height: 1.5; }
-.app-footer-version { font-size: 11px; color: var(--text-muted); text-align: center; margin: 4px 0 16px; font-family: var(--font-mono); opacity: 0.6; }
+.app-footer { border-top: 1px solid var(--border); padding: 32px; }
+.app-footer-row { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+.app-footer-logo { font-family: var(--font-display); font-weight: 800; font-size: 18px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.app-footer-socials { display: flex; gap: 16px; align-items: center; }
+.app-footer-socials a { color: var(--text-muted); transition: color 0.2s; display: inline-flex; }
+.app-footer-socials a:hover { color: var(--text-primary); }
+.app-footer-version { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.6; }
 .app-footer-version a { color: var(--text-muted); text-decoration: none; }
 .app-footer-version a:hover { color: var(--accent); text-decoration: underline; }
+.app-footer-disclaimer { font-size: 11px; color: var(--text-muted); text-align: center; max-width: 1200px; margin: 12px auto 0; line-height: 1.5; }
 .category-header { margin-bottom: 24px; }
 .category-header h2 {
   font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.3px;
@@ -406,6 +412,8 @@ body {
   .header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
   .header-info { gap: 10px; }
   .modal-values-grid { grid-template-columns: 1fr; }
+  .app-footer { padding: 24px 16px; }
+  .app-footer-row { flex-direction: column; gap: 16px; text-align: center; }
 }
 /* Sex Toggle */
 .sex-toggle { display: flex; align-items: center; gap: 4px; }
@@ -2038,7 +2046,6 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 }
 .glossary-btn:hover { color: var(--accent); border-color: var(--accent); }
 .glossary-btn svg { vertical-align: middle; }
-.discord-btn { display: inline-flex; align-items: center; justify-content: center; }
 .donate-btn { display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-family: inherit; font-weight: 500; color: #f7931a; border-color: #f7931a; }
 .donate-btn:hover { background: #f7931a; color: #fff; }
 .glossary-modal {
