@@ -34,7 +34,7 @@
   assert('SW uses importScripts for version', swAuditSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swAuditSrc.includes('`labcharts-v${self.APP_VERSION}`'));
   assert('Umami analytics script present', indexSrc.includes('cloud.umami.is/script.js'));
-  assert('Umami script is deferred', indexSrc.includes('defer src="https://cloud.umami.is/script.js"'));
+  assert('Umami blocked on file:// protocol', indexSrc.includes("location.protocol!=='file:'"));
 
   // ═══════════════════════════════════════
   // 3. XSS: escapeHTML in views.js
