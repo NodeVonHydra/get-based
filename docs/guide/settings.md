@@ -1,6 +1,6 @@
 # Settings
 
-Open Settings by clicking the gear icon in the header. Settings are organized into four sections: Profile, Display, AI Provider, and PDF Import Privacy.
+Open Settings by clicking the gear icon in the header. Settings are organized into six sections: Profile, Display, AI Provider, PDF Import Privacy, Security, and Data.
 
 ## Profile
 
@@ -81,6 +81,36 @@ Expand the **Configure** panel to:
 - Enable debug mode to view a before/after diff of what was replaced in your PDF text
 
 See [PII Obfuscation](./pii-obfuscation.md) for a full explanation of how this works.
+
+## Security
+
+### Encryption
+
+Enable AES-256-GCM encryption at rest with a passphrase. When enabled, all health data is encrypted before being written to localStorage. See [Encryption](./encryption.md) for details.
+
+Passphrases must meet strength requirements: at least 8 characters, with mixed case and a special character. A live strength meter shows progress as you type.
+
+### Change / Disable
+
+You can change your passphrase or disable encryption from this section. Disabling encryption decrypts all data back to plaintext.
+
+## Data
+
+### Backup & Restore
+
+View and restore IndexedDB auto-backup snapshots (up to 5 rolling copies). See [Encryption](./encryption.md#automatic-backups) for how auto-backup works.
+
+### Folder Backup
+
+Pick a local folder (Proton Drive, Dropbox, NAS) to auto-save backups using the File System Access API. See [Folder Backup](./folder-backup.md) for details.
+
+### Export & Import
+
+Quick access to JSON export (current profile) and data clearing. For full export options including per-client and database bundles, see [JSON Export & Import](./json-export-import.md).
+
+### Recommendations
+
+Toggle supplement and lifestyle recommendations on or off. When enabled, flagged markers show contextual suggestions in the detail modal, chat, and context card health dots.
 
 ::: tip Settings are stored locally
 All settings — API keys, unit preferences, theme, provider choice — are stored in your browser's localStorage. They never leave your device.

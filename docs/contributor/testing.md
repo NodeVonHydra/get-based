@@ -38,25 +38,28 @@ Every test file defines a local `assert` helper and collects results:
 
 The `detail` argument appears in the failure output — use it to print the actual value that caused the failure.
 
-## The 13 test files
+## The 17 test files
 
 All test files live in the `tests/` directory.
 
 | File | What it covers |
 |---|---|
 | `tests/test-audit.js` | Security audit: XSS escaping, null guards, div-by-zero, JSON.parse guards, focus trapping |
+| `tests/test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
 | `tests/test-chat-actions.js` | Chat message action buttons: regenerate, copy, read aloud, context, sources (OpenAlex) |
 | `tests/test-chat-threads.js` | Chat thread CRUD, auto-naming, migration, encryption patterns, backup inclusion |
-| `tests/test-crypto.js` | AES-256-GCM encryption, PBKDF2, IndexedDB auto-backup (20+ sections) |
+| `tests/test-crypto.js` | AES-256-GCM encryption, PBKDF2, IndexedDB auto-backup, passphrase validation (20+ sections) |
 | `tests/test-custom-personality.js` | Named custom personalities: storage, icon picker, generation, dirty state, thread metadata |
 | `tests/test-cycle-improvements.js` | Phase-aware ranges, cycle iron alerts, perimenopause detection, heavy flow alerts |
 | `tests/test-cycle-tour.js` | Cycle spotlight tour: 8 steps, DOM elements, auto-trigger, storage key |
 | `tests/test-demo.js` | Demo data files: v2 structure, structured context cards, menstrual cycle for Sarah |
+| `tests/test-folder-backup.js` | Folder backup: File System Access API, snapshot format, daily filenames, IndexedDB v2 handle persistence |
 | `tests/test-mobile.js` | Responsive layout: breakpoints, grid overflow, touch tap targets, safe grid sizing |
 | `tests/test-openrouter.js` | OpenRouter provider: curated model list, pricing cache, exclude blocklist, model fetch |
 | `tests/test-phase-ranges.js` | Phase-aware reference ranges for estradiol and progesterone aligned with dates |
+| `tests/test-prelab.js` | Pre-lab onboarding: context assembly without data, chat prompts |
 | `tests/test-routstr.js` | ROUTSTR DISABLED markers: verifies all commented-out code is correctly disabled |
-| `tests/test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
+| `tests/test-schema.js` | MARKER_SCHEMA integrity, unit conversions, optimal ranges, phase ranges |
 | `tests/test-tour.js` | App tour: 7 steps, spotlight DOM, positioning, escape key, completion flag (154 assertions) |
 
 The landing page test (`test-landing.js`) lives in the [get-based-site](https://github.com/elkimek/get-based-site) repo.

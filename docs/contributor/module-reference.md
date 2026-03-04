@@ -1,6 +1,6 @@
 # Module Reference
 
-All 25 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 27 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -213,7 +213,7 @@ Chart.js configuration and all custom plugins.
 **Key exports:**
 - `createLineChart(canvasId, marker, data, phaseLabels?)` — creates a Chart.js line chart with all plugins applied
 - `destroyAllCharts()` — destroys all instances in `state.chartInstances` to prevent memory leaks
-- Four Chart.js plugins (registered globally):
+- Five Chart.js plugins (registered globally):
   - `refBandPlugin` — shaded reference range band
   - `optimalBandPlugin` — green dashed optimal range band
   - `noteAnnotationPlugin` — yellow dot annotations at note dates with hover tooltips
@@ -313,12 +313,15 @@ Full PDF-to-lab-data import pipeline.
 Data export, import, and reset.
 
 **Key exports:**
-- `exportToJSON()` — exports v2 JSON: `{ version: 2, exportedAt, entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`
-- `importFromJSON(file)` — merges entries by date, deduplicates notes, overwrites context fields, merges healthGoals by text
+- `exportToJSON()` — exports v2 JSON for the current profile: `{ version: 2, exportedAt, entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`
+- `exportClientJSON(profileId)` — exports a single client's data (used from Client List ⋮ menu)
+- `exportAllDataJSON()` — exports a full database bundle with all profiles, chat threads, custom personalities, and settings
+- `buildAllDataBundle()` — builds the bundle object used by both `exportAllDataJSON()` and folder backup
+- `importFromJSON(file)` — merges entries by date, deduplicates notes, overwrites context fields, merges healthGoals by text. Auto-detects database bundles and handles multi-profile merge
 - `exportToPDF()` — generates a printable PDF report with all data, charts, and context cards
 - `clearAllData()` — confirms and wipes all imported data for the current profile
 
-**Window exports:** `exportToJSON`, `importFromJSON`, `exportToPDF`, `clearAllData`
+**Window exports:** `exportToJSON`, `exportDataJSON`, `exportClientJSON`, `exportAllDataJSON`, `importFromJSON`, `exportToPDF`, `clearAllData`
 
 ---
 
@@ -460,17 +463,46 @@ What's New modal triggered on version bump so users see what changed after each 
 
 ---
 
+### `client-list.js`
+
+Client List modal for managing multiple profiles.
+
+**Key exports:**
+- `openClientListModal()` / `closeClientListModal()` — modal lifecycle
+- `renderClientList(query?, sortBy?)` — renders searchable, sortable profile list with inline create/edit form
+- Per-profile actions: archive, flag, pin, delete, per-client export
+
+**Window exports:** `openClientListModal`, `closeClientListModal`, `createClientInline`, `saveClientInline`, `toggleArchiveClient`, `toggleFlagClient`, `togglePinClient`, `deleteClient`, `exportClientJSON`
+
+---
+
+### `recommendations.js`
+
+Supplement and lifestyle recommendations driven by a lazy-loaded catalog.
+
+**Key exports:**
+- `loadRecommendations()` — lazy-loads `data/recommendations-czsk.json` on first call
+- `getMarkerRecommendations(markerKey, status)` — returns food sources, supplements, and lifestyle tips for a flagged marker
+- `scanChatForRecommendations(text)` — keyword scanner that maps AI chat text to recommendation slots
+- `renderRecommendationCards(markerKey, status)` — renders the "What can help" section in the detail modal
+
+**Window exports:** none (called via imports from `views.js`, `chat.js`, `context-cards.js`)
+
+---
+
 ### `crypto.js`
 
-Data encryption at rest and IndexedDB auto-backup.
+Data encryption at rest, IndexedDB auto-backup, and folder backup.
 
 **Key exports:**
 - `encryptedSetItem(key, value)` / `encryptedGetItem(key)` — AES-256-GCM via PBKDF2 passphrase
 - `getEncryptionEnabled()` / `setEncryptionEnabled(bool)` — encryption toggle
-- `scheduleAutoBackup()` — debounced 60s trigger; saves up to 5 snapshots to IndexedDB
+- `validatePassphrase(p)` — checks 4 strength rules (8+ chars, lowercase, uppercase, special), returns `{ valid, message }`
+- `scheduleAutoBackup()` — debounced 60s trigger; saves up to 5 snapshots to IndexedDB + writes to folder backup if configured
 - `buildBackupSnapshot()` — captures all importedData + per-profile preferences
 - `restoreAutoBackup(id)` — writes snapshot to localStorage, reloads
+- `saveFolderBackup(snapshot)` — writes `getbased-backup-latest.json` + daily dated snapshot to user-selected folder via File System Access API
 - `broadcastDataChanged(profileId)` — BroadcastChannel message for multi-tab sync
 - `SENSITIVE_PATTERNS` — array of localStorage key pattern strings that get encrypted
 
-**Window exports:** `setEncryptionEnabled`, `changePassphrase`, `restoreAutoBackup`, `exportBackup`, `importBackup`
+**Window exports:** `setEncryptionEnabled`, `changePassphrase`, `restoreAutoBackup`, `exportBackup`, `importBackup`, `pickBackupFolder`, `showBackupReminder`

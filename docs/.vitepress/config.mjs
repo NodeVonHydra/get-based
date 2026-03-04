@@ -76,9 +76,10 @@ export default defineConfig({
           ]
         },
         {
-          text: 'Security',
+          text: 'Security & Backup',
           items: [
-            { text: 'Encryption', link: '/guide/encryption' }
+            { text: 'Encryption', link: '/guide/encryption' },
+            { text: 'Folder Backup', link: '/guide/folder-backup' }
           ]
         }
       ],

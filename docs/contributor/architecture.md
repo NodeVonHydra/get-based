@@ -24,7 +24,7 @@ data/
   demo-male.json    — Male demo profile (Alex)
 
 tests/
-  test-*.js         — 13 browser-based test files
+  test-*.js         — 17 browser-based test files
   verify-modules.js — Module integrity assertions
 
 js/
@@ -38,21 +38,23 @@ js/
   profile.js        — Profile CRUD, sex/DOB/location, migrateProfileData, profile dropdown
   data.js           — getActiveData() pipeline, unit conversion, date range, saveImportedData
   pii.js            — PII obfuscation: Ollama path + regex fallback, diff viewer
-  charts.js         — Chart.js plugins (4), createLineChart, destroyAllCharts
+  charts.js         — Chart.js plugins (5), createLineChart, destroyAllCharts
   notes.js          — Note editor: open/save/delete
   supplements.js    — Supplement editor and rendering
   cycle.js          — Menstrual cycle helpers, editor, dashboard rendering
   context-cards.js  — 9 context card editors, health dots, AI tips, summaries
   pdf-import.js     — PDF pipeline, batch import, import preview, drop zone
-  export.js         — JSON export/import, PDF report, clearAllData
+  export.js         — JSON export/import (single, per-client, database bundle), PDF report, clearAllData
   chat.js           — Chat panel, buildLabContext, markdown, personalities, per-marker AI
+  client-list.js    — Client List modal: search/sort/filter profiles, inline CRUD, archive/flag/pin
+  recommendations.js — Supplement & lifestyle recommendations, lazy catalog, 3 touchpoints
   settings.js       — Settings modal: profile, display, AI providers, privacy, security, backup
   glossary.js       — Marker glossary modal
   feedback.js       — Feedback modal (bug reports, feature requests)
   tour.js           — Guided tour spotlight engine (app tour + cycle tour)
   nav.js            — Sidebar, date range filter, chart layers dropdown
   views.js          — navigate(), dashboard, category views, modals, manual entry, onboarding
-  crypto.js         — AES-256-GCM encryption, IndexedDB auto-backup, backup restore
+  crypto.js         — AES-256-GCM encryption, IndexedDB auto-backup, folder backup, backup restore
 ```
 
 ## Entry point
