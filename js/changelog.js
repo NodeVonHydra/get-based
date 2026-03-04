@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.0', date: '2026-03-04', title: 'OpenAI-Compatible Local Servers',
+    items: [
+      'LM Studio, Jan, llama.cpp, LocalAI, and other OpenAI-compatible servers now supported',
+      'Mode toggle in Local AI settings \u2014 switch between Ollama and OpenAI Compatible',
+      'Optional API key field for servers that require authentication',
+      'Auto-discovers models from any /v1/models endpoint',
+    ]
+  },
+  {
     version: '1.2.3', date: '2026-03-04', title: 'Folder Backup & Security',
     items: [
       'Auto-backup to a local folder (Proton Drive, Dropbox, NAS, etc.)',

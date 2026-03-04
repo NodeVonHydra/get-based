@@ -542,6 +542,14 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
   }
 }
 
+export async function callOpenAICompatibleLocalAPI(opts) {
+  const config = window.getOllamaConfig();
+  const model = getOllamaMainModel();
+  const url = config.url.replace(/\/+$/, '');
+  const key = config.apiKey || 'not-needed';
+  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', opts);
+}
+
 export async function callVeniceAPI(opts) {
   const key = getVeniceKey();
   if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
@@ -576,7 +584,11 @@ export async function validateVeniceKey(key) {
 
 export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
-  if (provider === 'ollama') return callOllamaChat(opts);
+  if (provider === 'ollama') {
+    const config = window.getOllamaConfig();
+    if (config.mode === 'openai') return callOpenAICompatibleLocalAPI(opts);
+    return callOllamaChat(opts);
+  }
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
   // ROUTSTR DISABLED: if (provider === 'routstr') return callRoutstrAPI(opts);
@@ -606,5 +618,5 @@ Object.assign(window, {
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
-  callAnthropicAPI, callOllamaChat, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
+  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
 });
