@@ -11,6 +11,7 @@ const CHANGELOG = [
       'Mode toggle in Local AI settings \u2014 switch between Ollama and OpenAI Compatible',
       'Optional API key field for servers that require authentication',
       'Auto-discovers models from any /v1/models endpoint',
+      'Editable PII review \u2014 fix remaining personal info before sending to AI',
     ]
   },
   {

@@ -706,8 +706,9 @@ export async function handlePDFFile(file) {
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
 
     if (isPIIReviewEnabled()) {
-      const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
-      if (decision === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+      const reviewResult = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
+      if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+      textForAI = reviewResult;
     }
 
     await showImportProgress(2, file.name);
@@ -792,8 +793,9 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
 
   if (isPIIReviewEnabled()) {
-    const decision = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
-    if (decision === 'cancel') { return 'skipped'; }
+    const reviewResult = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
+    if (reviewResult === 'cancel') { return 'skipped'; }
+    textForAI = reviewResult;
   }
 
   await showBatchImportProgress(2, file.name, fileNum, totalFiles);
