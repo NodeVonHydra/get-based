@@ -200,9 +200,6 @@ export function showDashboard(data) {
     html += `</div>`;
   }
 
-  html += `<p class="app-disclaimer">For educational and informational purposes only. Not medical advice. Always consult a qualified healthcare provider before making health decisions.</p>`;
-  html += `<p class="app-footer-version">v${escapeHTML(window.APP_VERSION || '')} · <span id="app-commit-hash">···</span></p>`;
-
   main.innerHTML = html;
 
   for (const km of keyMarkers) {
@@ -224,6 +221,8 @@ export function showDashboard(data) {
 
 let _cachedCommitHash = null;
 function loadCommitHash() {
+  const vEl = document.getElementById('app-version-text');
+  if (vEl && !vEl.textContent) vEl.textContent = window.APP_VERSION || '';
   const el = document.getElementById('app-commit-hash');
   if (!el) return;
   if (_cachedCommitHash) { el.innerHTML = `<a href="https://github.com/elkimek/get-based/commit/${_cachedCommitHash}" target="_blank" rel="noopener">${_cachedCommitHash}</a>`; return; }
