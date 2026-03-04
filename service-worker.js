@@ -63,6 +63,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Skip non-http(s) schemes (chrome-extension://, etc.) — Cache API only supports http/https
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return;
+
   // Network-only: API calls (Anthropic, OpenRouter, Venice, OpenAlex, Ollama) — do NOT
   // intercept so streaming ReadableStream goes directly to the page without SW IPC buffering
   if (url.hostname === 'api.anthropic.com' || url.hostname === 'openrouter.ai' || /* ROUTSTR DISABLED: url.hostname === 'api.routstr.com' || */ url.hostname === 'api.venice.ai' || url.hostname === 'api.openalex.org' || url.hostname === 'api.github.com' || url.hostname === 'cloud.umami.is' || url.hostname === 'api-gateway.umami.dev' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {

@@ -25,7 +25,7 @@ import { maybeShowChangelog } from './changelog.js';
 import { buildSidebar, renderProfileDropdown } from './nav.js';
 import './client-list.js';
 import './views.js';
-import { initEncryption, initBroadcastChannel, encryptedGetItem } from './crypto.js';
+import { initEncryption, initBroadcastChannel, initFolderBackup, encryptedGetItem, maybeShowBackupNudge } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // INIT
@@ -35,6 +35,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initEncryption();
   // Initialize cross-tab sync
   initBroadcastChannel();
+  // Initialize folder backup (restore persisted handle, check permission)
+  await initFolderBackup();
 
   // Handle OpenRouter OAuth callback (?code=...)
   const urlParams = new URLSearchParams(window.location.search);
@@ -99,6 +101,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   buildSidebar();
   window.showDashboard();
   maybeShowChangelog();
+  setTimeout(() => {
+    const overlay = document.getElementById('passphrase-overlay');
+    if (overlay && overlay.style.display === 'flex') return;
+    maybeShowBackupNudge();
+  }, 1500);
   if (window._openSettingsAfterInit) {
     window.openSettingsModal(window._openSettingsAfterInit);
     delete window._openSettingsAfterInit;
