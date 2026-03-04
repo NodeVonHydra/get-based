@@ -301,18 +301,18 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
   return new Promise(resolve => {
     const overlay = document.createElement('div');
     overlay.className = 'pii-warning-overlay';
-    const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
+    const { leftHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
     overlay.innerHTML = `
       <div class="pii-diff-modal">
-        <h3>&#128274; Review — This is what AI will receive</h3>
-        <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">Personal information on the left has been replaced with fake data on the right. Verify no sensitive data remains before sending.</p>
+        <h3>&#128274; Review &amp; Edit — This is what AI will receive</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">Personal information on the left has been replaced with fake data on the right. You can edit the right side to fix any remaining PII before sending.</p>
         <div class="pii-search-bar">
           <input type="text" class="pii-search-input" id="pii-search-input" placeholder="Search for your name, address, phone\u2026" autocomplete="off">
           <span class="pii-search-count" id="pii-search-count"></span>
         </div>
         <div class="pii-diff-viewer">
           <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
-          <div class="pii-diff-right"><div class="pii-diff-header">Sent to AI</div>${rightHtml}</div>
+          <div class="pii-diff-right"><div class="pii-diff-header">Sent to AI (editable)</div><textarea class="pii-edit-textarea" id="pii-edit-textarea" spellcheck="false">${escapeHTML(obfuscatedText)}</textarea></div>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
           <button class="import-btn import-btn-secondary" id="pii-review-cancel">Cancel Import</button>
@@ -322,38 +322,21 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('show'));
 
-    // PII search — highlights matches in the "Sent to AI" column
     const searchInput = overlay.querySelector('#pii-search-input');
     const searchCount = overlay.querySelector('#pii-search-count');
-    const rightPanel = overlay.querySelector('.pii-diff-right');
-    const rightDivs = rightPanel.querySelectorAll('div:not(.pii-diff-header)');
-    const obfLines = obfuscatedText.split('\n');
+    const textarea = overlay.querySelector('#pii-edit-textarea');
 
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
-      let total = 0;
-      rightDivs.forEach((div, i) => {
-        const line = obfLines[i] || '';
-        if (!query || query.length < 2) {
-          div.innerHTML = escapeHTML(line) || '&nbsp;';
-          return;
-        }
-        const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        const matches = line.match(regex);
-        if (matches) {
-          total += matches.length;
-          div.innerHTML = escapeHTML(line).replace(
-            new RegExp(escapeHTML(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
-            m => `<mark class="pii-search-hit">${m}</mark>`
-          );
-        } else {
-          div.innerHTML = escapeHTML(line) || '&nbsp;';
-        }
-      });
       if (!query || query.length < 2) {
         searchCount.textContent = '';
         searchCount.className = 'pii-search-count';
-      } else if (total > 0) {
+        return;
+      }
+      const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      const matches = textarea.value.match(regex);
+      const total = matches ? matches.length : 0;
+      if (total > 0) {
         searchCount.textContent = `${total} found — PII may still be present`;
         searchCount.className = 'pii-search-count pii-search-warn';
       } else {
@@ -362,7 +345,7 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
       }
     });
 
-    overlay.querySelector('#pii-review-send').addEventListener('click', () => { overlay.remove(); resolve('send'); });
+    overlay.querySelector('#pii-review-send').addEventListener('click', () => { overlay.remove(); resolve(textarea.value); });
     overlay.querySelector('#pii-review-cancel').addEventListener('click', () => { overlay.remove(); resolve('cancel'); });
   });
 }
