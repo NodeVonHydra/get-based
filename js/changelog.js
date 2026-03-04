@@ -5,18 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.2.3', date: '2026-03-03', title: 'Backup Reminder',
-    items: [
-      'Periodic nudge reminds you to download a backup (every 30 days)',
-      'Tracks last manual backup timestamp for smarter reminders',
-    ]
-  },
-  {
-    version: '1.2.2', date: '2026-03-03', title: 'Folder Backup',
+    version: '1.2.2', date: '2026-03-04', title: 'Folder Backup & Security',
     items: [
       'Auto-backup to a local folder (Proton Drive, Dropbox, NAS, etc.)',
       'Writes getbased-backup-latest.json + daily dated snapshots',
-      'Persists folder access across sessions, restores on reopen',
+      'Periodic nudge reminds you to download a backup (every 30 days)',
+      'Stronger passphrase requirements for encryption (8+ chars, mixed case, special)',
+      'Live strength meter with rule checklist in encryption setup',
     ]
   },
   {
