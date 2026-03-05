@@ -162,7 +162,7 @@ export function openSettingsModal(tab) {
           <button class="ai-provider-btn${provider === 'routstr' ? ' active' : ''}" data-provider="routstr" onclick="switchAIProvider('routstr')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Routstr</button>
           -->
           <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')"><svg class="ai-provider-logo" viewBox="0 0 326 366" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M105.481 245.984C99.4744 241.518 92.2244 237.777 84.2074 235.504C76.1903 233.231 67.406 232.427 58.8167 233.38C50.2272 234.332 41.8327 237.042 34.5086 241.017C27.1847 244.991 20.931 250.231 16.0487 255.905C11.1531 261.567 6.88803 268.522 4.0314 276.35C1.17477 284.178-0.273403 292.879 0.0448796 301.515C0.36299 310.152 2.44756 318.723 5.87231 326.319C9.29724 333.916 14.0625 340.538 19.3617 345.825C24.6482 351.124 31.2704 355.889 38.867 359.314C46.4637 362.739 55.0349 364.823 63.671 365.142C72.3073 365.46 81.0085 364.012 88.8366 361.155C96.6647 358.298 103.62 354.033 109.282 349.138C114.956 344.256 120.195 338.002 124.17 330.678C128.144 323.354 130.854 314.959 131.807 306.37C132.76 297.781 131.956 288.996 129.683 280.979C127.41 272.962 123.668 265.712 119.203 259.705L133.953 244.954L144.69 255.691H150.789L158.149 248.331V242.233L147.412 231.496L163 215.908L178.588 231.496L167.851 242.233V248.331L175.211 255.691H181.31L192.047 244.954L206.797 259.705C202.332 265.712 198.59 272.962 196.317 280.979C194.044 288.996 193.24 297.781 194.193 306.37C195.146 314.959 197.856 323.354 201.83 330.678C205.805 338.002 211.044 344.256 216.718 349.138C222.38 354.033 229.335 358.298 237.163 361.155C244.991 364.012 253.693 365.46 262.329 365.142C270.965 364.823 279.536 362.739 287.133 359.314C294.73 355.889 301.352 351.124 306.638 345.825C311.937 340.538 316.703 333.916 320.128 326.319C323.552 318.723 325.637 310.152 325.955 301.515C326.273 292.879 324.825 284.178 321.969 276.35C319.112 268.522 314.847 261.567 309.951 255.905C305.069 250.231 298.815 244.991 291.491 241.017C284.167 237.042 275.773 234.332 267.183 233.38C258.594 232.427 249.81 233.231 241.793 235.504C233.776 237.777 226.526 241.518 220.519 245.984L206.042 231.484L216.773 220.753V214.655L209.151 207.032H203.052L192.315 217.769L176.721 202.186L258.473 120.434L291.567 153.528V119.095H326L292.907 86.0012L326 52.9077V46.8095L318.377 39.1865H312.279L163 188.465L13.7212 39.1865H7.62295L0 46.8095V52.9077L33.0934 86.0012L0 119.095H34.4331V153.528L67.5263 120.434L149.279 202.186L133.685 217.769L122.948 207.032H116.849L109.226 214.655V220.753L119.958 231.484L105.481 245.984ZM238.144 321.715C234.778 328.62 235.477 338.188 239.811 344.531C243.793 351.1 252.216 355.693 259.895 355.484C267.574 355.693 275.997 351.1 279.979 344.531C284.313 338.188 285.012 328.62 281.646 321.715L282.484 320.812C289.389 324.196 298.971 323.511 305.324 319.178C311.904 315.2 316.508 306.768 316.297 299.081C316.508 291.395 311.904 282.963 305.324 278.984C298.971 274.652 289.389 273.966 282.484 277.351L281.646 276.448C285.012 269.543 284.313 259.974 279.979 253.632C275.997 247.063 267.574 242.469 259.895 242.679C252.216 242.469 243.793 247.063 239.811 253.632C235.477 259.974 234.778 269.543 238.144 276.448L237.306 277.351C230.401 273.966 220.818 274.652 214.466 278.984C207.886 282.963 203.282 291.395 203.492 299.081C203.282 306.768 207.886 315.2 214.466 319.178C220.818 323.511 230.401 324.196 237.306 320.812L238.144 321.715ZM86.1857 344.531C90.52 338.188 91.2191 328.62 87.8528 321.715L88.6913 320.812C95.5956 324.196 105.178 323.511 111.531 319.178C118.11 315.2 122.715 306.768 122.504 299.081C122.715 291.395 118.11 282.963 111.531 278.984C105.178 274.652 95.5956 273.966 88.6913 277.351L87.8528 276.448C91.2191 269.543 90.52 259.974 86.1857 253.632C82.2037 247.063 73.7808 242.469 66.1018 242.679C58.423 242.469 50.0001 247.063 46.0181 253.632C41.6839 259.974 40.9847 269.543 44.351 276.448L43.5126 277.351C36.6082 273.966 27.0255 274.652 20.6731 278.984C14.0932 282.963 9.48904 291.395 9.69934 299.081C9.48904 306.768 14.0932 315.2 20.6731 319.178C27.0255 323.511 36.6082 324.196 43.5126 320.812L44.351 321.715C40.9847 328.62 41.6839 338.188 46.0181 344.531C50.0001 351.1 58.423 355.693 66.1018 355.484C73.7808 355.693 82.2037 351.1 86.1857 344.531Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M162.891 39.1864L202.078 0L221.482 19.4047V84.8147L167.742 138.555H158.04L104.3 84.8147V19.4047L123.705 0L162.891 39.1864ZM123.705 13.7213L158.04 48.0567V111.112L123.705 76.7773V13.7213ZM167.744 48.0567L202.079 13.7213V76.7773L167.744 111.112V48.0567Z"/></svg> Venice</button>
-          <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"/></svg> Ollama</button>
+          <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-3-8c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1s1 .45 1 1v2c0 .55-.45 1-1 1z"/></svg> Local</button>
         </div>
         <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
       </div>
@@ -327,41 +327,32 @@ export function renderAIProviderPanel(provider) {
       <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
-  // Local AI (Ollama / OpenAI-compatible) panel
+  // Local AI panel — works with any OpenAI-compatible server (Ollama, LM Studio, Jan, etc.)
   const config = getOllamaConfig();
-  const isOpenAI = config.mode === 'openai';
   return `<div class="ai-provider-panel">
-    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine. Works with Ollama, LM Studio, Jan, llama.cpp, LocalAI, and others.</div>
-    <div style="margin-bottom:10px">
-      <div class="ai-provider-toggle" style="max-width:320px">
-        <button class="ai-provider-btn${!isOpenAI ? ' active' : ''}" data-ollama-mode="ollama" onclick="switchOllamaMode('ollama')">Ollama</button>
-        <button class="ai-provider-btn${isOpenAI ? ' active' : ''}" data-ollama-mode="openai" onclick="switchOllamaMode('openai')">OpenAI Compatible</button>
-      </div>
-    </div>
-    <div class="ollama-status" id="ollama-status">
-      <span class="ollama-status-dot" id="ollama-dot"></span>
-      <span id="ollama-status-text">Checking connection...</span>
+    <div class="ai-provider-desc">Runs AI on your computer. Free, private, no data leaves your machine. Works with <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a>, <a href="https://lmstudio.ai" target="_blank" rel="noopener" style="color:var(--accent)">LM Studio</a>, <a href="https://jan.ai" target="_blank" rel="noopener" style="color:var(--accent)">Jan</a>, llama.cpp, LocalAI, and others.</div>
+    <div class="local-ai-status" id="local-ai-status">
+      <span class="local-ai-status-dot" id="local-ai-dot"></span>
+      <span id="local-ai-status-text">Checking connection...</span>
     </div>
     <div style="margin-top:8px">
       <label style="font-size:12px;color:var(--text-muted)">Server address</label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-        <input type="text" class="api-key-input" id="ollama-url-input" value="${config.url}" placeholder="${isOpenAI ? 'http://localhost:1234' : 'http://localhost:11434'}" style="flex:1">
+        <input type="text" class="api-key-input" id="local-ai-url-input" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
         <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
       </div>
     </div>
-    <div id="ollama-apikey-section" style="margin-top:8px;${isOpenAI ? '' : 'display:none'}">
+    <div style="margin-top:8px">
       <label style="font-size:12px;color:var(--text-muted)">API Key <span style="font-size:11px">(optional — most local servers don't need one)</span></label>
-      <input type="password" class="api-key-input" id="ollama-apikey-input" value="${escapeHTML(config.apiKey)}" placeholder="Leave empty if not required" style="margin-top:4px">
+      <input type="password" class="api-key-input" id="local-ai-apikey-input" value="${escapeHTML(config.apiKey)}" placeholder="Leave empty if not required" style="margin-top:4px">
     </div>
-    <div id="ollama-model-section" style="margin-top:8px;display:none">
+    <div id="local-ai-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
-      <select class="api-key-input" id="ollama-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
+      <select class="api-key-input" id="local-ai-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
       <div style="margin-top:4px">${renderModelPricingHint('ollama', '')}</div>
     </div>
-    <div class="api-key-notice" id="ollama-help-notice" style="margin-top:12px">
-      ${isOpenAI
-        ? 'Works with any server that exposes <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code> — <a href="https://lmstudio.ai" target="_blank" rel="noopener" style="color:var(--accent)">LM Studio</a>, <a href="https://jan.ai" target="_blank" rel="noopener" style="color:var(--accent)">Jan</a>, llama.cpp, LocalAI, and others.'
-        : 'Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.'}
+    <div class="api-key-notice" style="margin-top:12px">
+      Connects via the OpenAI-compatible API (<code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code>). All major local servers support this, including Ollama.
     </div>
   </div>`;
 }
@@ -369,7 +360,7 @@ export function renderAIProviderPanel(provider) {
 export function renderPrivacySection() {
   const piiUrl = getOllamaPIIUrl();
   const piiEnabled = isOllamaPIIEnabled();
-  return `<div class="ollama-settings">
+  return `<div class="local-ai-settings">
     <div class="ai-provider-desc" style="margin-bottom:10px">Before your lab PDF is sent to AI for analysis, personal information (name, date of birth, ID numbers, address) is detected and replaced with fake data. Only lab results and marker values reach the AI provider.</div>
     <div class="privacy-status-card" id="privacy-status-card">
       <div class="privacy-status-icon" id="privacy-status-icon">&#128274;</div>
@@ -380,8 +371,8 @@ export function renderPrivacySection() {
     </div>
     <div style="margin:12px 0">
       <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
-        <input type="checkbox" id="ollama-pii-toggle" style="margin-top:2px" ${piiEnabled ? 'checked' : ''} onchange="toggleOllamaPII(this.checked)">
-        <span>Use local AI for privacy protection<br><span style="font-size:11px;color:var(--text-muted)">Requires Ollama running locally. When disabled, regex pattern matching is used instead</span></span>
+        <input type="checkbox" id="pii-local-toggle" style="margin-top:2px" ${piiEnabled ? 'checked' : ''} onchange="toggleOllamaPII(this.checked)">
+        <span>Use local AI for privacy protection<br><span style="font-size:11px;color:var(--text-muted)">Requires a local AI server. When disabled, regex pattern matching is used instead</span></span>
       </label>
     </div>
     <div style="margin-top:4px">
@@ -402,14 +393,14 @@ export function renderPrivacySection() {
     </div>
     <div class="privacy-configure-body" id="privacy-configure-body" style="display:none">
       <div id="pii-model-section">
-        <div class="ollama-status" id="pii-ollama-status">
-          <span class="ollama-status-dot" id="pii-ollama-dot"></span>
-          <span id="pii-ollama-status-text">Click Test to check</span>
+        <div class="local-ai-status" id="pii-local-status">
+          <span class="local-ai-status-dot" id="pii-local-dot"></span>
+          <span id="pii-local-status-text">Click Test to check</span>
         </div>
         <div style="margin-top:8px">
           <label style="font-size:12px;color:var(--text-muted)">Server address</label>
           <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-            <input type="text" class="api-key-input" id="pii-ollama-url-input" value="${piiUrl}" placeholder="http://localhost:11434" style="flex:1">
+            <input type="text" class="api-key-input" id="pii-local-url-input" value="${piiUrl}" placeholder="http://localhost:11434" style="flex:1">
             <button class="import-btn import-btn-secondary" onclick="testPIIOllamaConnection()" style="white-space:nowrap">Test</button>
           </div>
         </div>
@@ -455,14 +446,9 @@ export async function updatePrivacyStatusCard(enhanced) {
   else if (enhanced === undefined) {
     try {
       const piiUrl = getOllamaPIIUrl();
-      const resp = await fetch(`${piiUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
-      if (resp.ok) {
-        const data = await resp.json();
-        const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
-        enhanced = models.length > 0;
-      } else {
-        enhanced = false;
-      }
+      const config = getOllamaConfig();
+      const result = await checkOpenAICompatible(piiUrl, config.apiKey);
+      enhanced = result.available && result.models.length > 0;
     } catch { enhanced = false; }
   }
   if (enhanced) {
@@ -475,7 +461,7 @@ export async function updatePrivacyStatusCard(enhanced) {
     card.className = 'privacy-status-card privacy-status-basic';
     if (icon) icon.innerHTML = '&#128274;';
     title.textContent = 'Basic protection';
-    detail.innerHTML = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.<br><span style="margin-top:4px;display:inline-block">Install <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> for enhanced protection — a free local AI that reliably catches all personal info.</span>';
+    detail.innerHTML = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.<br><span style="margin-top:4px;display:inline-block">Set up Local AI for enhanced protection — a local server that reliably catches all personal info.</span>';
   }
 }
 
@@ -491,35 +477,8 @@ export function switchAIProvider(provider) {
   initSettingsModelFetch();
 }
 
-export function switchOllamaMode(mode) {
-  const config = getOllamaConfig();
-  saveOllamaConfig({ ...config, mode });
-  // Toggle API key visibility
-  const keySection = document.getElementById('ollama-apikey-section');
-  if (keySection) keySection.style.display = mode === 'openai' ? '' : 'none';
-  // Update mode toggle buttons
-  const modal = document.getElementById('settings-modal');
-  if (modal) {
-    modal.querySelectorAll('[data-ollama-mode]').forEach(btn => btn.classList.toggle('active', btn.dataset.ollamaMode === mode));
-  }
-  // Update placeholder
-  const urlInput = document.getElementById('ollama-url-input');
-  if (urlInput) urlInput.placeholder = mode === 'openai' ? 'http://localhost:1234' : 'http://localhost:11434';
-  // Update help notice
-  const notice = document.getElementById('ollama-help-notice');
-  if (notice) {
-    notice.innerHTML = mode === 'openai'
-      ? 'Works with any server that exposes <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code> — <a href="https://lmstudio.ai" target="_blank" rel="noopener" style="color:var(--accent)">LM Studio</a>, <a href="https://jan.ai" target="_blank" rel="noopener" style="color:var(--accent)">Jan</a>, llama.cpp, LocalAI, and others.'
-      : 'Requires <a href="https://ollama.com" target="_blank" rel="noopener" style="color:var(--accent)">Ollama</a> installed on your computer. After installing, run <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">ollama pull llama3.2</code> to get a model.';
-  }
-  // Reset status
-  const dot = document.getElementById('ollama-dot');
-  const text = document.getElementById('ollama-status-text');
-  if (dot) dot.className = 'ollama-status-dot';
-  if (text) text.textContent = 'Click Test to check';
-  // Hide model section
-  const modelSection = document.getElementById('ollama-model-section');
-  if (modelSection) modelSection.style.display = 'none';
+export function switchOllamaMode() {
+  // No-op — mode toggle removed, always uses OpenAI-compatible protocol
 }
 
 export function initSettingsModelFetch() {
@@ -546,18 +505,16 @@ export function initSettingsModelFetch() {
 export function initSettingsOllamaCheck() {
   const config = getOllamaConfig();
   const mainUrl = config.url;
-  const isOpenAI = config.mode === 'openai';
   const piiUrl = getOllamaPIIUrl();
   const sameUrl = mainUrl === piiUrl;
 
-  // Check main Ollama/OpenAI-compatible if the panel is visible (Ollama provider selected)
-  if (document.getElementById('ollama-dot')) {
-    const checkFn = isOpenAI ? checkOpenAICompatible(mainUrl, config.apiKey) : checkOllama();
-    checkFn.then(result => {
-      const dot = document.getElementById('ollama-dot');
-      const text = document.getElementById('ollama-status-text');
-      const modelSection = document.getElementById('ollama-model-section');
-      const modelSelect = document.getElementById('ollama-model-select');
+  // Check local server if the panel is visible (Local provider selected)
+  if (document.getElementById('local-ai-dot')) {
+    checkOpenAICompatible(mainUrl, config.apiKey).then(result => {
+      const dot = document.getElementById('local-ai-dot');
+      const text = document.getElementById('local-ai-status-text');
+      const modelSection = document.getElementById('local-ai-model-section');
+      const modelSelect = document.getElementById('local-ai-model-select');
       if (!dot || !text) return;
       if (result.available && result.models.length > 0) {
         dot.classList.add('connected');
@@ -573,10 +530,10 @@ export function initSettingsOllamaCheck() {
         }
       } else if (result.available) {
         dot.classList.add('disconnected');
-        text.textContent = 'Connected but no models found. Run: ollama pull llama3.2';
+        text.textContent = 'Connected but no models found. Load a model in your server.';
       } else {
         dot.classList.add('disconnected');
-        text.textContent = 'Not connected — start Ollama to use';
+        text.textContent = 'Not connected — start your local server to use';
       }
       // Reuse result for privacy card if same URL
       if (sameUrl) {
@@ -610,31 +567,28 @@ export function closeSettingsModal() {
 }
 
 export async function testOllamaConnection() {
-  const urlInput = document.getElementById('ollama-url-input');
-  const dot = document.getElementById('ollama-dot');
-  const text = document.getElementById('ollama-status-text');
-  const modelSection = document.getElementById('ollama-model-section');
-  const modelSelect = document.getElementById('ollama-model-select');
+  const urlInput = document.getElementById('local-ai-url-input');
+  const dot = document.getElementById('local-ai-dot');
+  const text = document.getElementById('local-ai-status-text');
+  const modelSection = document.getElementById('local-ai-model-section');
+  const modelSelect = document.getElementById('local-ai-model-select');
   if (!urlInput || !text) return;
   const url = urlInput.value.trim().replace(/\/+$/, '');
   const config = getOllamaConfig();
-  const isOpenAI = config.mode === 'openai';
-  const apiKeyInput = document.getElementById('ollama-apikey-input');
+  const apiKeyInput = document.getElementById('local-ai-apikey-input');
   const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
   text.textContent = 'Testing...';
-  dot.className = 'ollama-status-dot';
+  dot.className = 'local-ai-status-dot';
   try {
-    const result = isOpenAI
-      ? await checkOpenAICompatible(url, apiKey)
-      : await checkOllama(url);
+    const result = await checkOpenAICompatible(url, apiKey);
     if (!result.available) throw new Error('Not reachable');
     const models = result.models;
     if (models.length === 0) {
       dot.classList.add('disconnected');
-      text.textContent = isOpenAI ? 'Connected but no models found. Load a model in your server.' : 'Connected but no models found. Run: ollama pull llama3.2';
+      text.textContent = 'Connected but no models found. Load a model in your server.';
     } else {
       dot.classList.add('connected');
-      saveOllamaConfig({ ...config, url, model: models[0], apiKey: isOpenAI ? apiKey : config.apiKey });
+      saveOllamaConfig({ ...config, url, model: models[0], apiKey });
       if (!localStorage.getItem('labcharts-ollama-model')) setOllamaMainModel(models[0]);
       text.textContent = `Connected (${getOllamaMainModel()})`;
       if (modelSection && modelSelect) {
@@ -648,25 +602,25 @@ export async function testOllamaConnection() {
     updatePrivacyStatusCard();
   } catch {
     dot.classList.add('disconnected');
-    text.textContent = isOpenAI ? 'Not connected — check URL and ensure your server is running' : 'Not connected — check URL and ensure Ollama is running';
+    text.textContent = 'Not connected — check URL and ensure your server is running';
   }
 }
 
 export async function testPIIOllamaConnection() {
-  const urlInput = document.getElementById('pii-ollama-url-input');
-  const dot = document.getElementById('pii-ollama-dot');
-  const text = document.getElementById('pii-ollama-status-text');
+  const urlInput = document.getElementById('pii-local-url-input');
+  const dot = document.getElementById('pii-local-dot');
+  const text = document.getElementById('pii-local-status-text');
   const piiDropdown = document.getElementById('pii-model-dropdown');
   const piiSelect = document.getElementById('pii-model-select');
   if (!urlInput || !text) return;
   const url = urlInput.value.trim().replace(/\/+$/, '');
+  const config = getOllamaConfig();
   text.textContent = 'Testing...';
-  dot.className = 'ollama-status-dot';
+  dot.className = 'local-ai-status-dot';
   try {
-    const resp = await fetch(`${url}/api/tags`, { signal: AbortSignal.timeout(5000) });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
+    const result = await checkOpenAICompatible(url, config.apiKey);
+    if (!result.available) throw new Error('Not reachable');
+    const models = result.models;
     if (models.length === 0) {
       dot.classList.add('disconnected');
       text.textContent = 'Connected but no models found';
@@ -674,7 +628,7 @@ export async function testPIIOllamaConnection() {
       dot.classList.add('connected');
       setOllamaPIIUrl(url);
       setOllamaPIIEnabled(true);
-      const toggle = document.getElementById('ollama-pii-toggle');
+      const toggle = document.getElementById('pii-local-toggle');
       if (toggle) toggle.checked = true;
       let currentPII = getOllamaPIIModel();
       if (!models.includes(currentPII)) { currentPII = models[0]; setOllamaPIIModel(currentPII); }
@@ -687,7 +641,7 @@ export async function testPIIOllamaConnection() {
     updatePrivacyStatusCard();
   } catch {
     dot.classList.add('disconnected');
-    text.textContent = 'Not connected — check URL and ensure Ollama is running';
+    text.textContent = 'Not connected — check URL and ensure your server is running';
     updatePrivacyStatusCard();
   }
 }

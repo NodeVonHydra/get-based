@@ -28,7 +28,7 @@ features:
     details: Chat with AI about your results. It sees your full context — lab values, lifestyle cards, supplements, and health goals.
   - icon: 🔒
     title: Privacy First
-    details: All data stays in your browser. AES-256 encryption at rest. PII stripped from PDFs. Run Ollama for fully local operation.
+    details: All data stays in your browser. AES-256 encryption at rest. PII stripped from PDFs. Run a local AI server for fully local operation.
   - icon: 🔬
     title: Deep Analysis
     details: PhenoAge biological age, HOMA-IR, correlations, heatmaps, trend alerts, and phase-aware reference ranges.

@@ -1305,8 +1305,8 @@ export function renderChatMessages() {
             <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>
           </div>
           <div class="chat-setup-provider">
-            <strong>Ollama</strong><br>
-            <span class="chat-setup-detail">Run models locally. Requires Apple M-chip, CPU with NPU, or a strong GPU.</span><br>
+            <strong>Local AI</strong><br>
+            <span class="chat-setup-detail">Run models locally with Ollama, LM Studio, or any OpenAI-compatible server.</span><br>
             <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
           </div>
         </div>

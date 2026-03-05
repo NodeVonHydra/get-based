@@ -15,7 +15,8 @@ Keys are namespaced by profile ID where data is per-profile. `{profileId}` defau
 | `labcharts-api-key` | string | Anthropic API key |
 | `labcharts-openrouter-key` | string | OpenRouter API key |
 | `labcharts-venice-key` | string | Venice AI API key |
-| `labcharts-ollama-pii-model` | string | Ollama model used for PII obfuscation (can differ from main model) |
+| `labcharts-ollama` | JSON | Local AI config: `{ url, model, mode, apiKey }`. Key kept as `ollama` for backwards compat |
+| `labcharts-ollama-pii-model` | string | Local AI model used for PII obfuscation (can differ from main chat model) |
 | `labcharts-anthropic-model` | string | Selected Anthropic model ID |
 | `labcharts-openrouter-model` | string | Selected OpenRouter model ID (e.g., `anthropic/claude-sonnet-4-6`) |
 | `labcharts-venice-model` | string | Selected Venice model ID |

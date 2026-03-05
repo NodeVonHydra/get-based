@@ -1,6 +1,6 @@
 # AI Providers
 
-getbased supports four AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI Provider**.
+getbased supports four AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI**.
 
 ## Which Features Need an AI Provider?
 
@@ -65,22 +65,32 @@ A privacy-focused cloud provider where your conversations and data are not store
 3. Paste your API key
 4. Choose a model from the dropdown
 
-### Ollama (Fully local)
+### Local AI (Fully local)
 
-Run a language model entirely on your own machine. Nothing is sent over the network — not even for PDF import. Ollama is free and works offline once the model is downloaded.
+Run a language model entirely on your own machine. Nothing is sent over the network — not even for PDF import. Local AI connects via the standard OpenAI-compatible API (`/v1/chat/completions`), which is supported by all major local servers:
+
+- [Ollama](https://ollama.com) — easiest setup, pull models from the command line
+- [LM Studio](https://lmstudio.ai) — GUI-based, drag-and-drop model loading
+- [Jan](https://jan.ai) — open-source desktop app
+- llama.cpp, LocalAI, and others
 
 **Setup:**
-1. Install Ollama from [ollama.ai](https://ollama.ai)
-2. Pull a model, e.g.: `ollama pull llama3`
-3. In Settings → AI Provider, select **Ollama**
-4. Enter your Ollama server URL (default: `http://localhost:11434`)
-5. Choose your downloaded model
+1. Install and start any local AI server
+2. Load a model (e.g., in Ollama: `ollama pull llama3.2`)
+3. In Settings → AI Provider, select **Local**
+4. Enter your server URL (default: `http://localhost:11434`)
+5. Click **Test** — the app auto-discovers available models
+6. Add an API key if your server requires one (most don't)
 
-::: tip Ollama also handles PII stripping
-When enabled in Settings → Privacy, Ollama is used to intelligently strip personal information from PDFs before analysis. See [PII Obfuscation](./pii-obfuscation.md) for details.
+::: tip Local AI also handles PII stripping
+When enabled in Settings → Privacy, your local server is used to intelligently strip personal information from PDFs before analysis. See [PII Obfuscation](./pii-obfuscation.md) for details.
 :::
 
-::: warning Ollama requires a capable model
+::: tip Accessing from another device on your network
+To connect from a different computer on your local network, set the appropriate environment variables on the server machine. For Ollama: `OLLAMA_HOST=0.0.0.0 OLLAMA_ORIGINS=* ollama serve`, then use `http://<server-ip>:11434` as the server URL. LM Studio and Jan have similar settings in their UI.
+:::
+
+::: warning Use a capable model
 Smaller models (under ~7B parameters) may struggle with accurate marker extraction from complex lab PDFs. A 13B+ model is recommended for best results.
 :::
 

@@ -418,16 +418,16 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
     if (e.name === 'TimeoutError' || e.message.includes('timed out')) {
       const modelName = model;
       showNotification(`Model "${modelName}" timed out after 5 min. Try a smaller model in Settings → AI Provider.`, 'error', 8000);
-      throw new Error(`Ollama timed out with "${modelName}". A smaller model (e.g. qwen3:32b or llama3.2) will be faster.`);
+      throw new Error(`Local server timed out with "${modelName}". A smaller model (e.g. qwen3:32b or llama3.2) will be faster.`);
     }
     if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
-      throw new Error('Cannot reach Ollama. This is usually a CORS issue — try starting Ollama with: OLLAMA_ORIGINS=* ollama serve');
+      throw new Error('Cannot reach local server. This is usually a CORS issue — try starting Ollama with: OLLAMA_ORIGINS=* ollama serve');
     }
-    throw new Error(`Cannot reach Ollama. Check that it's running. (${e.message})`);
+    throw new Error(`Cannot reach local server. Check that it's running. (${e.message})`);
   }
 
   if (!res.ok) {
-    let errMsg = `Ollama error (${res.status})`;
+    let errMsg = `Local server error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error || JSON.stringify(errBody)}`; } catch {}
     throw new Error(errMsg);
   }
@@ -584,11 +584,7 @@ export async function validateVeniceKey(key) {
 
 export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
-  if (provider === 'ollama') {
-    const config = window.getOllamaConfig();
-    if (config.mode === 'openai') return callOpenAICompatibleLocalAPI(opts);
-    return callOllamaChat(opts);
-  }
+  if (provider === 'ollama') return callOpenAICompatibleLocalAPI(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
   // ROUTSTR DISABLED: if (provider === 'routstr') return callRoutstrAPI(opts);
