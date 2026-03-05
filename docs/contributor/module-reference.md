@@ -193,11 +193,13 @@ The central data pipeline. Every view gets its data from `getActiveData()`.
 
 ### `pii.js`
 
-Two-path PII obfuscation for PDF text before AI submission.
+Two-path PII obfuscation for PDF text before AI submission, with streaming review modal.
 
 **Key exports:**
-- `sanitizeWithOllama(pdfText)` — preferred path: sends raw text to local AI server via OpenAI-compatible API, returns sanitized text
+- `sanitizeWithOllamaStreaming(pdfText, onChunk, signal)` — preferred path: SSE streaming via OpenAI-compatible API, calls `onChunk(delta)` per token, supports `AbortSignal`
+- `sanitizeWithOllama(pdfText)` — non-streaming path: same endpoint, used when review is disabled
 - `obfuscatePDFText(pdfText)` — regex fallback: label-based + pattern-based replacement, returns `{ obfuscated, original, replacements }`
+- `reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn })` — review modal: streaming mode (pass `streamFn`) or static mode (pass `obfuscatedText`). Returns edited text or `'cancel'`
 - `checkOllamaPII()` — checks PII server availability via `/v1/models`
 - `getOllamaConfig()` / `saveOllamaConfig(config)` — local AI config: `{ url, model, apiKey }`
 - `showPIIDiffViewer(original, obfuscated, replacements)` — debug diff viewer (requires `labcharts-debug` flag)
