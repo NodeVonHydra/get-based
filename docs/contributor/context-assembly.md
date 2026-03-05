@@ -21,10 +21,10 @@ How user-provided data becomes AI prompts. This is the core intelligence layer �
                                        │
                     ┌──────────┬───────┴────────┬──────────┐
                     ▼          ▼                ▼          ▼
-               Anthropic   OpenRouter       Venice     Ollama
-               Messages    (OpenAI-compat)  (OpenAI)   /api/chat
-               API + SSE   via shared       via shared  newline-
-                           helper           helper      delimited
+               Anthropic   OpenRouter       Venice     Local AI
+               Messages    (OpenAI-compat)  (OpenAI)   (OpenAI-compat)
+               API + SSE   via shared       via shared  via shared
+                           helper           helper      helper
 ```
 
 Every AI call passes the same shape: `{ system, messages, maxTokens, onStream? }`. The caller assembles the prompt; the router just delivers it.

@@ -77,7 +77,7 @@ Responses stream in word by word as the AI generates them.
 
 ## Choosing a Provider
 
-The AI chat works with any of the four supported providers: Anthropic, OpenRouter, Venice, or Ollama. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
+The AI chat works with any of the four supported providers: Anthropic, OpenRouter, Venice, or Local AI. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
 
 ::: warning
 Conversations are stored locally in your browser and encrypted if you have set a passphrase. The last 10 messages from each conversation are sent to the AI provider with every request to maintain context. Your provider's privacy policy applies to that data.

@@ -37,7 +37,7 @@ js/
   api.js            — AI provider routing, all 4 providers, model management
   profile.js        — Profile CRUD, sex/DOB/location, migrateProfileData, profile dropdown
   data.js           — getActiveData() pipeline, unit conversion, date range, saveImportedData
-  pii.js            — PII obfuscation: Ollama path + regex fallback, diff viewer
+  pii.js            — PII obfuscation: local AI (OpenAI-compatible) + regex fallback, diff viewer
   charts.js         — Chart.js plugins (5), createLineChart, destroyAllCharts
   notes.js          — Note editor: open/save/delete
   supplements.js    — Supplement editor and rendering
@@ -138,4 +138,4 @@ Loaded from CDN with SRI integrity hashes in `index.html`:
 | pdf.js | 3.11.174 | PDF text extraction |
 | Inter, Outfit, JetBrains Mono | latest | Google Fonts (body, headings, data) |
 
-AI providers (Anthropic, OpenRouter, Venice, Ollama) are called directly from the browser — no backend proxy.
+AI providers (Anthropic, OpenRouter, Venice, Local AI) are called directly from the browser — no backend proxy.

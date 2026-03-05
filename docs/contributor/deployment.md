@@ -80,7 +80,7 @@ base-uri    'self'
 
 `'unsafe-inline'` is required for scripts because `index.html` has inline `onclick` attributes (by design — the architecture relies on window-exported functions called from HTML). The CDN SRI hashes in `index.html` provide integrity verification as a compensating control.
 
-`localhost:*` and `127.0.0.1:*` are in `connect-src` to allow Ollama (which runs locally on port 11434 by default).
+`localhost:*` and `127.0.0.1:*` are in `connect-src` to allow local AI servers (Ollama, LM Studio, Jan, etc.).
 
 If a new AI provider is added, its hostname must be added to `connect-src` in `vercel.json`.
 
@@ -98,7 +98,7 @@ The service worker uses three caching strategies:
 
 | Resource type | Strategy |
 |---|---|
-| AI API calls (Anthropic, OpenRouter, Venice, Ollama, OpenAlex) | **Bypass** — `return` without `event.respondWith`. Streaming ReadableStreams must go directly to the page without SW IPC buffering |
+| AI API calls (Anthropic, OpenRouter, Venice, Local AI, OpenAlex) | **Bypass** — `return` without `event.respondWith`. Streaming ReadableStreams must go directly to the page without SW IPC buffering |
 | CDN libraries (Chart.js, pdf.js from cdn.jsdelivr.net) | **Cache-first** — serve from cache, fetch and cache if missing |
 | Google Fonts | **Stale-while-revalidate** — serve cached, update in background |
 | App shell (HTML, CSS, JS modules, images) | **Stale-while-revalidate** — serve cached, update in background |

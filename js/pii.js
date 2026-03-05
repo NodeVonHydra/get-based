@@ -94,10 +94,12 @@ export function setOllamaPIIEnabled(enabled) {
 
 export async function checkOllamaPII() {
   if (!isOllamaPIIEnabled()) return { available: false, models: [] };
-  return checkOllama(getOllamaPIIUrl());
+  const config = getOllamaConfig();
+  return checkOpenAICompatible(getOllamaPIIUrl(), config.apiKey);
 }
 
 export function unloadOllamaPIIModel() {
+  // Best-effort: try Ollama-specific unload to free VRAM. Silently fails on non-Ollama servers.
   const piiUrl = getOllamaPIIUrl();
   const piiModel = getOllamaPIIModel();
   fetch(`${piiUrl}/api/generate`, {
@@ -111,7 +113,8 @@ export function unloadOllamaPIIModel() {
 export async function sanitizeWithOllama(pdfText) {
   const piiUrl = getOllamaPIIUrl();
   const piiModel = getOllamaPIIModel();
-  const prompt = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
+  const config = getOllamaConfig();
+  const promptText = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
 
 REPLACE these with fake data:
 - Patient names → fictional names
@@ -133,24 +136,27 @@ Output ONLY the modified text. No explanations, no markdown, no commentary.
 TEXT TO PROCESS:
 ${pdfText}`;
   try {
-    const resp = await fetch(`${piiUrl}/api/generate`, {
+    const baseUrl = piiUrl.replace(/\/+$/, '');
+    const headers = { 'Content-Type': 'application/json' };
+    if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
+    const resp = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: piiModel, prompt, stream: false, keep_alive: 0 }),
+      headers,
+      body: JSON.stringify({ model: piiModel, messages: [{ role: 'user', content: promptText }], stream: false }),
       signal: AbortSignal.timeout(90000)
     });
-    if (!resp.ok) throw new Error(`Ollama error: ${resp.status}`);
+    if (!resp.ok) throw new Error(`Local server error: ${resp.status}`);
     const data = await resp.json();
-    const result = (data.response || '').trim();
+    const result = (data.choices?.[0]?.message?.content || '').trim();
 
-    // Validate output — if Ollama mangled the text, reject it
-    if (!result) throw new Error('Ollama returned empty response');
+    // Validate output — if AI mangled the text, reject it
+    if (!result) throw new Error('Local AI returned empty response');
     // Output should be at least 25% of input length (LLM shouldn't be summarizing)
-    if (result.length < pdfText.length * 0.25) throw new Error(`Ollama output too short (${result.length} vs ${pdfText.length} chars)`);
+    if (result.length < pdfText.length * 0.25) throw new Error(`Local AI output too short (${result.length} vs ${pdfText.length} chars)`);
     // Check that date-like patterns survived (YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY)
     const inputDates = pdfText.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
     const outputDates = result.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
-    if (inputDates.length > 0 && outputDates.length === 0) throw new Error('Ollama lost all dates from the text');
+    if (inputDates.length > 0 && outputDates.length === 0) throw new Error('Local AI lost all dates from the text');
 
     unloadOllamaPIIModel();
     return result;

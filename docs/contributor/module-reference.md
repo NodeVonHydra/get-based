@@ -135,9 +135,10 @@ AI provider routing and model management. All AI calls flow through `callClaudeA
 - `callAnthropicAPI(opts)` — Anthropic Messages API with SSE streaming
 - `callOpenRouterAPI(opts)` — OpenRouter via `callOpenAICompatibleAPI`
 - `callVeniceAPI(opts)` — Venice AI via `callOpenAICompatibleAPI`
-- `callOllamaChat(opts)` — Ollama `/api/chat` with newline-delimited JSON streaming
+- `callOllamaChat(opts)` — legacy Ollama `/api/chat` (kept for backwards compat, not used in main routing)
+- `callOpenAICompatibleLocalAPI(opts)` — Local AI via shared `callOpenAICompatibleAPI` helper
 - `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders)` — shared OpenAI-format helper
-- `getAIProvider()` / `setAIProvider(provider)` — `'anthropic'` | `'openrouter'` | `'venice'` | `'ollama'`
+- `getAIProvider()` / `setAIProvider(provider)` — `'anthropic'` | `'openrouter'` | `'venice'` | `'ollama'` (internal key for Local)
 - `hasAIProvider()` — returns `true` if any provider is configured; gates all 7 AI features
 - `getAnthropicModel()`, `getOpenRouterModel()`, `getVeniceModel()`, `getOllamaMainModel()`
 - `fetchAnthropicModels()`, `fetchOpenRouterModels()`, `fetchVeniceModels()` — dynamic model lists
@@ -195,9 +196,10 @@ The central data pipeline. Every view gets its data from `getActiveData()`.
 Two-path PII obfuscation for PDF text before AI submission.
 
 **Key exports:**
-- `sanitizeWithOllama(pdfText)` — preferred path: sends raw text to local Ollama PII model, returns sanitized text
+- `sanitizeWithOllama(pdfText)` — preferred path: sends raw text to local AI server via OpenAI-compatible API, returns sanitized text
 - `obfuscatePDFText(pdfText)` — regex fallback: label-based + pattern-based replacement, returns `{ obfuscated, original, replacements }`
-- `getOllamaPIIModel()` / `setOllamaPIIModel(model)` — separate PII model config
+- `checkOllamaPII()` — checks PII server availability via `/v1/models`
+- `getOllamaConfig()` / `saveOllamaConfig(config)` — local AI config: `{ url, model, apiKey }`
 - `showPIIDiffViewer(original, obfuscated, replacements)` — debug diff viewer (requires `labcharts-debug` flag)
 
 **Window exports:** `setOllamaPIIModel`

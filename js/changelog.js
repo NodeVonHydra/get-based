@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.1', date: '2026-03-05', title: 'Unified Local AI',
+    items: [
+      'Provider tab renamed from "Ollama" to "Local" \u2014 one option for all local servers',
+      'Removed Ollama/OpenAI mode toggle \u2014 uses the standard OpenAI-compatible API for everything (Ollama, LM Studio, Jan, etc.)',
+      'PII obfuscation now works with any local server, not just Ollama',
+      'API key field always visible (optional \u2014 most local servers don\u2019t need one)',
+    ]
+  },
+  {
     version: '1.3.0', date: '2026-03-04', title: 'OpenAI-Compatible Local Servers',
     items: [
       'LM Studio, Jan, llama.cpp, LocalAI, and other OpenAI-compatible servers now supported',

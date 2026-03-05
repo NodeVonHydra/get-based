@@ -2342,17 +2342,17 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25); color: var(--yellow);
 }
 
-/* Ollama settings in Settings modal */
-.ollama-settings { margin-top: 4px; }
-.ollama-status {
+/* Local AI settings in Settings modal */
+.local-ai-settings { margin-top: 4px; }
+.local-ai-status {
   display: flex; align-items: center; gap: 8px; font-size: 13px;
 }
-.ollama-status-dot {
+.local-ai-status-dot {
   width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted);
   flex-shrink: 0;
 }
-.ollama-status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
-.ollama-status-dot.disconnected { background: var(--red); }
+.local-ai-status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.local-ai-status-dot.disconnected { background: var(--red); }
 
 /* Privacy status card & collapsible configure */
 .privacy-status-card {

@@ -7,7 +7,7 @@ The Focus Card is a single AI-generated sentence at the top of your dashboard th
 The Focus Card is only shown when two conditions are met:
 
 1. You have lab data loaded
-2. You have an AI provider configured (Anthropic, OpenRouter, Venice, or Ollama)
+2. You have an AI provider configured (Anthropic, OpenRouter, Venice, or Local AI)
 
 If either condition is not met, the card does not appear. See [AI Providers](/guide/ai-providers) to set up a provider.
 
@@ -32,4 +32,4 @@ While the card is loading for the first time or after a change, you will see a s
 
 ## Privacy
 
-The Focus Card request is sent to your configured AI provider. Your data is processed according to that provider's privacy policy. If you are using [Ollama](/guide/ai-providers#ollama), the request stays entirely on your device.
+The Focus Card request is sent to your configured AI provider. Your data is processed according to that provider's privacy policy. If you are using [Local AI](/guide/ai-providers#local-ai-fully-local), the request stays entirely on your device.
