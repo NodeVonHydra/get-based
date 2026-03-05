@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.3', date: '2026-03-05', title: 'Local AI CORS Hints',
+    items: [
+      'HTTPS + LAN IP detection — immediate warning instead of a confusing timeout',
+      'CORS-specific error message when Ollama blocks cross-origin requests',
+      'Docs updated with localhost-only HTTPS limitation and OLLAMA_ORIGINS guidance',
+    ]
+  },
+  {
     version: '1.3.2', date: '2026-03-05', title: 'Streaming PII Review',
     items: [
       'PII review modal now streams Local AI obfuscation in real-time \u2014 no more waiting blindly',

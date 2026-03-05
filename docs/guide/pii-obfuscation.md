@@ -56,6 +56,10 @@ Open **Settings → Privacy** to:
 - Enable the review editor to inspect and edit obfuscated text before sending
 - Enable debug mode to view a diff of what was replaced
 
+::: tip Local AI requirements
+When using the hosted app (`app.getbased.health`), the Local AI server must run on **localhost** — LAN servers are blocked by HTTPS mixed content rules. For Ollama, start with `OLLAMA_ORIGINS=* ollama serve` to allow cross-origin requests from the app.
+:::
+
 ::: warning Your AI provider still receives text
 Even with PII obfuscation, the anonymized lab text is sent to your configured AI provider (Anthropic, OpenRouter, or Venice) for marker extraction. The obfuscation step ensures that text contains no personal identifiers. If you want nothing sent over the network at all, use a local server as both your PII model and your main AI provider.
 :::

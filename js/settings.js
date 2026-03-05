@@ -566,6 +566,14 @@ export function closeSettingsModal() {
   document.getElementById('settings-modal-overlay').classList.remove('show');
 }
 
+function isHttpsToNonLocalhost(url) {
+  if (location.protocol !== 'https:') return false;
+  try {
+    const host = new URL(url).hostname;
+    return host !== 'localhost' && host !== '127.0.0.1' && host !== '::1';
+  } catch { return false; }
+}
+
 export async function testOllamaConnection() {
   const urlInput = document.getElementById('local-ai-url-input');
   const dot = document.getElementById('local-ai-dot');
@@ -579,6 +587,11 @@ export async function testOllamaConnection() {
   const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
   text.textContent = 'Testing...';
   dot.className = 'local-ai-status-dot';
+  if (isHttpsToNonLocalhost(url)) {
+    dot.classList.add('disconnected');
+    text.textContent = 'Cannot reach LAN servers from HTTPS — Local AI must run on this machine (localhost)';
+    return;
+  }
   try {
     const result = await checkOpenAICompatible(url, apiKey);
     if (!result.available) throw new Error('Not reachable');
@@ -600,9 +613,11 @@ export async function testOllamaConnection() {
     // Also refresh privacy section status
     initSettingsOllamaCheck();
     updatePrivacyStatusCard();
-  } catch {
+  } catch (e) {
     dot.classList.add('disconnected');
-    text.textContent = 'Not connected — check URL and ensure your server is running';
+    text.textContent = (e instanceof TypeError || e.message?.includes('Failed to fetch'))
+      ? 'Blocked by CORS — start Ollama with OLLAMA_ORIGINS=* ollama serve'
+      : 'Not connected — check URL and ensure your server is running';
   }
 }
 
@@ -617,6 +632,11 @@ export async function testPIIOllamaConnection() {
   const config = getOllamaConfig();
   text.textContent = 'Testing...';
   dot.className = 'local-ai-status-dot';
+  if (isHttpsToNonLocalhost(url)) {
+    dot.classList.add('disconnected');
+    text.textContent = 'Cannot reach LAN servers from HTTPS — Local AI must run on this machine (localhost)';
+    return;
+  }
   try {
     const result = await checkOpenAICompatible(url, config.apiKey);
     if (!result.available) throw new Error('Not reachable');
@@ -639,9 +659,11 @@ export async function testPIIOllamaConnection() {
       }
     }
     updatePrivacyStatusCard();
-  } catch {
+  } catch (e) {
     dot.classList.add('disconnected');
-    text.textContent = 'Not connected — check URL and ensure your server is running';
+    text.textContent = (e instanceof TypeError || e.message?.includes('Failed to fetch'))
+      ? 'Blocked by CORS — start Ollama with OLLAMA_ORIGINS=* ollama serve'
+      : 'Not connected — check URL and ensure your server is running';
     updatePrivacyStatusCard();
   }
 }
