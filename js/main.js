@@ -17,6 +17,7 @@ import './context-cards.js';
 import './pdf-import.js';
 import './export.js';
 import './chat.js';
+import './image-utils.js';
 import './settings.js';
 import './glossary.js';
 import './feedback.js';
@@ -116,13 +117,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateHeaderDates();
   updateHeaderRangeToggle();
   renderProfileDropdown();
+  // Init chat image attachment handlers (paste, drag-drop, file input)
+  window.initChatImageHandlers();
+  window.updateAttachButtonVisibility();
   document.getElementById("pdf-input").addEventListener("change", async e => {
     if (e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
       const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
       for (const f of jsonFiles) window.importDataJSON(f);
-      if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0]);
+      const forceImage = !!window._forceImageMode;
+      delete window._forceImageMode;
+      if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
       else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
       e.target.value = '';
     }
