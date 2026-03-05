@@ -8,13 +8,140 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
+import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
 // ═══════════════════════════════════════════════
 // ABORT CONTROLLER (stop streaming)
 // ═══════════════════════════════════════════════
 let _chatAbortController = null;
+
+// ═══════════════════════════════════════════════
+// IMAGE ATTACHMENTS
+// ═══════════════════════════════════════════════
+const MAX_ATTACHMENTS = 5;
+let _pendingAttachments = []; // { base64, mediaType, name, previewUrl }
+
+export async function addImageAttachment(file) {
+  if (!isValidImageType(file.type)) {
+    showNotification('Unsupported image type. Use JPEG, PNG, GIF, or WebP.', 'error');
+    return;
+  }
+  if (_pendingAttachments.length >= MAX_ATTACHMENTS) {
+    showNotification(`Maximum ${MAX_ATTACHMENTS} images per message`, 'error');
+    return;
+  }
+  try {
+    const { base64, mediaType, width, height } = await resizeImage(file, 1024, 0.85);
+    const previewUrl = `data:${mediaType};base64,${base64}`;
+    _pendingAttachments.push({ base64, mediaType, name: file.name, previewUrl });
+    renderAttachmentPreview();
+    updateSendButtonState();
+  } catch (e) {
+    showNotification('Failed to process image: ' + e.message, 'error');
+  }
+}
+
+export function removeImageAttachment(index) {
+  _pendingAttachments.splice(index, 1);
+  renderAttachmentPreview();
+  updateSendButtonState();
+}
+
+export function renderAttachmentPreview() {
+  const container = document.getElementById('chat-attach-preview');
+  if (!container) return;
+  if (_pendingAttachments.length === 0) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+  container.innerHTML = _pendingAttachments.map((att, i) =>
+    `<div class="chat-attach-thumb" title="${escapeHTML(att.name)}">` +
+    `<img src="${att.previewUrl}" alt="${escapeHTML(att.name)}">` +
+    `<button class="chat-attach-remove" onclick="removeImageAttachment(${i})" aria-label="Remove">&times;</button>` +
+    `</div>`
+  ).join('') +
+  `<span class="chat-attach-count">${_pendingAttachments.length}/${MAX_ATTACHMENTS}</span>`;
+}
+
+export function clearAttachments() {
+  _pendingAttachments = [];
+  renderAttachmentPreview();
+}
+
+function updateSendButtonState() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  if (!sendBtn) return;
+  const hasContent = (input && input.value.trim()) || _pendingAttachments.length > 0;
+  sendBtn.disabled = !hasContent && !_chatAbortController;
+}
+
+export function updateAttachButtonVisibility() {
+  const btn = document.getElementById('chat-attach-btn');
+  if (!btn) return;
+  btn.style.display = (hasAIProvider() && supportsVision()) ? 'flex' : 'none';
+}
+
+export function initChatImageHandlers() {
+  const textarea = document.getElementById('chat-input');
+  const chatMessages = document.getElementById('chat-messages');
+  const fileInput = document.getElementById('chat-image-input');
+
+  // Paste handler
+  if (textarea) {
+    textarea.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) addImageAttachment(file);
+        }
+      }
+    });
+  }
+
+  // Drag-drop on chat messages area
+  if (chatMessages) {
+    chatMessages.addEventListener('dragover', (e) => {
+      if (!supportsVision()) return;
+      const hasImage = [...e.dataTransfer.types].includes('Files');
+      if (hasImage) {
+        e.preventDefault();
+        e.stopPropagation();
+        chatMessages.classList.add('chat-drop-active');
+      }
+    });
+    chatMessages.addEventListener('dragleave', (e) => {
+      if (!chatMessages.contains(e.relatedTarget)) {
+        chatMessages.classList.remove('chat-drop-active');
+      }
+    });
+    chatMessages.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      chatMessages.classList.remove('chat-drop-active');
+      if (!supportsVision()) return;
+      const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+      for (const file of files) addImageAttachment(file);
+    });
+  }
+
+  // File input change
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      for (const file of e.target.files) {
+        addImageAttachment(file);
+      }
+      e.target.value = '';
+    });
+  }
+}
 
 // ═══════════════════════════════════════════════
 // THREAD STORAGE HELPERS
@@ -1364,7 +1491,8 @@ export function renderChatMessages() {
     if (msg.role === 'assistant') lastPersonaName = msg.personalityName || null;
     const autoClass = msg.auto ? ' chat-msg-auto' : '';
     const stoppedNote = msg.stopped ? '<div class="chat-stopped-note">[stopped]</div>' : '';
-    html += `<div class="chat-msg ${cls}${autoClass}">${renderMarkdown(msg.content)}${stoppedNote}`;
+    const imageBadge = msg.hasImages ? `<div class="chat-image-badge">\uD83D\uDDBC ${msg.imageCount} image${msg.imageCount !== 1 ? 's' : ''} attached</div>` : '';
+    html += `<div class="chat-msg ${cls}${autoClass}">${imageBadge}${renderMarkdown(msg.content)}${stoppedNote}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
         const mId = msg.modelId || getActiveModelId();
@@ -1578,7 +1706,11 @@ export async function sendChatMessage() {
   const sendBtn = document.getElementById('chat-send-btn');
   const container = document.getElementById('chat-messages');
   const text = input.value.trim();
-  if (!text) return;
+  const hasImages = _pendingAttachments.length > 0;
+  if (!text && !hasImages) return;
+
+  // Capture attachments before clearing (they're ephemeral)
+  const attachments = hasImages ? [..._pendingAttachments] : [];
 
   // Ensure we have a thread
   if (!state.currentThreadId) {
@@ -1588,10 +1720,13 @@ export async function sendChatMessage() {
   // Auto-name thread from first user message
   const isFirstMessage = state.chatHistory.length === 0;
 
-  // Add user message
-  state.chatHistory.push({ role: 'user', content: text });
+  // Add user message — NO base64 stored in history
+  const userMsg = { role: 'user', content: text || '(image)' };
+  if (hasImages) { userMsg.hasImages = true; userMsg.imageCount = attachments.length; }
+  state.chatHistory.push(userMsg);
   input.value = '';
   input.style.height = '';
+  clearAttachments();
   renderChatMessages();
 
   if (isFirstMessage) {
@@ -1653,6 +1788,17 @@ export async function sendChatMessage() {
       }
       return { role: m.role, content: m.content };
     });
+
+    // Inject vision content into the last user message if images were attached
+    if (attachments.length > 0 && apiMessages.length > 0) {
+      const lastUserIdx = apiMessages.length - 1;
+      const provider = getAIProvider();
+      const imageBlocks = attachments.map(att => formatImageBlock(att.base64, att.mediaType, provider));
+      apiMessages[lastUserIdx] = {
+        role: 'user',
+        content: buildVisionContent(imageBlocks, apiMessages[lastUserIdx].content, provider)
+      };
+    }
 
     // Show persona label if personality changed from last AI message
     const lastAiMsg = [...state.chatHistory].reverse().find(m => m.role === 'assistant');
@@ -2222,4 +2368,10 @@ Object.assign(window, {
   searchOpenAlex,
   parseSearchTerms,
   renderSourcesSection,
+  // Image attachments
+  addImageAttachment,
+  removeImageAttachment,
+  clearAttachments,
+  updateAttachButtonVisibility,
+  initChatImageHandlers,
 });
