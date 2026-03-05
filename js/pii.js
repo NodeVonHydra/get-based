@@ -395,6 +395,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap">
           <button class="import-btn import-btn-secondary" id="pii-review-regex" title="Run regex-based obfuscation instead">Use regex instead</button>
           ${isStreaming ? '<button class="import-btn import-btn-secondary" id="pii-stream-stop">Stop</button>' : ''}
+          ${isStreaming ? '<button class="import-btn import-btn-secondary" id="pii-stream-retry" style="display:none">Retry</button>' : ''}
           <span style="flex:1"></span>
           <button class="import-btn import-btn-secondary" id="pii-review-cancel">Cancel Import</button>
           <button class="import-btn" id="pii-review-send"${isStreaming ? ' disabled' : ''}>Send to AI</button>
@@ -462,7 +463,67 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
     // Streaming mode
     let abortController = null;
     if (isStreaming) {
-      abortController = new AbortController();
+      const retryBtn = overlay.querySelector('#pii-stream-retry');
+      const expectedLen = originalText.length;
+
+      const startStream = () => {
+        // Reset state
+        abortController = new AbortController();
+        textarea.value = '';
+        textarea.readOnly = true;
+        sendBtn.disabled = true;
+        stopBtn.style.display = '';
+        retryBtn.style.display = 'none';
+        statusEl.className = 'pii-stream-status pii-stream-waiting';
+        statusEl.textContent = 'Waiting for model response\u2026';
+        let charCount = 0;
+        let rafPending = false;
+        let pendingText = '';
+
+        const flushToTextarea = () => {
+          if (pendingText) {
+            textarea.value += pendingText;
+            charCount += pendingText.length;
+            pendingText = '';
+            statusEl.classList.remove('pii-stream-waiting');
+            const pct = Math.min(99, Math.round(charCount / expectedLen * 100));
+            statusEl.textContent = `Streaming\u2026 ${pct}% (${charCount.toLocaleString()} / ~${expectedLen.toLocaleString()} chars)`;
+            textarea.scrollTop = textarea.scrollHeight;
+          }
+          rafPending = false;
+        };
+
+        streamFn(
+          (chunk) => {
+            pendingText += chunk;
+            if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
+          },
+          abortController.signal
+        ).then(() => {
+          flushToTextarea();
+          textarea.readOnly = false;
+          sendBtn.disabled = false;
+          if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
+          stopBtn.style.display = 'none';
+          // Rebuild left panel with diff highlights
+          const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, textarea.value);
+          if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
+          // Auto-fill search with patient name
+          const name = extractPatientName(originalText);
+          if (name && searchInput) {
+            searchInput.value = name;
+            searchInput.dispatchEvent(new Event('input'));
+          }
+        }).catch(err => {
+          flushToTextarea();
+          if (err.name === 'AbortError') return; // stop button already handled
+          textarea.readOnly = false;
+          sendBtn.disabled = false;
+          if (statusEl) statusEl.textContent = `Error: ${err.message}`;
+          stopBtn.style.display = 'none';
+          retryBtn.style.display = '';
+        });
+      };
 
       // Stop button
       stopBtn.addEventListener('click', () => {
@@ -472,58 +533,13 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         sendBtn.disabled = false;
         statusEl.textContent = 'Stopped \u2014 review partial result and edit below';
         stopBtn.style.display = 'none';
+        retryBtn.style.display = '';
       });
 
-      // Start streaming
-      let charCount = 0;
-      let rafPending = false;
-      let pendingText = '';
-      const expectedLen = originalText.length;
+      // Retry button
+      retryBtn.addEventListener('click', startStream);
 
-      const flushToTextarea = () => {
-        if (pendingText) {
-          textarea.value += pendingText;
-          charCount += pendingText.length;
-          pendingText = '';
-          statusEl.classList.remove('pii-stream-waiting');
-          const pct = Math.min(99, Math.round(charCount / expectedLen * 100));
-          statusEl.textContent = `Streaming\u2026 ${pct}% (${charCount.toLocaleString()} / ~${expectedLen.toLocaleString()} chars)`;
-          textarea.scrollTop = textarea.scrollHeight;
-        }
-        rafPending = false;
-      };
-
-      const onStreamDone = () => {
-        flushToTextarea();
-        textarea.readOnly = false;
-        sendBtn.disabled = false;
-        if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
-        if (stopBtn) stopBtn.style.display = 'none';
-        // Rebuild left panel with diff highlights
-        const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, textarea.value);
-        if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
-        // Auto-fill search with patient name
-        const name = extractPatientName(originalText);
-        if (name && searchInput) {
-          searchInput.value = name;
-          searchInput.dispatchEvent(new Event('input'));
-        }
-      };
-
-      streamFn(
-        (chunk) => {
-          pendingText += chunk;
-          if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
-        },
-        abortController.signal
-      ).then(onStreamDone).catch(err => {
-        flushToTextarea();
-        if (err.name === 'AbortError') return; // stop button already handled
-        textarea.readOnly = false;
-        sendBtn.disabled = false;
-        if (statusEl) statusEl.textContent = `Error: ${err.message}`;
-        if (stopBtn) stopBtn.style.display = 'none';
-      });
+      startStream();
     }
   });
 }
