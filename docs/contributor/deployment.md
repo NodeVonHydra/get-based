@@ -64,6 +64,7 @@ script-src  'self' 'unsafe-inline' https://cdn.jsdelivr.net
 style-src   'self' 'unsafe-inline' https://fonts.googleapis.com
 font-src    'self' https://fonts.gstatic.com
 connect-src 'self'
+            https://cdn.jsdelivr.net
             https://api.anthropic.com
             https://openrouter.ai
             https://api.venice.ai
