@@ -601,7 +601,7 @@ export async function testOllamaConnection() {
       text.textContent = 'Connected but no models found. Load a model in your server.';
     } else {
       dot.classList.add('connected');
-      saveOllamaConfig({ ...config, url, model: models[0], apiKey });
+      await saveOllamaConfig({ ...config, url, model: models[0], apiKey });
       if (!localStorage.getItem('labcharts-ollama-model')) setOllamaMainModel(models[0]);
       text.textContent = `Connected (${getOllamaMainModel()})`;
       if (modelSection && modelSelect) {
@@ -687,7 +687,7 @@ export async function handleSaveApiKey() {
   btn.disabled = true; btn.textContent = 'Validating...';
   const result = await validateApiKey(key);
   if (result.valid) {
-    saveApiKey(key);
+    await saveApiKey(key);
     status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
     const models = await fetchAnthropicModels(key);
     if (models.length) {
@@ -730,7 +730,7 @@ export async function handleSaveVeniceKey() {
   btn.disabled = true; btn.textContent = 'Validating...';
   const result = await validateVeniceKey(key);
   if (result.valid) {
-    saveVeniceKey(key);
+    await saveVeniceKey(key);
     status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
     const models = await fetchVeniceModels(key);
     if (models.length) {
@@ -778,7 +778,7 @@ export async function handleSaveOpenRouterKey() {
   btn.disabled = true; btn.textContent = 'Validating...';
   const result = await validateOpenRouterKey(key);
   if (result.valid) {
-    saveOpenRouterKey(key);
+    await saveOpenRouterKey(key);
     status.innerHTML = '<span style="color:var(--green)">Connected — loading models\u2026</span>';
     const models = await fetchOpenRouterModels(key);
     if (models.length) {

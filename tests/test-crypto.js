@@ -29,6 +29,9 @@
   assert('window.renderEncryptionSection exists', typeof window.renderEncryptionSection === 'function');
   assert('window.renderBackupSection exists', typeof window.renderBackupSection === 'function');
   assert('window.isSensitiveKey exists', typeof window.isSensitiveKey === 'function');
+  assert('window.getCachedKey exists', typeof window.getCachedKey === 'function');
+  assert('window.updateKeyCache exists', typeof window.updateKeyCache === 'function');
+  assert('window.decryptKeyCache exists', typeof window.decryptKeyCache === 'function');
   assert('window.initProfilesCache exists', typeof window.initProfilesCache === 'function');
 
   // ═══════════════════════════════════════════════
@@ -38,7 +41,10 @@
   assert('labcharts-abc123-imported is sensitive', window.isSensitiveKey('labcharts-abc123-imported'));
   assert('labcharts-default-chat is sensitive', window.isSensitiveKey('labcharts-default-chat'));
   assert('labcharts-profiles is sensitive', window.isSensitiveKey('labcharts-profiles'));
-  assert('labcharts-api-key is NOT sensitive', !window.isSensitiveKey('labcharts-api-key'));
+  assert('labcharts-api-key IS sensitive', window.isSensitiveKey('labcharts-api-key'));
+  assert('labcharts-venice-key IS sensitive', window.isSensitiveKey('labcharts-venice-key'));
+  assert('labcharts-openrouter-key IS sensitive', window.isSensitiveKey('labcharts-openrouter-key'));
+  assert('labcharts-ollama IS sensitive', window.isSensitiveKey('labcharts-ollama'));
   assert('labcharts-ai-provider is NOT sensitive', !window.isSensitiveKey('labcharts-ai-provider'));
   assert('labcharts-default-units is NOT sensitive', !window.isSensitiveKey('labcharts-default-units'));
   assert('labcharts-encryption-enabled is NOT sensitive', !window.isSensitiveKey('labcharts-encryption-enabled'));
@@ -230,9 +236,27 @@
     assert('ON state shows Change Passphrase', onHtml.includes('Change Passphrase'));
     assert('ON state shows Disable Encryption', onHtml.includes('Disable Encryption'));
     assert('ON state shows encryption-status-on', onHtml.includes('encryption-status-on'));
+    assert('ON state mentions API keys encrypted', onHtml.includes('API keys are encrypted'));
 
     if (wasEnabled) localStorage.setItem('labcharts-encryption-enabled', wasEnabled);
     else localStorage.removeItem('labcharts-encryption-enabled');
+  }
+
+  // ═══════════════════════════════════════════════
+  // 11b. Key cache sync access
+  // ═══════════════════════════════════════════════
+  {
+    // getCachedKey falls back to raw localStorage when cache not populated
+    const testKey = 'labcharts-test-cache-key';
+    localStorage.setItem(testKey, 'test-value');
+    assert('getCachedKey falls back to localStorage', window.getCachedKey(testKey) === 'test-value');
+    // updateKeyCache populates cache, getCachedKey returns it
+    window.updateKeyCache(testKey, 'cached-value');
+    assert('getCachedKey returns cached value after updateKeyCache', window.getCachedKey(testKey) === 'cached-value');
+    // Clean up
+    window.updateKeyCache(testKey, null);
+    localStorage.removeItem(testKey);
+    assert('getCachedKey returns null after cleanup', window.getCachedKey(testKey) === null);
   }
 
   // ═══════════════════════════════════════════════

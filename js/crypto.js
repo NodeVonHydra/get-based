@@ -11,7 +11,11 @@ const SENSITIVE_PATTERNS = [
   /^labcharts-[^-]+-imported$/,
   /^labcharts-[^-]+-chat$/,
   /^labcharts-[^-]+-chat-t_.+$/,
-  /^labcharts-profiles$/
+  /^labcharts-profiles$/,
+  /^labcharts-api-key$/,
+  /^labcharts-venice-key$/,
+  /^labcharts-openrouter-key$/,
+  /^labcharts-ollama$/,
 ];
 
 function isSensitiveKey(key) {
@@ -22,6 +26,41 @@ function isSensitiveKey(key) {
 // KEY LIFECYCLE
 // ═══════════════════════════════════════════════
 let _sessionKey = null;
+
+// ═══════════════════════════════════════════════
+// API KEY CACHE — sync access to decrypted API keys
+// ═══════════════════════════════════════════════
+const API_KEY_LS_KEYS = ['labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', 'labcharts-ollama'];
+const _keyCache = new Map();
+
+export async function decryptKeyCache() {
+  _keyCache.clear();
+  for (const lsKey of API_KEY_LS_KEYS) {
+    const raw = localStorage.getItem(lsKey);
+    if (!raw) continue;
+    if (isEncryptedValue(raw) && _sessionKey) {
+      const parsed = parseEncryptedValue(raw);
+      if (!parsed) continue;
+      try {
+        const plaintext = await decrypt(_sessionKey, parsed.iv, parsed.ciphertext);
+        _keyCache.set(lsKey, plaintext);
+      } catch { /* skip if can't decrypt */ }
+    } else if (!isEncryptedValue(raw)) {
+      _keyCache.set(lsKey, raw);
+    }
+  }
+}
+
+export function getCachedKey(lsKey) {
+  if (_keyCache.has(lsKey)) return _keyCache.get(lsKey);
+  // Fallback: raw localStorage (encryption off or cache not populated)
+  return localStorage.getItem(lsKey);
+}
+
+export function updateKeyCache(lsKey, value) {
+  if (value) _keyCache.set(lsKey, value);
+  else _keyCache.delete(lsKey);
+}
 const PBKDF2_ITERATIONS = 600000;
 
 export function getEncryptionEnabled() {
@@ -124,9 +163,10 @@ export async function encryptedGetItem(key) {
 // ═══════════════════════════════════════════════
 export async function initEncryption() {
   if (!getEncryptionEnabled()) return;
-  return new Promise((resolve) => {
+  await new Promise((resolve) => {
     showPassphraseModal(resolve);
   });
+  await decryptKeyCache();
 }
 
 let _failCount = 0;
@@ -347,6 +387,7 @@ export function showEnableEncryptionModal() {
 
       // Migrate all sensitive keys: read plaintext, re-write encrypted
       await migrateSensitiveKeys();
+      await decryptKeyCache();
 
       localStorage.setItem('labcharts-encryption-enabled', 'true');
       overlay.style.display = 'none';
@@ -499,6 +540,7 @@ export async function disableEncryption() {
       localStorage.removeItem('labcharts-encryption-enabled');
       localStorage.removeItem('labcharts-encryption-salt');
       _sessionKey = null;
+      _keyCache.clear();
       showNotification('Encryption disabled', 'info');
       if (document.getElementById('encryption-section')) {
         document.getElementById('encryption-section').innerHTML = renderEncryptionSection();
@@ -578,6 +620,7 @@ export async function changePassphrase() {
       const newKey = await deriveKey(newP, newSalt);
       _sessionKey = newKey;
       await migrateSensitiveKeys();
+      await decryptKeyCache();
 
       overlay.style.display = 'none';
       overlay.innerHTML = '';
@@ -1036,18 +1079,28 @@ async function writeFolderBackup() {
     const w1 = await latestFile.createWritable();
     await w1.write(json);
     await w1.close();
-    // Daily file (once per calendar day)
-    const today = new Date().toISOString().slice(0, 10);
-    const dailyName = `getbased-backup-${today}.json`;
-    try {
-      await _folderHandle.getFileHandle(dailyName, { create: false });
-      // Already exists — skip
-    } catch {
-      // Doesn't exist — create it
-      const dailyFile = await _folderHandle.getFileHandle(dailyName, { create: true });
-      const w2 = await dailyFile.createWritable();
-      await w2.write(json);
-      await w2.close();
+    // Timestamped snapshot (YYYY-MM-DDTHH-MM)
+    const now = new Date();
+    const ts = now.toISOString().slice(0, 16).replace(':', '-'); // 2026-03-05T14-30
+    const tsName = `getbased-backup-${ts}.json`;
+    const tsFile = await _folderHandle.getFileHandle(tsName, { create: true });
+    const w2 = await tsFile.createWritable();
+    await w2.write(json);
+    await w2.close();
+    // Prune: keep newest 4 timestamped files (+ latest = 5 total, matching IndexedDB)
+    const MAX_FOLDER_SNAPSHOTS = 4;
+    const backupFiles = [];
+    for await (const [name] of _folderHandle) {
+      if (name.startsWith('getbased-backup-') && name.endsWith('.json') && name !== 'getbased-backup-latest.json') {
+        backupFiles.push(name);
+      }
+    }
+    if (backupFiles.length > MAX_FOLDER_SNAPSHOTS) {
+      backupFiles.sort(); // lexicographic = chronological for ISO timestamps
+      const toDelete = backupFiles.slice(0, backupFiles.length - MAX_FOLDER_SNAPSHOTS);
+      for (const name of toDelete) {
+        await _folderHandle.removeEntry(name).catch(() => {});
+      }
     }
     localStorage.setItem('labcharts-folder-backup-last', new Date().toISOString());
   } catch (err) {
@@ -1142,7 +1195,7 @@ export function renderEncryptionSection() {
       <div class="encryption-status-icon">&#128274;</div>
       <div class="encryption-status-body">
         <div class="encryption-status-title">Encryption is ON</div>
-        <div class="encryption-status-detail">Your medical data and chat history are encrypted with AES-256-GCM. API keys and display preferences remain unencrypted.</div>
+        <div class="encryption-status-detail">Your medical data, chat history, and API keys are encrypted with AES-256-GCM. Display preferences remain unencrypted.</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -1237,6 +1290,9 @@ Object.assign(window, {
   renderEncryptionSection,
   renderBackupSection,
   isSensitiveKey,
+  getCachedKey,
+  updateKeyCache,
+  decryptKeyCache,
   buildBackupSnapshot,
   scheduleAutoBackup,
   getAutoBackupSnapshots,

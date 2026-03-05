@@ -2,6 +2,7 @@
 
 import { isDebugMode, showNotification, escapeHTML } from './utils.js';
 import { getOllamaPIIModel, getOllamaPIIUrl } from './api.js';
+import { getCachedKey, updateKeyCache, encryptedSetItem } from './crypto.js';
 import { state } from './state.js';
 
 // ═══════════════════════════════════════════════
@@ -51,10 +52,14 @@ export function fakePatientId() { return randomDigits(10); }
 // ═══════════════════════════════════════════════
 export function getOllamaConfig() {
   const defaults = { url: 'http://localhost:11434', model: 'llama3.2', mode: 'ollama', apiKey: '' };
-  try { return { ...defaults, ...JSON.parse(localStorage.getItem('labcharts-ollama')) }; }
+  try { return { ...defaults, ...JSON.parse(getCachedKey('labcharts-ollama')) }; }
   catch { return defaults; }
 }
-export function saveOllamaConfig(config) { localStorage.setItem('labcharts-ollama', JSON.stringify(config)); }
+export async function saveOllamaConfig(config) {
+  const json = JSON.stringify(config);
+  await encryptedSetItem('labcharts-ollama', json);
+  updateKeyCache('labcharts-ollama', json);
+}
 
 export async function checkOllama(url) {
   const baseUrl = url || getOllamaConfig().url;

@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.4', date: '2026-03-05', title: 'Backup & Key Encryption',
+    items: [
+      'API keys are now encrypted at rest when encryption is enabled',
+      'Folder backup writes timestamped snapshots and prunes to 5 files (matching IndexedDB)',
+    ]
+  },
+  {
     version: '1.3.3', date: '2026-03-05', title: 'Local AI CORS Hints',
     items: [
       'HTTPS + LAN IP detection — immediate warning instead of a confusing timeout',
