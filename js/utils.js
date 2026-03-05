@@ -117,4 +117,6 @@ export function hasCardContent(obj) {
   return false;
 }
 
-Object.assign(window, { showNotification, showConfirmDialog, setDebugMode, setPIIReviewEnabled, hasCardContent });
+export function escapeAttr(s) { return escapeHTML(s).replace(/'/g, '&#39;'); }
+
+Object.assign(window, { showNotification, showConfirmDialog, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled, hasCardContent, escapeAttr });

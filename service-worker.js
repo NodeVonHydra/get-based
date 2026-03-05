@@ -69,7 +69,9 @@ self.addEventListener('fetch', (event) => {
 
   // Network-only: API calls (Anthropic, OpenRouter, Venice, OpenAlex, Ollama) — do NOT
   // intercept so streaming ReadableStream goes directly to the page without SW IPC buffering
-  if (url.hostname === 'api.anthropic.com' || url.hostname === 'openrouter.ai' || /* ROUTSTR DISABLED: url.hostname === 'api.routstr.com' || */ url.hostname === 'api.venice.ai' || url.hostname === 'api.openalex.org' || url.hostname === 'api.github.com' || url.hostname === 'cloud.umami.is' || url.hostname === 'api-gateway.umami.dev' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  // Also skip private/LAN IPs (Local AI on another machine)
+  const h = url.hostname;
+  if (h === 'api.anthropic.com' || h === 'openrouter.ai' || /* ROUTSTR DISABLED: h === 'api.routstr.com' || */ h === 'api.venice.ai' || h === 'api.openalex.org' || h === 'api.github.com' || h === 'cloud.umami.is' || h === 'api-gateway.umami.dev' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
     return;
   }
 

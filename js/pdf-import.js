@@ -418,17 +418,17 @@ export function showImportPreview(parseResult) {
   }
   html += `<table class="import-table"><thead><tr><th>Status</th><th>Test Name</th><th>Value</th><th>Maps To</th></tr></thead><tbody>`;
   for (const m of matched) {
-    html += `<tr><td class="matched">\u2713 Matched</td><td>${m.rawName}</td>
-      <td>${m.value}</td><td>${m.mappedKey}</td></tr>`;
+    html += `<tr><td class="matched">\u2713 Matched</td><td>${escapeHTML(m.rawName)}</td>
+      <td>${escapeHTML(String(m.value))}</td><td>${escapeHTML(m.mappedKey)}</td></tr>`;
   }
   for (const m of newMarkers) {
-    const refInfo = (m.refMin != null || m.refMax != null) ? ` (${m.refMin ?? '?'}\u2013${m.refMax ?? '?'} ${m.unit || ''})` : '';
-    html += `<tr><td class="new-marker">\u271A New</td><td>${m.rawName}</td>
-      <td>${m.value}</td><td>${m.suggestedKey}${refInfo}</td></tr>`;
+    const refInfo = (m.refMin != null || m.refMax != null) ? ` (${m.refMin ?? '?'}\u2013${m.refMax ?? '?'} ${escapeHTML(m.unit || '')})` : '';
+    html += `<tr><td class="new-marker">\u271A New</td><td>${escapeHTML(m.rawName)}</td>
+      <td>${escapeHTML(String(m.value))}</td><td>${escapeHTML(m.suggestedKey)}${refInfo}</td></tr>`;
   }
   for (const m of unmatched) {
-    html += `<tr><td class="unmatched">? Unmatched</td><td>${m.rawName}</td>
-      <td>${m.value}</td><td>\u2014</td></tr>`;
+    html += `<tr><td class="unmatched">? Unmatched</td><td>${escapeHTML(m.rawName)}</td>
+      <td>${escapeHTML(String(m.value))}</td><td>\u2014</td></tr>`;
   }
   html += `</tbody></table>`;
 
