@@ -364,6 +364,11 @@ export function showPIIDiffViewer(originalText, obfuscatedText) {
   requestAnimationFrame(() => overlay.classList.add('show'));
 }
 
+function extractPatientName(text) {
+  const m = text.match(/\b(?:jm[eé]no|name|pacient|patient|p[rř][ií]jmen[ií]|surname)\b[:\s]+(.+)/im);
+  return m ? m[1].trim() : null;
+}
+
 export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) {
   return new Promise(resolve => {
     const isStreaming = typeof streamFn === 'function';
@@ -404,6 +409,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
     const sendBtn = overlay.querySelector('#pii-review-send');
     const statusEl = overlay.querySelector('#pii-stream-status');
     const stopBtn = overlay.querySelector('#pii-stream-stop');
+    const leftPanel = overlay.querySelector('.pii-diff-left');
     let dirty = false;
 
     // Search handler
@@ -440,6 +446,9 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       if (statusEl) statusEl.textContent = `Regex applied \u2014 ${result.replacements} replacement${result.replacements !== 1 ? 's' : ''}`;
       if (stopBtn) stopBtn.style.display = 'none';
       if (abortController) { abortController.abort(); abortController = null; }
+      // Rebuild diff highlights
+      const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, result.obfuscated);
+      if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
     });
 
     // Send & cancel
@@ -469,6 +478,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       let charCount = 0;
       let rafPending = false;
       let pendingText = '';
+      const expectedLen = originalText.length;
 
       const flushToTextarea = () => {
         if (pendingText) {
@@ -476,10 +486,28 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           charCount += pendingText.length;
           pendingText = '';
           statusEl.classList.remove('pii-stream-waiting');
-          statusEl.textContent = `Streaming\u2026 ${charCount.toLocaleString()} chars`;
+          const pct = Math.min(99, Math.round(charCount / expectedLen * 100));
+          statusEl.textContent = `Streaming\u2026 ${pct}% (${charCount.toLocaleString()} / ~${expectedLen.toLocaleString()} chars)`;
           textarea.scrollTop = textarea.scrollHeight;
         }
         rafPending = false;
+      };
+
+      const onStreamDone = () => {
+        flushToTextarea();
+        textarea.readOnly = false;
+        sendBtn.disabled = false;
+        if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
+        if (stopBtn) stopBtn.style.display = 'none';
+        // Rebuild left panel with diff highlights
+        const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, textarea.value);
+        if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
+        // Auto-fill search with patient name
+        const name = extractPatientName(originalText);
+        if (name && searchInput) {
+          searchInput.value = name;
+          searchInput.dispatchEvent(new Event('input'));
+        }
       };
 
       streamFn(
@@ -488,13 +516,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
         },
         abortController.signal
-      ).then(() => {
-        flushToTextarea();
-        textarea.readOnly = false;
-        sendBtn.disabled = false;
-        if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
-        if (stopBtn) stopBtn.style.display = 'none';
-      }).catch(err => {
+      ).then(onStreamDone).catch(err => {
         flushToTextarea();
         if (err.name === 'AbortError') return; // stop button already handled
         textarea.readOnly = false;
