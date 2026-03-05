@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.6', date: '2026-03-05', title: 'Settings Cleanup',
+    items: [
+      'Profile tab removed from Settings — sex, date of birth, and location are now in the Client List',
+      'Location field in Client List now shows live latitude with AI refinement (same as the old Settings)',
+    ]
+  },
+  {
     version: '1.3.5', date: '2026-03-05', title: 'Security & Accessibility Audit',
     items: [
       'Fixed XSS vectors in PDF import preview and settings error messages',

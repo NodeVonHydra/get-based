@@ -50,7 +50,7 @@ function _showPreflightConfirm(message, confirmLabel = 'Import Anyway') {
     overlay.classList.add('show');
     document.getElementById('confirm-ok').onclick = () => { overlay.classList.remove('show'); resolve(true); };
     document.getElementById('confirm-cancel').onclick = () => { overlay.classList.remove('show'); resolve(false); };
-    overlay.onclick = (e) => { if (e.target === overlay) { overlay.classList.remove('show'); resolve(false); } };
+    overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
   });
 }
 
@@ -120,7 +120,7 @@ function _showModelMismatchDialog(mismatch) {
     };
     document.getElementById('confirm-continue').onclick = () => { overlay.classList.remove('show'); resolve('continue'); };
     document.getElementById('confirm-cancel').onclick = () => { overlay.classList.remove('show'); resolve('cancel'); };
-    overlay.onclick = (e) => { if (e.target === overlay) { overlay.classList.remove('show'); resolve('cancel'); } };
+    overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
   });
 }
 

@@ -4,7 +4,6 @@ import { state } from './state.js';
 import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
-import { getProfileLocation, updateLocationLat } from './profile.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
 
@@ -32,7 +31,7 @@ function buildModelOptions(provider, models, currentModel, labelFn) {
 // ═══════════════════════════════════════════════
 // SETTINGS MODAL
 // ═══════════════════════════════════════════════
-let _activeSettingsTab = 'profile';
+let _activeSettingsTab = 'display';
 
 export function openSettingsModal(tab) {
   const overlay = document.getElementById('settings-modal-overlay');
@@ -46,10 +45,6 @@ export function openSettingsModal(tab) {
     <h3>Settings</h3>
 
     <div class="settings-tabs-bar">
-      <button class="settings-tab-btn${_activeSettingsTab === 'profile' ? ' active' : ''}" data-tab="profile" onclick="switchSettingsTab('profile')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
-      </button>
       <button class="settings-tab-btn${_activeSettingsTab === 'display' ? ' active' : ''}" data-tab="display" onclick="switchSettingsTab('display')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         Display
@@ -62,33 +57,6 @@ export function openSettingsModal(tab) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Data
       </button>
-    </div>
-
-    <!-- Profile Tab -->
-    <div class="settings-tab-panel${_activeSettingsTab === 'profile' ? ' active' : ''}" data-tab-panel="profile">
-      <div class="settings-section">
-        <label class="settings-label">Sex</label>
-        <div class="sex-toggle">
-          <button class="sex-toggle-btn${state.profileSex === 'male' ? ' active' : ''}" data-sex="male" onclick="switchSex('male');updateSettingsUI()">&#9794;</button>
-          <button class="sex-toggle-btn${state.profileSex === 'female' ? ' active' : ''}" data-sex="female" onclick="switchSex('female');updateSettingsUI()">&#9792;</button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Date of Birth</label>
-        <div class="dob-input">
-          <input type="date" id="dob-input" value="${state.profileDob || ''}" onchange="switchDob(this.value)">
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Location <span style="font-weight:400;color:var(--text-muted);font-size:11px">(for latitude / circadian context)</span></label>
-        <div class="loc-inputs">
-          <input class="ctx-note-input" id="loc-country" placeholder="Country" value="${escapeHTML(getProfileLocation().country)}" oninput="updateLocationLat()">
-          <input class="ctx-note-input loc-zip-input" id="loc-zip" placeholder="ZIP / postal code (refines latitude)" value="${escapeHTML(getProfileLocation().zip)}" oninput="updateLocationLat()">
-        </div>
-        <div id="loc-lat-display" style="font-size:11px;margin-top:4px"></div>
-      </div>
     </div>
 
     <!-- Display Tab -->
@@ -195,7 +163,6 @@ export function openSettingsModal(tab) {
       </div>
     </div>`;
   overlay.classList.add('show');
-  updateLocationLat();
   initSettingsOllamaCheck();
   initSettingsModelFetch();
   loadBackupSnapshots();
@@ -229,9 +196,6 @@ export function switchSettingsTab(tabId) {
   if (tabId === 'data') {
     refreshDataEntriesSection();
     loadBackupSnapshots();
-  }
-  if (tabId === 'profile') {
-    updateLocationLat();
   }
 }
 
@@ -547,7 +511,6 @@ export function initSettingsOllamaCheck() {
 export function updateSettingsUI() {
   const modal = document.getElementById('settings-modal');
   if (!modal) return;
-  modal.querySelectorAll('.sex-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.sex === state.profileSex));
   modal.querySelectorAll('.unit-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.unit === state.unitSystem));
   modal.querySelectorAll('.range-toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.range === state.rangeMode));
   const theme = getTheme();

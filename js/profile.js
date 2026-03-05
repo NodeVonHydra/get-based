@@ -419,11 +419,12 @@ export async function detectLatitudeWithAI(country, zip) {
   }
 }
 
-export function getLatitudeFromLocation() {
+export function getLatitudeFromLocation(optCountry, optZip) {
   const loc = getProfileLocation();
-  if (!loc.country) return null;
-  const c = loc.country.toLowerCase().trim();
-  const zip = (loc.zip || '').trim();
+  const country = optCountry !== undefined ? optCountry : loc.country;
+  if (!country) return null;
+  const c = country.toLowerCase().trim();
+  const zip = (optZip !== undefined ? optZip : loc.zip || '').trim();
 
   // AI cache (most accurate — covers any country/ZIP worldwide)
   var cacheKey = (c + '|' + zip).toLowerCase();

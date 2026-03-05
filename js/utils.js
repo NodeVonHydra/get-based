@@ -103,7 +103,7 @@ export function showConfirmDialog(message, onConfirm) {
   overlay.classList.add("show");
   document.getElementById("confirm-ok").onclick = () => { overlay.classList.remove("show"); onConfirm(); };
   document.getElementById("confirm-cancel").onclick = () => { overlay.classList.remove("show"); };
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove("show"); };
+  overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
   document.getElementById("confirm-cancel").focus();
 }
 
