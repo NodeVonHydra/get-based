@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.2', date: '2026-03-05', title: 'Streaming PII Review',
+    items: [
+      'PII review modal now streams Local AI obfuscation in real-time \u2014 no more waiting blindly',
+      'Regex fallback is an explicit button ("Use regex instead"), not a silent timeout',
+      'Stop button to cancel mid-stream and edit partial results',
+      'Fixed nested scrollbars in the PII review modal',
+    ]
+  },
+  {
     version: '1.3.1', date: '2026-03-05', title: 'Unified Local AI',
     items: [
       'Provider tab renamed from "Ollama" to "Local" \u2014 one option for all local servers',

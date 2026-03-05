@@ -6,7 +6,7 @@ import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
-import { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
+import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
 
 // ═══════════════════════════════════════════════
@@ -668,16 +668,29 @@ export async function handlePDFFile(file) {
     let privacyOriginal = null;
     let piiTime = 0;
     const ollama = await checkOllamaPII();
-    if (ollama.available) {
+
+    if (ollama.available && isPIIReviewEnabled()) {
+      // Streaming mode — modal opens immediately, AI streams into it
+      const piiStart = performance.now();
+      const reviewResult = await reviewPIIBeforeSend(pdfText, {
+        streamFn: (onChunk, signal) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal)
+      });
+      piiTime = Math.round((performance.now() - piiStart) / 1000);
+      if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+      textForAI = reviewResult;
+      privacyMethod = 'ollama+review';
+      privacyOriginal = pdfText;
+    } else if (ollama.available) {
+      // Non-streaming background path (review disabled)
       try {
         const piiStart = performance.now();
         textForAI = await sanitizeWithOllama(pdfText);
         piiTime = Math.round((performance.now() - piiStart) / 1000);
         privacyMethod = 'ollama';
         privacyOriginal = pdfText;
-        if (isDebugMode()) console.log(`[PII] Obfuscated via Ollama (${piiTime}s)`);
+        if (isDebugMode()) console.log(`[PII] Obfuscated via Local AI (${piiTime}s)`);
       } catch (e) {
-        if (isDebugMode()) console.warn('[PII] Ollama failed, falling back to regex:', e.message);
+        if (isDebugMode()) console.warn('[PII] Local AI failed, falling back to regex:', e.message);
         try {
           const result = obfuscatePDFText(pdfText);
           textForAI = result.obfuscated;
@@ -686,11 +699,12 @@ export async function handlePDFFile(file) {
           privacyMethod = 'regex';
         } catch (e2) {
           hideImportProgress();
-          showNotification('Privacy protection failed — PDF not sent to AI. Try again or check Settings.', 'error');
+          showNotification('Privacy protection failed \u2014 PDF not sent to AI. Try again or check Settings.', 'error');
           return;
         }
       }
     } else {
+      // Regex-only path
       try {
         const result = obfuscatePDFText(pdfText);
         textForAI = result.obfuscated;
@@ -699,17 +713,16 @@ export async function handlePDFFile(file) {
         privacyMethod = 'regex';
       } catch (e) {
         hideImportProgress();
-        showNotification('Privacy protection failed — PDF not sent to AI. Try again or check Settings.', 'error');
+        showNotification('Privacy protection failed \u2014 PDF not sent to AI. Try again or check Settings.', 'error');
         return;
+      }
+      if (isPIIReviewEnabled()) {
+        const reviewResult = await reviewPIIBeforeSend(pdfText, { obfuscatedText: textForAI });
+        if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+        textForAI = reviewResult;
       }
     }
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
-
-    if (isPIIReviewEnabled()) {
-      const reviewResult = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
-      if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
-      textForAI = reviewResult;
-    }
 
     await showImportProgress(2, file.name);
     const analysisStart = performance.now();
@@ -762,7 +775,19 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   let privacyReplacements = 0;
   let privacyOriginal = null;
   let piiTime = 0;
-  if (ollama.available) {
+
+  if (ollama.available && isPIIReviewEnabled()) {
+    // Streaming mode — modal opens immediately, AI streams into it
+    const piiStart = performance.now();
+    const reviewResult = await reviewPIIBeforeSend(pdfText, {
+      streamFn: (onChunk, signal) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal)
+    });
+    piiTime = Math.round((performance.now() - piiStart) / 1000);
+    if (reviewResult === 'cancel') { return 'skipped'; }
+    textForAI = reviewResult;
+    privacyMethod = 'ollama+review';
+    privacyOriginal = pdfText;
+  } else if (ollama.available) {
     try {
       const piiStart = performance.now();
       textForAI = await sanitizeWithOllama(pdfText);
@@ -770,13 +795,13 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
       privacyMethod = 'ollama';
       privacyOriginal = pdfText;
     } catch (e) {
-      if (isDebugMode()) console.warn(`[PII] Ollama failed for ${file.name}, regex fallback:`, e.message);
+      if (isDebugMode()) console.warn(`[PII] Local AI failed for ${file.name}, regex fallback:`, e.message);
       try {
         const r = obfuscatePDFText(pdfText);
         textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
         privacyMethod = 'regex';
       } catch (e2) {
-        showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+        showNotification(`${file.name}: Privacy protection failed \u2014 skipped`, 'error');
         return 'pii-fail';
       }
     }
@@ -786,17 +811,16 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
       textForAI = r.obfuscated; privacyReplacements = r.replacements; privacyOriginal = r.original;
       privacyMethod = 'regex';
     } catch (e) {
-      showNotification(`${file.name}: Privacy protection failed — skipped`, 'error');
+      showNotification(`${file.name}: Privacy protection failed \u2014 skipped`, 'error');
       return 'pii-fail';
     }
+    if (isPIIReviewEnabled()) {
+      const reviewResult = await reviewPIIBeforeSend(pdfText, { obfuscatedText: textForAI });
+      if (reviewResult === 'cancel') { return 'skipped'; }
+      textForAI = reviewResult;
+    }
   }
-  if (isDebugMode()) console.log(`[PII] ${file.name} — method: ${privacyMethod}, ${piiTime}s`);
-
-  if (isPIIReviewEnabled()) {
-    const reviewResult = await reviewPIIBeforeSend(privacyOriginal || pdfText, textForAI);
-    if (reviewResult === 'cancel') { return 'skipped'; }
-    textForAI = reviewResult;
-  }
+  if (isDebugMode()) console.log(`[PII] ${file.name} \u2014 method: ${privacyMethod}, ${piiTime}s`);
 
   await showBatchImportProgress(2, file.name, fileNum, totalFiles);
   const analysisStart = performance.now();

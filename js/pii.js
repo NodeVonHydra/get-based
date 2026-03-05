@@ -110,11 +110,7 @@ export function unloadOllamaPIIModel() {
   }).catch(() => {});
 }
 
-export async function sanitizeWithOllama(pdfText) {
-  const piiUrl = getOllamaPIIUrl();
-  const piiModel = getOllamaPIIModel();
-  const config = getOllamaConfig();
-  const promptText = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
+const PII_PROMPT_PREFIX = `TASK: Replace ONLY personal identifiers in this lab report. Output the FULL text with minimal changes.
 
 REPLACE these with fake data:
 - Patient names → fictional names
@@ -134,7 +130,78 @@ DO NOT CHANGE (copy exactly as-is):
 Output ONLY the modified text. No explanations, no markdown, no commentary.
 
 TEXT TO PROCESS:
-${pdfText}`;
+`;
+
+function validatePIIResult(result, pdfText) {
+  if (!result) return 'Local AI returned empty response';
+  if (result.length < pdfText.length * 0.25) return `Local AI output too short (${result.length} vs ${pdfText.length} chars)`;
+  const inputDates = pdfText.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
+  const outputDates = result.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
+  if (inputDates.length > 0 && outputDates.length === 0) return 'Local AI lost all dates from the text';
+  return null;
+}
+
+export async function sanitizeWithOllamaStreaming(pdfText, onChunk, signal) {
+  const piiUrl = getOllamaPIIUrl();
+  const piiModel = getOllamaPIIModel();
+  const config = getOllamaConfig();
+  const promptText = PII_PROMPT_PREFIX + pdfText;
+  const baseUrl = piiUrl.replace(/\/+$/, '');
+  const headers = { 'Content-Type': 'application/json' };
+  if (config.apiKey) headers['Authorization'] = `Bearer ${config.apiKey}`;
+
+  const resp = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model: piiModel, messages: [{ role: 'user', content: promptText }], stream: true }),
+    signal
+  });
+  if (!resp.ok) throw new Error(`Local server error: ${resp.status}`);
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = '';
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+        const payload = trimmed.slice(6);
+        if (payload === '[DONE]') break;
+        try {
+          const json = JSON.parse(payload);
+          const delta = json.choices?.[0]?.delta?.content;
+          if (delta) {
+            accumulated += delta;
+            onChunk(delta);
+          }
+        } catch { /* skip malformed chunks */ }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const result = accumulated.trim();
+  const validationError = validatePIIResult(result, pdfText);
+  if (validationError) throw new Error(validationError);
+
+  unloadOllamaPIIModel();
+  return result;
+}
+
+export async function sanitizeWithOllama(pdfText) {
+  const piiUrl = getOllamaPIIUrl();
+  const piiModel = getOllamaPIIModel();
+  const config = getOllamaConfig();
+  const promptText = PII_PROMPT_PREFIX + pdfText;
   try {
     const baseUrl = piiUrl.replace(/\/+$/, '');
     const headers = { 'Content-Type': 'application/json' };
@@ -149,14 +216,8 @@ ${pdfText}`;
     const data = await resp.json();
     const result = (data.choices?.[0]?.message?.content || '').trim();
 
-    // Validate output — if AI mangled the text, reject it
-    if (!result) throw new Error('Local AI returned empty response');
-    // Output should be at least 25% of input length (LLM shouldn't be summarizing)
-    if (result.length < pdfText.length * 0.25) throw new Error(`Local AI output too short (${result.length} vs ${pdfText.length} chars)`);
-    // Check that date-like patterns survived (YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY)
-    const inputDates = pdfText.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
-    const outputDates = result.match(/\b\d{4}[-/.]\d{2}[-/.]\d{2}\b|\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g) || [];
-    if (inputDates.length > 0 && outputDates.length === 0) throw new Error('Local AI lost all dates from the text');
+    const validationError = validatePIIResult(result, pdfText);
+    if (validationError) throw new Error(validationError);
 
     unloadOllamaPIIModel();
     return result;
@@ -303,11 +364,13 @@ export function showPIIDiffViewer(originalText, obfuscatedText) {
   requestAnimationFrame(() => overlay.classList.add('show'));
 }
 
-export function reviewPIIBeforeSend(originalText, obfuscatedText) {
+export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) {
   return new Promise(resolve => {
+    const isStreaming = typeof streamFn === 'function';
     const overlay = document.createElement('div');
     overlay.className = 'pii-warning-overlay';
-    const { leftHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
+    const { leftHtml } = buildPIIDiffHTML(originalText, obfuscatedText || originalText);
+    const initialText = obfuscatedText ? escapeHTML(obfuscatedText) : '';
     overlay.innerHTML = `
       <div class="pii-diff-modal">
         <h3>&#128274; Review &amp; Edit — This is what AI will receive</h3>
@@ -318,11 +381,18 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
         </div>
         <div class="pii-diff-viewer">
           <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
-          <div class="pii-diff-right"><div class="pii-diff-header">Sent to AI (editable)</div><textarea class="pii-edit-textarea" id="pii-edit-textarea" spellcheck="false">${escapeHTML(obfuscatedText)}</textarea></div>
+          <div class="pii-diff-right">
+            <div class="pii-diff-header">Sent to AI (editable)</div>
+            <textarea class="pii-edit-textarea" id="pii-edit-textarea" spellcheck="false"${isStreaming ? ' readonly' : ''}>${initialText}</textarea>
+            ${isStreaming ? '<div class="pii-stream-status pii-stream-waiting" id="pii-stream-status">Waiting for model response\u2026</div>' : ''}
+          </div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="import-btn import-btn-secondary" id="pii-review-regex" title="Run regex-based obfuscation instead">Use regex instead</button>
+          ${isStreaming ? '<button class="import-btn import-btn-secondary" id="pii-stream-stop">Stop</button>' : ''}
+          <span style="flex:1"></span>
           <button class="import-btn import-btn-secondary" id="pii-review-cancel">Cancel Import</button>
-          <button class="import-btn" id="pii-review-send">Send to AI</button>
+          <button class="import-btn" id="pii-review-send"${isStreaming ? ' disabled' : ''}>Send to AI</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -331,7 +401,12 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
     const searchInput = overlay.querySelector('#pii-search-input');
     const searchCount = overlay.querySelector('#pii-search-count');
     const textarea = overlay.querySelector('#pii-edit-textarea');
+    const sendBtn = overlay.querySelector('#pii-review-send');
+    const statusEl = overlay.querySelector('#pii-stream-status');
+    const stopBtn = overlay.querySelector('#pii-stream-stop');
+    let dirty = false;
 
+    // Search handler
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
       if (!query || query.length < 2) {
@@ -343,7 +418,7 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
       const matches = textarea.value.match(regex);
       const total = matches ? matches.length : 0;
       if (total > 0) {
-        searchCount.textContent = `${total} found — PII may still be present`;
+        searchCount.textContent = `${total} found \u2014 PII may still be present`;
         searchCount.className = 'pii-search-count pii-search-warn';
       } else {
         searchCount.textContent = 'Not found';
@@ -351,9 +426,84 @@ export function reviewPIIBeforeSend(originalText, obfuscatedText) {
       }
     });
 
-    overlay.querySelector('#pii-review-send').addEventListener('click', () => { overlay.remove(); resolve(textarea.value); });
-    overlay.querySelector('#pii-review-cancel').addEventListener('click', () => { overlay.remove(); resolve('cancel'); });
+    // Dirty flag — update button text when user edits
+    textarea.addEventListener('input', () => {
+      if (!dirty) { dirty = true; sendBtn.textContent = 'Save & Send to AI'; }
+    });
+
+    // Regex fallback button
+    overlay.querySelector('#pii-review-regex').addEventListener('click', () => {
+      const result = obfuscatePDFText(originalText);
+      textarea.value = result.obfuscated;
+      textarea.readOnly = false;
+      sendBtn.disabled = false;
+      if (statusEl) statusEl.textContent = `Regex applied \u2014 ${result.replacements} replacement${result.replacements !== 1 ? 's' : ''}`;
+      if (stopBtn) stopBtn.style.display = 'none';
+      if (abortController) { abortController.abort(); abortController = null; }
+    });
+
+    // Send & cancel
+    sendBtn.addEventListener('click', () => { overlay.remove(); resolve(textarea.value); });
+    overlay.querySelector('#pii-review-cancel').addEventListener('click', () => {
+      if (abortController) abortController.abort();
+      overlay.remove();
+      resolve('cancel');
+    });
+
+    // Streaming mode
+    let abortController = null;
+    if (isStreaming) {
+      abortController = new AbortController();
+
+      // Stop button
+      stopBtn.addEventListener('click', () => {
+        abortController.abort();
+        abortController = null;
+        textarea.readOnly = false;
+        sendBtn.disabled = false;
+        statusEl.textContent = 'Stopped \u2014 review partial result and edit below';
+        stopBtn.style.display = 'none';
+      });
+
+      // Start streaming
+      let charCount = 0;
+      let rafPending = false;
+      let pendingText = '';
+
+      const flushToTextarea = () => {
+        if (pendingText) {
+          textarea.value += pendingText;
+          charCount += pendingText.length;
+          pendingText = '';
+          statusEl.classList.remove('pii-stream-waiting');
+          statusEl.textContent = `Streaming\u2026 ${charCount.toLocaleString()} chars`;
+          textarea.scrollTop = textarea.scrollHeight;
+        }
+        rafPending = false;
+      };
+
+      streamFn(
+        (chunk) => {
+          pendingText += chunk;
+          if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
+        },
+        abortController.signal
+      ).then(() => {
+        flushToTextarea();
+        textarea.readOnly = false;
+        sendBtn.disabled = false;
+        if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
+        if (stopBtn) stopBtn.style.display = 'none';
+      }).catch(err => {
+        flushToTextarea();
+        if (err.name === 'AbortError') return; // stop button already handled
+        textarea.readOnly = false;
+        sendBtn.disabled = false;
+        if (statusEl) statusEl.textContent = `Error: ${err.message}`;
+        if (stopBtn) stopBtn.style.display = 'none';
+      });
+    }
   });
 }
 
-Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, checkOpenAICompatible, showPIIDiffViewer, isOllamaPIIEnabled, setOllamaPIIEnabled });
+Object.assign(window, { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend, getOllamaConfig, checkOllama, checkOpenAICompatible, showPIIDiffViewer, isOllamaPIIEnabled, setOllamaPIIEnabled });

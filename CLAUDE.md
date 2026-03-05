@@ -24,7 +24,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers
   - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
-  - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), diff viewer
+  - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
   - `notes.js` — note editor (open/save/delete)
   - `supplements.js` — supplement editor + render section
@@ -58,7 +58,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 ### PDF Import Pipeline
 
 1. **Text extraction** (`extractPDFText`): pdf.js extracts text items with x, y coordinates, grouped by page
-2. **PII obfuscation**: Local AI (Ollama or OpenAI-compatible, preferred) or regex fallback replaces personal info before sending to AI
+2. **PII obfuscation**: When review enabled + Local AI available, modal opens immediately and streams AI obfuscation in real-time (`sanitizeWithOllamaStreaming`). "Use regex instead" button as explicit fallback. Without review, non-streaming `sanitizeWithOllama` with silent regex fallback. Without Local AI, regex-only
 3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs
 4. **Import preview**: matched/unmatched/new markers shown; user confirms before saving
 5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
