@@ -6,7 +6,7 @@ import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getProfileLocation, updateLocationLat } from './profile.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
-import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots } from './crypto.js';
+import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
 
 
 // ═══════════════════════════════════════════════
@@ -477,10 +477,6 @@ export function switchAIProvider(provider) {
   initSettingsModelFetch();
 }
 
-export function switchOllamaMode() {
-  // No-op — mode toggle removed, always uses OpenAI-compatible protocol
-}
-
 export function initSettingsModelFetch() {
   const key = getApiKey();
   if (key && document.getElementById('anthropic-model-area')) {
@@ -698,13 +694,14 @@ export async function handleSaveApiKey() {
     }
     showNotification('API key saved', 'success');
   } else {
-    status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
+    status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }
   btn.disabled = false; btn.textContent = 'Save & Validate';
 }
 
 export function handleRemoveApiKey() {
   localStorage.removeItem('labcharts-api-key');
+  updateKeyCache('labcharts-api-key', null);
   localStorage.removeItem('labcharts-anthropic-models');
   localStorage.removeItem('labcharts-anthropic-model');
   showNotification('API key removed', 'info');
@@ -741,13 +738,14 @@ export async function handleSaveVeniceKey() {
     }
     showNotification('Venice API key saved', 'success');
   } else {
-    status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
+    status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }
   btn.disabled = false; btn.textContent = 'Save & Validate';
 }
 
 export function handleRemoveVeniceKey() {
   localStorage.removeItem('labcharts-venice-key');
+  updateKeyCache('labcharts-venice-key', null);
   localStorage.removeItem('labcharts-venice-models');
   localStorage.removeItem('labcharts-venice-model');
   showNotification('Venice API key removed', 'info');
@@ -789,13 +787,14 @@ export async function handleSaveOpenRouterKey() {
     }
     showNotification('OpenRouter API key saved', 'success');
   } else {
-    status.innerHTML = `<span style="color:var(--red)">${result.error}</span>`;
+    status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }
   btn.disabled = false; btn.textContent = 'Save & Validate';
 }
 
 export function handleRemoveOpenRouterKey() {
   localStorage.removeItem('labcharts-openrouter-key');
+  updateKeyCache('labcharts-openrouter-key', null);
   localStorage.removeItem('labcharts-openrouter-models');
   localStorage.removeItem('labcharts-openrouter-model');
   localStorage.removeItem('labcharts-openrouter-pricing');
@@ -869,7 +868,6 @@ Object.assign(window, {
   initSettingsModelFetch,
   initSettingsOllamaCheck,
   updateSettingsUI,
-  switchOllamaMode,
   testOllamaConnection,
   testPIIOllamaConnection,
   updateAnthropicModelPricing,

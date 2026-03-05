@@ -10,11 +10,13 @@ import { profileStorageKey } from './profile.js';
 const SENSITIVE_PATTERNS = [
   /^labcharts-[^-]+-imported$/,
   /^labcharts-[^-]+-chat$/,
+  /^labcharts-[^-]+-chat-threads$/,
   /^labcharts-[^-]+-chat-t_.+$/,
   /^labcharts-profiles$/,
   /^labcharts-api-key$/,
   /^labcharts-venice-key$/,
   /^labcharts-openrouter-key$/,
+  // ROUTSTR DISABLED: /^labcharts-routstr-key$/,
   /^labcharts-ollama$/,
 ];
 
@@ -645,6 +647,7 @@ const GLOBAL_SETTINGS_KEYS = [
   'labcharts-ollama', 'labcharts-ollama-model',
   'labcharts-ollama-pii-url', 'labcharts-ollama-pii-model',
   'labcharts-time-format', 'labcharts-theme', 'labcharts-debug',
+  'labcharts-pii-review', 'labcharts-ollama-pii-enabled', 'labcharts-chat-sources',
   'labcharts-active-profile'
 ];
 

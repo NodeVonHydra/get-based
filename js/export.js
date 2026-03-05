@@ -85,7 +85,7 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
       <span><strong>Profile:</strong> ${esc(profileName)}</span>
       <span><strong>Sex:</strong> ${sexLabel}</span>
       <span><strong>Units:</strong> ${unitLabel}</span>
-      <span><strong>Date range:</strong> ${dateRange}</span>
+      <span><strong>Date range:</strong> ${esc(dateRange)}</span>
       <span><strong>Generated:</strong> ${now}</span>
     </div>
   </div>`;

@@ -55,11 +55,11 @@
   </footer>
 
   <div class="modal-overlay" id="modal-overlay">
-    <div class="modal" id="detail-modal" role="dialog" aria-modal="true"></div>
+    <div class="modal" id="detail-modal" role="dialog" aria-modal="true" aria-label="Marker Detail"></div>
   </div>
 
   <div class="modal-overlay" id="import-modal-overlay">
-    <div class="modal" id="import-modal" role="dialog" aria-modal="true"></div>
+    <div class="modal" id="import-modal" role="dialog" aria-modal="true" aria-label="Import Lab Results"></div>
   </div>
 
   <div class="modal-overlay" id="settings-modal-overlay">
@@ -93,7 +93,7 @@
         <span class="chat-thread-rail-title">Conversations</span>
         <button class="chat-thread-new-btn" onclick="createNewThread()" title="New conversation" aria-label="New conversation">+</button>
       </div>
-      <input type="text" class="chat-thread-search" id="chat-thread-search" placeholder="Search..." oninput="filterThreadList(this.value)">
+      <input type="text" class="chat-thread-search" id="chat-thread-search" placeholder="Search..." aria-label="Search conversations" oninput="filterThreadList(this.value)">
       <div class="chat-thread-list" id="chat-thread-list"></div>
     </div>
     <div class="chat-panel-conversation">
@@ -144,7 +144,7 @@
       </div>
       <div class="chat-messages" id="chat-messages"></div>
       <div class="chat-input-area">
-        <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." rows="2" onkeydown="handleChatKeydown(event)"></textarea>
+        <textarea class="chat-input" id="chat-input" placeholder="Ask about your lab results..." aria-label="Chat message" rows="2" onkeydown="handleChatKeydown(event)"></textarea>
         <button class="chat-discuss-btn" id="chat-discuss-btn" onclick="startDiscussion()" style="display:none" aria-label="Start discussion" title="Personas discuss your results">&#128172;</button>
         <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()" aria-label="Send message">&#10148;</button>
       </div>

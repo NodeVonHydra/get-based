@@ -1,7 +1,7 @@
 // nav.js — Sidebar, compact profile button
 
 import { state } from './state.js';
-import { escapeHTML, hashString } from './utils.js';
+import { escapeHTML, escapeAttr, hashString } from './utils.js';
 import { getActiveData, countFlagged } from './data.js';
 import { getProfiles } from './profile.js';
 
@@ -59,7 +59,7 @@ export function buildSidebar(data) {
     const flagHtml = group.totalFlagged > 0
       ? `<span class="flag-count">${group.totalFlagged}</span>`
       : '';
-    html += `<div class="sidebar-group-header${collapsed ? ' collapsed' : ''}" data-group-name="${escapeHTML(groupName)}" onclick="toggleNavGroup('${escapeHTML(groupName)}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('${escapeHTML(groupName)}')}">
+    html += `<div class="sidebar-group-header${collapsed ? ' collapsed' : ''}" data-group-name="${escapeAttr(groupName)}" onclick="toggleNavGroup('${escapeAttr(groupName)}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('${escapeAttr(groupName)}')}">
       <span class="sidebar-group-label">${escapeHTML(groupName)}</span>
       ${flagHtml}
       <span class="sidebar-group-arrow">\u25B8</span>

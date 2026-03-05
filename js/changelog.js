@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.5', date: '2026-03-05', title: 'Security & Accessibility Audit',
+    items: [
+      'Fixed XSS vectors in PDF import preview and settings error messages',
+      'Chat threads now encrypted at rest when encryption is enabled',
+      'Orphaned CSS cleaned up, ARIA labels added to chat inputs and modals',
+      'Avatar src validated, LAN IPs excluded from service worker caching',
+    ]
+  },
+  {
     version: '1.3.4', date: '2026-03-05', title: 'Backup & Key Encryption',
     items: [
       'API keys are now encrypted at rest when encryption is enabled',

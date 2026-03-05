@@ -1,7 +1,7 @@
 // client-list.js — Client List modal for managing profiles
 
 import { state } from './state.js';
-import { escapeHTML, hashString } from './utils.js';
+import { escapeHTML, escapeAttr, hashString } from './utils.js';
 import { getProfiles, getActiveProfileId, createProfile, switchProfile, deleteProfile, updateProfileMeta, getAllTags } from './profile.js';
 import { getAvatarColor } from './nav.js';
 
@@ -38,9 +38,11 @@ function _resizeAvatar(file) {
   });
 }
 
+function _isSafeAvatarSrc(s) { return typeof s === 'string' && s.startsWith('data:image/'); }
+
 function _renderAvatarEl(profile) {
-  if (profile.avatar) {
-    return `<img class="cl-avatar cl-avatar-img" src="${profile.avatar}" alt="">`;
+  if (profile.avatar && _isSafeAvatarSrc(profile.avatar)) {
+    return `<img class="cl-avatar cl-avatar-img" src="${escapeAttr(profile.avatar)}" alt="">`;
   }
   const color = getAvatarColor(profile.id);
   const initial = (profile.name || '?')[0].toUpperCase();
@@ -260,8 +262,8 @@ export function openClientForm(profileId) {
 
   const avatarColor = getAvatarColor(p ? p.id : 'new');
   const avatarInitial = (name || '?')[0].toUpperCase();
-  const avatarPreview = avatar
-    ? `<img class="cl-avatar-preview-img" id="cl-avatar-img" src="${avatar}" alt="">`
+  const avatarPreview = avatar && _isSafeAvatarSrc(avatar)
+    ? `<img class="cl-avatar-preview-img" id="cl-avatar-img" src="${escapeAttr(avatar)}" alt="">`
     : `<span class="cl-avatar-preview-initial" id="cl-avatar-img" style="background:${avatarColor}">${escapeHTML(avatarInitial)}</span>`;
 
   modal.innerHTML = `<div class="cl-header">
@@ -391,7 +393,7 @@ async function _clAvatarChanged(input) {
     _pendingAvatar = dataUrl;
     const container = document.querySelector('.cl-avatar-picker');
     if (container) {
-      container.innerHTML = `<img class="cl-avatar-preview-img" id="cl-avatar-img" src="${dataUrl}" alt=""><span class="cl-avatar-edit-icon">&#128247;</span>`;
+      container.innerHTML = `<img class="cl-avatar-preview-img" id="cl-avatar-img" src="${escapeAttr(dataUrl)}" alt=""><span class="cl-avatar-edit-icon">&#128247;</span>`;
     }
     // Add remove button if not present
     if (!document.querySelector('.cl-avatar-remove')) {

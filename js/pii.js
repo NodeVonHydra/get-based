@@ -354,7 +354,7 @@ export function showPIIDiffViewer(originalText, obfuscatedText) {
   overlay.className = 'pii-warning-overlay';
   const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
   overlay.innerHTML = `
-    <div class="pii-diff-modal">
+    <div class="pii-diff-modal" role="dialog" aria-modal="true" aria-label="Privacy Diff">
       <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
       <h3>&#128269; Privacy Diff — Before / After</h3>
       <div class="pii-diff-viewer">
@@ -382,7 +382,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
     const { leftHtml } = buildPIIDiffHTML(originalText, obfuscatedText || originalText);
     const initialText = obfuscatedText ? escapeHTML(obfuscatedText) : '';
     overlay.innerHTML = `
-      <div class="pii-diff-modal">
+      <div class="pii-diff-modal" role="dialog" aria-modal="true" aria-label="PII Review">
         <h3>&#128274; Review &amp; Edit — This is what AI will receive</h3>
         <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">Personal information on the left has been replaced with fake data on the right. You can edit the right side to fix any remaining PII before sending.</p>
         <div class="pii-search-bar">
