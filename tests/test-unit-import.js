@@ -1,0 +1,134 @@
+// test-unit-import.js — Verify US-unit values are normalized to SI on import
+// Run: fetch('tests/test-unit-import.js').then(r=>r.text()).then(s=>Function(s)())
+
+(async function() {
+  let pass = 0, fail = 0;
+  function assert(name, condition, detail) {
+    if (condition) { pass++; console.log(`%c PASS %c ${name}`, 'background:#22c55e;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }
+    else { fail++; console.error(`%c FAIL %c ${name}`, 'background:#ef4444;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }
+  }
+
+  console.log('%c Unit Normalization on Import Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
+
+  const src = await fetch('js/pdf-import.js').then(r => r.text());
+
+  // ═══════════════════════════════════════
+  // 1. normalizeToSI function exists
+  // ═══════════════════════════════════════
+  console.log('%c 1. normalizeToSI function ', 'font-weight:bold;color:#f59e0b');
+
+  assert('normalizeToSI defined', src.includes('function normalizeToSI('));
+  assert('normalizeToSI checks UNIT_CONVERSIONS', src.includes('UNIT_CONVERSIONS[key]'));
+  assert('normalizeUnitStr handles µ variants', src.includes('normalizeUnitStr') && src.includes('\\u03bc'));
+
+  // ═══════════════════════════════════════
+  // 2. UNIT_CONVERSIONS is imported
+  // ═══════════════════════════════════════
+  console.log('%c 2. UNIT_CONVERSIONS import ', 'font-weight:bold;color:#f59e0b');
+
+  assert('UNIT_CONVERSIONS imported from schema.js',
+    /import\s*\{[^}]*UNIT_CONVERSIONS[^}]*\}\s*from\s*['"]\.\/schema\.js['"]/.test(src));
+
+  // ═══════════════════════════════════════
+  // 3. confirmImport uses normalizeToSI for matched markers
+  // ═══════════════════════════════════════
+  console.log('%c 3. confirmImport normalization ', 'font-weight:bold;color:#f59e0b');
+
+  const confirmBlock = src.substring(src.indexOf('function confirmImport'));
+  assert('matched markers normalized',
+    confirmBlock.includes('normalizeToSI(m.mappedKey, m.value, m.unit)'));
+  assert('new (custom) markers normalized',
+    confirmBlock.includes('normalizeToSI(m.suggestedKey, m.value, m.unit)'));
+
+  // ═══════════════════════════════════════
+  // 4. normalizeToSI handles multiply type (inverse)
+  // ═══════════════════════════════════════
+  console.log('%c 4. Conversion logic ', 'font-weight:bold;color:#f59e0b');
+
+  assert('divides by factor for multiply type', src.includes('value / conv.factor'));
+  assert('handles hba1c inverse', src.includes('(value - 2.15) * 10.929'));
+
+  // ═══════════════════════════════════════
+  // 5. Functional test via module import
+  // ═══════════════════════════════════════
+  console.log('%c 5. Functional conversion tests ', 'font-weight:bold;color:#f59e0b');
+
+  const { UNIT_CONVERSIONS } = await import('/js/schema.js');
+
+  // Simulate normalizeToSI (same logic as the function)
+  function normUnit(s) {
+    return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug');
+  }
+  function testNormalize(key, value, unit) {
+    if (value == null || !unit) return value;
+    const conv = UNIT_CONVERSIONS[key];
+    if (!conv) return value;
+    const aiUnit = normUnit(unit);
+    if (conv.type === 'multiply') {
+      if (aiUnit === normUnit(conv.usUnit)) return parseFloat((value / conv.factor).toPrecision(6));
+    } else if (conv.type === 'hba1c' && aiUnit === '%') {
+      return parseFloat(((value - 2.15) * 10.929).toFixed(1));
+    }
+    return value;
+  }
+
+  // Glucose: 95 mg/dL → should be ~5.27 mmol/L
+  const glucoseSI = testNormalize('biochemistry.glucose', 95, 'mg/dl');
+  assert('Glucose 95 mg/dL → ~5.27 mmol/L',
+    Math.abs(glucoseSI - 5.27) < 0.1,
+    `got ${glucoseSI}`);
+
+  // Glucose already in SI should pass through unchanged
+  const glucosePassthrough = testNormalize('biochemistry.glucose', 5.27, 'mmol/l');
+  assert('Glucose 5.27 mmol/L unchanged',
+    glucosePassthrough === 5.27,
+    `got ${glucosePassthrough}`);
+
+  // HbA1c: 5.7% → should be ~38.8 mmol/mol
+  const hba1cSI = testNormalize('diabetes.hba1c', 5.7, '%');
+  assert('HbA1c 5.7% → ~38.8 mmol/mol',
+    Math.abs(hba1cSI - 38.8) < 0.5,
+    `got ${hba1cSI}`);
+
+  // Testosterone: 500 ng/dL → should be ~17.35 nmol/L
+  const testoSI = testNormalize('hormones.testosterone', 500, 'ng/dl');
+  assert('Testosterone 500 ng/dL → ~17.35 nmol/L',
+    Math.abs(testoSI - 17.35) < 0.5,
+    `got ${testoSI}`);
+
+  // Cholesterol: 200 mg/dL → should be ~5.17 mmol/L
+  const cholSI = testNormalize('lipids.cholesterol', 200, 'mg/dl');
+  assert('Cholesterol 200 mg/dL → ~5.17 mmol/L',
+    Math.abs(cholSI - 5.17) < 0.1,
+    `got ${cholSI}`);
+
+  // µ character variants for DHEA-S (usUnit: 'µg/dl', factor: 36.87)
+  // Unicode MICRO SIGN (U+00B5)
+  const dhea1 = testNormalize('hormones.dheaS', 200, '\u00b5g/dl');
+  assert('DHEA-S with µ (U+00B5) converts',
+    Math.abs(dhea1 - 5.424) < 0.01, `got ${dhea1}`);
+  // Greek mu (U+03BC)
+  const dhea2 = testNormalize('hormones.dheaS', 200, '\u03bcg/dl');
+  assert('DHEA-S with μ (U+03BC) converts',
+    Math.abs(dhea2 - 5.424) < 0.01, `got ${dhea2}`);
+  // mcg
+  const dhea3 = testNormalize('hormones.dheaS', 200, 'mcg/dl');
+  assert('DHEA-S with mcg converts',
+    Math.abs(dhea3 - 5.424) < 0.01, `got ${dhea3}`);
+
+  // Null value should return null
+  assert('null value returns null', testNormalize('biochemistry.glucose', null, 'mg/dl') === null);
+
+  // No unit should return value unchanged
+  assert('no unit returns value unchanged', testNormalize('biochemistry.glucose', 95, null) === 95);
+
+  // Unknown marker key should return value unchanged
+  assert('unknown key returns value unchanged', testNormalize('custom.something', 42, 'mg/dl') === 42);
+
+  // ═══════════════════════════════════════
+  // Results
+  // ═══════════════════════════════════════
+  console.log(`%c\n=== Results ===\n${pass} passed, ${fail} failed`, 'color:#38bdf8');
+  if (typeof window.__testResults !== 'undefined') window.__testResults = { pass, fail };
+  return { pass, fail };
+})();

@@ -1,13 +1,33 @@
 // pdf-import.js — PDF parsing pipeline, import preview, drop zone, batch import
 
 import { state } from './state.js';
-import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, calculateCost, formatCost } from './schema.js';
+import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, UNIT_CONVERSIONS, calculateCost, formatCost } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
+
+// ═══════════════════════════════════════════════
+// UNIT NORMALIZATION — convert US-unit values to SI before storage
+// ═══════════════════════════════════════════════
+function normalizeUnitStr(s) {
+  return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug');
+}
+
+function normalizeToSI(key, value, unit) {
+  if (value == null || !unit) return value;
+  const conv = UNIT_CONVERSIONS[key];
+  if (!conv) return value;
+  const aiUnit = normalizeUnitStr(unit);
+  if (conv.type === 'multiply') {
+    if (aiUnit === normalizeUnitStr(conv.usUnit)) return parseFloat((value / conv.factor).toPrecision(6));
+  } else if (conv.type === 'hba1c' && aiUnit === '%') {
+    return parseFloat(((value - 2.15) * 10.929).toFixed(1));
+  }
+  return value;
+}
 
 // ═══════════════════════════════════════════════
 // PRE-FLIGHT CHECKS (before spending tokens)
@@ -493,7 +513,7 @@ export function confirmImport() {
     modelId: result.costInfo?.modelId || null
   };
   if (result.importHash) entry.importHash = result.importHash;
-  for (const m of matched) entry.markers[m.mappedKey] = m.value;
+  for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood') ? result.testType : null;
   // Auto-create custom markers for matched specialty keys (uses PDF's reference ranges)
@@ -515,7 +535,7 @@ export function confirmImport() {
   // Save new (custom) marker values and definitions
   if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of newMarkers) {
-    entry.markers[m.suggestedKey] = m.value;
+    entry.markers[m.suggestedKey] = normalizeToSI(m.suggestedKey, m.value, m.unit);
     // Save definition only if not already defined
     if (!state.importedData.customMarkers[m.suggestedKey]) {
       const [catKey] = m.suggestedKey.split('.');
