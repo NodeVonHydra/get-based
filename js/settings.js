@@ -61,57 +61,44 @@ export function openSettingsModal(tab) {
 
     <!-- Display Tab -->
     <div class="settings-tab-panel${_activeSettingsTab === 'display' ? ' active' : ''}" data-tab-panel="display">
-      <div class="settings-section">
-        <label class="settings-label">Unit System</label>
-        <div class="unit-toggle">
-          <button class="unit-toggle-btn${state.unitSystem === 'EU' ? ' active' : ''}" data-unit="EU" onclick="switchUnitSystem('EU');updateSettingsUI()">EU (SI)</button>
-          <button class="unit-toggle-btn${state.unitSystem === 'US' ? ' active' : ''}" data-unit="US" onclick="switchUnitSystem('US');updateSettingsUI()">US</button>
+      <div class="settings-row">
+        <div class="settings-section">
+          <label class="settings-label">Unit System</label>
+          <div class="unit-toggle">
+            <button class="unit-toggle-btn${state.unitSystem === 'EU' ? ' active' : ''}" data-unit="EU" onclick="switchUnitSystem('EU');updateSettingsUI()">EU (SI)</button>
+            <button class="unit-toggle-btn${state.unitSystem === 'US' ? ' active' : ''}" data-unit="US" onclick="switchUnitSystem('US');updateSettingsUI()">US</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <label class="settings-label">Range Display</label>
+          <div class="range-toggle">
+            <button class="range-toggle-btn${state.rangeMode === 'optimal' ? ' active' : ''}" data-range="optimal" onclick="switchRangeMode('optimal');updateSettingsUI()">Optimal</button>
+            <button class="range-toggle-btn${state.rangeMode === 'reference' ? ' active' : ''}" data-range="reference" onclick="switchRangeMode('reference');updateSettingsUI()">Reference</button>
+            <button class="range-toggle-btn${state.rangeMode === 'both' ? ' active' : ''}" data-range="both" onclick="switchRangeMode('both');updateSettingsUI()">Both</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <label class="settings-label">Theme</label>
+          <div class="settings-theme-toggle">
+            <button class="settings-theme-btn${currentTheme === 'dark' ? ' active' : ''}" onclick="setTheme('dark');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Dark</button>
+            <button class="settings-theme-btn${currentTheme === 'light' ? ' active' : ''}" onclick="setTheme('light');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Light</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <label class="settings-label">Time Format</label>
+          <div class="unit-toggle">
+            <button class="time-toggle-btn${getTimeFormat() === '24h' ? ' active' : ''}" data-timefmt="24h" onclick="setTimeFormat('24h');updateSettingsUI()">24h</button>
+            <button class="time-toggle-btn${getTimeFormat() === '12h' ? ' active' : ''}" data-timefmt="12h" onclick="setTimeFormat('12h');updateSettingsUI()">12h (AM/PM)</button>
+          </div>
         </div>
       </div>
 
-      <div class="settings-section">
-        <label class="settings-label">Range Display</label>
-        <div class="range-toggle">
-          <button class="range-toggle-btn${state.rangeMode === 'optimal' ? ' active' : ''}" data-range="optimal" onclick="switchRangeMode('optimal');updateSettingsUI()">Optimal</button>
-          <button class="range-toggle-btn${state.rangeMode === 'reference' ? ' active' : ''}" data-range="reference" onclick="switchRangeMode('reference');updateSettingsUI()">Reference</button>
-          <button class="range-toggle-btn${state.rangeMode === 'both' ? ' active' : ''}" data-range="both" onclick="switchRangeMode('both');updateSettingsUI()">Both</button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Theme</label>
-        <div class="settings-theme-toggle">
-          <button class="settings-theme-btn${currentTheme === 'dark' ? ' active' : ''}" onclick="setTheme('dark');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Dark</button>
-          <button class="settings-theme-btn${currentTheme === 'light' ? ' active' : ''}" onclick="setTheme('light');updateSettingsUI();destroyAllCharts();navigate(document.querySelector('.nav-item.active')?.dataset.category||'dashboard')">Light</button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Time Format</label>
-        <div class="unit-toggle">
-          <button class="time-toggle-btn${getTimeFormat() === '24h' ? ' active' : ''}" data-timefmt="24h" onclick="setTimeFormat('24h');updateSettingsUI()">24h</button>
-          <button class="time-toggle-btn${getTimeFormat() === '12h' ? ' active' : ''}" data-timefmt="12h" onclick="setTimeFormat('12h');updateSettingsUI()">12h (AM/PM)</button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Marker Glossary</label>
-        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openGlossary(),300)">Open Glossary</button>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Documentation</label>
-        <a href="/docs" class="import-btn import-btn-secondary" style="text-decoration:none;text-align:center">Open Docs</a>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Guided Tour</label>
-        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Take a Tour</button>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Changelog</label>
-        <button class="import-btn import-btn-secondary" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
+      <div class="settings-group-title">Resources</div>
+      <div class="settings-links-row">
+        <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>openGlossary(),300)">Marker Glossary</button>
+        <a href="/docs" class="settings-link-btn">Documentation</a>
+        <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Guided Tour</button>
+        <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
       </div>
 
       <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')} · <span id="settings-commit-hash">···</span></div>

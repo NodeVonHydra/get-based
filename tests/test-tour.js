@@ -408,8 +408,7 @@
 
   const settingsSrc = await fetch('js/settings.js').then(r => r.text());
 
-  assert('settings.js has "Guided Tour" label', settingsSrc.includes('Guided Tour'));
-  assert('settings.js has "Take a Tour" button', settingsSrc.includes('Take a Tour'));
+  assert('settings.js has "Guided Tour" button', settingsSrc.includes('Guided Tour'));
   assert('settings.js calls startTour(false)', settingsSrc.includes('startTour(false)'));
   assert('settings.js closes modal before tour', settingsSrc.includes('closeSettingsModal()'));
   assert('settings.js uses setTimeout for delay', settingsSrc.includes('setTimeout(()=>startTour(false)'));
