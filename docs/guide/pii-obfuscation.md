@@ -33,6 +33,20 @@ This method is more accurate than regex — it catches edge cases like names emb
 You can configure a separate model specifically for PII stripping in **Settings → Privacy → Configure Local AI**. This lets you use a small, fast model for obfuscation and a larger, more capable model for the actual lab analysis.
 :::
 
+## Review Editor
+
+When both Local AI PII and the review editor are enabled, the review modal opens **immediately** when you import a PDF. The AI obfuscation streams into the right panel in real-time so you can watch the replacement happen:
+
+- **Progress indicator** — a pulsing green dot while the model loads, then a percentage counter as text streams in
+- **Diff highlights** — the left (original) panel highlights changed lines in red/green once streaming completes
+- **Auto-search** — the patient name from the original PDF is auto-filled into the search bar so you can instantly verify it was replaced
+- **Edit freely** — the right panel becomes editable after streaming. The button changes to "Save & Send to AI" when you make changes
+- **Stop** — cancel the stream mid-way and edit the partial result
+- **Retry** — re-run the AI obfuscation if the result looks wrong (appears after stop or error)
+- **Use regex instead** — switch to the fast rule-based method at any point
+
+Without Local AI, the review editor shows the regex result directly for editing.
+
 ## Configure PII Settings
 
 Open **Settings → Privacy** to:
