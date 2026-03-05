@@ -5,7 +5,7 @@
     {
       "src": "/(.*)",
       "headers": {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.anthropic.com https://openrouter.ai https://api.venice.ai https://api.openalex.org https://cloud.umami.is https://api-gateway.umami.dev http://*:*; img-src 'self' data: blob:; worker-src 'self' https://cdn.jsdelivr.net blob:; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://api.anthropic.com https://openrouter.ai https://api.venice.ai https://api.openalex.org https://cloud.umami.is https://api-gateway.umami.dev http://*:*; img-src 'self' data: blob:; worker-src 'self' https://cdn.jsdelivr.net blob:; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
