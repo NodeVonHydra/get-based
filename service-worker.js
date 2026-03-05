@@ -1,6 +1,7 @@
 importScripts('/version.js');
 const CACHE_NAME = `labcharts-v${self.APP_VERSION}`;
 
+// Local app shell — pre-cached on install
 const APP_SHELL = [
   '/version.js',
   '/index.html',
@@ -36,12 +37,12 @@ const APP_SHELL = [
   '/icon-192.png',
   '/icon-512.png',
   '/manifest.json',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
 ];
 
-// Install: pre-cache app shell
+// CDN libraries — NOT pre-cached (CSP blocks SW fetch for cross-origin).
+// Cached on first page load via the fetch handler's cache-first strategy.
+
+// Install: pre-cache local app shell only
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
