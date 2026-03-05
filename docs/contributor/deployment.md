@@ -69,7 +69,8 @@ connect-src 'self'
             https://openrouter.ai
             https://api.venice.ai
             https://api.openalex.org
-            http://*:*
+            http://localhost:*
+            http://127.0.0.1:*
 img-src     'self' data: blob:
 worker-src  'self' https://cdn.jsdelivr.net blob:
 manifest-src 'self'
@@ -80,7 +81,9 @@ base-uri    'self'
 
 `'unsafe-inline'` is required for scripts because `index.html` has inline `onclick` attributes (by design — the architecture relies on window-exported functions called from HTML). The CDN SRI hashes in `index.html` provide integrity verification as a compensating control.
 
-`http://*:*` in `connect-src` allows local AI servers on any host (localhost, LAN IPs, etc.). CSP doesn't support IP wildcards or CIDR, so this is the only way to support cross-network setups (e.g. Ollama on another PC). This is safe because `connect-src` only governs fetch/XHR — it doesn't allow code execution — and the app only fetches user-configured URLs.
+`localhost:*` and `127.0.0.1:*` in `connect-src` allow local AI servers (Ollama, LM Studio, Jan, etc.) running on the same machine. LAN IPs (e.g. `192.168.x.x`) are not supported from the hosted HTTPS app due to browser mixed-content blocking — this is a browser security fundamental, not a CSP limitation.
+
+`cdn.jsdelivr.net` appears in both `script-src` (loading Chart.js/pdf.js) and `connect-src` (service worker caches these scripts via `fetch()`).
 
 If a new AI provider is added, its hostname must be added to `connect-src` in `vercel.json`.
 
