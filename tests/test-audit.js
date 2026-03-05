@@ -178,7 +178,7 @@
   assert('CSP allows Anthropic API', vercelSrc.includes('api.anthropic.com'));
   assert('CSP allows OpenRouter API', vercelSrc.includes('openrouter.ai'));
   assert('CSP allows Venice API', vercelSrc.includes('api.venice.ai'));
-  assert('CSP allows HTTP for local AI servers', vercelSrc.includes('http://*:*'));
+  assert('CSP allows localhost for Local AI', vercelSrc.includes('localhost:*'));
   assert('X-Frame-Options DENY', vercelSrc.includes('DENY'));
   assert('X-Content-Type-Options nosniff', vercelSrc.includes('nosniff'));
 
