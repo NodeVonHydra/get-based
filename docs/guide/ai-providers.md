@@ -86,8 +86,16 @@ Run a language model entirely on your own machine. Nothing is sent over the netw
 When enabled in Settings → Privacy, your local server is used to intelligently strip personal information from PDFs before analysis. See [PII Obfuscation](./pii-obfuscation.md) for details.
 :::
 
-::: tip Accessing from another device on your network
-To connect from a different computer on your local network, set the appropriate environment variables on the server machine. For Ollama: `OLLAMA_HOST=0.0.0.0 OLLAMA_ORIGINS=* ollama serve`, then use `http://<server-ip>:11434` as the server URL. LM Studio and Jan have similar settings in their UI.
+::: tip Cross-origin access requires OLLAMA_ORIGINS
+Ollama blocks requests from web pages by default. When using getbased (whether hosted or local dev server), start Ollama with:
+```
+OLLAMA_ORIGINS=* ollama serve
+```
+LM Studio, Jan, and other servers typically allow all origins by default.
+:::
+
+::: warning HTTPS limits Local AI to localhost
+The hosted app at `app.getbased.health` is served over HTTPS. Browsers block HTTPS pages from making requests to plain HTTP servers on your LAN (mixed content). This means **Local AI must run on the same machine** — only `localhost` / `127.0.0.1` will work. If you need to reach a server on another device, use the local dev server (`node dev-server.js`) which runs over HTTP.
 :::
 
 ::: warning Use a capable model
