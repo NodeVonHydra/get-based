@@ -132,18 +132,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ═══════════════════════════════════════════════
 // GLOBAL EVENT LISTENERS
 // ═══════════════════════════════════════════════
+function nudgeModal(overlay) {
+  const modal = overlay.firstElementChild;
+  if (!modal) return;
+  modal.classList.add("modal-nudge");
+  modal.addEventListener("animationend", () => modal.classList.remove("modal-nudge"), { once: true });
+}
 document.addEventListener("click", e => {
-  if (e.target.id === "modal-overlay") window.closeModal();
-  if (e.target.id === "import-modal-overlay") {
-    const importModal = document.getElementById("import-modal");
-    if (!importModal.innerHTML.trim()) { window.closeImportModal(); }
-    else { importModal.classList.add("modal-nudge"); importModal.addEventListener("animationend", () => importModal.classList.remove("modal-nudge"), { once: true }); }
+  // Read-only modals — close on backdrop click
+  if (e.target.id === "modal-overlay") { window.closeModal(); return; }
+  if (e.target.id === "glossary-modal-overlay") { window.closeGlossary(); return; }
+  if (e.target.id === "changelog-modal-overlay") { window.closeChangelog(); return; }
+  // Work-in-progress modals — nudge instead of closing
+  const nudgeIds = ["import-modal-overlay","settings-modal-overlay","feedback-modal-overlay"];
+  if (nudgeIds.includes(e.target.id)) { nudgeModal(e.target); return; }
+  // Client List — nudge if editing form, close if browsing list
+  if (e.target.id === "client-list-overlay") {
+    if (document.querySelector('.cl-form')) nudgeModal(e.target);
+    else window.closeClientList();
+    return;
   }
-  if (e.target.id === "settings-modal-overlay") window.closeSettingsModal();
-  if (e.target.id === "glossary-modal-overlay") window.closeGlossary();
-  if (e.target.id === "changelog-modal-overlay") window.closeChangelog();
-  if (e.target.id === "feedback-modal-overlay") window.closeFeedbackModal();
-  if (e.target.id === "client-list-overlay") window.closeClientList();
+  // Chat panel — nudge (mid-conversation)
+  if (e.target.id === "chat-backdrop") { const cp = document.getElementById("chat-panel"); if (cp) { cp.classList.add("modal-nudge"); cp.addEventListener("animationend", () => cp.classList.remove("modal-nudge"), { once: true }); } return; }
   const dd = document.getElementById("corr-options");
   const si = document.getElementById("corr-search");
   if (dd && si && !dd.contains(e.target) && e.target !== si) dd.classList.remove("show");

@@ -2,7 +2,8 @@
 
 import { state } from './state.js';
 import { escapeHTML, escapeAttr, hashString } from './utils.js';
-import { getProfiles, getActiveProfileId, createProfile, switchProfile, deleteProfile, updateProfileMeta, getAllTags } from './profile.js';
+import { getProfiles, getActiveProfileId, createProfile, switchProfile, deleteProfile, updateProfileMeta, getAllTags, getLocationCache, latitudeToBand, getLatitudeFromLocation, detectLatitudeWithAI } from './profile.js';
+import { LATITUDE_BANDS } from './constants.js';
 import { getAvatarColor } from './nav.js';
 
 let _search = '';
@@ -299,15 +300,17 @@ export function openClientForm(profileId) {
       <label class="cl-form-label">Date of Birth</label>
       <input type="date" class="cl-form-input cl-form-date" id="cl-dob" value="${escapeHTML(dob)}">
     </div>
-    <div class="cl-form-row cl-form-row-split">
-      <div class="cl-form-col">
-        <label class="cl-form-label">Country</label>
-        <input type="text" class="cl-form-input" id="cl-country" value="${escapeHTML(country)}" placeholder="e.g. Slovakia">
+    <div class="cl-form-row">
+      <label class="cl-form-label">Location <span style="font-weight:400;color:var(--text-muted);font-size:11px">(for latitude / circadian context)</span></label>
+      <div class="cl-form-row-split">
+        <div class="cl-form-col">
+          <input type="text" class="cl-form-input" id="cl-country" value="${escapeHTML(country)}" placeholder="Country" oninput="window._clUpdateLat()">
+        </div>
+        <div class="cl-form-col">
+          <input type="text" class="cl-form-input" id="cl-zip" value="${escapeHTML(zip)}" placeholder="ZIP / postal code" oninput="window._clUpdateLat()">
+        </div>
       </div>
-      <div class="cl-form-col">
-        <label class="cl-form-label">ZIP</label>
-        <input type="text" class="cl-form-input" id="cl-zip" value="${escapeHTML(zip)}" placeholder="e.g. 81101">
-      </div>
+      <div id="cl-lat-display" style="font-size:11px;margin-top:4px"></div>
     </div>
     <div class="cl-form-row">
       <label class="cl-form-label">Tags</label>
@@ -333,6 +336,7 @@ export function openClientForm(profileId) {
       <button type="submit" class="cl-form-save">${p ? 'Save Changes' : 'Create Client'}</button>
     </div>
   </form>`;
+  requestAnimationFrame(() => _clUpdateLat());
 }
 
 // ═══════════════════════════════════════════════
@@ -430,6 +434,71 @@ function _clSetSex(sex) {
   document.querySelectorAll('#cl-sex-toggle .sex-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.sex === sex);
   });
+}
+
+function _clShowLat(el, lat, suffix) {
+  var band = latitudeToBand(lat);
+  el.style.color = 'var(--green)';
+  el.textContent = '\u2713 ' + Math.abs(Math.round(lat)) + '\u00b0' + (lat >= 0 ? 'N' : 'S') + ' \u2014 ' + LATITUDE_BANDS[band] + (suffix || '');
+}
+
+var _clLatTimer = null;
+function _clUpdateLat() {
+  const country = (document.getElementById('cl-country')?.value || '').trim();
+  const zip = (document.getElementById('cl-zip')?.value || '').trim();
+  const el = document.getElementById('cl-lat-display');
+  if (!el) return;
+  if (!country) { el.textContent = ''; return; }
+
+  var cache = getLocationCache();
+  var cacheKey = (country + '|' + zip).toLowerCase();
+  var cached = cache[cacheKey];
+
+  // Exact cache hit — show immediately, done
+  if (cached !== undefined) {
+    var countryLat = zip ? cache[(country + '|').toLowerCase()] : undefined;
+    var zipSuffix = '';
+    if (zip && countryLat !== undefined) zipSuffix = Math.round(cached) !== Math.round(countryLat) ? ' (ZIP-refined)' : ' (ZIP \u2014 same area)';
+    _clShowLat(el, cached, zipSuffix);
+    return;
+  }
+
+  // No exact hit — check if country-only is cached (show it as interim when ZIP is being refined)
+  var countryOnly = zip ? cache[(country + '|').toLowerCase()] : undefined;
+  if (countryOnly !== undefined) {
+    _clShowLat(el, countryOnly, ' \u2014 refining with ZIP\u2026');
+  } else {
+    // Hardcoded fallback (instant, no AI needed)
+    var bandLabel = getLatitudeFromLocation(country, zip);
+    if (bandLabel) {
+      el.style.color = 'var(--green)';
+      el.textContent = '\u2713 ' + bandLabel + (window.hasAIProvider() ? ' \u2014 refining\u2026' : '');
+    } else if (window.hasAIProvider()) {
+      el.style.color = 'var(--text-muted)';
+      el.textContent = 'Detecting\u2026';
+    } else {
+      el.style.color = 'var(--text-muted)';
+      el.textContent = 'Country not recognized \u2014 try the full name';
+    }
+  }
+
+  // Debounced AI refinement
+  if (_clLatTimer) clearTimeout(_clLatTimer);
+  if (window.hasAIProvider()) {
+    _clLatTimer = setTimeout(function() {
+      detectLatitudeWithAI(country, zip).then(() => {
+        var freshCache = getLocationCache();
+        var updated = freshCache[(country + '|' + zip).toLowerCase()];
+        if (updated !== undefined) {
+          var cOnly = zip ? freshCache[(country + '|').toLowerCase()] : undefined;
+          var zSuffix = '';
+          if (zip && cOnly !== undefined) zSuffix = Math.round(updated) !== Math.round(cOnly) ? ' (ZIP-refined)' : ' (ZIP \u2014 same area)';
+          var display = document.getElementById('cl-lat-display');
+          if (display) _clShowLat(display, updated, zSuffix);
+        }
+      });
+    }, 1500);
+  }
 }
 
 function _clTagKeydown(e) {
@@ -556,7 +625,7 @@ document.addEventListener('click', (e) => {
 Object.assign(window, {
   openClientList, closeClientList, openClientForm,
   _clSearch, _clSort, _clStatusFilter, _clTagFilter, _clSelect,
-  _clSaveForm, _clSetSex, _clTagKeydown, _clRemoveTag, _clBackToList,
+  _clSaveForm, _clSetSex, _clUpdateLat, _clTagKeydown, _clRemoveTag, _clBackToList,
   _clAvatarChanged, _clRemoveAvatar,
   _clToggleMenu, _clPin, _clUnpin, _clFlag, _clUnflag, _clArchive, _clUnarchive, _clExport, _clExportChat, _clDelete,
 });
