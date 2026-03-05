@@ -2,12 +2,13 @@
 
 import { getModelPricing } from './schema.js';
 import { isDebugMode, showNotification } from './utils.js';
+import { getCachedKey, updateKeyCache, encryptedSetItem } from './crypto.js';
 
 // ═══════════════════════════════════════════════
 // AI PROVIDER MANAGEMENT
 // ═══════════════════════════════════════════════
-export function getApiKey() { return localStorage.getItem('labcharts-api-key') || ''; }
-export function saveApiKey(key) { localStorage.setItem('labcharts-api-key', key); }
+export function getApiKey() { return getCachedKey('labcharts-api-key') || ''; }
+export async function saveApiKey(key) { await encryptedSetItem('labcharts-api-key', key); updateKeyCache('labcharts-api-key', key); }
 export function hasApiKey() { return !!getApiKey(); }
 export function getAnthropicModel() { return localStorage.getItem('labcharts-anthropic-model') || 'claude-sonnet-4-6'; }
 export function setAnthropicModel(id) { localStorage.setItem('labcharts-anthropic-model', id); }
@@ -66,8 +67,8 @@ export function setOllamaPIIUrl(url) { localStorage.setItem('labcharts-ollama-pi
 export function getOllamaPIIModel() { return localStorage.getItem('labcharts-ollama-pii-model') || getOllamaMainModel(); }
 export function setOllamaPIIModel(model) { localStorage.setItem('labcharts-ollama-pii-model', model); }
 
-export function getVeniceKey() { return localStorage.getItem('labcharts-venice-key') || ''; }
-export function saveVeniceKey(key) { localStorage.setItem('labcharts-venice-key', key); }
+export function getVeniceKey() { return getCachedKey('labcharts-venice-key') || ''; }
+export async function saveVeniceKey(key) { await encryptedSetItem('labcharts-venice-key', key); updateKeyCache('labcharts-venice-key', key); }
 export function hasVeniceKey() { return !!getVeniceKey(); }
 export function getVeniceModel() { return localStorage.getItem('labcharts-venice-model') || 'llama-3.3-70b'; }
 export function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
@@ -78,8 +79,8 @@ export function getVeniceModelDisplay() {
   return m ? (m.name || m.id) : id;
 }
 
-export function getOpenRouterKey() { return localStorage.getItem('labcharts-openrouter-key') || ''; }
-export function saveOpenRouterKey(key) { localStorage.setItem('labcharts-openrouter-key', key); }
+export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
+export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
 export function getOpenRouterModel() { return localStorage.getItem('labcharts-openrouter-model') || 'anthropic/claude-sonnet-4-6'; }
 export function setOpenRouterModel(model) { localStorage.setItem('labcharts-openrouter-model', model); }

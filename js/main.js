@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     history.replaceState(null, '', window.location.pathname);
     try {
       const key = await exchangeOpenRouterCode(oauthCode);
-      saveOpenRouterKey(key);
+      await saveOpenRouterKey(key);
       setAIProvider('openrouter');
       fetchOpenRouterModels(key);
       window._openSettingsAfterInit = 'ai';
