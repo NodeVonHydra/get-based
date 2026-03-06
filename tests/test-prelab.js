@@ -29,7 +29,7 @@
     'Should add IMPORTANT warning when sex/DOB missing');
   assert('Lab values section gated by hasLabData', chatSrc.includes('if (hasLabData) {\n    const rangeLabel'),
     'Lab values + flagged results should be wrapped in if (hasLabData)');
-  assert('Flagged results inside hasLabData guard', chatSrc.includes("const flags = getAllFlaggedMarkers(data);\n    if (flags.length > 0)"),
+  assert('Flagged results inside hasLabData guard', chatSrc.includes("const allFlags = getAllFlaggedMarkers(data)") && chatSrc.includes("if (flags.length > 0)"),
     'Flagged results should be inside the hasLabData block');
   assert('Staleness uses hasLabData guard', chatSrc.includes('if (hasLabData && data.dates.length > 0)'),
     'Staleness signal should check hasLabData first');

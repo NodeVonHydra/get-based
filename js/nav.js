@@ -59,9 +59,11 @@ export function buildSidebar(data) {
     const flagHtml = group.totalFlagged > 0
       ? `<span class="flag-count">${group.totalFlagged}</span>`
       : '';
+    const aiOn = window.isGroupInAIContext && window.isGroupInAIContext(groupName);
     html += `<div class="sidebar-group-header${collapsed ? ' collapsed' : ''}" data-group-name="${escapeAttr(groupName)}" onclick="toggleNavGroup('${escapeAttr(groupName)}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('${escapeAttr(groupName)}')}">
       <span class="sidebar-group-label">${escapeHTML(groupName)}</span>
       ${flagHtml}
+      <button class="sidebar-ai-toggle${aiOn ? ' active' : ''}" title="${aiOn ? 'Included in AI context' : 'Excluded from AI context — click to include'}" onclick="event.stopPropagation();toggleGroupAIContext('${escapeAttr(groupName)}')" aria-label="Toggle AI context for ${escapeHTML(groupName)}">AI</button>
       <span class="sidebar-group-arrow">\u25B8</span>
     </div>`;
     html += `<div class="sidebar-group-items" data-group-items="${escapeHTML(groupName)}"${collapsed ? ' style="display:none"' : ''}>`;
@@ -74,6 +76,16 @@ export function buildSidebar(data) {
 
 function _getGroupCollapsed(groupName) {
   try { return localStorage.getItem(`labcharts-navgroup-${groupName}`) === 'collapsed'; } catch(e) { return false; }
+}
+
+export function toggleGroupAIContext(groupName) {
+  const isOn = window.isGroupInAIContext && window.isGroupInAIContext(groupName);
+  window.setGroupInAIContext(groupName, !isOn);
+  const btn = document.querySelector(`.sidebar-group-header[data-group-name="${groupName}"] .sidebar-ai-toggle`);
+  if (btn) {
+    btn.classList.toggle('active', !isOn);
+    btn.title = !isOn ? 'Included in AI context' : 'Excluded from AI context — click to include';
+  }
 }
 
 export function toggleNavGroup(groupName) {
@@ -158,4 +170,4 @@ export function renderProfileButton() {
 // Keep renderProfileDropdown as alias for backward compat (tests, other modules)
 export function renderProfileDropdown() { renderProfileButton(); }
 
-Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, renderProfileDropdown, renderProfileButton, getAvatarColor });
+Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, toggleGroupAIContext, renderProfileDropdown, renderProfileButton, getAvatarColor });

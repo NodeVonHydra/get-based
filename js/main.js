@@ -132,6 +132,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ═══════════════════════════════════════════════
 // GLOBAL EVENT LISTENERS
 // ═══════════════════════════════════════════════
+// Prevent scroll bleed-through on modal overlays and chat backdrop
+document.addEventListener("wheel", e => {
+  const overlay = e.target.closest(".modal-overlay.show, .chat-backdrop.open");
+  if (!overlay) return;
+  // Allow scroll inside scrollable children (modal content, chat messages)
+  const scrollable = e.target.closest(".modal, .glossary-modal, .chat-messages, .chat-thread-list, .cl-list, .cl-form, .pii-diff-left, .pii-diff-right");
+  if (scrollable) {
+    const atTop = scrollable.scrollTop <= 0 && e.deltaY < 0;
+    const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight && e.deltaY > 0;
+    if (!atTop && !atBottom) return;
+  }
+  e.preventDefault();
+}, { passive: false });
+
 function nudgeModal(overlay) {
   const modal = overlay.firstElementChild;
   if (!modal) return;
@@ -143,8 +157,10 @@ document.addEventListener("click", e => {
   if (e.target.id === "modal-overlay") { window.closeModal(); return; }
   if (e.target.id === "glossary-modal-overlay") { window.closeGlossary(); return; }
   if (e.target.id === "changelog-modal-overlay") { window.closeChangelog(); return; }
+  // Auto-save modals — close on backdrop click
+  if (e.target.id === "settings-modal-overlay") { window.closeSettingsModal(); return; }
   // Work-in-progress modals — nudge instead of closing
-  const nudgeIds = ["import-modal-overlay","settings-modal-overlay","feedback-modal-overlay"];
+  const nudgeIds = ["import-modal-overlay","feedback-modal-overlay"];
   if (nudgeIds.includes(e.target.id)) { nudgeModal(e.target); return; }
   // Client List — nudge if editing form, close if browsing list
   if (e.target.id === "client-list-overlay") {
