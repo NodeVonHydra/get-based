@@ -108,6 +108,47 @@ The AI's responses are rendered with full markdown formatting:
 
 Responses stream in smoothly as the AI generates them, with a typewriter effect that trickles text at a steady rate for a pleasant reading experience.
 
+## Token Costs and What to Expect
+
+Every chat message sends your full lab context + conversation history to the AI. Here's what makes up the token count:
+
+| Component | Typical size | Notes |
+|---|---|---|
+| System prompt | ~1,300 tokens | Fixed — personality instructions, rules |
+| Lab context | 2,000–15,000 tokens | Scales with number of draw dates, markers, and filled context cards |
+| Conversation history | 0–10,000+ tokens | Last 30 messages (both yours and AI responses) |
+| Image (current message only) | 1,000–5,000 tokens per image | Only attached to the message being sent, not stored in history |
+| **Total input per message** | **~3,000–25,000+ tokens** | |
+
+### What drives the cost up
+
+- **More draw dates** — each date adds values to every marker. 2 dates ≈ 3k lab context; 8+ dates ≈ 10k+
+- **Filled context cards** — each of the 9 lifestyle cards adds 50–300 tokens when filled
+- **Long conversations** — AI responses are often 300–800 tokens each. After 10 back-and-forth exchanges, history alone can be 5k–8k tokens
+- **Images** — a single standard-quality image adds ~1,500–3,000 input tokens. HD images cost more. Images are only sent with the current message, never re-sent in history
+
+### Realistic cost examples
+
+Using Claude Sonnet 4 via OpenRouter (~$3/$15 per 1M input/output tokens):
+
+| Scenario | Input tokens | Output tokens | Cost per message |
+|---|---|---|---|
+| First message, 2 draw dates, no images | ~4,000 | ~500 | ~$0.02 |
+| Mid-conversation (10 messages), 4 draw dates, all cards filled | ~15,000 | ~600 | ~$0.05 |
+| Long conversation (20+ messages), 8 draw dates, 1 image | ~25,000 | ~800 | ~$0.09 |
+| Discuss mode (2 personas, 3 rounds each) | ~20,000 × 6 | ~600 × 6 | ~$0.40 total |
+
+::: tip Cost-saving tips
+- **Start new threads** — click "New Chat" to reset conversation history to zero. This is the single biggest cost saver
+- **Use standard image mode** (not HD) unless you need fine detail
+- **Local AI is free** — run Ollama or LM Studio locally for unlimited chat at zero cost
+- **Venice** offers free-tier models with no per-token charges
+:::
+
+### Each message shows its cost
+
+Every AI response includes a footnote showing the model name, estimated cost, and total token count — so you always know exactly what you're spending.
+
 ## Choosing a Provider
 
 The AI chat works with any of the four supported providers: Anthropic, OpenRouter, Venice, or Local AI. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
