@@ -146,6 +146,16 @@ export function renderAttachmentPreview() {
   `<span class="chat-attach-count">${_pendingAttachments.length}/${MAX_ATTACHMENTS}</span>`;
 }
 
+export function openImageLightbox(src) {
+  const overlay = document.createElement('div');
+  overlay.className = 'chat-lightbox';
+  overlay.innerHTML = `<img src="${src}" alt="Full image">`;
+  overlay.addEventListener('click', () => overlay.remove());
+  const close = (e) => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', close); } };
+  document.addEventListener('keydown', close);
+  document.body.appendChild(overlay);
+}
+
 export function clearAttachments() {
   _pendingAttachments = [];
   renderAttachmentPreview();
@@ -1580,7 +1590,7 @@ export function renderChatMessages() {
     if (msg.hasImages) {
       if (msg.thumbnails && msg.thumbnails.length > 0) {
         imageBadge = '<div class="chat-image-thumbs">' + msg.thumbnails.map(t =>
-          `<img src="${t}" class="chat-image-thumb" alt="attached image">`
+          `<img src="${t}" class="chat-image-thumb" alt="attached image" onclick="openImageLightbox(this.src)">`
         ).join('') + '</div>';
       } else {
         imageBadge = `<div class="chat-image-badge">\uD83D\uDDBC ${msg.imageCount} image${msg.imageCount !== 1 ? 's' : ''} attached</div>`;
@@ -2445,6 +2455,7 @@ Object.assign(window, {
   // Image attachments
   addImageAttachment,
   toggleHDMode,
+  openImageLightbox,
   removeImageAttachment,
   clearAttachments,
   updateAttachButtonVisibility,
