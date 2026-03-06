@@ -15,13 +15,14 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 27 ES modules loaded via `js/main.js`:
+- **`js/`** — 28 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
-  - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers
+  - `image-utils.js` — `resizeImage`, `formatImageBlock`, `buildVisionContent`, `isValidImageType` (no app imports)
+  - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers, `supportsVision()`
   - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
@@ -30,9 +31,9 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `supplements.js` — supplement editor + render section
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
-  - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone. AI detects test type and uses prefixed categories for specialty labs
+  - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone, image fallback for scanned PDFs. AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
-  - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI
+  - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
   - `settings.js` — settings modal, provider panels, privacy section
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
@@ -87,7 +88,7 @@ Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstru
 
 ### AI Chat Panel
 
-Slide-out panel with streaming responses. Features: markdown rendering, 2 built-in personalities (default, House) + unlimited custom (`custom_<id>`), stop button (abort streaming), discuss button (auto-alternate personas), conversation threads (50 max, stored per-profile). Chat setup guide shows when no provider configured — includes OpenRouter OAuth button.
+Slide-out panel with streaming responses. Features: markdown rendering, 2 built-in personalities (default, House) + unlimited custom (`custom_<id>`), stop button (abort streaming), discuss button (auto-alternate personas), conversation threads (50 max, stored per-profile), image attachments (paste/drag-drop/button, max 5, vision-model gated). Chat setup guide shows when no provider configured — includes OpenRouter OAuth button.
 
 Context: `buildLabContext()` serializes all user data in priority order (goals→lens→values→flags→notes→conditions→supps→cycle→lifestyle). Focus card uses lightweight `buildFocusContext()`.
 

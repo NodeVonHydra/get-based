@@ -5,6 +5,20 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.4.0', date: '2026-03-05', title: 'Image Attachments',
+    items: [
+      'Chat: attach images via paperclip button, paste, or drag-and-drop \u2014 AI can see photos of lab reports, supplement labels, food logs, and more',
+      'Chat: up to 5 images per message, resized for optimal quality vs token cost',
+      'PDF import: scanned/image-heavy PDFs now detected automatically with image mode fallback \u2014 renders pages as screenshots for AI analysis',
+      'PDF import: "Force image mode" link in drop zone for known scans',
+      'Vision support detection: attach button auto-hidden for non-vision models',
+      'HD mode toggle: switch between standard (1024px) and high-resolution (2048px) image quality',
+      'Image quality warnings: detects blurry, dark, or overexposed photos before sending',
+      'Chat: smooth typewriter streaming replaces chunky text updates',
+      'Chat: conversation window expanded from 10 to 30 messages for better context',
+    ]
+  },
+  {
     version: '1.3.7', date: '2026-03-06', title: 'Reference Ranges & PII Improvements',
     items: [
       'Editable reference ranges — click any range in the detail modal to customize, with revert badge',

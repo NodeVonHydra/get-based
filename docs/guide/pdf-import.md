@@ -74,7 +74,7 @@ Your PDF is processed locally first. Personal information (name, address, date o
 If you import a report for a date that already has data, the new values are merged with existing ones for that date. Existing values are not overwritten.
 
 **What if results are missing from the preview?**
-Some PDFs use image-based scans rather than text. The AI can only extract text that pdf.js can read. Try a PDF exported directly from your lab's portal rather than a scanned photo if possible.
+Some PDFs use image-based scans rather than text. getbased automatically detects scanned PDFs and switches to **image mode**, rendering each page as a screenshot for the AI to read visually. You can also force image mode by clicking the **"Force image mode"** link in the drop zone. If results are still missing, try a PDF exported directly from your lab's portal.
 
 **Can I undo an import?**
 Not directly after confirming, but you can export your data as JSON before importing (as a backup), or use **Settings → Backup & Restore** to roll back to an automatic snapshot.

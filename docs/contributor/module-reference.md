@@ -1,6 +1,6 @@
 # Module Reference
 
-All 27 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 28 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -208,6 +208,23 @@ Two-path PII obfuscation for PDF text before AI submission, with streaming revie
 
 ---
 
+### `image-utils.js`
+
+Shared image utilities for chat attachments and PDF image fallback.
+
+**Key exports:**
+- `resizeImage(file, maxDim?, quality?)` — resizes an image to fit within `maxDim` pixels (default 1024), returns `{ base64, mediaType, width, height, origWidth, origHeight, quality_warnings }`
+- `isValidImageType(type)` — validates MIME type against `image/(jpeg|png|gif|webp)`
+- `formatImageBlock(base64, mediaType, provider)` — returns a provider-specific image content block (Anthropic `type:'image'` vs OpenAI-compatible `type:'image_url'`)
+- `buildVisionContent(imageBlocks, text, provider)` — assembles a content array with image blocks + text block
+
+**Internal:**
+- `analyzeImageQuality(ctx, width, height)` — canvas-based pixel sampling (~100k samples): brightness (dark/overexposed) + Laplacian variance (blur detection). Returns `string[]` warnings
+
+**Window exports:** `resizeImage`, `isValidImageType`, `formatImageBlock`, `buildVisionContent`
+
+---
+
 ## Layer 4 — Domain Modules
 
 ### `charts.js`
@@ -335,7 +352,7 @@ AI chat panel, context building, and markdown rendering.
 
 **Key exports:**
 - `buildLabContext()` — serializes all lab entries + all 9 context cards + interpretiveLens + contextNotes + cycle data + notes into a structured AI context string
-- `sendChatMessage()` — sends user message with full context to the active AI provider, streams response
+- `sendChatMessage()` — sends user message (with optional image attachments) and last 30 messages to the active AI provider, streams response with typewriter trickle
 - `renderMarkdown(text)` — block-aware parser: headings, lists, code blocks, HR, paragraphs + inline formatting
 - `askAIAboutMarker(markerKey)` — per-marker AI explanation, streams into the chat panel
 - Thread management: `createNewThread()`, `loadThread(id)`, `deleteThread(id)`, `renameThread(id)`
@@ -344,7 +361,11 @@ AI chat panel, context building, and markdown rendering.
 - `generateCustomPersonality()` — AI-powered persona generation from a name (2048 tokens, streamed)
 - `pickPersonaIcon(name)` — djb2 hash into 10-emoji palette
 
-**Window exports:** `sendChatMessage`, `setChatPersonality`, `openChatPanel`, `closeChatPanel`, `createNewThread`, `loadThread`, `deleteThread`, `renameThread`, `generateCustomPersonality`, `saveCustomPersonality`, `askAIAboutMarker`
+- `addImageAttachment(file)` — resizes + attaches image (max 5), shows quality warnings
+- `toggleHDMode()` — toggles HD image mode (1024px↔2048px), persisted in localStorage
+- `updateAttachButtonVisibility()` — shows/hides attach + HD buttons based on vision support
+
+**Window exports:** `sendChatMessage`, `setChatPersonality`, `openChatPanel`, `closeChatPanel`, `createNewThread`, `loadThread`, `deleteThread`, `renameThread`, `generateCustomPersonality`, `saveCustomPersonality`, `askAIAboutMarker`, `addImageAttachment`, `toggleHDMode`
 
 ---
 

@@ -24,7 +24,8 @@ const TEST_FILES = [
   'tests/test-prelab.js',
   'tests/test-schema.js',
   'tests/test-unit-import.js',
-  'tests/test-pii.js'
+  'tests/test-pii.js',
+  'tests/test-image-utils.js'
 ];
 
 const PORT = process.env.PORT || 8000;

@@ -60,6 +60,39 @@ The chat panel includes a **thread rail** on the left side — a list of your pa
 
 On mobile, tap the hamburger icon in the chat header to open the thread list, and use the back button to return to the conversation.
 
+## Image Attachments
+
+You can attach images to chat messages — photos of lab reports, supplement labels, food logs, skin conditions, or anything else you want the AI to see.
+
+**How to attach:**
+- Click the **paperclip** button in the chat input area
+- **Paste** an image from your clipboard (Ctrl+V / Cmd+V)
+- **Drag and drop** an image file onto the chat input
+
+Up to 5 images per message. Supported formats: JPEG, PNG, GIF, WebP.
+
+### HD Mode
+
+The **HD** button next to the paperclip toggles between standard (1024px) and high-resolution (2048px) image quality. HD mode preserves more detail but uses more tokens. Standard mode is usually sufficient for lab reports and supplement labels; use HD for fine print or detailed photos.
+
+### Quality Warnings
+
+Before sending, getbased analyzes each image and warns you if it detects issues:
+- **Blurry** — try holding steady or tapping to focus
+- **Too dark** — try better lighting
+- **Overexposed** — try less direct light
+- **Low resolution** — the AI may struggle with fine details
+
+These checks save tokens by catching bad photos before they're sent.
+
+### Privacy
+
+All image metadata is automatically stripped before sending. EXIF data — GPS location, camera model, timestamps, device serial numbers — is removed during the resize step. Only raw pixel data reaches your AI provider.
+
+::: tip
+The attach and HD buttons only appear when your active model supports vision (image input). If you don't see them, switch to a vision-capable model in Settings.
+:::
+
 ## Per-Marker AI Explanations
 
 From any marker's detail view (click a marker name in the sidebar or on the dashboard), you will find an **Ask AI** button. This opens a pre-populated chat asking the AI to explain that specific marker in the context of your results — without you having to type anything.
@@ -73,12 +106,53 @@ The AI's responses are rendered with full markdown formatting:
 - Code blocks and inline code
 - Clickable links
 
-Responses stream in word by word as the AI generates them.
+Responses stream in smoothly as the AI generates them, with a typewriter effect that trickles text at a steady rate for a pleasant reading experience.
+
+## Token Costs and What to Expect
+
+Every chat message sends your full lab context + conversation history to the AI. Here's what makes up the token count:
+
+| Component | Typical size | Notes |
+|---|---|---|
+| System prompt | ~1,300 tokens | Fixed — personality instructions, rules |
+| Lab context | 2,000–15,000 tokens | Scales with number of draw dates, markers, and filled context cards |
+| Conversation history | 0–10,000+ tokens | Last 30 messages (both yours and AI responses) |
+| Image (current message only) | 1,000–5,000 tokens per image | Only attached to the message being sent, not stored in history |
+| **Total input per message** | **~3,000–25,000+ tokens** | |
+
+### What drives the cost up
+
+- **More draw dates** — each date adds values to every marker. 2 dates ≈ 3k lab context; 8+ dates ≈ 10k+
+- **Filled context cards** — each of the 9 lifestyle cards adds 50–300 tokens when filled
+- **Long conversations** — AI responses are often 300–800 tokens each. After 10 back-and-forth exchanges, history alone can be 5k–8k tokens
+- **Images** — a single standard-quality image adds ~1,500–3,000 input tokens. HD images cost more. Images are only sent with the current message, never re-sent in history
+
+### Realistic cost examples
+
+Using Claude Sonnet 4 via OpenRouter (~$3/$15 per 1M input/output tokens):
+
+| Scenario | Input tokens | Output tokens | Cost per message |
+|---|---|---|---|
+| First message, 2 draw dates, no images | ~4,000 | ~500 | ~$0.02 |
+| Mid-conversation (10 messages), 4 draw dates, all cards filled | ~15,000 | ~600 | ~$0.05 |
+| Long conversation (20+ messages), 8 draw dates, 1 image | ~25,000 | ~800 | ~$0.09 |
+| Discuss mode (2 personas, 3 rounds each) | ~20,000 × 6 | ~600 × 6 | ~$0.40 total |
+
+::: tip Cost-saving tips
+- **Start new threads** — click "New Chat" to reset conversation history to zero. This is the single biggest cost saver
+- **Use standard image mode** (not HD) unless you need fine detail
+- **Local AI is free** — run Ollama or LM Studio locally for unlimited chat at zero cost
+- **Venice** offers free-tier models with no per-token charges
+:::
+
+### Each message shows its cost
+
+Every AI response includes a footnote showing the model name, estimated cost, and total token count — so you always know exactly what you're spending.
 
 ## Choosing a Provider
 
 The AI chat works with any of the four supported providers: Anthropic, OpenRouter, Venice, or Local AI. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
 
 ::: warning
-Conversations are stored locally in your browser and encrypted if you have set a passphrase. The last 10 messages from each conversation are sent to the AI provider with every request to maintain context. Your provider's privacy policy applies to that data.
+Conversations are stored locally in your browser and encrypted if you have set a passphrase. The last 30 messages from each conversation are sent to the AI provider with every request to maintain context. Your provider's privacy policy applies to that data.
 :::

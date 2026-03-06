@@ -208,6 +208,13 @@ export async function fetchOpenRouterModels(key) {
       }
     }
     localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify(pricingCache));
+    // Cache vision-capable model IDs (architecture.modality contains "image->text" or similar)
+    const visionIds = (json.data || []).filter(function(m) {
+      if (!m.id || !m.architecture) return false;
+      const modality = m.architecture.modality || '';
+      return modality.includes('image');
+    }).map(function(m) { return m.id; });
+    localStorage.setItem('labcharts-openrouter-vision-models', JSON.stringify(visionIds));
     localStorage.setItem('labcharts-openrouter-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-openrouter-model') && models.length) {
       const claude = models.find(function(m) { return m.id === 'anthropic/claude-sonnet-4-6'; });
@@ -323,6 +330,30 @@ async function _fetchWithRetry(url, options, retries = 2) {
   }
 }
 
+// ═══════════════════════════════════════════════
+// VISION SUPPORT
+// ═══════════════════════════════════════════════
+export function supportsVision() {
+  const provider = getAIProvider();
+  if (provider === 'anthropic') {
+    // All Claude 3+ and 4+ models support vision
+    return /claude-(3|4|sonnet|opus|haiku)/.test(getAnthropicModel());
+  }
+  if (provider === 'openrouter') {
+    const modelId = getOpenRouterModel();
+    try {
+      const visionIds = JSON.parse(localStorage.getItem('labcharts-openrouter-vision-models') || '[]');
+      // Check exact match or prefix match (model IDs may have date suffixes)
+      return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/:\d{4}-\d{2}-\d{2}$/, '')); });
+    } catch { return false; }
+  }
+  if (provider === 'venice') {
+    return /qwen.*vl|llava|vision/i.test(getVeniceModel());
+  }
+  // Local AI — optimistic (user's responsibility)
+  return true;
+}
+
 export async function callAnthropicAPI({ system, messages, maxTokens, onStream, signal }) {
   const key = getApiKey();
   if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
@@ -399,7 +430,27 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
   const model = getOllamaMainModel();
   const ollamaMessages = [];
   if (system) ollamaMessages.push({ role: 'system', content: system });
-  for (const msg of messages) ollamaMessages.push({ role: msg.role, content: msg.content });
+  for (const msg of messages) {
+    // Normalize array content (vision messages) to Ollama's native format
+    if (Array.isArray(msg.content)) {
+      let text = '';
+      const images = [];
+      for (const block of msg.content) {
+        if (block.type === 'text') text = block.text;
+        else if (block.type === 'image' && block.source?.data) images.push(block.source.data);
+        else if (block.type === 'image_url' && block.image_url?.url) {
+          // Extract base64 from data URL
+          const match = block.image_url.url.match(/^data:[^;]+;base64,(.+)$/);
+          if (match) images.push(match[1]);
+        }
+      }
+      const ollamaMsg = { role: msg.role, content: text };
+      if (images.length > 0) ollamaMsg.images = images;
+      ollamaMessages.push(ollamaMsg);
+    } else {
+      ollamaMessages.push({ role: msg.role, content: msg.content });
+    }
+  }
 
   const body = { model, messages: ollamaMessages, stream: !!onStream };
   if (maxTokens) body.options = { num_predict: maxTokens };
@@ -614,6 +665,7 @@ Object.assign(window, {
   getActiveModelId, getActiveModelDisplay,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
+  supportsVision,
   validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
   callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
 });
