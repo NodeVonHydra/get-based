@@ -328,6 +328,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
     stress: data.stress || null, loveLife: data.loveLife || null, environment: data.environment || null,
     interpretiveLens: data.interpretiveLens || '', contextNotes: data.contextNotes || '',
     healthGoals: data.healthGoals || [], customMarkers: data.customMarkers || {},
+    refOverrides: data.refOverrides || {},
     menstrualCycle: data.menstrualCycle || null
   };
   if (includeChat) {
@@ -479,6 +480,13 @@ export function importDataJSON(file) {
           }
         }
       }
+      // Import reference range overrides (merge, don't overwrite)
+      if (json.refOverrides && typeof json.refOverrides === 'object') {
+        if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
+        for (const [key, ovr] of Object.entries(json.refOverrides)) {
+          if (!state.importedData.refOverrides[key]) state.importedData.refOverrides[key] = ovr;
+        }
+      }
       // Import menstrual cycle
       if (json.menstrualCycle && typeof json.menstrualCycle === 'object') {
         if (!state.importedData.menstrualCycle) {
@@ -601,6 +609,13 @@ async function _importDatabaseBundle(json) {
           if (!current.customMarkers[key]) current.customMarkers[key] = def;
         }
       }
+      // Ref overrides: merge (don't overwrite existing)
+      if (importData.refOverrides && typeof importData.refOverrides === 'object') {
+        if (!current.refOverrides) current.refOverrides = {};
+        for (const [key, ovr] of Object.entries(importData.refOverrides)) {
+          if (!current.refOverrides[key]) current.refOverrides[key] = ovr;
+        }
+      }
       // Context fields: replace if present in bundle
       for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle']) {
         if (importData[field] != null) current[field] = importData[field];
@@ -673,7 +688,7 @@ export function clearAllData() {
     const defaultId = profiles[0]?.id || 'default';
     const defaultName = profiles[0]?.name || 'Profile 1';
     saveProfiles([{ id: defaultId, name: defaultName, sex: null, dob: null, location: { country: '', zip: '' }, tags: [], notes: '', status: 'active', avatar: null, createdAt: Date.now(), lastUpdated: Date.now(), pinned: false }]);
-    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, menstrualCycle: null };
+    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, refOverrides: {}, menstrualCycle: null };
     state.currentProfile = defaultId;
     localStorage.setItem('labcharts-active-profile', defaultId);
     window.buildSidebar();
@@ -690,13 +705,12 @@ export async function loadDemoData(sex = 'male') {
     const resp = await fetch(file);
     if (!resp.ok) throw new Error('Failed to load');
     const blob = await resp.blob();
-    const { setProfileSex, setProfileDob } = await import('./profile.js');
+    const { createProfile, switchProfile, setProfileSex, setProfileDob } = await import('./profile.js');
+    const name = sex === 'female' ? 'Demo Sarah' : 'Demo Alex';
     const dob = sex === 'female' ? '1991-08-15' : '1987-11-22';
-    state.profileSex = sex;
-    setProfileSex(state.currentProfile, sex);
-    state.profileDob = dob;
-    setProfileDob(state.currentProfile, dob);
-    localStorage.setItem(profileStorageKey(state.currentProfile, 'onboarded'), 'profile-set');
+    const profileId = createProfile(name, { sex, dob, tags: ['demo'] });
+    switchProfile(profileId);
+    localStorage.setItem(profileStorageKey(profileId, 'onboarded'), 'profile-set');
     importDataJSON(new File([blob], file, { type: 'application/json' }));
   } catch (err) {
     showNotification('Could not load demo data: ' + err.message, 'error');

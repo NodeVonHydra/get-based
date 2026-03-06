@@ -104,8 +104,9 @@ export async function checkOllamaPII() {
 }
 
 export function unloadOllamaPIIModel() {
-  // Best-effort: try Ollama-specific unload to free VRAM. Silently fails on non-Ollama servers.
+  // Ollama-specific: send keep_alive:0 to free VRAM. Only fires for Ollama servers (port 11434).
   const piiUrl = getOllamaPIIUrl();
+  try { if (new URL(piiUrl).port !== '11434') return; } catch { return; }
   const piiModel = getOllamaPIIModel();
   fetch(`${piiUrl}/api/generate`, {
     method: 'POST',
@@ -146,7 +147,7 @@ function validatePIIResult(result, pdfText) {
   return null;
 }
 
-export async function sanitizeWithOllamaStreaming(pdfText, onChunk, signal) {
+export async function sanitizeWithOllamaStreaming(pdfText, onChunk, signal, onThinking) {
   const piiUrl = getOllamaPIIUrl();
   const piiModel = getOllamaPIIModel();
   const config = getOllamaConfig();
@@ -167,6 +168,7 @@ export async function sanitizeWithOllamaStreaming(pdfText, onChunk, signal) {
   const decoder = new TextDecoder();
   let accumulated = '';
   let buffer = '';
+  let inThinkTag = false; // track <think>...</think> blocks in content
 
   try {
     while (true) {
@@ -182,10 +184,39 @@ export async function sanitizeWithOllamaStreaming(pdfText, onChunk, signal) {
         if (payload === '[DONE]') break;
         try {
           const json = JSON.parse(payload);
-          const delta = json.choices?.[0]?.delta?.content;
-          if (delta) {
-            accumulated += delta;
-            onChunk(delta);
+          const delta = json.choices?.[0]?.delta;
+          if (!delta) continue;
+
+          // Handle reasoning_content field (OpenAI-style thinking)
+          if (delta.reasoning_content && onThinking) {
+            onThinking(delta.reasoning_content);
+            continue;
+          }
+
+          const content = delta.content;
+          if (!content) continue;
+
+          // Handle <think>...</think> tags inline in content (Qwen/DeepSeek style)
+          if (onThinking) {
+            let remaining = content;
+            while (remaining) {
+              if (inThinkTag) {
+                const closeIdx = remaining.indexOf('</think>');
+                if (closeIdx === -1) { onThinking(remaining); remaining = ''; }
+                else { onThinking(remaining.slice(0, closeIdx)); inThinkTag = false; remaining = remaining.slice(closeIdx + 8); }
+              } else {
+                const openIdx = remaining.indexOf('<think>');
+                if (openIdx === -1) { accumulated += remaining; onChunk(remaining); remaining = ''; }
+                else {
+                  if (openIdx > 0) { accumulated += remaining.slice(0, openIdx); onChunk(remaining.slice(0, openIdx)); }
+                  inThinkTag = true;
+                  remaining = remaining.slice(openIdx + 7);
+                }
+              }
+            }
+          } else {
+            accumulated += content;
+            onChunk(content);
           }
         } catch { /* skip malformed chunks */ }
       }
@@ -245,7 +276,7 @@ export function obfuscatePDFText(pdfText) {
   const pdfSex = detectSexFromPDF(pdfText) || state.profileSex;
 
   // Unit keywords that indicate a result line — never strip digits from these
-  const unitKeywords = /\b(mmol|µmol|µkat|umol|ukat|g\/l|mg\/l|ng\/l|µg|ug|mU\/l|pmol|nmol|ml\/s|fL|pg|×10|10\^|u\/l|iu\/l|%|sec|s\/1)\b/i;
+  const unitKeywords = /\b(mmol|µmol|µkat|umol|ukat|g\/l|mg\/l|ng\/l|µg|ug|mU\/l|pmol|nmol|ml\/s|fL|pg|×10|10\^|u\/l|iu\/l|%|sec|s\/1|mg\/dL|ng\/dL|mIU\/mL|mEq\/L|mcg|cells\/uL|thou\/uL|mill\/uL)\b/i;
   // Collection date line — protect entirely
   const collectionDateLine = /^.*\b(odb[eě]r|collect|datum|sample|vzork|nasb[ií]r|drawn)\b.*$/gim;
   const protectedLines = new Set();
@@ -264,11 +295,13 @@ export function obfuscatePDFText(pdfText) {
   const labelReplacements = [
     { pattern: /^(.*?\b(?:jm[eé]no|name|pacient|patient|p[rř][ií]jmen[ií]|surname)\b[:\s]+)(.+)$/gim, gen: () => fakeName(pdfSex) },
     { pattern: /^(.*?\b(?:adresa|address|bydli[sš]t[eě]|residence)\b[:\s]+)(.+)$/gim, gen: () => `${randomPick(FAKE_STREETS)}, ${randomPick(FAKE_CITIES)}` },
-    { pattern: /^(.*?\b(?:datum\s*narozen|date\s*of\s*birth|nar(?:ozen[ií])?\.?)\b[:\s]+)(.+)$/gim, gen: () => fakeDate() },
-    { pattern: /^(.*?\b(?:l[eé]ka[rř]|doctor|phy?sician|o[sš]et[rř]uj[ií]c[ií])\b\.?[:\s]+)(.+)$/gim, gen: () => randomPick(FAKE_DOCTORS) },
+    { pattern: /^(.*?\b(?:datum\s*narozen|date\s*of\s*birth|nar(?:ozen[ií])?\.?|DOB)\b[:\s]+)(.+)$/gim, gen: () => fakeDate() },
+    { pattern: /^(.*?\b(?:l[eé]ka[rř]|doctor|phy?sician|o[sš]et[rř]uj[ií]c[ií]|ordering|provider|referring)\b\.?[:\s]+)(.+)$/gim, gen: () => randomPick(FAKE_DOCTORS) },
     { pattern: /^(.*?\b(?:rodn[eé]\s*[cč][ií]slo|birth\s*number|r[\.\s]?[cč][\.\s]?)\b[:\s]+)(.+)$/gim, gen: () => fakeBirthNumber() },
-    { pattern: /^(.*?\b(?:[cč][ií]slo\s*(?:poji[sš]t[eě]n|insurance)|insurance\s*(?:no|number|id)|poji[sš][tť]ovna)\b[:\s]+)(.+)$/gim, gen: () => randomDigits(3) },
-    { pattern: /^(.*?\b(?:id\s*pacienta|patient\s*id|[cč][ií]slo\s*pacienta)\b[:\s]+)(.+)$/gim, gen: () => fakePatientId() },
+    { pattern: /^(.*?\b(?:[cč][ií]slo\s*(?:poji[sš]t[eě]n|insurance)|insurance\s*(?:no|number|id)|poji[sš][tť]ovna|member\s*id|group\s*(?:no|number|id)|policy)\b[:\s]+)(.+)$/gim, gen: () => randomDigits(10) },
+    { pattern: /^(.*?\b(?:id\s*pacienta|patient\s*id|[cč][ií]slo\s*pacienta|account\s*(?:no|number)|acct|MRN|medical\s*record)\b[:\s]+)(.+)$/gim, gen: () => fakePatientId() },
+    { pattern: /^(.*?\b(?:specimen\s*(?:id|no|number)|accession\s*(?:no|number)|control\s*(?:id|no|number)|requisition)\b[:\s]+)(.+)$/gim, gen: () => randomDigits(10) },
+    { pattern: /^(.*?\b(?:age|v[eě]k)\b[:\s]+)(\d{1,3}\b.*)$/gim, gen: () => `${20 + Math.floor(Math.random() * 50)}` },
   ];
 
   for (const { pattern, gen } of labelReplacements) {
@@ -292,6 +325,17 @@ export function obfuscatePDFText(pdfText) {
     if (isProtectedLine(offset)) return match;
     replacements++;
     return `${randomDigits(3)}-${randomDigits(2)}-${randomDigits(4)}`;
+  });
+
+  // US phone: (XXX) XXX-XXXX (with optional label)
+  text = text.replace(/(?:(?:tel|phone|fax|ph)\.?[\s:]+)?\(\d{3}\)[\s.-]\d{3}[\s.-]\d{4}\b/gi, (match, offset) => {
+    if (isProtectedLine(offset)) return match;
+    const lineStart = text.lastIndexOf('\n', offset) + 1;
+    const lineEnd = text.indexOf('\n', offset);
+    const line = text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd);
+    if (unitKeywords.test(line)) return match;
+    replacements++;
+    return `(${randomDigits(3)}) ${randomDigits(3)}-${randomDigits(4)}`;
   });
 
   // Email
@@ -334,6 +378,48 @@ export function obfuscatePDFText(pdfText) {
 // ═══════════════════════════════════════════════
 // PII DIFF VIEWER (debug mode)
 // ═══════════════════════════════════════════════
+function wordDiff(origLine, newLine) {
+  // Split into words preserving whitespace as separate tokens
+  const tokenize = s => s.match(/\S+|\s+/g) || [];
+  const origTokens = tokenize(origLine);
+  const newTokens = tokenize(newLine);
+  // Simple LCS-based diff for short lines
+  const n = origTokens.length, m = newTokens.length;
+  if (n === 0 && m === 0) return { left: '&nbsp;', right: '&nbsp;' };
+  // For very long lines, fall back to line-level highlight
+  if (n > 200 || m > 200) {
+    return {
+      left: `<span class="pii-word-removed">${escapeHTML(origLine)}</span>`,
+      right: `<span class="pii-word-added">${escapeHTML(newLine)}</span>`
+    };
+  }
+  // Build LCS table
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = 1; i <= n; i++)
+    for (let j = 1; j <= m; j++)
+      dp[i][j] = origTokens[i-1] === newTokens[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+  // Backtrack
+  const ops = [];
+  let i = n, j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && origTokens[i-1] === newTokens[j-1]) {
+      ops.push({ type: 'equal', orig: origTokens[--i], new: newTokens[--j] });
+    } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+      ops.push({ type: 'add', new: newTokens[--j] });
+    } else {
+      ops.push({ type: 'del', orig: origTokens[--i] });
+    }
+  }
+  ops.reverse();
+  let left = '', right = '';
+  for (const op of ops) {
+    if (op.type === 'equal') { left += escapeHTML(op.orig); right += escapeHTML(op.new); }
+    else if (op.type === 'del') { left += `<span class="pii-word-removed">${escapeHTML(op.orig)}</span>`; }
+    else { right += `<span class="pii-word-added">${escapeHTML(op.new)}</span>`; }
+  }
+  return { left: left || '&nbsp;', right: right || '&nbsp;' };
+}
+
 export function buildPIIDiffHTML(originalText, obfuscatedText) {
   const origLines = originalText.split('\n');
   const obfLines = obfuscatedText.split('\n');
@@ -342,9 +428,14 @@ export function buildPIIDiffHTML(originalText, obfuscatedText) {
   for (let i = 0; i < maxLines; i++) {
     const origLine = origLines[i] || '';
     const obfLine = obfLines[i] || '';
-    const changed = origLine !== obfLine;
-    leftHtml += `<div class="${changed ? 'pii-diff-highlight-removed' : ''}">${escapeHTML(origLine) || '&nbsp;'}</div>`;
-    rightHtml += `<div class="${changed ? 'pii-diff-highlight-added' : ''}">${escapeHTML(obfLine) || '&nbsp;'}</div>`;
+    if (origLine === obfLine) {
+      leftHtml += `<div>${escapeHTML(origLine) || '&nbsp;'}</div>`;
+      rightHtml += `<div>${escapeHTML(obfLine) || '&nbsp;'}</div>`;
+    } else {
+      const { left, right } = wordDiff(origLine, obfLine);
+      leftHtml += `<div class="pii-diff-highlight-removed">${left}</div>`;
+      rightHtml += `<div class="pii-diff-highlight-added">${right}</div>`;
+    }
   }
   return { leftHtml, rightHtml };
 }
@@ -355,23 +446,36 @@ export function showPIIDiffViewer(originalText, obfuscatedText) {
   const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
   overlay.innerHTML = `
     <div class="pii-diff-modal" role="dialog" aria-modal="true" aria-label="Privacy Diff">
-      <button class="modal-close" onclick="this.closest('.pii-warning-overlay').remove()">&times;</button>
+      <button class="modal-close" onclick="document.body.style.overflow='';this.closest('.pii-warning-overlay').remove()">&times;</button>
       <h3>&#128269; Privacy Diff — Before / After</h3>
       <div class="pii-diff-viewer">
         <div class="pii-diff-left"><div class="pii-diff-header">Original</div>${leftHtml}</div>
         <div class="pii-diff-right"><div class="pii-diff-header">Obfuscated</div>${rightHtml}</div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-top:12px">
-        <button class="import-btn import-btn-secondary" onclick="this.closest('.pii-warning-overlay').remove()">Close</button>
+        <button class="import-btn import-btn-secondary" onclick="document.body.style.overflow='';this.closest('.pii-warning-overlay').remove()">Close</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
   requestAnimationFrame(() => overlay.classList.add('show'));
 }
 
 function extractPatientName(text) {
-  const m = text.match(/\b(?:jm[eé]no|name|pacient|patient|p[rř][ií]jmen[ií]|surname)\b[:\s]+(.+)/im);
-  return m ? m[1].trim() : null;
+  // Try label-based extraction (Czech/Slovak + English)
+  const patterns = [
+    /\b(?:jm[eé]no|p[rř][ií]jmen[ií])\b[:\s]+(.+)/im,
+    /\b(?:patient\s*name|patient|name)\b[:\s]+(.+)/im,
+    /\b(?:surname|last\s*name|first\s*name)\b[:\s]+(.+)/im,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) {
+      const name = m[1].trim().replace(/\s{2,}.*/, ''); // trim trailing columns
+      if (name && name.length > 1 && name.length < 60) return name;
+    }
+  }
+  return null;
 }
 
 export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) {
@@ -393,6 +497,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
           <div class="pii-diff-right">
             <div class="pii-diff-header">Sent to AI (editable)</div>
+            ${isStreaming ? '<details class="pii-thinking-section" id="pii-thinking-section" style="display:none"><summary>Thinking\u2026</summary><pre class="pii-thinking-content" id="pii-thinking-content"></pre></details>' : ''}
             <textarea class="pii-edit-textarea" id="pii-edit-textarea" spellcheck="false"${isStreaming ? ' readonly' : ''}>${initialText}</textarea>
             ${isStreaming ? '<div class="pii-stream-status pii-stream-waiting" id="pii-stream-status">Waiting for model response\u2026</div>' : ''}
           </div>
@@ -407,6 +512,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         </div>
       </div>`;
     document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
     requestAnimationFrame(() => overlay.classList.add('show'));
 
     const searchInput = overlay.querySelector('#pii-search-input');
@@ -443,6 +549,28 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       if (!dirty) { dirty = true; sendBtn.textContent = 'Save & Send to AI'; }
     });
 
+    // Switch from highlighted diff view back to editable textarea
+    function switchToEditMode() {
+      const diffView = overlay.querySelector('.pii-diff-preview');
+      if (diffView) diffView.style.display = 'none';
+      textarea.style.display = '';
+      textarea.focus();
+    }
+
+    // Show highlighted diff preview, hiding the textarea
+    function showDiffPreview(obfuscatedText) {
+      const { leftHtml, rightHtml } = buildPIIDiffHTML(originalText, obfuscatedText);
+      if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${leftHtml}`;
+      textarea.style.display = 'none';
+      let diffView = overlay.querySelector('.pii-diff-preview');
+      if (!diffView) { diffView = document.createElement('div'); diffView.className = 'pii-diff-preview'; textarea.parentNode.insertBefore(diffView, textarea); }
+      diffView.innerHTML = rightHtml;
+      diffView.style.display = '';
+      diffView.onclick = switchToEditMode;
+      diffView.title = 'Click to edit';
+      diffView.style.cursor = 'pointer';
+    }
+
     // Regex fallback button
     overlay.querySelector('#pii-review-regex').addEventListener('click', () => {
       const result = obfuscatePDFText(originalText);
@@ -452,15 +580,18 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       if (statusEl) statusEl.textContent = `Regex applied \u2014 ${result.replacements} replacement${result.replacements !== 1 ? 's' : ''}`;
       if (stopBtn) stopBtn.style.display = 'none';
       if (abortController) { abortController.abort(); abortController = null; }
-      // Rebuild diff highlights
-      const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, result.obfuscated);
-      if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
+      unloadOllamaPIIModel();
+      showDiffPreview(result.obfuscated);
+      sendBtn.textContent = 'Send to AI';
+      dirty = false;
     });
 
     // Send & cancel
-    sendBtn.addEventListener('click', () => { overlay.remove(); resolve(textarea.value); });
+    sendBtn.addEventListener('click', () => { document.body.style.overflow = ''; overlay.remove(); resolve(textarea.value); });
     overlay.querySelector('#pii-review-cancel').addEventListener('click', () => {
       if (abortController) abortController.abort();
+      unloadOllamaPIIModel();
+      document.body.style.overflow = '';
       overlay.remove();
       resolve('cancel');
     });
@@ -470,6 +601,9 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
     if (isStreaming) {
       const retryBtn = overlay.querySelector('#pii-stream-retry');
       const expectedLen = originalText.length;
+
+      const thinkingSection = overlay.querySelector('#pii-thinking-section');
+      const thinkingContent = overlay.querySelector('#pii-thinking-content');
 
       const startStream = () => {
         // Reset state
@@ -481,11 +615,21 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         retryBtn.style.display = 'none';
         statusEl.className = 'pii-stream-status pii-stream-waiting';
         statusEl.textContent = 'Waiting for model response\u2026';
+        if (thinkingSection) { thinkingSection.style.display = 'none'; thinkingContent.textContent = ''; }
         let charCount = 0;
         let rafPending = false;
         let pendingText = '';
+        let pendingThinking = '';
+        let hasThinking = false;
 
         const flushToTextarea = () => {
+          if (pendingThinking && thinkingSection) {
+            if (!hasThinking) { thinkingSection.style.display = ''; thinkingSection.open = true; hasThinking = true; }
+            thinkingContent.textContent += pendingThinking;
+            pendingThinking = '';
+            thinkingContent.scrollTop = thinkingContent.scrollHeight;
+            if (!pendingText) statusEl.textContent = 'Thinking\u2026';
+          }
           if (pendingText) {
             textarea.value += pendingText;
             charCount += pendingText.length;
@@ -498,21 +642,26 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           rafPending = false;
         };
 
+        const onThinking = (chunk) => {
+          pendingThinking += chunk;
+          if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
+        };
+
         streamFn(
           (chunk) => {
             pendingText += chunk;
             if (!rafPending) { rafPending = true; requestAnimationFrame(flushToTextarea); }
           },
-          abortController.signal
+          abortController.signal,
+          onThinking // passed to sanitizeWithOllamaStreaming
         ).then(() => {
           flushToTextarea();
           textarea.readOnly = false;
           sendBtn.disabled = false;
-          if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 review and edit below`;
+          if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 click text to edit`;
           stopBtn.style.display = 'none';
-          // Rebuild left panel with diff highlights
-          const { leftHtml: diffHtml } = buildPIIDiffHTML(originalText, textarea.value);
-          if (leftPanel) leftPanel.innerHTML = `<div class="pii-diff-header">Original (stays local)</div>${diffHtml}`;
+          if (thinkingSection && hasThinking) { thinkingSection.open = false; thinkingSection.querySelector('summary').textContent = 'Thinking (done)'; }
+          showDiffPreview(textarea.value);
           // Auto-fill search with patient name
           const name = extractPatientName(originalText);
           if (name && searchInput) {
@@ -539,6 +688,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         statusEl.textContent = 'Stopped \u2014 review partial result and edit below';
         stopBtn.style.display = 'none';
         retryBtn.style.display = '';
+        unloadOllamaPIIModel();
       });
 
       // Retry button

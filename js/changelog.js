@@ -5,6 +5,20 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.3.7', date: '2026-03-06', title: 'Reference Ranges & PII Improvements',
+    items: [
+      'Editable reference ranges — click any range in the detail modal to customize, with revert badge',
+      'Import-time range adoption — toggle to use your lab\'s reference ranges from the PDF',
+      'BUN/Creatinine ratio added as a calculated marker in the Kidney category',
+      'PII review: green word-level diff highlighting on the right panel, click-to-edit',
+      'PII review: model unloads from VRAM on Stop, Cancel, or Use Regex',
+      'US lab PII patterns: Specimen ID, Accession No, Account No, MRN, phone, Member ID',
+      'IU/L enzyme unit normalization (ALT, AST, ALP) — no more double-conversion on import',
+      'Empty marker charts hidden in category views',
+      'Background scroll locked on PII review modals',
+    ]
+  },
+  {
     version: '1.3.6', date: '2026-03-05', title: 'Settings Cleanup',
     items: [
       'Profile tab removed from Settings — sex, date of birth, and location are now in the Client List',

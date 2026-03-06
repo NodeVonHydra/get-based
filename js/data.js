@@ -142,6 +142,20 @@ export function getActiveData() {
     }
   }
 
+  // Apply user range overrides (ref + optimal, after schema defaults are set)
+  const refOverrides = state.importedData?.refOverrides || {};
+  for (const [fullKey, ovr] of Object.entries(refOverrides)) {
+    const [catKey, markerKey] = fullKey.split('.');
+    const cat = data.categories[catKey];
+    if (cat && cat.markers[markerKey]) {
+      const m = cat.markers[markerKey];
+      if (ovr.refMin != null) m.refMin = ovr.refMin;
+      if (ovr.refMax != null) m.refMax = ovr.refMax;
+      if (ovr.optimalMin != null) m.optimalMin = ovr.optimalMin;
+      if (ovr.optimalMax != null) m.optimalMax = ovr.optimalMax;
+    }
+  }
+
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
   const hasEntries = entries.length > 0;
 
@@ -267,6 +281,15 @@ export function getActiveData() {
     ratios.markers.plr.values = divide(getVals('hematology', 'platelets'), getVals('differential', 'lymphocytes'));
     ratios.markers.deRitisRatio.values = divide(getVals('biochemistry', 'ast'), getVals('biochemistry', 'alt'));
     ratios.markers.copperZincRatio.values = divide(getVals('electrolytes', 'copper'), getVals('electrolytes', 'zinc'));
+
+    // BUN/Creatinine Ratio — computed in US units: (urea×2.801) / (creatinine×0.01131)
+    const ureaVals = getVals('biochemistry', 'urea');
+    const creatVals = getVals('biochemistry', 'creatinine');
+    ratios.markers.bunCreatRatio.values = sortedDates.map((_, i) => {
+      const u = ureaVals?.[i], c = creatVals?.[i];
+      if (u == null || c == null || c === 0) return null;
+      return Math.round((u * 2.801) / (c * 0.01131) * 10) / 10;
+    });
 
     // Free Water Deficit — TBW × (Na/140 − 1), assumes 70kg body weight
     const sodiumVals = getVals('electrolytes', 'sodium');

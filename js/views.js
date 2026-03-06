@@ -1,7 +1,7 @@
 // views.js — Navigate, dashboard, category views, detail modal, compare, correlations
 
 import { state } from './state.js';
-import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
+import { CORRELATION_PRESETS, CHIP_COLORS, UNIT_CONVERSIONS } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown } from './data.js';
@@ -13,6 +13,8 @@ import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHe
 import { callClaudeAPI, hasAIProvider } from './api.js';
 import { setupDropZone } from './pdf-import.js';
 import { buildLabContext } from './chat.js';
+
+function markerHasData(m) { return m.values?.some(v => v !== null) ?? false; }
 
 // ═══════════════════════════════════════════════
 // NAVIGATE (router)
@@ -229,7 +231,7 @@ function loadCommitHash() {
   fetch('https://api.github.com/repos/elkimek/get-based/commits/main', { headers: { Accept: 'application/vnd.github.sha' } })
     .then(r => r.ok ? r.text() : Promise.reject())
     .then(sha => { _cachedCommitHash = sha.slice(0, 7); const e = document.getElementById('app-commit-hash'); if (e) e.innerHTML = `<a href="https://github.com/elkimek/get-based/commit/${_cachedCommitHash}" target="_blank" rel="noopener">${_cachedCommitHash}</a>`; })
-    .catch(() => { const e = document.getElementById('app-commit-hash'); if (e) e.textContent = ''; });
+    .catch(() => {});
 }
 
 // ── Focus Card ──
@@ -433,8 +435,11 @@ export function showCategory(categoryKey, preData) {
   const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const main = document.getElementById("main-content");
+  const allEntries = Object.entries(cat.markers);
+  const withData = allEntries.filter(([, m]) => markerHasData(m));
+  const countLabel = withData.length < allEntries.length ? `${withData.length} of ${allEntries.length} biomarkers with data` : `${allEntries.length} biomarkers tracked`;
   let html = `<div class="category-header"><h2>${cat.icon} ${escapeHTML(cat.label)}</h2>
-    <p>${Object.keys(cat.markers).length} biomarkers tracked</p></div>`;
+    <p>${countLabel}</p></div>`;
 
   html += `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">`;
   html += `<div class="view-toggle" style="margin-bottom:0">
@@ -445,17 +450,15 @@ export function showCategory(categoryKey, preData) {
   html += renderChartLayersDropdown();
   html += `</div>`;
 
-  const hasValues = Object.values(cat.markers).some(m => m.values && m.values.length > 0 && m.values.some(v => v !== null));
-
   html += `<div id="view-content">`;
-  if (!hasValues) {
+  if (withData.length === 0) {
     html += `<div class="empty-state"><div class="empty-state-icon">${cat.icon}</div>
       <h3>No Data Available</h3><p>Import lab results containing ${escapeHTML(cat.label.toLowerCase())} markers to see data here.</p></div>`;
   } else if (cat.singleDate) {
     html += renderFattyAcidsView(cat);
   } else {
     html += `<div class="charts-grid">`;
-    for (const [key, marker] of Object.entries(cat.markers)) {
+    for (const [key, marker] of withData) {
       html += renderChartCard(categoryKey + "_" + key, marker, data.dateLabels);
     }
     html += `</div>`;
@@ -463,10 +466,10 @@ export function showCategory(categoryKey, preData) {
   html += `</div>`;
   main.innerHTML = html;
 
-  if (!hasValues) { /* no charts to render */ }
+  if (withData.length === 0) { /* no charts to render */ }
   else if (cat.singleDate) { renderFattyAcidsCharts(cat); }
   else {
-    for (const [key, marker] of Object.entries(cat.markers)) {
+    for (const [key, marker] of withData) {
       createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates, data.phaseLabels);
     }
   }
@@ -489,13 +492,14 @@ export function switchView(view, categoryKey, btn) {
       container.innerHTML = renderFattyAcidsView(cat);
       renderFattyAcidsCharts(cat);
     } else {
+      const withData = Object.entries(cat.markers).filter(([, m]) => markerHasData(m));
       let html = `<div class="charts-grid">`;
-      for (const [key, marker] of Object.entries(cat.markers)) {
+      for (const [key, marker] of withData) {
         html += renderChartCard(categoryKey + "_" + key, marker, data.dateLabels);
       }
       html += `</div>`;
       container.innerHTML = html;
-      for (const [key, marker] of Object.entries(cat.markers)) {
+      for (const [key, marker] of withData) {
         createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates, data.phaseLabels);
       }
     }
@@ -665,27 +669,30 @@ export async function fetchCustomMarkerDescription(markerId, markerName, unit) {
 }
 
 export function showDetailModal(id) {
-  let marker = state.markerRegistry[id];
-  if (!marker) {
-    const data = getActiveData();
-    const [catKey, mKey] = id.split('_');
-    marker = data.categories[catKey]?.markers[mKey];
-    if (marker) state.markerRegistry[id] = marker;
-  }
-  if (!marker) return;
   const data = getActiveData();
+  const [catKey, mKey] = id.split('_');
+  let marker = data.categories[catKey]?.markers[mKey];
+  if (marker) state.markerRegistry[id] = marker;
+  if (!marker) return;
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
   const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : data.dateLabels;
   const r = getEffectiveRange(marker);
+  const dotKey = id.replace('_', '.');
   let rangeInfo = '';
+  const overrides = state.importedData?.refOverrides?.[dotKey] || {};
+  const refEditable = (label, min, max, type) => {
+    const isEdited = type === 'optimal' ? (overrides.optimalMin != null || overrides.optimalMax != null) : (overrides.refMin != null || overrides.refMax != null);
+    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range — click to revert" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">edited \u00d7</span>` : '';
+    return ` &middot; ${type === 'optimal' ? '<span style="color:var(--green)">' : ''}${label}: <span class="ref-editable" onclick="editRefRange('${id}','${type}',event)" title="Click to edit">${min} \u2013 ${max}</span>${editedBadge}${type === 'optimal' ? '</span>' : ''}`;
+  };
   if (state.rangeMode === 'both') {
-    if (marker.refMin != null && marker.refMax != null) rangeInfo += ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}`;
-    if (marker.optimalMin != null) rangeInfo += ` &middot; <span style="color:var(--green)">Optimal: ${marker.optimalMin} \u2013 ${marker.optimalMax}</span>`;
+    if (marker.refMin != null && marker.refMax != null) rangeInfo += refEditable('Reference', marker.refMin, marker.refMax, 'ref');
+    if (marker.optimalMin != null) rangeInfo += refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
   } else if (state.rangeMode === 'optimal' && marker.optimalMin != null) {
-    rangeInfo = ` &middot; <span style="color:var(--green)">Optimal: ${marker.optimalMin} \u2013 ${marker.optimalMax}</span>`;
+    rangeInfo = refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
   } else if (marker.refMin != null && marker.refMax != null) {
-    rangeInfo = ` &middot; Reference: ${marker.refMin} \u2013 ${marker.refMax}`;
+    rangeInfo = refEditable('Reference', marker.refMin, marker.refMax, 'ref');
   }
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${escapeHTML(marker.name)}</h3>
@@ -703,7 +710,6 @@ export function showDetailModal(id) {
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && state.importedData.notes ? state.importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
-    const dotKey = id.replace('_', '.');
     const isManual = rawDate && state.importedData.manualValues && state.importedData.manualValues[dotKey + ':' + rawDate];
     const deleteBtn = (v !== null && isManual) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
     html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
@@ -1121,6 +1127,89 @@ export function renderCorrelationChart() {
 }
 
 // ═══════════════════════════════════════════════
+// EDITABLE REFERENCE RANGES
+// ═══════════════════════════════════════════════
+
+export function editRefRange(id, type, evt) {
+  const marker = state.markerRegistry[id];
+  if (!marker) return;
+  const isOptimal = type === 'optimal';
+  const curMin = isOptimal ? marker.optimalMin : marker.refMin;
+  const curMax = isOptimal ? marker.optimalMax : marker.refMax;
+  const label = isOptimal ? 'Optimal' : 'Reference';
+
+  const span = evt.target.closest('.ref-editable');
+  if (!span) return;
+
+  // Replace span with inline inputs
+  const form = document.createElement('span');
+  form.className = 'ref-edit-form';
+  form.innerHTML = `${label}: <input type="number" step="any" value="${curMin ?? ''}" class="ref-edit-input" id="ref-edit-min"> \u2013 <input type="number" step="any" value="${curMax ?? ''}" class="ref-edit-input" id="ref-edit-max"> <button class="ref-edit-save" onclick="saveRefRange('${id}','${type}')">Save</button>`;
+  span.replaceWith(form);
+  form.querySelector('#ref-edit-min').focus();
+
+  // Enter to save
+  form.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); window.saveRefRange(id, type); } });
+  // Escape to cancel
+  form.addEventListener('keydown', e => { if (e.key === 'Escape') showDetailModal(id); });
+}
+
+export function saveRefRange(id, type) {
+  const dotKey = id.replace('_', '.');
+  const minEl = document.getElementById('ref-edit-min');
+  const maxEl = document.getElementById('ref-edit-max');
+  if (!minEl || !maxEl) return;
+  let newMin = minEl.value !== '' ? parseFloat(minEl.value) : null;
+  let newMax = maxEl.value !== '' ? parseFloat(maxEl.value) : null;
+
+  // If user is in US mode, convert back to SI for storage (overrides are applied before unit conversion)
+  if (state.unitSystem === 'US') {
+    const conv = UNIT_CONVERSIONS[dotKey];
+    if (conv && conv.type === 'multiply' && conv.factor) {
+      if (newMin != null) newMin = parseFloat((newMin / conv.factor).toPrecision(6));
+      if (newMax != null) newMax = parseFloat((newMax / conv.factor).toPrecision(6));
+    } else if (conv && conv.type === 'hba1c') {
+      // US display is %, SI is mmol/mol: reverse IFCC→NGSP
+      if (newMin != null) newMin = parseFloat(((newMin - 2.15) * 10.929).toFixed(1));
+      if (newMax != null) newMax = parseFloat(((newMax - 2.15) * 10.929).toFixed(1));
+    }
+  }
+
+  if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
+  if (!state.importedData.refOverrides[dotKey]) state.importedData.refOverrides[dotKey] = {};
+
+  if (type === 'optimal') {
+    state.importedData.refOverrides[dotKey].optimalMin = newMin;
+    state.importedData.refOverrides[dotKey].optimalMax = newMax;
+  } else {
+    state.importedData.refOverrides[dotKey].refMin = newMin;
+    state.importedData.refOverrides[dotKey].refMax = newMax;
+  }
+
+  saveImportedData();
+  // Refresh background view, then re-render modal with new ranges
+  const activeNav = document.querySelector('.nav-item.active');
+  navigate(activeNav ? activeNav.dataset.category : 'dashboard');
+  showDetailModal(id);
+  showNotification('Range updated', 'info');
+}
+
+export function revertRefRange(id, type) {
+  const dotKey = id.replace('_', '.');
+  const ovr = state.importedData?.refOverrides?.[dotKey];
+  if (!ovr) return;
+  if (type === 'optimal') { delete ovr.optimalMin; delete ovr.optimalMax; }
+  else { delete ovr.refMin; delete ovr.refMax; }
+  // Clean up empty override objects
+  if (Object.keys(ovr).length === 0) delete state.importedData.refOverrides[dotKey];
+  saveImportedData();
+  const activeNav = document.querySelector('.nav-item.active');
+  navigate(activeNav ? activeNav.dataset.category : 'dashboard');
+  showDetailModal(id);
+  showNotification('Range reverted to default', 'info');
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 
@@ -1144,6 +1233,9 @@ Object.assign(window, {
   renderFattyAcidsCharts,
   fetchCustomMarkerDescription,
   showDetailModal,
+  editRefRange,
+  saveRefRange,
+  revertRefRange,
   openManualEntryForm,
   saveManualEntry,
   deleteMarkerValue,

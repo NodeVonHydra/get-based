@@ -13,7 +13,7 @@ import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, chec
 // UNIT NORMALIZATION — convert US-unit values to SI before storage
 // ═══════════════════════════════════════════════
 function normalizeUnitStr(s) {
-  return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug');
+  return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug').replace(/^iu\//, 'u/');
 }
 
 function normalizeToSI(key, value, unit) {
@@ -313,8 +313,17 @@ Return ONLY valid JSON in this exact format, no other text:
       if (pct !== lastPct) { lastPct = pct; onProgress(pct); }
     };
   }
+  // Include previously imported marker keys so the AI reuses consistent mappings
+  const existingKeys = new Set();
+  for (const entry of (state.importedData?.entries || [])) {
+    for (const key of Object.keys(entry.markers || {})) existingKeys.add(key);
+  }
+  const existingKeysNote = existingKeys.size > 0
+    ? `\n\nIMPORTANT — These marker keys were used in previous imports for this profile. Reuse them for the same biomarkers to ensure consistency:\n${[...existingKeys].join(', ')}`
+    : '';
+
   const { text: response, usage } = await callClaudeAPI({
-    system,
+    system: system + existingKeysNote,
     messages: [{ role: 'user', content: `Extract all biomarker results from this lab report${fileName ? ' (file: ' + fileName + ')' : ''}:\n\n${pdfText}` }],
     maxTokens,
     onStream
@@ -416,6 +425,9 @@ export function showImportPreview(parseResult) {
       Could not extract collection date from PDF. Please enter it manually:
       <input type="date" id="import-manual-date" style="margin-left:8px;padding:4px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);font-family:var(--font-mono)" onchange="applyManualImportDate(this.value)"></div>`;
   }
+  // Build reference lookup (used for unmatched dropdown + range comparison)
+  const refLookup = buildMarkerReference();
+
   html += `<table class="import-table"><thead><tr><th>Status</th><th>Test Name</th><th>Value</th><th>Maps To</th></tr></thead><tbody>`;
   for (const m of matched) {
     html += `<tr><td class="matched">\u2713 Matched</td><td>${escapeHTML(m.rawName)}</td>
@@ -426,15 +438,41 @@ export function showImportPreview(parseResult) {
     html += `<tr><td class="new-marker">\u271A New</td><td>${escapeHTML(m.rawName)}</td>
       <td>${escapeHTML(String(m.value))}</td><td>${escapeHTML(m.suggestedKey)}${refInfo}</td></tr>`;
   }
-  for (const m of unmatched) {
-    html += `<tr><td class="unmatched">? Unmatched</td><td>${escapeHTML(m.rawName)}</td>
-      <td>${escapeHTML(String(m.value))}</td><td>\u2014</td></tr>`;
+  if (unmatched.length > 0) {
+    const allKeys = Object.entries(refLookup).map(([key, def]) => ({ key, name: def.name }));
+    allKeys.sort((a, b) => a.name.localeCompare(b.name));
+    const optionsHtml = allKeys.map(k => `<option value="${escapeHTML(k.key)}">${escapeHTML(k.name)} (${escapeHTML(k.key)})</option>`).join('');
+
+    for (const m of unmatched) {
+      const origIdx = markers.indexOf(m);
+      html += `<tr><td class="unmatched">? Unmatched</td><td>${escapeHTML(m.rawName)}</td>
+        <td>${escapeHTML(String(m.value))}</td><td><select class="import-map-select" data-marker-idx="${origIdx}" onchange="mapUnmatchedMarker(this)"><option value="">— skip —</option>${optionsHtml}</select></td></tr>`;
+    }
   }
   html += `</tbody></table>`;
 
+  // Reference range adoption toggle — count matched markers where PDF ranges differ from current
+  let rangesDiffCount = 0;
+  for (const m of matched) {
+    if (m.refMin == null && m.refMax == null) continue;
+    const schemaRef = refLookup[m.mappedKey];
+    if (!schemaRef) continue;
+    if ((m.refMin != null && schemaRef.refMin != null && m.refMin !== schemaRef.refMin) ||
+        (m.refMax != null && schemaRef.refMax != null && m.refMax !== schemaRef.refMax)) {
+      rangesDiffCount++;
+    }
+  }
+  if (rangesDiffCount > 0) {
+    const hasExistingEntries = state.importedData?.entries?.length > 0;
+    const defaultChecked = hasExistingEntries ? '' : ' checked';
+    html += `<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--text-secondary);cursor:pointer">
+      <input type="checkbox" id="import-adopt-ranges"${defaultChecked} style="accent-color:var(--accent);width:16px;height:16px">
+      Use this lab's reference ranges (updates ${rangesDiffCount} marker${rangesDiffCount !== 1 ? 's' : ''})</label>`;
+  }
+
   // Privacy notice
-  if (parseResult.privacyMethod === 'ollama') {
-    html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information scrubbed by local AI</div>`;
+  if (parseResult.privacyMethod?.startsWith('ollama')) {
+    html += `<div class="privacy-notice privacy-notice-success">&#128274; Personal information scrubbed by local AI${parseResult.privacyMethod === 'ollama+review' ? ' (reviewed)' : ''}</div>`;
   } else if (parseResult.privacyMethod === 'regex') {
     html += `<div class="privacy-notice privacy-notice-warning">&#128274; ${parseResult.privacyReplacements} personal detail${parseResult.privacyReplacements !== 1 ? 's' : ''} replaced with fake data`;
     html += `<span style="font-size:12px;display:block;margin-top:4px;opacity:0.8">Set up Local AI in Settings for comprehensive language-aware protection</span></div>`;
@@ -450,7 +488,7 @@ export function showImportPreview(parseResult) {
   if (isDebugMode()) {
     const t = parseResult.timings;
     if (t) {
-      const piiLabel = parseResult.privacyMethod === 'ollama' ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
+      const piiLabel = parseResult.privacyMethod?.startsWith('ollama') ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
       const provider = getAIProvider();
       const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
       html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
@@ -469,6 +507,28 @@ export function showImportPreview(parseResult) {
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
+}
+
+export function mapUnmatchedMarker(selectEl) {
+  const result = window._pendingImport;
+  if (!result) return;
+  const idx = parseInt(selectEl.dataset.markerIdx);
+  const marker = result.markers[idx];
+  if (!marker) return;
+  const key = selectEl.value;
+  marker.mappedKey = key || null;
+  marker.matched = !!key;
+  // Update import count on button
+  const importCount = result.markers.filter(m => m.matched || (!m.matched && m.suggestedKey)).length;
+  const btn = document.getElementById('import-confirm-btn');
+  if (btn) btn.textContent = `Import ${importCount} Markers`;
+  // Update row status cell
+  const row = selectEl.closest('tr');
+  if (row) {
+    const statusCell = row.querySelector('td:first-child');
+    if (key) { statusCell.className = 'matched'; statusCell.textContent = '\u2713 Matched'; }
+    else { statusCell.className = 'unmatched'; statusCell.textContent = '? Unmatched'; }
+  }
 }
 
 export function applyManualImportDate(dateStr) {
@@ -554,6 +614,18 @@ export function confirmImport() {
   }
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
+  // Adopt PDF reference ranges if user opted in
+  const adoptRanges = document.getElementById('import-adopt-ranges');
+  if (adoptRanges && adoptRanges.checked) {
+    if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
+    for (const m of matched) {
+      if (m.refMin == null && m.refMax == null) continue;
+      const ovr = state.importedData.refOverrides[m.mappedKey] || {};
+      if (m.refMin != null) ovr.refMin = m.refMin;
+      if (m.refMax != null) ovr.refMax = m.refMax;
+      state.importedData.refOverrides[m.mappedKey] = ovr;
+    }
+  }
   saveImportedData();
   // Resolve batch promise before closeImportModal (which would resolve with 'skip')
   if (window._batchImportResolve) {
@@ -693,7 +765,7 @@ export async function handlePDFFile(file) {
       // Streaming mode — modal opens immediately, AI streams into it
       const piiStart = performance.now();
       const reviewResult = await reviewPIIBeforeSend(pdfText, {
-        streamFn: (onChunk, signal) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal)
+        streamFn: (onChunk, signal, onThinking) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal, onThinking)
       });
       piiTime = Math.round((performance.now() - piiStart) / 1000);
       if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
@@ -800,7 +872,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
     // Streaming mode — modal opens immediately, AI streams into it
     const piiStart = performance.now();
     const reviewResult = await reviewPIIBeforeSend(pdfText, {
-      streamFn: (onChunk, signal) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal)
+      streamFn: (onChunk, signal, onThinking) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal, onThinking)
     });
     piiTime = Math.round((performance.now() - piiStart) / 1000);
     if (reviewResult === 'cancel') { return 'skipped'; }
@@ -952,6 +1024,7 @@ Object.assign(window, {
   parseLabPDFWithAI,
   showImportPreview,
   applyManualImportDate,
+  mapUnmatchedMarker,
   closeImportModal,
   confirmImport,
   removeImportedEntry,
