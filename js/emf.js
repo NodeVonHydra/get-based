@@ -4,8 +4,11 @@
 import { state } from './state.js';
 import { SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
 import { EMF_ROOM_PRESETS, EMF_SOURCES, EMF_MITIGATIONS } from './constants.js';
-import { escapeHTML, showNotification } from './utils.js';
+import { escapeHTML, showNotification, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData } from './data.js';
+import { callClaudeAPI, hasAIProvider } from './api.js';
+import { extractPDFText } from './pdf-import.js';
+import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
 // ═══════════════════════════════════════════════
 // MEASUREMENT TYPES (display order)
@@ -117,6 +120,8 @@ function renderEMFEditor(modal) {
     <div class="modal-unit">Room-by-room electromagnetic field measurements rated against SBM-2015 sleeping area standards.</div>
     <div class="emf-editor-actions">
       <button class="import-btn import-btn-primary" onclick="addEMFAssessment()">+ New Assessment</button>
+      ${hasAIProvider() ? `<button class="import-btn import-btn-secondary" onclick="document.getElementById('emf-pdf-input').click()">Import PDF</button>
+      <input type="file" id="emf-pdf-input" accept=".pdf" style="display:none" onchange="if(this.files[0])handleEMFPDF(this.files[0])">` : ''}
     </div>`;
 
   if (sorted.length === 0) {
@@ -334,6 +339,192 @@ export function saveEMFData() {
 }
 
 // ═══════════════════════════════════════════════
+// PDF IMPORT
+// ═══════════════════════════════════════════════
+const EMF_PARSE_SYSTEM = `You are an EMF assessment report parser. Extract room-by-room electromagnetic field measurements from Building Biology (Baubiologie) assessment reports.
+
+Reference measurement types and their standard units:
+${JSON.stringify(Object.fromEntries(Object.entries(SBM_2015_THRESHOLDS).map(([k, v]) => [k, { name: v.name, unit: v.unit }])))}
+
+Unit conversions to apply when needed:
+- AC Magnetic: 1 mG = 100 nT (always return nT)
+- RF: 1 mW/m² = 1000 µW/m² (always return µW/m²)
+- RF: convert from V/m using P = E²/377 if needed
+
+Your task:
+1. Find the assessment date (YYYY-MM-DD)
+2. Identify the consultant name if present
+3. For each room/location measured, extract all available readings
+4. Map measurements to the types above (acElectric, acMagnetic, rfMicrowave, dirtyElectricity, dcMagnetic)
+5. List identified EMF sources per room
+6. List recommended or completed mitigations per room
+
+Return ONLY valid JSON:
+{
+  "date": "YYYY-MM-DD",
+  "consultant": "Name or null",
+  "rooms": [
+    {
+      "name": "Bedroom",
+      "location": "bed pillow area",
+      "measurements": {
+        "acElectric": { "value": 28, "unit": "V/m", "meter": "NFA1000" }
+      },
+      "sources": ["WiFi router in adjacent room"],
+      "mitigations": ["demand switch installed"]
+    }
+  ],
+  "note": "General notes from the report"
+}`;
+
+export async function handleEMFPDF(file) {
+  if (!hasAIProvider()) {
+    showNotification('Configure an AI provider in Settings first', 'error');
+    return;
+  }
+
+  showNotification('Extracting text from EMF report...', 'info', 3000);
+
+  let pdfText;
+  try {
+    pdfText = await extractPDFText(file);
+  } catch (e) {
+    showNotification('Failed to read PDF: ' + e.message, 'error');
+    return;
+  }
+
+  if (!pdfText || pdfText.trim().length < 20) {
+    showNotification('Could not extract text from this PDF. Try a text-based report.', 'error');
+    return;
+  }
+
+  // PII obfuscation — consultant reports contain client names/addresses
+  let textToSend = pdfText;
+  const piiAvailable = await checkOllamaPII();
+  const reviewEnabled = isPIIReviewEnabled();
+
+  if (piiAvailable && reviewEnabled) {
+    const result = await reviewPIIBeforeSend(pdfText, {
+      streamFn: (text, onChunk, signal) => sanitizeWithOllamaStreaming(text, onChunk, signal)
+    });
+    if (result === 'cancel') return;
+    textToSend = result;
+  } else if (piiAvailable) {
+    try {
+      textToSend = await sanitizeWithOllama(pdfText);
+    } catch { /* fallback to regex */ }
+    if (textToSend === pdfText) {
+      const { obfuscated } = obfuscatePDFText(pdfText);
+      textToSend = obfuscated;
+    }
+  } else {
+    const { obfuscated } = obfuscatePDFText(pdfText);
+    textToSend = obfuscated;
+  }
+
+  showNotification('AI is analyzing EMF report...', 'info', 5000);
+
+  try {
+    const { text } = await callClaudeAPI({
+      system: EMF_PARSE_SYSTEM,
+      messages: [{ role: 'user', content: textToSend }],
+      maxTokens: 4096,
+    });
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON in AI response');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    if (!parsed.rooms || !Array.isArray(parsed.rooms) || parsed.rooms.length === 0) {
+      showNotification('AI could not find EMF measurements in this report', 'error');
+      return;
+    }
+
+    showEMFImportPreview(parsed);
+  } catch (e) {
+    showNotification('Failed to parse EMF report: ' + e.message, 'error');
+  }
+}
+
+function showEMFImportPreview(parsed) {
+  const modal = document.getElementById('detail-modal');
+  const overlay = document.getElementById('modal-overlay');
+  const fmtDate = parsed.date ? new Date(parsed.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date';
+
+  let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>EMF Report Preview</h3>
+    <div class="modal-unit">${fmtDate}${parsed.consultant ? ' — by ' + escapeHTML(parsed.consultant) : ''}</div>`;
+
+  for (const room of parsed.rooms) {
+    html += `<div class="emf-room-card">
+      <div class="emf-room-header"><strong>${escapeHTML(room.name)}</strong>
+        ${room.location ? `<span style="color:var(--text-muted);font-size:12px">${escapeHTML(room.location)}</span>` : ''}
+      </div>
+      <div class="emf-measurements">`;
+    for (const mt of MEASUREMENT_TYPES) {
+      const m = (room.measurements || {})[mt.key];
+      if (!m) continue;
+      const def = SBM_2015_THRESHOLDS[mt.key];
+      const sev = getEMFSeverity(mt.key, m.value);
+      html += `<div class="emf-measurement-row">
+        <span class="emf-measurement-label">${mt.short}</span>
+        <span style="font-weight:600">${m.value}</span>
+        <span class="emf-measurement-unit">${def.unit}</span>
+        ${sev ? `<span class="emf-severity-dot" style="background:var(--${sev.color})" title="${sev.label}"></span>
+        <span style="font-size:11px;color:var(--${sev.color})">${sev.label}</span>` : ''}
+      </div>`;
+    }
+    html += `</div>`;
+    if (room.sources && room.sources.length) {
+      html += `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">Sources: ${room.sources.map(s => escapeHTML(s)).join(', ')}</div>`;
+    }
+    if (room.mitigations && room.mitigations.length) {
+      html += `<div style="font-size:12px;color:var(--text-muted)">Mitigations: ${room.mitigations.map(s => escapeHTML(s)).join(', ')}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div class="ctx-editor-actions">
+    <button class="import-btn import-btn-primary" id="emf-confirm-btn">Confirm Import</button>
+    <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+  </div>`;
+
+  modal.innerHTML = html;
+  overlay.classList.add('show');
+
+  document.getElementById('emf-confirm-btn').addEventListener('click', () => {
+    const assessments = ensureAssessments();
+    const assessment = {
+      id: 'emf_' + Date.now(),
+      date: parsed.date || new Date().toISOString().slice(0, 10),
+      label: '',
+      consultant: parsed.consultant || '',
+      rooms: parsed.rooms.map(r => ({
+        name: r.name || 'Unknown',
+        location: r.location || '',
+        measurements: r.measurements || {},
+        sources: r.sources || [],
+        mitigations: r.mitigations || [],
+        note: ''
+      })),
+      note: parsed.note || ''
+    };
+    // Ensure units are set on measurements
+    for (const room of assessment.rooms) {
+      for (const [type, m] of Object.entries(room.measurements || {})) {
+        const def = SBM_2015_THRESHOLDS[type];
+        if (def && m) m.unit = def.unit;
+      }
+    }
+    assessments.push(assessment);
+    saveImportedData();
+    showNotification('EMF assessment imported', 'success');
+    _editingAssessmentId = assessment.id;
+    renderEMFEditor(modal);
+  });
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -348,4 +539,5 @@ Object.assign(window, {
   updateEMFMeasurement,
   updateEMFMeter,
   saveEMFData,
+  handleEMFPDF,
 });
