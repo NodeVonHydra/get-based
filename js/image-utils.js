@@ -17,7 +17,8 @@ export function resizeImage(file, maxDim = 1024, quality = 0.85) {
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      let { width, height } = img;
+      const origWidth = img.width, origHeight = img.height;
+      let width = origWidth, height = origHeight;
       if (width > maxDim || height > maxDim) {
         const scale = maxDim / Math.max(width, height);
         width = Math.round(width * scale);
@@ -28,13 +29,13 @@ export function resizeImage(file, maxDim = 1024, quality = 0.85) {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
-      // Use original type for PNG (transparency), JPEG for everything else
       const isPng = file.type === 'image/png';
       const outputType = isPng ? 'image/png' : 'image/jpeg';
       const dataUrl = canvas.toDataURL(outputType, quality);
       const base64 = dataUrl.split(',')[1];
       const mediaType = isPng ? 'image/png' : 'image/jpeg';
-      resolve({ base64, mediaType, width, height });
+      const quality_warnings = analyzeImageQuality(ctx, width, height);
+      resolve({ base64, mediaType, width, height, origWidth, origHeight, quality_warnings });
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -42,6 +43,55 @@ export function resizeImage(file, maxDim = 1024, quality = 0.85) {
     };
     img.src = url;
   });
+}
+
+// ═══════════════════════════════════════════════
+// IMAGE QUALITY ANALYSIS
+// ═══════════════════════════════════════════════
+function analyzeImageQuality(ctx, width, height) {
+  const warnings = [];
+  // Sample a grid of pixels (max ~100k pixels for performance)
+  const step = Math.max(1, Math.floor(Math.sqrt(width * height / 100000)));
+  const imgData = ctx.getImageData(0, 0, width, height).data;
+
+  let brightnessSum = 0, brightnessCount = 0;
+  let laplacianSum = 0, laplacianCount = 0;
+
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      const i = (y * width + x) * 4;
+      const gray = 0.299 * imgData[i] + 0.587 * imgData[i + 1] + 0.114 * imgData[i + 2];
+      brightnessSum += gray;
+      brightnessCount++;
+
+      // Laplacian (edge detection) — skip border pixels
+      if (x >= step && x < width - step && y >= step && y < height - step) {
+        const top = (((y - step) * width + x) * 4);
+        const bot = (((y + step) * width + x) * 4);
+        const left = ((y * width + (x - step)) * 4);
+        const right = ((y * width + (x + step)) * 4);
+        const grayTop = 0.299 * imgData[top] + 0.587 * imgData[top + 1] + 0.114 * imgData[top + 2];
+        const grayBot = 0.299 * imgData[bot] + 0.587 * imgData[bot + 1] + 0.114 * imgData[bot + 2];
+        const grayLeft = 0.299 * imgData[left] + 0.587 * imgData[left + 1] + 0.114 * imgData[left + 2];
+        const grayRight = 0.299 * imgData[right] + 0.587 * imgData[right + 1] + 0.114 * imgData[right + 2];
+        const lap = Math.abs(grayTop + grayBot + grayLeft + grayRight - 4 * gray);
+        laplacianSum += lap;
+        laplacianCount++;
+      }
+    }
+  }
+
+  const avgBrightness = brightnessSum / brightnessCount;
+  const avgLaplacian = laplacianCount > 0 ? laplacianSum / laplacianCount : 0;
+
+  if (avgBrightness < 40) warnings.push('Image looks very dark — try better lighting');
+  else if (avgBrightness < 60) warnings.push('Image may be too dark for good results');
+  if (avgBrightness > 230) warnings.push('Image looks overexposed — try less direct light');
+
+  if (avgLaplacian < 3) warnings.push('Image appears blurry — try holding steady or tapping to focus');
+  else if (avgLaplacian < 5) warnings.push('Image may be slightly blurry');
+
+  return warnings;
 }
 
 // ═══════════════════════════════════════════════

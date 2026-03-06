@@ -18,10 +18,58 @@ import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, de
 let _chatAbortController = null;
 
 // ═══════════════════════════════════════════════
+// TYPEWRITER — smooth character trickle for streaming
+// ═══════════════════════════════════════════════
+function createTypewriter(el, typingEl, container) {
+  let target = '';     // full text received so far
+  let displayed = 0;   // chars already rendered
+  let timer = null;
+
+  function tick() {
+    if (displayed >= target.length) { timer = null; return; }
+    // Trickle: render a batch proportional to how far behind we are
+    const behind = target.length - displayed;
+    const batch = Math.max(1, Math.ceil(behind * 0.3));
+    displayed = Math.min(displayed + batch, target.length);
+    if (typingEl.parentNode) typingEl.remove();
+    if (!el.parentNode) container.appendChild(el);
+    el.textContent = target.slice(0, displayed);
+    container.scrollTop = container.scrollHeight;
+    timer = setTimeout(tick, 16);
+  }
+
+  return {
+    update(text) {
+      target = text;
+      if (!timer) tick();
+    },
+    stop() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      displayed = target.length;
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════
 // IMAGE ATTACHMENTS
 // ═══════════════════════════════════════════════
 const MAX_ATTACHMENTS = 5;
 let _pendingAttachments = []; // { base64, mediaType, name, previewUrl }
+let _hdMode = localStorage.getItem('labcharts-hd-images') === 'true';
+
+export function toggleHDMode() {
+  _hdMode = !_hdMode;
+  localStorage.setItem('labcharts-hd-images', _hdMode);
+  const btn = document.getElementById('chat-hd-btn');
+  if (btn) {
+    btn.classList.toggle('active', _hdMode);
+    btn.title = hdTitle();
+  }
+}
+
+function hdTitle() {
+  return _hdMode ? 'HD quality (2048px) — click for standard' : 'Standard quality (1024px) — click for HD';
+}
 
 export async function addImageAttachment(file) {
   if (!isValidImageType(file.type)) {
@@ -33,11 +81,23 @@ export async function addImageAttachment(file) {
     return;
   }
   try {
-    const { base64, mediaType, width, height } = await resizeImage(file, 1024, 0.85);
+    const maxDim = _hdMode ? 2048 : 1024;
+    const quality = _hdMode ? 0.92 : 0.85;
+    const { base64, mediaType, width, height, origWidth, origHeight, quality_warnings } = await resizeImage(file, maxDim, quality);
     const previewUrl = `data:${mediaType};base64,${base64}`;
     _pendingAttachments.push({ base64, mediaType, name: file.name, previewUrl });
     renderAttachmentPreview();
     updateSendButtonState();
+    // Warn about image quality issues
+    const longSide = Math.max(origWidth, origHeight);
+    if (longSide < 512) {
+      showNotification(`Low resolution image (${origWidth}×${origHeight}). AI may struggle with fine details.`, 'info', 5000);
+    } else if (longSide < 1024 && _hdMode) {
+      showNotification(`Image is ${origWidth}×${origHeight} — smaller than HD target. Consider using a higher-res photo.`, 'info', 4000);
+    }
+    if (quality_warnings.length > 0) {
+      showNotification(quality_warnings[0], 'info', 5000);
+    }
   } catch (e) {
     showNotification('Failed to process image: ' + e.message, 'error');
   }
@@ -81,9 +141,15 @@ function updateSendButtonState() {
 }
 
 export function updateAttachButtonVisibility() {
+  const visible = hasAIProvider() && supportsVision();
   const btn = document.getElementById('chat-attach-btn');
-  if (!btn) return;
-  btn.style.display = (hasAIProvider() && supportsVision()) ? 'flex' : 'none';
+  if (btn) btn.style.display = visible ? 'flex' : 'none';
+  const hdBtn = document.getElementById('chat-hd-btn');
+  if (hdBtn) {
+    hdBtn.style.display = visible ? 'flex' : 'none';
+    hdBtn.classList.toggle('active', _hdMode);
+    hdBtn.title = hdTitle();
+  }
 }
 
 export function initChatImageHandlers() {
@@ -1781,8 +1847,8 @@ export async function sendChatMessage() {
     }
     const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
-    // Send last 10 messages for context — tag messages from other personas
-    const apiMessages = state.chatHistory.slice(-10).map(m => {
+    // Send last 30 messages for context — tag messages from other personas
+    const apiMessages = state.chatHistory.slice(-30).map(m => {
       if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
         return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
       }
@@ -1819,31 +1885,19 @@ export async function sendChatMessage() {
     aiMsgEl.className = 'chat-msg chat-ai';
     aiMsgEl.style.whiteSpace = 'pre-wrap';
 
-    // Throttle plain-text updates during streaming (markdown only on completion)
-    let _streamLatest = '';
-    let _streamRaf = null;
+    // Typewriter: trickle buffered text at a steady rate for smooth appearance
+    const typewriter = createTypewriter(aiMsgEl, typingEl, container);
 
     const { text: fullText, usage } = await callClaudeAPI({
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 4096,
       signal: _chatAbortController ? _chatAbortController.signal : undefined,
-      onStream(text) {
-        _streamLatest = text;
-        if (!_streamRaf) {
-          _streamRaf = requestAnimationFrame(() => {
-            _streamRaf = null;
-            if (typingEl.parentNode) typingEl.remove();
-            if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
-            aiMsgEl.textContent = _streamLatest;
-            container.scrollTop = container.scrollHeight;
-          });
-        }
-      }
+      onStream(text) { typewriter.update(text); }
     });
 
     // Final render with full markdown
-    if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+    typewriter.stop();
     aiMsgEl.style.whiteSpace = '';
     if (typingEl.parentNode) typingEl.remove();
     if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
@@ -2126,7 +2180,7 @@ async function runDiscussionRound(personas, steerPrompt) {
       }
       const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
-      const apiMessages = state.chatHistory.slice(-10).map(m => {
+      const apiMessages = state.chatHistory.slice(-30).map(m => {
         if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
           return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
         }
@@ -2146,29 +2200,17 @@ async function runDiscussionRound(personas, steerPrompt) {
       aiMsgEl.className = 'chat-msg chat-ai';
       aiMsgEl.style.whiteSpace = 'pre-wrap';
 
-      let _streamLatest = '';
-      let _streamRaf = null;
+      const typewriter = createTypewriter(aiMsgEl, typingEl, container);
 
       const { text: fullText, usage } = await callClaudeAPI({
         system: systemPrompt,
         messages: apiMessages,
         maxTokens: 4096,
         signal: _chatAbortController.signal,
-        onStream(text) {
-          _streamLatest = text;
-          if (!_streamRaf) {
-            _streamRaf = requestAnimationFrame(() => {
-              _streamRaf = null;
-              if (typingEl.parentNode) typingEl.remove();
-              if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
-              aiMsgEl.textContent = _streamLatest;
-              container.scrollTop = container.scrollHeight;
-            });
-          }
-        }
+        onStream(text) { typewriter.update(text); }
       });
 
-      if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+      typewriter.stop();
       aiMsgEl.style.whiteSpace = '';
       if (typingEl.parentNode) typingEl.remove();
       if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
@@ -2370,6 +2412,7 @@ Object.assign(window, {
   renderSourcesSection,
   // Image attachments
   addImageAttachment,
+  toggleHDMode,
   removeImageAttachment,
   clearAttachments,
   updateAttachButtonVisibility,
