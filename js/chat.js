@@ -8,13 +8,235 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
+import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
 // ═══════════════════════════════════════════════
 // ABORT CONTROLLER (stop streaming)
 // ═══════════════════════════════════════════════
 let _chatAbortController = null;
+
+// ═══════════════════════════════════════════════
+// TYPEWRITER — smooth character trickle for streaming
+// ═══════════════════════════════════════════════
+function createTypewriter(el, typingEl, container) {
+  let target = '';     // full text received so far
+  let displayed = 0;   // chars already rendered
+  let timer = null;
+
+  function tick() {
+    if (displayed >= target.length) { timer = null; return; }
+    // Trickle: render a batch proportional to how far behind we are
+    const behind = target.length - displayed;
+    const batch = Math.max(1, Math.ceil(behind * 0.3));
+    displayed = Math.min(displayed + batch, target.length);
+    if (typingEl.parentNode) typingEl.remove();
+    if (!el.parentNode) container.appendChild(el);
+    el.textContent = target.slice(0, displayed);
+    container.scrollTop = container.scrollHeight;
+    timer = setTimeout(tick, 16);
+  }
+
+  return {
+    update(text) {
+      target = text;
+      if (!timer) tick();
+    },
+    stop() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      displayed = target.length;
+    }
+  };
+}
+
+// ═══════════════════════════════════════════════
+// IMAGE ATTACHMENTS
+// ═══════════════════════════════════════════════
+const MAX_ATTACHMENTS = 5;
+const THUMB_SIZE = 80;
+let _pendingAttachments = []; // { base64, mediaType, name, previewUrl }
+let _hdMode = localStorage.getItem('labcharts-hd-images') === 'true';
+
+/** Shrink an image to a tiny thumbnail data URL for chat history storage */
+function makeThumbnail(previewUrl, width, height) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = THUMB_SIZE / Math.max(width, height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => resolve(null);
+    img.src = previewUrl;
+  });
+}
+
+export function toggleHDMode() {
+  _hdMode = !_hdMode;
+  localStorage.setItem('labcharts-hd-images', _hdMode);
+  const btn = document.getElementById('chat-hd-btn');
+  if (btn) {
+    btn.classList.toggle('active', _hdMode);
+    btn.title = hdTitle();
+  }
+}
+
+function hdTitle() {
+  return _hdMode ? 'HD quality (2048px) — click for standard' : 'Standard quality (1024px) — click for HD';
+}
+
+export async function addImageAttachment(file) {
+  if (!isValidImageType(file.type)) {
+    showNotification('Unsupported image type. Use JPEG, PNG, GIF, or WebP.', 'error');
+    return;
+  }
+  if (_pendingAttachments.length >= MAX_ATTACHMENTS) {
+    showNotification(`Maximum ${MAX_ATTACHMENTS} images per message`, 'error');
+    return;
+  }
+  try {
+    const maxDim = _hdMode ? 2048 : 1024;
+    const quality = _hdMode ? 0.92 : 0.85;
+    const { base64, mediaType, width, height, origWidth, origHeight, quality_warnings } = await resizeImage(file, maxDim, quality);
+    const previewUrl = `data:${mediaType};base64,${base64}`;
+    const thumbUrl = await makeThumbnail(previewUrl, width, height);
+    _pendingAttachments.push({ base64, mediaType, name: file.name, previewUrl, thumbUrl });
+    renderAttachmentPreview();
+    updateSendButtonState();
+    // Warn about image quality issues
+    const longSide = Math.max(origWidth, origHeight);
+    if (longSide < 512) {
+      showNotification(`Low resolution image (${origWidth}×${origHeight}). AI may struggle with fine details.`, 'info', 5000);
+    } else if (longSide < 1024 && _hdMode) {
+      showNotification(`Image is ${origWidth}×${origHeight} — smaller than HD target. Consider using a higher-res photo.`, 'info', 4000);
+    }
+    if (quality_warnings.length > 0) {
+      showNotification(quality_warnings[0], 'info', 5000);
+    }
+  } catch (e) {
+    showNotification('Failed to process image: ' + e.message, 'error');
+  }
+}
+
+export function removeImageAttachment(index) {
+  _pendingAttachments.splice(index, 1);
+  renderAttachmentPreview();
+  updateSendButtonState();
+}
+
+export function renderAttachmentPreview() {
+  const container = document.getElementById('chat-attach-preview');
+  if (!container) return;
+  if (_pendingAttachments.length === 0) {
+    container.innerHTML = '';
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+  container.innerHTML = _pendingAttachments.map((att, i) =>
+    `<div class="chat-attach-thumb" title="${escapeHTML(att.name)}">` +
+    `<img src="${att.previewUrl}" alt="${escapeHTML(att.name)}">` +
+    `<button class="chat-attach-remove" onclick="removeImageAttachment(${i})" aria-label="Remove">&times;</button>` +
+    `</div>`
+  ).join('') +
+  `<span class="chat-attach-count">${_pendingAttachments.length}/${MAX_ATTACHMENTS}</span>`;
+}
+
+export function openImageLightbox(src) {
+  const overlay = document.createElement('div');
+  overlay.className = 'chat-lightbox';
+  overlay.innerHTML = `<img src="${src}" alt="Full image">`;
+  overlay.addEventListener('click', () => overlay.remove());
+  const close = (e) => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', close); } };
+  document.addEventListener('keydown', close);
+  document.body.appendChild(overlay);
+}
+
+export function clearAttachments() {
+  _pendingAttachments = [];
+  renderAttachmentPreview();
+}
+
+function updateSendButtonState() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  if (!sendBtn) return;
+  const hasContent = (input && input.value.trim()) || _pendingAttachments.length > 0;
+  sendBtn.disabled = !hasContent && !_chatAbortController;
+}
+
+export function updateAttachButtonVisibility() {
+  const visible = hasAIProvider() && supportsVision();
+  const btn = document.getElementById('chat-attach-btn');
+  if (btn) btn.style.display = visible ? 'flex' : 'none';
+  const hdBtn = document.getElementById('chat-hd-btn');
+  if (hdBtn) {
+    hdBtn.style.display = visible ? 'flex' : 'none';
+    hdBtn.classList.toggle('active', _hdMode);
+    hdBtn.title = hdTitle();
+  }
+}
+
+export function initChatImageHandlers() {
+  const textarea = document.getElementById('chat-input');
+  const chatMessages = document.getElementById('chat-messages');
+  const fileInput = document.getElementById('chat-image-input');
+
+  // Paste handler
+  if (textarea) {
+    textarea.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) addImageAttachment(file);
+        }
+      }
+    });
+  }
+
+  // Drag-drop on chat messages area
+  if (chatMessages) {
+    chatMessages.addEventListener('dragover', (e) => {
+      if (!supportsVision()) return;
+      const hasImage = [...e.dataTransfer.types].includes('Files');
+      if (hasImage) {
+        e.preventDefault();
+        e.stopPropagation();
+        chatMessages.classList.add('chat-drop-active');
+      }
+    });
+    chatMessages.addEventListener('dragleave', (e) => {
+      if (!chatMessages.contains(e.relatedTarget)) {
+        chatMessages.classList.remove('chat-drop-active');
+      }
+    });
+    chatMessages.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      chatMessages.classList.remove('chat-drop-active');
+      if (!supportsVision()) return;
+      const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+      for (const file of files) addImageAttachment(file);
+    });
+  }
+
+  // File input change
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      for (const file of e.target.files) {
+        addImageAttachment(file);
+      }
+      e.target.value = '';
+    });
+  }
+}
 
 // ═══════════════════════════════════════════════
 // THREAD STORAGE HELPERS
@@ -1364,7 +1586,17 @@ export function renderChatMessages() {
     if (msg.role === 'assistant') lastPersonaName = msg.personalityName || null;
     const autoClass = msg.auto ? ' chat-msg-auto' : '';
     const stoppedNote = msg.stopped ? '<div class="chat-stopped-note">[stopped]</div>' : '';
-    html += `<div class="chat-msg ${cls}${autoClass}">${renderMarkdown(msg.content)}${stoppedNote}`;
+    let imageBadge = '';
+    if (msg.hasImages) {
+      if (msg.thumbnails && msg.thumbnails.length > 0) {
+        imageBadge = '<div class="chat-image-thumbs">' + msg.thumbnails.map(t =>
+          `<img src="${t}" class="chat-image-thumb" alt="attached image" onclick="openImageLightbox(this.src)">`
+        ).join('') + '</div>';
+      } else {
+        imageBadge = `<div class="chat-image-badge">\uD83D\uDDBC ${msg.imageCount} image${msg.imageCount !== 1 ? 's' : ''} attached</div>`;
+      }
+    }
+    html += `<div class="chat-msg ${cls}${autoClass}">${imageBadge}${renderMarkdown(msg.content)}${stoppedNote}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
         const mId = msg.modelId || getActiveModelId();
@@ -1578,7 +1810,11 @@ export async function sendChatMessage() {
   const sendBtn = document.getElementById('chat-send-btn');
   const container = document.getElementById('chat-messages');
   const text = input.value.trim();
-  if (!text) return;
+  const hasImages = _pendingAttachments.length > 0;
+  if (!text && !hasImages) return;
+
+  // Capture attachments before clearing (they're ephemeral)
+  const attachments = hasImages ? [..._pendingAttachments] : [];
 
   // Ensure we have a thread
   if (!state.currentThreadId) {
@@ -1588,10 +1824,17 @@ export async function sendChatMessage() {
   // Auto-name thread from first user message
   const isFirstMessage = state.chatHistory.length === 0;
 
-  // Add user message
-  state.chatHistory.push({ role: 'user', content: text });
+  // Add user message — store tiny thumbnails for display, NOT full base64
+  const userMsg = { role: 'user', content: text || '(image)' };
+  if (hasImages) {
+    userMsg.hasImages = true;
+    userMsg.imageCount = attachments.length;
+    userMsg.thumbnails = attachments.map(a => a.thumbUrl).filter(Boolean);
+  }
+  state.chatHistory.push(userMsg);
   input.value = '';
   input.style.height = '';
+  clearAttachments();
   renderChatMessages();
 
   if (isFirstMessage) {
@@ -1646,13 +1889,24 @@ export async function sendChatMessage() {
     }
     const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
-    // Send last 10 messages for context — tag messages from other personas
-    const apiMessages = state.chatHistory.slice(-10).map(m => {
+    // Send last 30 messages for context — tag messages from other personas
+    const apiMessages = state.chatHistory.slice(-30).map(m => {
       if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
         return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
       }
       return { role: m.role, content: m.content };
     });
+
+    // Inject vision content into the last user message if images were attached
+    if (attachments.length > 0 && apiMessages.length > 0) {
+      const lastUserIdx = apiMessages.length - 1;
+      const provider = getAIProvider();
+      const imageBlocks = attachments.map(att => formatImageBlock(att.base64, att.mediaType, provider));
+      apiMessages[lastUserIdx] = {
+        role: 'user',
+        content: buildVisionContent(imageBlocks, apiMessages[lastUserIdx].content, provider)
+      };
+    }
 
     // Show persona label if personality changed from last AI message
     const lastAiMsg = [...state.chatHistory].reverse().find(m => m.role === 'assistant');
@@ -1673,31 +1927,19 @@ export async function sendChatMessage() {
     aiMsgEl.className = 'chat-msg chat-ai';
     aiMsgEl.style.whiteSpace = 'pre-wrap';
 
-    // Throttle plain-text updates during streaming (markdown only on completion)
-    let _streamLatest = '';
-    let _streamRaf = null;
+    // Typewriter: trickle buffered text at a steady rate for smooth appearance
+    const typewriter = createTypewriter(aiMsgEl, typingEl, container);
 
     const { text: fullText, usage } = await callClaudeAPI({
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 4096,
       signal: _chatAbortController ? _chatAbortController.signal : undefined,
-      onStream(text) {
-        _streamLatest = text;
-        if (!_streamRaf) {
-          _streamRaf = requestAnimationFrame(() => {
-            _streamRaf = null;
-            if (typingEl.parentNode) typingEl.remove();
-            if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
-            aiMsgEl.textContent = _streamLatest;
-            container.scrollTop = container.scrollHeight;
-          });
-        }
-      }
+      onStream(text) { typewriter.update(text); }
     });
 
     // Final render with full markdown
-    if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+    typewriter.stop();
     aiMsgEl.style.whiteSpace = '';
     if (typingEl.parentNode) typingEl.remove();
     if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
@@ -1980,7 +2222,7 @@ async function runDiscussionRound(personas, steerPrompt) {
       }
       const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
-      const apiMessages = state.chatHistory.slice(-10).map(m => {
+      const apiMessages = state.chatHistory.slice(-30).map(m => {
         if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
           return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
         }
@@ -2000,29 +2242,17 @@ async function runDiscussionRound(personas, steerPrompt) {
       aiMsgEl.className = 'chat-msg chat-ai';
       aiMsgEl.style.whiteSpace = 'pre-wrap';
 
-      let _streamLatest = '';
-      let _streamRaf = null;
+      const typewriter = createTypewriter(aiMsgEl, typingEl, container);
 
       const { text: fullText, usage } = await callClaudeAPI({
         system: systemPrompt,
         messages: apiMessages,
         maxTokens: 4096,
         signal: _chatAbortController.signal,
-        onStream(text) {
-          _streamLatest = text;
-          if (!_streamRaf) {
-            _streamRaf = requestAnimationFrame(() => {
-              _streamRaf = null;
-              if (typingEl.parentNode) typingEl.remove();
-              if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
-              aiMsgEl.textContent = _streamLatest;
-              container.scrollTop = container.scrollHeight;
-            });
-          }
-        }
+        onStream(text) { typewriter.update(text); }
       });
 
-      if (_streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
+      typewriter.stop();
       aiMsgEl.style.whiteSpace = '';
       if (typingEl.parentNode) typingEl.remove();
       if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
@@ -2222,4 +2452,12 @@ Object.assign(window, {
   searchOpenAlex,
   parseSearchTerms,
   renderSourcesSection,
+  // Image attachments
+  addImageAttachment,
+  toggleHDMode,
+  openImageLightbox,
+  removeImageAttachment,
+  clearAttachments,
+  updateAttachButtonVisibility,
+  initChatImageHandlers,
 });

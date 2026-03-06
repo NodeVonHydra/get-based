@@ -730,13 +730,230 @@ export function hideImportProgress() {
   if (!dropZone) return;
   dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>`;
+    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
+    <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
 }
 
-export async function handlePDFFile(file) {
+// ═══════════════════════════════════════════════
+// PDF IMAGE FALLBACK (scanned/image-heavy PDFs)
+// ═══════════════════════════════════════════════
+export function assessTextQuality(text) {
+  if (!text || !text.trim()) return 'empty';
+  const words = text.trim().split(/\s+/);
+  if (words.length < 30) return 'poor';
+  // Check for high ratio of non-alpha characters (garbled OCR, encoding junk)
+  const alphaChars = text.replace(/[^a-zA-Z\u00C0-\u024F\u0400-\u04FF]/g, '').length;
+  const totalChars = text.replace(/\s/g, '').length;
+  if (totalChars > 0 && alphaChars / totalChars < 0.15) return 'poor';
+  return 'good';
+}
+
+export async function extractPDFImages(file, maxPages = 8) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pages = Math.min(pdf.numPages, maxPages);
+  const images = [];
+  for (let i = 1; i <= pages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 }); // 2x for fine print
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.min(viewport.width, 2048);
+    canvas.height = Math.min(viewport.height, 2048 * (viewport.height / viewport.width));
+    const ctx = canvas.getContext('2d');
+    const scale = canvas.width / viewport.width;
+    await page.render({ canvasContext: ctx, viewport: page.getViewport({ scale: 2.0 * scale }) }).promise;
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const base64 = dataUrl.split(',')[1];
+    images.push({ base64, mediaType: 'image/jpeg', page: i });
+  }
+  return images;
+}
+
+export async function parseLabPDFWithAIImages(images, fileName, onProgress) {
+  const markerRef = buildMarkerReference();
+  // Same system prompt as text-based parsing
+  const system = `You are a lab report data extraction assistant. You extract biomarker results from lab report images and map them to a known set of marker keys.
+
+Here is the complete list of known markers with their keys, expected units, and reference ranges:
+${JSON.stringify(markerRef)}
+
+Your task:
+1. Read the lab report page images carefully. Find the sample collection date. Return it as YYYY-MM-DD.
+2. For each biomarker result found, extract:
+   - rawName: the test name exactly as it appears
+   - value: the numeric result (parse comma as decimal point, strip < > prefixes)
+   - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
+   - unit: the unit as shown
+   - refMin: the lower reference range bound (number or null)
+   - refMax: the upper reference range bound (number or null)
+3. Match based on medical/biochemical equivalence, not just string similarity
+4. Only map to a marker if you're confident it's the correct match
+5. Identify the type of lab test. Return as "testType" field: "blood", "OAT", "DUTCH", "HTMA", "GI", or a descriptive name
+6. CRITICAL for specialty tests (testType ≠ "blood"): Do NOT use standard blood work category keys. Use test-type-prefixed keys or set mappedKey to null
+7. For unmatched markers, also return: suggestedKey, suggestedName, suggestedCategoryLabel, suggestedGroup
+
+Return ONLY valid JSON in this exact format:
+{
+  "testType": "blood",
+  "date": "YYYY-MM-DD",
+  "markers": [
+    {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker", "unit": "mg/dL", "refMin": 70, "refMax": 100}
+  ]
+}`;
+
+  const provider = getAIProvider();
+  const maxTokens = 32768;
+  let onStream;
+  if (onProgress) {
+    let lastPct = -1;
+    onStream = (text) => {
+      const pct = Math.min(15 + Math.round((text.length / (maxTokens * 3)) * 75), 90);
+      if (pct !== lastPct) { lastPct = pct; onProgress(pct); }
+    };
+  }
+
+  // Build content array with image blocks + text instruction
+  const imageBlocks = images.map(img => {
+    if (provider === 'anthropic') {
+      return { type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } };
+    }
+    return { type: 'image_url', image_url: { url: `data:${img.mediaType};base64,${img.base64}` } };
+  });
+  const content = [
+    ...imageBlocks,
+    { type: 'text', text: `Extract all biomarker results from this lab report${fileName ? ' (file: ' + fileName + ')' : ''}. Read every page carefully.` }
+  ];
+
+  const { text: response, usage } = await callClaudeAPI({
+    system,
+    messages: [{ role: 'user', content }],
+    maxTokens,
+    onStream
+  });
+
+  let jsonStr = (response || '').trim();
+  const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+  const jsonStart = jsonStr.indexOf('{');
+  if (jsonStart > 0) jsonStr = jsonStr.slice(jsonStart);
+  const parsed = tryParseJSON(jsonStr);
+
+  const testType = parsed.testType || 'blood';
+  const standardCats = new Set(Object.keys(MARKER_SCHEMA));
+  return {
+    date: parsed.date || null,
+    testType,
+    markers: (parsed.markers || []).map(m => ({
+      rawName: m.rawName || '',
+      value: typeof m.value === 'number' ? m.value : parseFloat(m.value),
+      mappedKey: m.mappedKey || null,
+      unit: m.unit || '',
+      refMin: m.refMin != null ? m.refMin : null,
+      refMax: m.refMax != null ? m.refMax : null,
+      suggestedKey: m.suggestedKey || null,
+      suggestedName: m.suggestedName || null,
+      suggestedCategoryLabel: m.suggestedCategoryLabel || null,
+      suggestedGroup: m.suggestedGroup || null,
+    })),
+    usage: usage || {},
+    provider,
+    imageMode: true,
+  };
+}
+
+async function _showImageModeDialog() {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirm-dialog-overlay');
+    const dialog = document.getElementById('confirm-dialog');
+    if (!overlay || !dialog) { resolve('cancel'); return; }
+    dialog.innerHTML = `
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Limited text extracted</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+        This PDF appears to be scanned or image-heavy. Text extraction found very little content.<br><br>
+        <strong>Image mode</strong> sends page screenshots to the AI instead. This skips PII obfuscation — the AI will see the full page images including any personal information.
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('cancel')">Cancel</button>
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('text')">Try text anyway</button>
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:none;background:var(--accent-gradient);color:white;cursor:pointer;font-weight:500" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('image')">Use image mode</button>
+      </div>`;
+    // Simple resolve via global callback
+    window._imageDialogResolve = resolve;
+    dialog.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.textContent.trim();
+        overlay.classList.remove('show');
+        if (action === 'Cancel') resolve('cancel');
+        else if (action === 'Try text anyway') resolve('text');
+        else resolve('image');
+      }, { once: true });
+    });
+    overlay.classList.add('show');
+  });
+}
+
+export async function handlePDFFile(file, forceImageMode = false) {
   try {
     await showImportProgress(0, file.name);
     const pdfText = await extractPDFText(file);
+    const textQuality = assessTextQuality(pdfText);
+
+    // Determine import mode
+    let useImageMode = forceImageMode;
+    if (!forceImageMode && (textQuality === 'empty' || textQuality === 'poor')) {
+      if (!hasAIProvider()) {
+        hideImportProgress();
+        showNotification("AI provider not configured. Opening settings...", "info");
+        setTimeout(() => window.openSettingsModal(), 500);
+        return;
+      }
+      hideImportProgress();
+      const choice = await _showImageModeDialog();
+      if (choice === 'cancel') { showNotification('Import cancelled.', 'info'); return; }
+      useImageMode = choice === 'image';
+      if (!useImageMode && textQuality === 'empty') {
+        showNotification("PDF appears empty — no text extracted", "error");
+        return;
+      }
+      await showImportProgress(0, file.name);
+    }
+
+    if (useImageMode) {
+      // Image mode path — skip PII, render pages as images
+      if (!hasAIProvider()) {
+        hideImportProgress();
+        showNotification("AI provider not configured. Opening settings...", "info");
+        setTimeout(() => window.openSettingsModal(), 500);
+        return;
+      }
+      await showImportProgress(1, file.name);
+      const images = await extractPDFImages(file);
+      if (images.length === 0) { hideImportProgress(); showNotification("Could not render PDF pages", "error"); return; }
+      await showImportProgress(2, file.name);
+      const analysisStart = performance.now();
+      const result = await parseLabPDFWithAIImages(images, file.name, _updateProgressPct);
+      const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
+      if (isDebugMode()) console.log(`[Analysis] Image mode parsed in ${analysisTime}s`);
+      result.privacyMethod = 'none (image mode)';
+      result.timings = { pii: 0, analysis: analysisTime };
+      const prov = result.provider || getAIProvider();
+      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+      result.costInfo = {
+        provider: prov, modelId: mid,
+        inputTokens: result.usage?.inputTokens || 0,
+        outputTokens: result.usage?.outputTokens || 0,
+        cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
+      };
+      result.importHash = hashString(file.name + file.size);
+      if (!result.date) showNotification("Could not find collection date in PDF", "error");
+      if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF images", "error"); return; }
+      await showImportProgress(3, file.name);
+      showImportPreview(result);
+      hideImportProgress();
+      return;
+    }
+
+    // Text mode path (original flow)
     if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
 
     if (!hasAIProvider()) {
@@ -1031,6 +1248,9 @@ Object.assign(window, {
   setupDropZone,
   showImportProgress,
   hideImportProgress,
+  assessTextQuality,
+  extractPDFImages,
+  parseLabPDFWithAIImages,
   handlePDFFile,
   handleBatchPDFs,
   showBatchImportProgress,
