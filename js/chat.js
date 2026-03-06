@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT } from './constants.js';
-import { calculateCost, formatCost } from './schema.js';
+import { calculateCost, formatCost, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
 import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
@@ -833,7 +833,30 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
-  // ── 16. Additional Context Notes ──
+  // ── 16. EMF Assessment (sub-section of Environment) ──
+  const emf = state.importedData.emfAssessment;
+  if (emf && emf.assessments && emf.assessments.length > 0) {
+    ctx += `### EMF Assessment (Baubiologie SBM-2015)\n`;
+    const sorted = [...emf.assessments].sort((a, b) => b.date.localeCompare(a.date));
+    const latest = sorted[0];
+    ctx += `Assessment: ${fmtDate(latest.date)}${latest.label ? ' (' + latest.label + ')' : ''}${latest.consultant ? ' by ' + latest.consultant : ''}\n`;
+    for (const room of latest.rooms) {
+      ctx += `  ${room.name}${room.location ? ' (' + room.location + ')' : ''}:\n`;
+      for (const [type, m] of Object.entries(room.measurements || {})) {
+        if (m && m.value != null) {
+          const sev = getEMFSeverity(type, m.value);
+          const def = SBM_2015_THRESHOLDS[type];
+          ctx += `    ${def.name}: ${m.value} ${m.unit}${sev ? ' — ' + sev.label : ''}\n`;
+        }
+      }
+      if (room.sources && room.sources.length) ctx += `    Sources: ${room.sources.join(', ')}\n`;
+      if (room.mitigations && room.mitigations.length) ctx += `    Mitigations: ${room.mitigations.join(', ')}\n`;
+    }
+    if (sorted.length > 1) ctx += `(${sorted.length - 1} earlier assessment${sorted.length > 2 ? 's' : ''} also on file)\n`;
+    ctx += '\n';
+  }
+
+  // ── 17. Additional Context Notes ──
   const ctxNotes = state.importedData.contextNotes || '';
   if (ctxNotes.trim()) {
     ctx += `## Additional Context Notes\n${ctxNotes.trim()}\n\n`;
@@ -864,6 +887,8 @@ export function getContextSummary() {
   if (state.importedData.stress) areas.push({ label: 'Stress', detail: state.importedData.stress.level || 'filled' });
   if (state.importedData.loveLife) areas.push({ label: 'Love Life', detail: 'filled' });
   if (state.importedData.environment) areas.push({ label: 'Environment', detail: state.importedData.environment.setting || 'filled' });
+  const emfData = state.importedData.emfAssessment;
+  if (emfData && emfData.assessments && emfData.assessments.length > 0) areas.push({ label: 'EMF Assessment', detail: `${emfData.assessments.length} assessment${emfData.assessments.length !== 1 ? 's' : ''}` });
   // Goals, lens, notes
   const goals = state.importedData.healthGoals || [];
   if (goals.length > 0) areas.push({ label: 'Health Goals', detail: `${goals.length} goal${goals.length !== 1 ? 's' : ''}` });
