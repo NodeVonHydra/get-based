@@ -12,6 +12,10 @@ const CHANGELOG = [
       'PDF import: scanned/image-heavy PDFs now detected automatically with image mode fallback \u2014 renders pages as screenshots for AI analysis',
       'PDF import: "Force image mode" link in drop zone for known scans',
       'Vision support detection: attach button auto-hidden for non-vision models',
+      'HD mode toggle: switch between standard (1024px) and high-resolution (2048px) image quality',
+      'Image quality warnings: detects blurry, dark, or overexposed photos before sending',
+      'Chat: smooth typewriter streaming replaces chunky text updates',
+      'Chat: conversation window expanded from 10 to 30 messages for better context',
     ]
   },
   {
