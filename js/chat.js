@@ -339,6 +339,7 @@ export function buildLabContext() {
     const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
     ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
     for (const [catKey, cat] of Object.entries(data.categories)) {
+      if (cat.group && !isGroupInAIContext(cat.group)) continue;
       const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
       if (markersWithData.length === 0) continue;
       ctx += `## ${cat.label}\n`;
@@ -383,7 +384,11 @@ export function buildLabContext() {
     }
 
     // ── 4. Flagged Results (quick-scan summary) ──
-    const flags = getAllFlaggedMarkers(data);
+    const allFlags = getAllFlaggedMarkers(data);
+    const flags = allFlags.filter(f => {
+      const cat = data.categories[f.categoryKey];
+      return !cat?.group || isGroupInAIContext(cat.group);
+    });
     if (flags.length > 0) {
       ctx += `## Flagged Results (Latest)\n`;
       for (const f of flags) {
@@ -657,6 +662,17 @@ export function getContextSummary() {
   const flags = getAllFlaggedMarkers(data);
   if (flags.length > 0) areas.push({ label: 'Flagged Results', detail: `${flags.length} flagged` });
   return areas;
+}
+
+// ═══════════════════════════════════════════════
+// SPECIALTY LABS IN AI CONTEXT (per-group)
+// ═══════════════════════════════════════════════
+export function isGroupInAIContext(groupName) {
+  return localStorage.getItem(`labcharts-ai-ctx-${groupName}`) === 'on';
+}
+
+export function setGroupInAIContext(groupName, val) {
+  localStorage.setItem(`labcharts-ai-ctx-${groupName}`, val ? 'on' : 'off');
 }
 
 // ═══════════════════════════════════════════════
@@ -1490,6 +1506,7 @@ export async function openChatPanel(prefillMessage) {
   const backdrop = document.getElementById('chat-backdrop');
   panel.classList.add('open');
   backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
   const fab = document.getElementById('chat-fab');
   if (fab) fab.classList.add('hidden');
   loadChatPersonality();
@@ -1516,6 +1533,7 @@ export async function openChatPanel(prefillMessage) {
 export function closeChatPanel() {
   document.getElementById('chat-panel').classList.remove('open');
   document.getElementById('chat-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
   const fab = document.getElementById('chat-fab');
   if (fab) fab.classList.remove('hidden');
 }
@@ -2197,6 +2215,8 @@ Object.assign(window, {
   copyMessage,
   toggleContextDetails,
   toggleSourcesDetails,
+  isGroupInAIContext,
+  setGroupInAIContext,
   getChatSourcesEnabled,
   setChatSourcesEnabled,
   searchOpenAlex,
