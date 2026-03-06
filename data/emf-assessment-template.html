@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EMF Assessment Template — Baubiologie SBM-2015</title>
+<style>
+  :root { --border: #ccc; --bg: #fff; --text: #222; --muted: #666; --green: #4caf50; --yellow: #ffc107; --orange: #ff9800; --red: #f44336; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); padding: 24px; max-width: 900px; margin: 0 auto; line-height: 1.5; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; border-bottom: 2px solid var(--text); padding-bottom: 4px; }
+  h3 { font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+  .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .header-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; }
+  .field { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+  .field label { font-weight: 600; white-space: nowrap; min-width: 100px; font-size: 12px; }
+  .field input, .field select { flex: 1; border: none; border-bottom: 1px solid var(--border); font-size: 13px; font-family: inherit; padding: 2px 0; background: transparent; }
+  .field input:focus, .field select:focus { outline: none; border-bottom-color: #333; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 12px; }
+  th, td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+  th { background: #f5f5f5; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
+  td input[type="number"], td input[type="text"] { width: 100%; border: none; font-size: 12px; font-family: inherit; background: transparent; }
+  td input:focus { outline: none; }
+  .severity-check { display: flex; gap: 8px; }
+  .severity-check label { display: flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 400; min-width: auto; cursor: pointer; }
+  .severity-check input { width: 14px; height: 14px; cursor: pointer; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--red); }
+  .checklist { columns: 2; font-size: 12px; margin-bottom: 8px; }
+  .checklist label { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; break-inside: avoid; cursor: pointer; }
+  .checklist input { width: 14px; height: 14px; cursor: pointer; }
+  .notes-line { width: 100%; border: none; border-bottom: 1px solid var(--border); font-size: 12px; font-family: inherit; padding: 2px 0; margin-bottom: 4px; }
+  .room-section { page-break-inside: avoid; margin-bottom: 20px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; }
+  .ref-table { font-size: 11px; margin-top: 16px; }
+  .ref-table th { font-size: 10px; }
+  .ref-table td { padding: 4px 6px; }
+  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); text-align: center; }
+  @media print {
+    body { padding: 12px; font-size: 12px; }
+    .room-section { border: 1px solid #999; }
+    input, select { border-bottom-color: #999 !important; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>EMF Assessment Report</h1>
+<div class="subtitle">Building Biology Standard SBM-2015 · Sleeping Area Evaluation</div>
+
+<h2>Assessment Details</h2>
+<div class="header-grid">
+  <div class="field"><label>Date:</label><input type="date"></div>
+  <div class="field"><label>Consultant:</label><input type="text" placeholder="Name"></div>
+  <div class="field"><label>Client:</label><input type="text" placeholder="Name"></div>
+  <div class="field"><label>Address:</label><input type="text" placeholder="Address"></div>
+  <div class="field"><label>Property type:</label>
+    <select><option value="">—</option><option>Apartment</option><option>House</option><option>Office</option><option>School</option><option>Other</option></select>
+  </div>
+  <div class="field"><label>Purpose:</label>
+    <select><option value="">—</option><option>Health investigation</option><option>Pre-purchase</option><option>Post-mitigation</option><option>Routine check</option></select>
+  </div>
+</div>
+
+<!-- Room 1 -->
+<div class="room-section">
+<h2>Room 1: <input type="text" value="Bedroom" style="border:none;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;width:200px"></h2>
+<div class="field"><label>Location:</label><input type="text" placeholder="e.g. bed pillow area, center of room"></div>
+
+<table>
+  <thead>
+    <tr><th>Measurement</th><th style="width:80px">Value</th><th style="width:60px">Unit</th><th style="width:140px">Meter</th><th>SBM-2015 Rating</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AC Electric Fields (body voltage)</td>
+      <td><input type="number" step="any"></td>
+      <td>V/m</td>
+      <td><input type="text"></td>
+      <td><div class="severity-check">
+        <label><input type="radio" name="r1-ace"><span class="dot dot-green"></span></label>
+        <label><input type="radio" name="r1-ace"><span class="dot dot-yellow"></span></label>
+        <label><input type="radio" name="r1-ace"><span class="dot dot-orange"></span></label>
+        <label><input type="radio" name="r1-ace"><span class="dot dot-red"></span></label>
+      </div></td>
+    </tr>
+    <tr>
+      <td>AC Magnetic Fields</td>
+      <td><input type="number" step="any"></td>
+      <td>nT</td>
+      <td><input type="text"></td>
+      <td><div class="severity-check">
+        <label><input type="radio" name="r1-acm"><span class="dot dot-green"></span></label>
+        <label><input type="radio" name="r1-acm"><span class="dot dot-yellow"></span></label>
+        <label><input type="radio" name="r1-acm"><span class="dot dot-orange"></span></label>
+        <label><input type="radio" name="r1-acm"><span class="dot dot-red"></span></label>
+      </div></td>
+    </tr>
+    <tr>
+      <td>RF / Microwave Radiation</td>
+      <td><input type="number" step="any"></td>
+      <td>µW/m²</td>
+      <td><input type="text"></td>
+      <td><div class="severity-check">
+        <label><input type="radio" name="r1-rf"><span class="dot dot-green"></span></label>
+        <label><input type="radio" name="r1-rf"><span class="dot dot-yellow"></span></label>
+        <label><input type="radio" name="r1-rf"><span class="dot dot-orange"></span></label>
+        <label><input type="radio" name="r1-rf"><span class="dot dot-red"></span></label>
+      </div></td>
+    </tr>
+    <tr>
+      <td>Dirty Electricity (microsurge)</td>
+      <td><input type="number" step="any"></td>
+      <td>GS</td>
+      <td><input type="text"></td>
+      <td><div class="severity-check">
+        <label><input type="radio" name="r1-de"><span class="dot dot-green"></span></label>
+        <label><input type="radio" name="r1-de"><span class="dot dot-yellow"></span></label>
+        <label><input type="radio" name="r1-de"><span class="dot dot-orange"></span></label>
+        <label><input type="radio" name="r1-de"><span class="dot dot-red"></span></label>
+      </div></td>
+    </tr>
+    <tr>
+      <td>DC Magnetic Field Deviation</td>
+      <td><input type="number" step="any"></td>
+      <td>µT</td>
+      <td><input type="text"></td>
+      <td><div class="severity-check">
+        <label><input type="radio" name="r1-dc"><span class="dot dot-green"></span></label>
+        <label><input type="radio" name="r1-dc"><span class="dot dot-yellow"></span></label>
+        <label><input type="radio" name="r1-dc"><span class="dot dot-orange"></span></label>
+        <label><input type="radio" name="r1-dc"><span class="dot dot-red"></span></label>
+      </div></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Sources Identified</h3>
+<div class="checklist">
+  <label><input type="checkbox"> WiFi router</label>
+  <label><input type="checkbox"> Smart meter</label>
+  <label><input type="checkbox"> Cell tower</label>
+  <label><input type="checkbox"> Power lines</label>
+  <label><input type="checkbox"> Electrical panel</label>
+  <label><input type="checkbox"> Dimmer switch</label>
+  <label><input type="checkbox"> LED driver</label>
+  <label><input type="checkbox"> Solar inverter</label>
+  <label><input type="checkbox"> Baby monitor</label>
+  <label><input type="checkbox"> Cordless phone (DECT)</label>
+  <label><input type="checkbox"> Bluetooth devices</label>
+  <label><input type="checkbox"> Smart TV</label>
+  <label><input type="checkbox"> Ungrounded wiring</label>
+  <label><input type="checkbox"> Neighboring apartments</label>
+</div>
+<div class="field"><label>Other:</label><input type="text"></div>
+
+<h3>Mitigations Recommended</h3>
+<div class="checklist">
+  <label><input type="checkbox"> Demand switch (Netzfreischalter)</label>
+  <label><input type="checkbox"> WiFi off at night</label>
+  <label><input type="checkbox"> Wired ethernet</label>
+  <label><input type="checkbox"> Shielding paint</label>
+  <label><input type="checkbox"> Shielding fabric / canopy</label>
+  <label><input type="checkbox"> Stetzerizer filters</label>
+  <label><input type="checkbox"> Router relocated</label>
+  <label><input type="checkbox"> Smart meter opt-out</label>
+  <label><input type="checkbox"> Breaker off at night</label>
+  <label><input type="checkbox"> Shielded cables</label>
+  <label><input type="checkbox"> Phone airplane mode at night</label>
+</div>
+<div class="field"><label>Other:</label><input type="text"></div>
+
+<h3>Notes</h3>
+<input type="text" class="notes-line" placeholder="Room-specific observations">
+<input type="text" class="notes-line" placeholder="">
+</div>
+
+<!-- Room 2 (blank) -->
+<div class="room-section">
+<h2>Room 2: <input type="text" placeholder="Room name" style="border:none;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;width:200px"></h2>
+<div class="field"><label>Location:</label><input type="text" placeholder="e.g. desk area, center of room"></div>
+
+<table>
+  <thead>
+    <tr><th>Measurement</th><th style="width:80px">Value</th><th style="width:60px">Unit</th><th style="width:140px">Meter</th><th>SBM-2015 Rating</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AC Electric Fields (body voltage)</td><td><input type="number" step="any"></td><td>V/m</td><td><input type="text"></td>
+      <td><div class="severity-check"><label><input type="radio" name="r2-ace"><span class="dot dot-green"></span></label><label><input type="radio" name="r2-ace"><span class="dot dot-yellow"></span></label><label><input type="radio" name="r2-ace"><span class="dot dot-orange"></span></label><label><input type="radio" name="r2-ace"><span class="dot dot-red"></span></label></div></td></tr>
+    <tr><td>AC Magnetic Fields</td><td><input type="number" step="any"></td><td>nT</td><td><input type="text"></td>
+      <td><div class="severity-check"><label><input type="radio" name="r2-acm"><span class="dot dot-green"></span></label><label><input type="radio" name="r2-acm"><span class="dot dot-yellow"></span></label><label><input type="radio" name="r2-acm"><span class="dot dot-orange"></span></label><label><input type="radio" name="r2-acm"><span class="dot dot-red"></span></label></div></td></tr>
+    <tr><td>RF / Microwave Radiation</td><td><input type="number" step="any"></td><td>µW/m²</td><td><input type="text"></td>
+      <td><div class="severity-check"><label><input type="radio" name="r2-rf"><span class="dot dot-green"></span></label><label><input type="radio" name="r2-rf"><span class="dot dot-yellow"></span></label><label><input type="radio" name="r2-rf"><span class="dot dot-orange"></span></label><label><input type="radio" name="r2-rf"><span class="dot dot-red"></span></label></div></td></tr>
+    <tr><td>Dirty Electricity (microsurge)</td><td><input type="number" step="any"></td><td>GS</td><td><input type="text"></td>
+      <td><div class="severity-check"><label><input type="radio" name="r2-de"><span class="dot dot-green"></span></label><label><input type="radio" name="r2-de"><span class="dot dot-yellow"></span></label><label><input type="radio" name="r2-de"><span class="dot dot-orange"></span></label><label><input type="radio" name="r2-de"><span class="dot dot-red"></span></label></div></td></tr>
+    <tr><td>DC Magnetic Field Deviation</td><td><input type="number" step="any"></td><td>µT</td><td><input type="text"></td>
+      <td><div class="severity-check"><label><input type="radio" name="r2-dc"><span class="dot dot-green"></span></label><label><input type="radio" name="r2-dc"><span class="dot dot-yellow"></span></label><label><input type="radio" name="r2-dc"><span class="dot dot-orange"></span></label><label><input type="radio" name="r2-dc"><span class="dot dot-red"></span></label></div></td></tr>
+  </tbody>
+</table>
+
+<h3>Sources Identified</h3>
+<div class="field"><label></label><input type="text" placeholder="List sources"></div>
+
+<h3>Mitigations Recommended</h3>
+<div class="field"><label></label><input type="text" placeholder="List mitigations"></div>
+
+<h3>Notes</h3>
+<input type="text" class="notes-line" placeholder="">
+</div>
+
+<!-- General Notes -->
+<h2>General Assessment Notes</h2>
+<input type="text" class="notes-line" placeholder="">
+<input type="text" class="notes-line" placeholder="">
+<input type="text" class="notes-line" placeholder="">
+
+<!-- SBM-2015 Reference Table -->
+<h2>SBM-2015 Reference — Sleeping Area Thresholds</h2>
+<table class="ref-table">
+  <thead>
+    <tr><th>Measurement</th><th>Unit</th><th><span class="dot dot-green"></span> No Concern</th><th><span class="dot dot-yellow"></span> Slight</th><th><span class="dot dot-orange"></span> Severe</th><th><span class="dot dot-red"></span> Extreme</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>AC Electric Fields</td><td>V/m</td><td>&lt; 1</td><td>1 – 5</td><td>5 – 50</td><td>&gt; 50</td></tr>
+    <tr><td>AC Magnetic Fields</td><td>nT</td><td>&lt; 20</td><td>20 – 100</td><td>100 – 500</td><td>&gt; 500</td></tr>
+    <tr><td>RF / Microwave</td><td>µW/m²</td><td>&lt; 0.1</td><td>0.1 – 10</td><td>10 – 1,000</td><td>&gt; 1,000</td></tr>
+    <tr><td>Dirty Electricity</td><td>GS</td><td>&lt; 25</td><td>25 – 50</td><td>50 – 200</td><td>&gt; 200</td></tr>
+    <tr><td>DC Magnetic Deviation</td><td>µT</td><td>&lt; 1</td><td>1 – 5</td><td>5 – 20</td><td>&gt; 20</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  This template follows the SBM-2015 Standard der Baubiologischen Messtechnik (IBN Rosenheim).<br>
+  Compatible with <strong>getbased</strong> (getbased.com) — drop this report as PDF to auto-import measurements.
+</div>
+
+</body>
+</html>
