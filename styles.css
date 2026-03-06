@@ -1811,6 +1811,13 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   font-size: 11px; color: var(--text-muted); margin-bottom: 4px;
   font-style: italic;
 }
+.chat-image-thumbs {
+  display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.chat-image-thumb {
+  width: 64px; height: 64px; object-fit: cover; border-radius: 6px;
+  border: 1px solid var(--border);
+}
 .chat-drop-active {
   outline: 2px dashed var(--accent); outline-offset: -4px;
   background: rgba(79, 140, 255, 0.05);

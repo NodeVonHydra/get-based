@@ -54,8 +54,26 @@ function createTypewriter(el, typingEl, container) {
 // IMAGE ATTACHMENTS
 // ═══════════════════════════════════════════════
 const MAX_ATTACHMENTS = 5;
+const THUMB_SIZE = 80;
 let _pendingAttachments = []; // { base64, mediaType, name, previewUrl }
 let _hdMode = localStorage.getItem('labcharts-hd-images') === 'true';
+
+/** Shrink an image to a tiny thumbnail data URL for chat history storage */
+function makeThumbnail(previewUrl, width, height) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = THUMB_SIZE / Math.max(width, height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => resolve(null);
+    img.src = previewUrl;
+  });
+}
 
 export function toggleHDMode() {
   _hdMode = !_hdMode;
@@ -85,7 +103,8 @@ export async function addImageAttachment(file) {
     const quality = _hdMode ? 0.92 : 0.85;
     const { base64, mediaType, width, height, origWidth, origHeight, quality_warnings } = await resizeImage(file, maxDim, quality);
     const previewUrl = `data:${mediaType};base64,${base64}`;
-    _pendingAttachments.push({ base64, mediaType, name: file.name, previewUrl });
+    const thumbUrl = await makeThumbnail(previewUrl, width, height);
+    _pendingAttachments.push({ base64, mediaType, name: file.name, previewUrl, thumbUrl });
     renderAttachmentPreview();
     updateSendButtonState();
     // Warn about image quality issues
@@ -1557,7 +1576,16 @@ export function renderChatMessages() {
     if (msg.role === 'assistant') lastPersonaName = msg.personalityName || null;
     const autoClass = msg.auto ? ' chat-msg-auto' : '';
     const stoppedNote = msg.stopped ? '<div class="chat-stopped-note">[stopped]</div>' : '';
-    const imageBadge = msg.hasImages ? `<div class="chat-image-badge">\uD83D\uDDBC ${msg.imageCount} image${msg.imageCount !== 1 ? 's' : ''} attached</div>` : '';
+    let imageBadge = '';
+    if (msg.hasImages) {
+      if (msg.thumbnails && msg.thumbnails.length > 0) {
+        imageBadge = '<div class="chat-image-thumbs">' + msg.thumbnails.map(t =>
+          `<img src="${t}" class="chat-image-thumb" alt="attached image">`
+        ).join('') + '</div>';
+      } else {
+        imageBadge = `<div class="chat-image-badge">\uD83D\uDDBC ${msg.imageCount} image${msg.imageCount !== 1 ? 's' : ''} attached</div>`;
+      }
+    }
     html += `<div class="chat-msg ${cls}${autoClass}">${imageBadge}${renderMarkdown(msg.content)}${stoppedNote}`;
     if (msg.role === 'assistant') {
       if (msg.usage && (msg.usage.inputTokens || msg.usage.outputTokens)) {
@@ -1786,9 +1814,13 @@ export async function sendChatMessage() {
   // Auto-name thread from first user message
   const isFirstMessage = state.chatHistory.length === 0;
 
-  // Add user message — NO base64 stored in history
+  // Add user message — store tiny thumbnails for display, NOT full base64
   const userMsg = { role: 'user', content: text || '(image)' };
-  if (hasImages) { userMsg.hasImages = true; userMsg.imageCount = attachments.length; }
+  if (hasImages) {
+    userMsg.hasImages = true;
+    userMsg.imageCount = attachments.length;
+    userMsg.thumbnails = attachments.map(a => a.thumbUrl).filter(Boolean);
+  }
   state.chatHistory.push(userMsg);
   input.value = '';
   input.style.height = '';
