@@ -15,9 +15,9 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 28 ES modules loaded via `js/main.js`:
-  - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`
-  - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`
+- **`js/`** — 29 ES modules loaded via `js/main.js`:
+  - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (migration), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`
+  - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
   - `state.js` — single mutable `state` object (importedData, unitSystem, profileSex, etc.)
   - `utils.js` — `escapeHTML`, `hashString`, `getStatus`, `formatValue`, `showNotification`, `showConfirmDialog`, `linearRegression`
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
@@ -31,6 +31,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `supplements.js` — supplement editor + render section
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
+  - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports
   - `pdf-import.js` — PDF pipeline, batch import, import preview, drop zone, image fallback for scanned PDFs. AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
@@ -43,15 +44,15 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
-- **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
-- **`tests/`** — 19 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
+- **`tests/`** — 20 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides }`. Legacy fields auto-migrated via `migrateProfileData()`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides, emfAssessment }`. Legacy fields auto-migrated via `migrateProfileData()`
 3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle
 4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 5. `singlePoint` categories have `singlePoint: true` — grid cards instead of trend charts. Fatty acids flow through the custom marker pipeline with per-product prefixes (spadiaFA, zinzinoFA, omegaquantFA) under a "Fatty Acids" sidebar group
@@ -71,7 +72,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn-group`/`.ctx-btn-option` pill buttons with multi-select tag pills. Cards: Health Goals, Medical Conditions, Diet & Digestion, Exercise, Sleep & Rest, Light & Circadian, Stress, Love Life & Relationships, Environment. Each has AI health dot (green/yellow/red) + tip, cached per-card via fingerprint.
 
-- `buildLabContext()` serializes all 9 areas + interpretiveLens + contextNotes to AI context
+- `buildLabContext()` serializes all 9 areas + interpretiveLens + contextNotes + EMF assessment to AI context
 - `hasCardContent(obj)` gates empty cards from AI context
 - All fields included in JSON export/import and PDF report
 - See source for exact data structures per card
@@ -79,6 +80,10 @@ Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn
 ### Menstrual Cycle Tracking
 
 Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. Features: phase-aware reference ranges (`PHASE_RANGES` for estradiol/progesterone), cycle phase bands on charts (`phaseBandPlugin`), auto-calculated stats from period log, perimenopause detection, heavy flow + iron alerts. All included in AI context. See `cycle.js` and `data.js` for algorithms.
+
+### EMF Assessment
+
+Baubiologie sub-module under Environment context card. Storage: `importedData.emfAssessment` (`{ assessments: [...] }`). Each assessment has date, consultant, notes, rooms array, sources/mitigations tags. Room measurements use `SBM_2015_THRESHOLDS` (5 types × 4 severity tiers). Separate PDF import pipeline in `emf.js` for consultant reports. Printable template at `data/emf-assessment-template.html`.
 
 ### Calculated Markers
 
@@ -129,7 +134,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-19 browser-based test files run headlessly:
+20 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
