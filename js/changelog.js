@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.5.0', date: '2026-03-06', title: 'EMF Assessment',
+    items: [
+      'Environment card: Baubiologie EMF assessment sub-module — track electromagnetic field measurements room by room',
+      'SBM-2015 severity grading (No Concern → Extreme Concern) for 5 measurement types: AC electric, AC magnetic, RF/microwave, dirty electricity, DC magnetic',
+      'Import EMF consultant reports via PDF — AI extracts rooms, measurements, sources, and mitigations',
+      'Printable consultant template for on-site assessments (download from EMF editor)',
+      'EMF data included in AI chat context, JSON export/import, and environment summary',
+    ]
+  },
+  {
     version: '1.4.3', date: '2026-03-07', title: 'Improved Fatty Acids Support',
     items: [
       'Improved support for fatty acid panels — each lab appears as its own subcategory under a "Fatty Acids" sidebar group',
