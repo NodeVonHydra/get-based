@@ -212,6 +212,17 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
     ]
   },
 
+  // Per-marker reference range overrides
+  refOverrides: {
+    "biochemistry.glucose": {
+      refMin: 3.9,
+      refMax: 5.6,
+      optimalMin: 4.0,
+      optimalMax: 5.0
+    }
+    // ... user-customized ranges from detail modal editing or import-time range adoption
+  },
+
   // Custom markers from PDF import — keyed by "category.markerKey"
   customMarkers: {
     "mylab.cortisol": {

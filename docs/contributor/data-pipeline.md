@@ -26,6 +26,10 @@
                   into marker objects
                                  │
                                  ▼
+                  Apply refOverrides
+                  (ref + optimal range overrides per marker)
+                                 │
+                                 ▼
                   Collect dates from entries
                   (excluding singlePoint categories)
                                  │
@@ -182,6 +186,7 @@ These are computed in-pipeline and stored in the `calculatedRatios` category:
 | `plr` | Platelets / Lymphocytes |
 | `deRitisRatio` | AST / ALT |
 | `copperZincRatio` | Copper / Zinc |
+| `bunCreatinineRatio` | `(urea × 2.801) / (creatinine × 0.01131)` — computed in US units from SI-stored values, ref 10–20 |
 | `freeWaterDeficit` | `TBW × (Na / 140 − 1)` — assumes 70 kg body weight |
 | `phenoAge` | Levine 2018 — 9 biomarkers + chronological age from DOB |
 

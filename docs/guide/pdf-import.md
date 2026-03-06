@@ -35,6 +35,14 @@ Before anything is saved, getbased shows you exactly what it found:
 
 Review the preview carefully. You can dismiss the import if something looks wrong and try again.
 
+### Reference Range Adoption
+
+When the PDF's reference ranges differ from getbased's stored ranges, a toggle appears below the import preview table: **"Use this lab's reference ranges (updates N markers)"**. This is ON by default for your first import and OFF for subsequent imports. Accepting saves the lab's ranges as per-marker overrides (`refOverrides`) that apply going forward.
+
+### Unit Normalization
+
+Enzymes reported in IU/L (ALT, AST, ALP) are automatically mapped to the equivalent U/L markers — no manual correction needed.
+
 ::: tip Any language, any format
 getbased handles reports from any country. The AI understands marker names in English, French, German, Spanish, Dutch, and many other languages, and maps them to the correct biomarkers regardless of the name used.
 :::

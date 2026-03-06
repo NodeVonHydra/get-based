@@ -2,6 +2,10 @@
 
 getbased visualizes every biomarker as a line chart over time. Charts are grouped by category — Biochemistry, Hormones, Lipids, Hematology, and so on — and each category gets its own section on the dashboard.
 
+## Empty Markers
+
+Markers with no data are hidden in category views — only charts with at least one value are shown. The category header displays "X of Y biomarkers with data" when some markers are empty so you know how many are tracked versus available.
+
 ## Reading a Chart
 
 Each line chart shows one marker's values plotted across your lab dates. The horizontal axis is time; the vertical axis is the marker's value in your chosen unit (SI or US conventional).
