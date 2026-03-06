@@ -85,6 +85,10 @@ Before sending, getbased analyzes each image and warns you if it detects issues:
 
 These checks save tokens by catching bad photos before they're sent.
 
+### Privacy
+
+All image metadata is automatically stripped before sending. EXIF data — GPS location, camera model, timestamps, device serial numbers — is removed during the resize step. Only raw pixel data reaches your AI provider.
+
 ::: tip
 The attach and HD buttons only appear when your active model supports vision (image input). If you don't see them, switch to a vision-capable model in Settings.
 :::
