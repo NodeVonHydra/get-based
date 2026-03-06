@@ -899,6 +899,74 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 .context-info-icon:hover .context-tooltip { display: block; }
+/* ─── EMF Assessment Editor ─── */
+.emf-editor-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+.emf-empty { color: var(--text-muted); font-size: 13px; padding: 20px 0; text-align: center; }
+.emf-assessment-card {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 8px; overflow: hidden;
+}
+.emf-assessment-card.expanded { border-color: var(--accent); }
+.emf-assessment-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; cursor: pointer; transition: background 0.15s;
+}
+.emf-assessment-header:hover { background: var(--bg-hover); }
+.emf-assessment-info { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.emf-assessment-date { font-weight: 600; font-size: 13px; }
+.emf-assessment-label { font-size: 12px; color: var(--text-muted); }
+.emf-assessment-consultant { font-size: 12px; color: var(--text-muted); font-style: italic; }
+.emf-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+  white-space: nowrap;
+}
+.emf-badge-green { background: rgba(76,175,80,0.15); color: var(--green); }
+.emf-badge-yellow { background: rgba(255,193,7,0.15); color: var(--yellow); }
+.emf-badge-orange { background: rgba(255,152,0,0.15); color: var(--orange); }
+.emf-badge-red { background: rgba(244,67,54,0.15); color: var(--red); }
+.emf-badge-none { background: var(--bg-hover); color: var(--text-muted); }
+.emf-assessment-detail { padding: 0 14px 14px; }
+.emf-meta-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.emf-meta-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-muted); flex: 1; min-width: 120px; }
+.emf-input {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-primary); font-size: 12px; padding: 6px 10px; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.emf-input:focus { border-color: var(--accent); outline: none; }
+.emf-room-card {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px; margin-bottom: 10px; background: var(--bg-hover);
+}
+.emf-room-header { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.emf-room-select { min-width: 140px; }
+.emf-location { flex: 1; min-width: 140px; }
+.emf-remove-room {
+  width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+  background: transparent; color: var(--red); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.emf-remove-room:hover { background: rgba(244,67,54,0.1); border-color: var(--red); }
+.emf-measurements { margin-bottom: 10px; }
+.emf-measurement-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.emf-measurement-label { font-size: 12px; color: var(--text-secondary); width: 90px; flex-shrink: 0; }
+.emf-value-input { width: 80px; text-align: right; }
+.emf-measurement-unit { font-size: 11px; color: var(--text-muted); width: 50px; flex-shrink: 0; }
+.emf-severity-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.emf-severity-dot-placeholder { width: 10px; height: 10px; flex-shrink: 0; }
+.emf-meter-input { flex: 1; min-width: 80px; }
+.emf-tags-section { margin-bottom: 8px; }
+.emf-tags-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+.emf-room-note { width: 100%; margin-top: 6px; box-sizing: border-box; }
+.emf-add-room { margin-bottom: 12px; }
+.emf-assessment-footer {
+  display: flex; gap: 8px; align-items: center; margin-top: 12px;
+  padding-top: 12px; border-top: 1px solid var(--border);
+}
 /* Health Goals List */
 .goals-list { margin-bottom: 16px; }
 .goals-list-item {

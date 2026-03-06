@@ -7,6 +7,7 @@ import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
 import { callClaudeAPI, hasAIProvider } from './api.js';
+import { getEMFSummary } from './emf.js';
 
 // ── Context card summary generators ──
 
@@ -126,6 +127,8 @@ export function getEnvironmentSummary(d) {
   if (d.toxins && d.toxins.length) parts.push(d.toxins.length + ' toxin exposure' + (d.toxins.length > 1 ? 's' : ''));
   if (d.building) parts.push(d.building);
   if (d.note) parts.push(d.note);
+  const emfSummary = getEMFSummary();
+  if (emfSummary) parts.push(emfSummary);
   return parts.join(', ');
 }
 
@@ -855,6 +858,10 @@ export function openEnvironmentEditor() {
     <div class="ctx-editor-divider"></div>
     ${renderTagsField('EMF exposure', 'env-emf', ENV_EMF, current.emf)}
     ${renderTagsField('EMF mitigation', 'env-emf-mit', ENV_EMF_MITIGATION, current.emfMitigation)}
+    <div class="ctx-field-group" style="margin-top:8px">
+      <button class="import-btn import-btn-secondary" onclick="closeModal();setTimeout(()=>openEMFAssessmentEditor(),100)">Open Baubiologie EMF Assessment →</button>
+      ${getEMFSummary() ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${escapeHTML(getEMFSummary())}</div>` : ''}
+    </div>
     <div class="ctx-editor-divider"></div>
     ${renderSelectField('Home/work lighting', 'env-light', ENV_HOME_LIGHT, current.homeLight)}
     ${renderTagsField('Air quality', 'env-air', ENV_AIR, current.air)}

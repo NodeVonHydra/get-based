@@ -14,6 +14,7 @@ import './notes.js';
 import './supplements.js';
 import './cycle.js';
 import './context-cards.js';
+import './emf.js';
 import './pdf-import.js';
 import './export.js';
 import './chat.js';
