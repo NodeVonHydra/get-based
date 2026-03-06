@@ -57,7 +57,7 @@
 
   // Simulate normalizeToSI (same logic as the function)
   function normUnit(s) {
-    return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug');
+    return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug').replace(/^iu\//, 'u/');
   }
   function testNormalize(key, value, unit) {
     if (value == null || !unit) return value;
@@ -124,6 +124,30 @@
 
   // Unknown marker key should return value unchanged
   assert('unknown key returns value unchanged', testNormalize('custom.something', 42, 'mg/dl') === 42);
+
+  // IU/L → U/L normalization (enzyme units are equivalent)
+  const altIU = testNormalize('biochemistry.alt', 20, 'IU/L');
+  assert('ALT 20 IU/L → ~0.333 µkat/L',
+    Math.abs(altIU - 0.333) < 0.01, `got ${altIU}`);
+  const astIU = testNormalize('biochemistry.ast', 18, 'IU/L');
+  assert('AST 18 IU/L → ~0.3 µkat/L',
+    Math.abs(astIU - 0.3) < 0.01, `got ${astIU}`);
+  const alpIU = testNormalize('biochemistry.alp', 65, 'IU/L');
+  assert('ALP 65 IU/L → ~1.083 µkat/L',
+    Math.abs(alpIU - 1.083) < 0.01, `got ${alpIU}`);
+
+  // IU/L should match U/L conversion
+  const altUL = testNormalize('biochemistry.alt', 20, 'U/L');
+  assert('ALT IU/L and U/L give same result',
+    altIU === altUL, `IU/L=${altIU}, U/L=${altUL}`);
+
+  // BUN/Creatinine ratio exists in schema
+  const { MARKER_SCHEMA } = await import('/js/schema.js');
+  assert('bunCreatRatio in calculatedRatios',
+    MARKER_SCHEMA.calculatedRatios?.markers?.bunCreatRatio != null);
+  assert('bunCreatRatio ref range 10-20',
+    MARKER_SCHEMA.calculatedRatios.markers.bunCreatRatio.refMin === 10 &&
+    MARKER_SCHEMA.calculatedRatios.markers.bunCreatRatio.refMax === 20);
 
   // ═══════════════════════════════════════
   // Results

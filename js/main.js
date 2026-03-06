@@ -98,6 +98,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const dobInputInit = document.getElementById('dob-input');
   if (dobInputInit) dobInputInit.value = state.profileDob || '';
   setTheme(getTheme());
+  // Populate footer version early (doesn't depend on dashboard render)
+  const vTextEl = document.getElementById('app-version-text');
+  if (vTextEl) vTextEl.textContent = window.APP_VERSION || '';
   buildSidebar();
   window.showDashboard();
   maybeShowChangelog();

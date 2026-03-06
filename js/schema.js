@@ -202,6 +202,7 @@ export const MARKER_SCHEMA = {
       plr: { name: "Platelet-Lymphocyte Ratio (PLR)", unit: "", refMin: 50, refMax: 150, desc: "Reflects the balance between thrombotic and immune responses; elevated in inflammation, cardiovascular disease, and cancer." },
       deRitisRatio: { name: "De Ritis Ratio (AST/ALT)", unit: "", refMin: 0.8, refMax: 1.2, desc: "AST divided by ALT; helps distinguish liver damage types \u2014 values above 2 suggest alcoholic liver disease or cirrhosis." },
       copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0, desc: "Balance between copper and zinc; elevated ratios indicate oxidative stress, inflammation, or immune dysfunction." },
+      bunCreatRatio: { name: "BUN/Creatinine Ratio", unit: "", refMin: 10, refMax: 20, desc: "Blood urea nitrogen divided by creatinine; helps differentiate pre-renal, renal, and post-renal causes of kidney dysfunction." },
       freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5, desc: "Estimated water surplus or deficit based on sodium level; positive values indicate dehydration, negative values overhydration." },
       phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null, desc: "Biological age estimated from 9 blood biomarkers using the Levine formula; lower than chronological age suggests healthier aging." }
     }

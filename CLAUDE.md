@@ -43,17 +43,18 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`
-- **`tests/`** — 18 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 19 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements }`. Legacy fields auto-migrated via `migrateProfileData()`
-3. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
-4. `singlePoint` categories (fattyAcids) have `singlePoint: true` — grid cards instead of trend charts
-5. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides }`. Legacy fields auto-migrated via `migrateProfileData()`
+3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle
+4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
+5. `singlePoint` categories (fattyAcids) have `singlePoint: true` — grid cards instead of trend charts
+6. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
 
 ### PDF Import Pipeline
 
@@ -81,6 +82,7 @@ Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstru
 ### Calculated Markers
 
 - **Free Water Deficit**: `FWD = TBW × (Na / 140 − 1)`, requires sodium
+- **BUN/Creatinine Ratio**: `(urea × 2.801) / (creatinine × 0.01131)`, computed in US units from SI-stored values. Ref range 10–20
 - **PhenoAge**: Levine et al. 2018 — 9 biomarkers + chronological age. `refMin/refMax: null` — meaningful relative to chronological age
 
 ### AI Chat Panel
@@ -126,7 +128,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-18 browser-based test files run headlessly:
+19 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
