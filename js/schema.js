@@ -604,3 +604,63 @@ export const PHASE_RANGES = {
     luteal:     { min: 5.7,  max: 75.9 }
   }
 };
+
+// ═══════════════════════════════════════════════
+// SBM-2015 — Building Biology EMF Thresholds (sleeping areas)
+// ═══════════════════════════════════════════════
+export const SBM_2015_THRESHOLDS = {
+  acElectric: {
+    name: 'AC Electric Fields', unit: 'V/m',
+    tiers: [
+      { max: 1,        label: 'No concern',      color: 'green'  },
+      { max: 5,        label: 'Slight concern',   color: 'yellow' },
+      { max: 50,       label: 'Severe concern',   color: 'orange' },
+      { max: Infinity, label: 'Extreme concern',  color: 'red'    }
+    ]
+  },
+  acMagnetic: {
+    name: 'AC Magnetic Fields', unit: 'nT',
+    tiers: [
+      { max: 20,       label: 'No concern',      color: 'green'  },
+      { max: 100,      label: 'Slight concern',   color: 'yellow' },
+      { max: 500,      label: 'Severe concern',   color: 'orange' },
+      { max: Infinity, label: 'Extreme concern',  color: 'red'    }
+    ]
+  },
+  rfMicrowave: {
+    name: 'RF/Microwave Radiation', unit: 'µW/m²',
+    tiers: [
+      { max: 0.1,      label: 'No concern',      color: 'green'  },
+      { max: 10,       label: 'Slight concern',   color: 'yellow' },
+      { max: 1000,     label: 'Severe concern',   color: 'orange' },
+      { max: Infinity, label: 'Extreme concern',  color: 'red'    }
+    ]
+  },
+  dirtyElectricity: {
+    name: 'Dirty Electricity', unit: 'GS',
+    tiers: [
+      { max: 25,       label: 'No concern',      color: 'green'  },
+      { max: 50,       label: 'Slight concern',   color: 'yellow' },
+      { max: 200,      label: 'Severe concern',   color: 'orange' },
+      { max: Infinity, label: 'Extreme concern',  color: 'red'    }
+    ]
+  },
+  dcMagnetic: {
+    name: 'DC Magnetic Field Deviation', unit: 'µT',
+    tiers: [
+      { max: 1,        label: 'No concern',      color: 'green'  },
+      { max: 5,        label: 'Slight concern',   color: 'yellow' },
+      { max: 20,       label: 'Severe concern',   color: 'orange' },
+      { max: Infinity, label: 'Extreme concern',  color: 'red'    }
+    ]
+  }
+};
+
+export function getEMFSeverity(type, value) {
+  const def = SBM_2015_THRESHOLDS[type];
+  if (!def || value == null) return null;
+  for (const tier of def.tiers) {
+    if (value < tier.max) return tier;
+  }
+  return def.tiers[def.tiers.length - 1];
+}

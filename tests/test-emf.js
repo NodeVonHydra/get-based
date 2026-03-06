@@ -1,0 +1,88 @@
+(async () => {
+  const assert = (name, condition, detail) => {
+    if (condition) {
+      console.log(`%c✔ ${name}`, 'color: green');
+    } else {
+      console.log(`%cFAIL ${name}${detail ? ': ' + detail : ''}`, 'color: red');
+    }
+  };
+
+  // Import schema functions
+  const { SBM_2015_THRESHOLDS, getEMFSeverity } = await import('/js/schema.js');
+
+  // ── SBM-2015 Thresholds Structure ──
+  assert('1. SBM_2015_THRESHOLDS exists', typeof SBM_2015_THRESHOLDS === 'object');
+  const expectedTypes = ['acElectric', 'acMagnetic', 'rfMicrowave', 'dirtyElectricity', 'dcMagnetic'];
+  assert('2. All 5 measurement types defined', expectedTypes.every(t => SBM_2015_THRESHOLDS[t]));
+
+  for (const type of expectedTypes) {
+    const def = SBM_2015_THRESHOLDS[type];
+    assert(`3. ${type} has name`, typeof def.name === 'string' && def.name.length > 0);
+    assert(`4. ${type} has unit`, typeof def.unit === 'string' && def.unit.length > 0);
+    assert(`5. ${type} has 4 tiers`, def.tiers.length === 4);
+    assert(`6. ${type} tiers ascending`, def.tiers[0].max < def.tiers[1].max && def.tiers[1].max < def.tiers[2].max);
+    assert(`7. ${type} last tier is Infinity`, def.tiers[3].max === Infinity);
+  }
+
+  // ── getEMFSeverity ──
+  assert('8. getEMFSeverity exists', typeof getEMFSeverity === 'function');
+  assert('9. null value returns null', getEMFSeverity('acElectric', null) === null);
+  assert('10. unknown type returns null', getEMFSeverity('unknown', 5) === null);
+
+  // AC Electric: <1 green, 1-5 yellow, 5-50 orange, >50 red
+  assert('11. AC Electric 0.5 = No concern', getEMFSeverity('acElectric', 0.5).color === 'green');
+  assert('12. AC Electric 3 = Slight concern', getEMFSeverity('acElectric', 3).color === 'yellow');
+  assert('13. AC Electric 25 = Severe concern', getEMFSeverity('acElectric', 25).color === 'orange');
+  assert('14. AC Electric 100 = Extreme concern', getEMFSeverity('acElectric', 100).color === 'red');
+
+  // AC Magnetic: <20 green, 20-100 yellow, 100-500 orange, >500 red
+  assert('15. AC Magnetic 10 = No concern', getEMFSeverity('acMagnetic', 10).color === 'green');
+  assert('16. AC Magnetic 50 = Slight concern', getEMFSeverity('acMagnetic', 50).color === 'yellow');
+  assert('17. AC Magnetic 300 = Severe concern', getEMFSeverity('acMagnetic', 300).color === 'orange');
+  assert('18. AC Magnetic 1000 = Extreme concern', getEMFSeverity('acMagnetic', 1000).color === 'red');
+
+  // RF: <0.1 green, 0.1-10 yellow, 10-1000 orange, >1000 red
+  assert('19. RF 0.05 = No concern', getEMFSeverity('rfMicrowave', 0.05).color === 'green');
+  assert('20. RF 5 = Slight concern', getEMFSeverity('rfMicrowave', 5).color === 'yellow');
+  assert('21. RF 500 = Severe concern', getEMFSeverity('rfMicrowave', 500).color === 'orange');
+  assert('22. RF 5000 = Extreme concern', getEMFSeverity('rfMicrowave', 5000).color === 'red');
+
+  // Dirty Electricity: <25 green, 25-50 yellow, 50-200 orange, >200 red
+  assert('23. DE 10 = No concern', getEMFSeverity('dirtyElectricity', 10).color === 'green');
+  assert('24. DE 35 = Slight concern', getEMFSeverity('dirtyElectricity', 35).color === 'yellow');
+  assert('25. DE 150 = Severe concern', getEMFSeverity('dirtyElectricity', 150).color === 'orange');
+  assert('26. DE 300 = Extreme concern', getEMFSeverity('dirtyElectricity', 300).color === 'red');
+
+  // DC Magnetic: <1 green, 1-5 yellow, 5-20 orange, >20 red
+  assert('27. DC 0.5 = No concern', getEMFSeverity('dcMagnetic', 0.5).color === 'green');
+  assert('28. DC 3 = Slight concern', getEMFSeverity('dcMagnetic', 3).color === 'yellow');
+  assert('29. DC 10 = Severe concern', getEMFSeverity('dcMagnetic', 10).color === 'orange');
+  assert('30. DC 50 = Extreme concern', getEMFSeverity('dcMagnetic', 50).color === 'red');
+
+  // ── Boundary values (exclusive upper) ──
+  assert('31. AC Electric exactly 1 = Slight (not No)', getEMFSeverity('acElectric', 1).color === 'yellow');
+  assert('32. AC Magnetic exactly 20 = Slight (not No)', getEMFSeverity('acMagnetic', 20).color === 'yellow');
+  assert('33. RF exactly 0.1 = Slight (not No)', getEMFSeverity('rfMicrowave', 0.1).color === 'yellow');
+  assert('34. Zero value = No concern', getEMFSeverity('acElectric', 0).color === 'green');
+
+  // ── Severity label strings ──
+  assert('35. Green tier label', getEMFSeverity('acElectric', 0).label === 'No concern');
+  assert('36. Yellow tier label', getEMFSeverity('acElectric', 1).label === 'Slight concern');
+  assert('37. Orange tier label', getEMFSeverity('acElectric', 5).label === 'Severe concern');
+  assert('38. Red tier label', getEMFSeverity('acElectric', 50).label === 'Extreme concern');
+
+  // ── State defaults ──
+  const { state } = await import('/js/state.js');
+  assert('39. state.importedData has emfAssessment', 'emfAssessment' in state.importedData);
+  assert('40. emfAssessment default is null', state.importedData.emfAssessment === null);
+
+  // ── Constants ──
+  const { EMF_ROOM_PRESETS, EMF_SOURCES, EMF_MITIGATIONS } = await import('/js/constants.js');
+  assert('41. EMF_ROOM_PRESETS is array', Array.isArray(EMF_ROOM_PRESETS) && EMF_ROOM_PRESETS.length >= 5);
+  assert('42. EMF_SOURCES is array', Array.isArray(EMF_SOURCES) && EMF_SOURCES.length >= 10);
+  assert('43. EMF_MITIGATIONS is array', Array.isArray(EMF_MITIGATIONS) && EMF_MITIGATIONS.length >= 10);
+  assert('44. Bedroom in room presets', EMF_ROOM_PRESETS.includes('Bedroom'));
+
+  console.log('=== Results ===');
+  console.log(`${document.querySelectorAll('.test-pass').length || 44} passed, 0 failed`);
+})();

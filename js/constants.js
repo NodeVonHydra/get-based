@@ -50,6 +50,11 @@ export const ENV_WATER = ['spring water', 'well water', 'reverse osmosis', 'filt
 export const ENV_WATER_CONCERNS = ['fluoridated', 'chlorinated', 'hard water', 'unknown source quality'];
 export const ENV_EMF = ['WiFi router in bedroom', 'WiFi router nearby', 'smart meter on home', 'cell tower <500m', 'cell tower <2km', 'Bluetooth always on', '5G dense area', 'high-voltage power lines nearby', 'dirty electricity (old wiring)', 'smart home devices'];
 export const ENV_EMF_MITIGATION = ['WiFi off at night', 'airplane mode sleep', 'wired ethernet', 'EMF meters used', 'faraday canopy', 'no smart meter', 'minimal Bluetooth'];
+
+// EMF Assessment — room presets, source options, mitigation options
+export const EMF_ROOM_PRESETS = ['Bedroom', 'Children\'s Room', 'Living Room', 'Kitchen', 'Office / Home Office', 'Nursery', 'Bathroom', 'Basement', 'Outdoor / Yard'];
+export const EMF_SOURCES = ['WiFi router', 'smart meter', 'cell tower', 'power lines', 'electrical panel', 'dimmer switch', 'LED driver', 'solar inverter', 'baby monitor', 'cordless phone (DECT)', 'Bluetooth devices', 'smart TV', 'microwave oven', 'induction cooktop', 'electric underfloor heating', 'ungrounded wiring', 'knob-and-tube wiring', 'unshielded cables', 'neighboring apartments'];
+export const EMF_MITIGATIONS = ['demand switch (Netzfreischalter)', 'WiFi off at night', 'wired ethernet', 'shielding paint (Yshield)', 'shielding fabric / canopy', 'Stetzerizer filters', 'grounding rod', 'router relocated', 'smart meter opt-out', 'breaker off at night', 'shielded cables', 'ferrite beads', 'distance from source', 'phone airplane mode at night'];
 export const ENV_HOME_LIGHT = ['mostly LED lighting', 'incandescent bulbs', 'full-spectrum bulbs', 'fluorescent/CFL', 'natural daylight (large windows)', 'mixed lighting'];
 export const ENV_AIR = ['HEPA air purifier', 'open windows daily', 'houseplants', 'air quality monitor', 'near highway/traffic', 'industrial area nearby', 'wildfire smoke region', 'high pollen area'];
 export const ENV_TOXINS = ['mold exposure', 'heavy metals (lead/mercury)', 'pesticide exposure', 'plastic containers for food', 'non-stick cookware (PFAS)', 'conventional cleaning products', 'new car/furniture off-gassing', 'amalgam dental fillings', 'BPA/phthalate exposure', 'organic food mostly'];
