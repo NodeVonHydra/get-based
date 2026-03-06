@@ -11,6 +11,7 @@ The obfuscation process targets:
 - Date of birth (separate from collection dates, which are preserved)
 - National ID numbers, social security numbers, patient IDs
 - Email addresses and phone numbers
+- US lab identifiers — Specimen ID, Accession No, Account No, MRN, Member ID
 - Other personally identifiable labels detected in the text
 
 Lab result lines and collection dates are specifically protected and left intact.
@@ -38,12 +39,15 @@ You can configure a separate model specifically for PII stripping in **Settings 
 When both Local AI PII and the review editor are enabled, the review modal opens **immediately** when you import a PDF. The AI obfuscation streams into the right panel in real-time so you can watch the replacement happen:
 
 - **Progress indicator** — a pulsing green dot while the model loads, then a percentage counter as text streams in
-- **Diff highlights** — the left (original) panel highlights changed lines in red/green once streaming completes
+- **Word-level diffs** — after streaming completes, both panels show highlighted differences: red for removed words on the left, green for added words on the right. Click the right panel to switch into edit mode
 - **Auto-search** — the patient name from the original PDF is auto-filled into the search bar so you can instantly verify it was replaced
 - **Edit freely** — the right panel becomes editable after streaming. The button changes to "Save & Send to AI" when you make changes
-- **Stop** — cancel the stream mid-way and edit the partial result
+- **Thinking tokens** — models that emit `<think>` tags or `reasoning_content` have their thinking stripped from the obfuscated output and shown in a collapsible section below the diff
+- **Stop** — cancel the stream mid-way and edit the partial result. The model is unloaded from VRAM when you click Stop, Cancel, or "Use regex instead"
 - **Retry** — re-run the AI obfuscation if the result looks wrong (appears after stop or error)
 - **Use regex instead** — switch to the fast rule-based method at any point
+
+Background scroll is locked while the review modal is open.
 
 Without Local AI, the review editor shows the regex result directly for editing.
 
