@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.4.1', date: '2026-03-07', title: 'Bugfixes & Improvements',
+    items: [
+      'Fix: lab reference ranges from US-unit PDFs now import correctly',
+      'Fix: PII review diff highlighting works properly with thinking models',
+      'Improved PII review editing — cursor lands where you click, highlights persist after edits',
+      'Better matching for US lab markers like BUN',
+    ]
+  },
+  {
     version: '1.4.0', date: '2026-03-05', title: 'Image Attachments',
     items: [
       'Chat: attach images via paperclip button, paste, or drag-and-drop \u2014 AI can see photos of lab reports, supplement labels, food logs, and more',
