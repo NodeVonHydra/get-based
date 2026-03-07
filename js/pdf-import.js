@@ -350,10 +350,11 @@ Return ONLY valid JSON in this exact format, no other text:
   let testType = parsed.testType || 'blood';
   // ── Fatty acid normalization: merge all AI categories into one product-prefixed category ──
   // Detect fatty acid tests even if AI misclassified the testType
-  const isFattyAcidTest = testType === 'fattyAcids' || !!_detectFAProduct(fileName, pdfText);
+  const detectedFA = _detectFAProduct(fileName, pdfText);
+  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
   if (isFattyAcidTest && parsed.markers?.length) {
     testType = 'fattyAcids';
-    _normalizeFattyAcidMarkers(parsed.markers, fileName, pdfText);
+    _normalizeFattyAcidMarkers(parsed.markers, fileName, pdfText, detectedFA);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
@@ -617,7 +618,6 @@ export function confirmImport() {
     }
   }
   // Save new (custom) marker values and definitions
-  if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of newMarkers) {
     entry.markers[m.suggestedKey] = normalizeToSI(m.suggestedKey, m.value, m.unit);
     const [catKey] = m.suggestedKey.split('.');
@@ -626,7 +626,7 @@ export function confirmImport() {
     const existing = state.importedData.customMarkers[m.suggestedKey];
     const cmDef = existing || {};
     cmDef.name = cmDef.name || m.suggestedName || m.rawName;
-    cmDef.unit = cmDef.unit || m.unit || '';
+    cmDef.unit = m.unit || cmDef.unit || '';
     cmDef.refMin = m.refMin != null ? m.refMin : cmDef.refMin;
     cmDef.refMax = m.refMax != null ? m.refMax : cmDef.refMax;
     if (result.testType === 'fattyAcids') cmDef.singlePoint = true;
@@ -728,8 +728,8 @@ function _detectFAProduct(fileName, pdfText) {
   return null;
 }
 
-function _normalizeFattyAcidMarkers(markers, fileName, pdfText) {
-  let product = _detectFAProduct(fileName, pdfText);
+function _normalizeFattyAcidMarkers(markers, fileName, pdfText, detectedProduct) {
+  let product = detectedProduct || _detectFAProduct(fileName, pdfText);
   // Fallback: derive from first non-generic suggestedGroup the AI returned
   if (!product) {
     const firstLabel = markers.find(m => m.suggestedCategoryLabel && !/fatty|omega|saturated|trans|mono/i.test(m.suggestedCategoryLabel))?.suggestedCategoryLabel;
@@ -744,6 +744,7 @@ function _normalizeFattyAcidMarkers(markers, fileName, pdfText) {
     const markerPart = m.suggestedKey ? m.suggestedKey.split('.').pop()
       : m.mappedKey ? m.mappedKey.split('.').pop()
       : m.rawName.replace(/[^a-zA-Z0-9_]/g, '');
+    if (!markerPart) continue;
     m.mappedKey = null;
     m.suggestedKey = `${product.prefix}.${markerPart}`;
     m.suggestedCategoryLabel = product.label;
@@ -905,10 +906,11 @@ Return ONLY valid JSON in this exact format:
 
   let testType = parsed.testType || 'blood';
   // ── Fatty acid normalization (image pipeline) ──
-  const isFattyAcidTest = testType === 'fattyAcids' || !!_detectFAProduct(fileName, '');
+  const detectedFA = _detectFAProduct(fileName, '');
+  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
   if (isFattyAcidTest && parsed.markers?.length) {
     testType = 'fattyAcids';
-    _normalizeFattyAcidMarkers(parsed.markers, fileName, '');
+    _normalizeFattyAcidMarkers(parsed.markers, fileName, '', detectedFA);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
