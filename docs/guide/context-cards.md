@@ -63,6 +63,26 @@ Your location (set in Settings) is used to auto-detect your latitude band, which
 - Air quality and toxin exposure
 - Building materials
 
+### EMF Assessment
+
+The Environment card includes a dedicated **Baubiologie EMF Assessment** sub-module for tracking electromagnetic field measurements room by room. Open the Environment card editor and click **Open EMF Assessment** to access it.
+
+Features:
+- **Room-by-room measurements** — bedroom, office, living room, or custom rooms. Each room can be marked as a sleeping or daytime area, which changes the severity thresholds
+- **SBM-2015 severity grading** — measurements are rated against Building Biology (Baubiologie) standards across 5 types: AC electric fields (V/m), AC magnetic fields (nT), RF/microwave radiation (µW/m²), dirty electricity (GS), and DC magnetic deviation (µT). Severity ranges from No Concern (green) to Extreme Concern (red), with separate thresholds for sleeping and daytime areas
+- **Meter presets** — autocomplete suggestions for common EMF meters (e.g., Gigahertz NFA1000, Safe and Sound Pro II)
+- **Sources and mitigations** — tag common EMF sources (WiFi router, smart meter, cell tower) and mitigation steps (demand switch, shielding paint, WiFi off at night) per room
+- **Room photos** — attach up to 6 photos per room to document meter readings or setup
+- **PDF import** — import professional consultant reports via AI-powered PDF extraction
+- **AI interpretation** — generate a streaming AI analysis of a single assessment, or compare two assessments (before vs after remediation) with color-coded delta arrows
+- **Printable template** — download a blank assessment form for on-site use
+
+EMF data is included in the AI chat context and JSON export/import.
+
+**Diet & Digestion** includes:
+- Eating patterns, meal timing, and dietary restrictions
+- 10 digestion fields: bowel frequency, stool consistency, bloating, gas, acid reflux, burping, nausea, appetite, abdominal pain, and food sensitivities
+
 ## Additional Notes
 
 Below the card grid is a free-form **Additional Notes** textarea. Use this to add anything that does not fit neatly into a structured card — recent travel, a new medication, unusual stress, anything relevant. This text is auto-saved and included in every AI conversation.
