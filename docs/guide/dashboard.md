@@ -24,7 +24,7 @@ The dashboard only shows markers that have actual data from your lab results. Ma
 
 The sidebar on the left lists all biomarker categories (Biochemistry, Hormones, Lipids, Hematology, etc.). Each category shows a count of how many markers have actual data. Click any category to jump to its charts.
 
-On tablets and smaller screens, the sidebar collapses into a horizontal pill navigation bar at the top.
+On tablets and smaller screens (below 1024px), the sidebar becomes a slide-out menu accessed via the hamburger button in the header. Tap a category to navigate and the sidebar closes automatically.
 
 ## Date Range Filter
 

@@ -56,7 +56,9 @@ In **Settings → Profile**, enter your biological sex and date of birth. These 
 
 Drag and drop any lab PDF onto the drop zone at the top of the dashboard. The AI reads the report, maps results to known biomarkers, and shows you a preview before saving anything.
 
-If you don't have a PDF handy, use **Manual Entry** to type in values directly.
+If you don't have a PDF handy, try one of the **demo profiles** first. On the welcome screen, click **Sarah** (iron & hormones story) or **Alex** (metabolic health journey) to load a fully populated profile with 4 blood draws, fatty acid panels, supplements, context cards, EMF assessments, and notes. You can also load demo profiles later from the **Client List** (click your profile in the header) using the **+ Demo Sarah** or **+ Demo Alex** buttons.
+
+Alternatively, use **Manual Entry** to type in values directly.
 
 ::: warning AI provider required for PDF import
 You must have an AI provider configured before dropping a PDF. If the drop zone shows a prompt to set up a provider, visit Settings first.
