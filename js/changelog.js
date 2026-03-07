@@ -5,10 +5,10 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.4.3', date: '2026-03-07', title: 'Fatty Acid Lab Separation',
+    version: '1.4.3', date: '2026-03-07', title: 'Improved Fatty Acids Support',
     items: [
-      'Fatty acid tests now grouped by product/lab (Spadia, ZinZino, OmegaQuant) — each appears as its own subcategory under a "Fatty Acids" sidebar group',
-      'Auto-detects fatty acid lab from PDF content or filename',
+      'Improved support for fatty acid panels — each lab appears as its own subcategory under a "Fatty Acids" sidebar group',
+      'Auto-detects fatty acid lab from PDF content',
       'Re-importing a PDF now updates category labels instead of keeping stale ones from previous imports',
     ]
   },
