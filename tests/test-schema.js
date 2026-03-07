@@ -33,7 +33,7 @@
   }
 
   // Standard categories should still be present
-  const standardCats = ['biochemistry', 'hormones', 'electrolytes', 'lipids', 'iron', 'proteins', 'thyroid', 'vitamins', 'diabetes', 'tumorMarkers', 'coagulation', 'hematology', 'differential', 'fattyAcids', 'boneMetabolism', 'calculatedRatios'];
+  const standardCats = ['biochemistry', 'hormones', 'electrolytes', 'lipids', 'iron', 'proteins', 'thyroid', 'vitamins', 'diabetes', 'tumorMarkers', 'coagulation', 'hematology', 'differential', 'boneMetabolism', 'calculatedRatios'];
   for (const cat of standardCats) {
     assert(`MARKER_SCHEMA has ${cat}`, schemaBlock.includes(`  ${cat}:`));
   }
@@ -50,8 +50,8 @@
     schemaSrc.indexOf('export const SPECIALTY_MARKER_DEFS'),
     schemaSrc.indexOf('};\n\n// \u2500\u2500 Model pricing')
   );
-  const entryCount = (defsBlock.match(/"[a-zA-Z]+\.[a-zA-Z0-9]+": \{/g) || []).length;
-  assert('SPECIALTY_MARKER_DEFS has 165 entries', entryCount === 165, `found ${entryCount}`);
+  const entryCount = (defsBlock.match(/"[a-zA-Z]+\.\w+": \{/g) || []).length;
+  assert('SPECIALTY_MARKER_DEFS has 194 entries', entryCount === 194, `found ${entryCount}`);
 
   // Each entry has required fields
   assert('Entries have name field', defsBlock.includes('name:'));
@@ -66,6 +66,8 @@
   assert('Has toxicElements.lead', defsBlock.includes('"toxicElements.lead"'));
   assert('Has urineAmino.arginine', defsBlock.includes('"urineAmino.arginine"'));
   assert('Has nutrientElements.selenium', defsBlock.includes('"nutrientElements.selenium"'));
+  assert('Has fattyAcids.omega3Index', defsBlock.includes('"fattyAcids.omega3Index"'));
+  assert('Has fattyAcids.epaC20_5', defsBlock.includes('"fattyAcids.epaC20_5"'));
 
   // ═══════════════════════════════════════
   // 3. CORRELATION_PRESETS don't reference specialty keys

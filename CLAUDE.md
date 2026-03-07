@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-getbased is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 16 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (currently OAT) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF.
+getbased is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (OAT, fatty acids, etc.) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF. Fatty acid tests are grouped by product/lab (Spadia, ZinZino, OmegaQuant) under a "Fatty Acids" sidebar group.
 
 Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or Local AI) for AI-powered PDF import and an AI chat panel for interpreting results. (Routstr provider disabled pending CORS fix — see `grep -r "ROUTSTR DISABLED"`)
 
@@ -54,7 +54,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides }`. Legacy fields auto-migrated via `migrateProfileData()`
 3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle
 4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
-5. `singlePoint` categories (fattyAcids) have `singlePoint: true` — grid cards instead of trend charts
+5. `singlePoint` categories have `singlePoint: true` — grid cards instead of trend charts. Fatty acids flow through the custom marker pipeline with per-product prefixes (spadiaFA, zinzinoFA, omegaquantFA) under a "Fatty Acids" sidebar group
 6. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
 
 ### PDF Import Pipeline

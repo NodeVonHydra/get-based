@@ -152,40 +152,6 @@ export const MARKER_SCHEMA = {
       monocytesPct: { name: "Monocytes %", unit: "", refMin: 0.02, refMax: 0.12, desc: "Proportion of white blood cells that are monocytes; elevated in chronic inflammation, tuberculosis, and recovery phases." }
     }
   },
-  fattyAcids: {
-    label: "Fatty Acids", icon: "\uD83D\uDC1F", singlePoint: true,
-    markers: {
-      palmiticC16: { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1, desc: "The most common saturated fatty acid; elevated levels are associated with increased cardiovascular and metabolic risk." },
-      stearicC18: { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8, desc: "A long-chain saturated fatty acid with neutral cardiovascular effects; partially converts to oleic acid in the body." },
-      oleicC18_1: { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4, desc: "The main monounsaturated omega-9 fatty acid (olive oil); associated with cardiovascular protection and anti-inflammatory effects." },
-      linoleicC18_2: { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3, desc: "An essential omega-6 fatty acid from dietary sources; needed for cell membranes but excess may promote inflammation." },
-      glaC18_3: { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22, desc: "Gamma-linolenic acid, an omega-6 with anti-inflammatory properties; paradoxically reduces inflammation despite being omega-6." },
-      arachidonicC20_4: { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50, desc: "A key omega-6 fatty acid and precursor to inflammatory prostaglandins; its ratio to EPA reflects inflammatory balance." },
-      dglaC20_3: { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16, desc: "An omega-6 fatty acid that produces anti-inflammatory mediators; competes with arachidonic acid to reduce inflammation." },
-      alaC18_3: { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89, desc: "An essential omega-3 from plant sources (flax, chia); converts poorly to EPA/DHA but has independent cardiovascular benefits." },
-      epaC20_5: { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72, desc: "A marine omega-3 fatty acid with potent anti-inflammatory effects; lowers triglycerides and reduces cardiovascular risk." },
-      dpaC22_5: { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36, desc: "An intermediate omega-3 between EPA and DHA; contributes to anti-inflammatory and cardiovascular protective effects." },
-      dhaC22_6: { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64, desc: "A marine omega-3 critical for brain and retinal structure; essential for cognitive function and neurodevelopment." },
-      omega3Index: { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0, desc: "EPA + DHA as percentage of red blood cell membranes; values above 8% are associated with lowest cardiovascular risk." },
-      omega6to3Ratio: { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0, desc: "Balance between pro-inflammatory omega-6 and anti-inflammatory omega-3 fats; lower ratios indicate less systemic inflammation." },
-      membraneFluidity: { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0, desc: "Index of cell membrane flexibility based on fatty acid composition; optimal fluidity supports nutrient transport and cell signaling." },
-      mentalResilience: { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, desc: "Composite index derived from omega-3 levels reflecting neuronal membrane health and cognitive stress resilience." },
-      nervonicC24_1: { name: "Nervonic Acid C24:1", unit: "%", refMin: 1.1, refMax: 1.8, desc: "Long-chain monounsaturated fatty acid essential for brain myelin synthesis; low levels associated with demyelinating conditions." },
-      arachidicC20_0: { name: "Arachidic Acid C20:0", unit: "%", refMin: 0.24, refMax: 0.40, desc: "Very-long-chain saturated fatty acid from peanut oil; reflects peroxisomal fatty acid metabolism." },
-      behenicC22_0: { name: "Behenic Acid C22:0", unit: "%", refMin: 0.88, refMax: 1.61, desc: "Very-long-chain saturated fatty acid found in seeds and legumes; marker of peroxisomal beta-oxidation capacity." },
-      tricosanoicC23_0: { name: "Tricosanoic Acid C23:0", unit: "%", refMin: 0.19, refMax: 0.26, desc: "Odd-chain very-long-chain saturated fatty acid; reflects peroxisomal fatty acid elongation and metabolism." },
-      lignocericC24_0: { name: "Lignoceric Acid C24:0", unit: "%", refMin: 1.1, refMax: 1.9, desc: "Very-long-chain saturated fatty acid in brain sphingolipids; elevated in adrenoleukodystrophy and peroxisomal disorders." },
-      pentadecanoicC15_0: { name: "Pentadecanoic Acid C15:0", unit: "%", refMin: 0.14, refMax: 0.30, desc: "Odd-chain saturated fatty acid primarily from dairy fat; a biomarker of dairy intake with emerging metabolic health benefits." },
-      margaricC17_0: { name: "Margaric Acid C17:0", unit: "%", refMin: 0.24, refMax: 0.45, desc: "Odd-chain saturated fatty acid from ruminant fat; biomarker of dairy and ruminant meat consumption." },
-      palmitoleicC16_1n7: { name: "Palmitoleic Acid C16:1n7", unit: "%", refMin: null, refMax: 2.58, desc: "Omega-7 monounsaturated fatty acid produced by de novo lipogenesis; elevated levels indicate increased hepatic fat synthesis." },
-      vaccenicC18_1n7: { name: "Vaccenic Acid C18:1n7", unit: "%", refMin: null, refMax: 1.65, desc: "Natural trans fatty acid from ruminant fat; converts to conjugated linoleic acid (CLA) with anti-inflammatory properties." },
-      elaidicC18_1n9t: { name: "Elaidic Acid C18:1n9t", unit: "%", refMin: null, refMax: 0.59, desc: "Industrial trans fatty acid from partially hydrogenated oils; strongly associated with cardiovascular disease and inflammation." },
-      docosatetraenoicC22_4n6: { name: "Docosatetraenoic Acid C22:4n6", unit: "%", refMin: 0.45, refMax: 1.25, desc: "Omega-6 long-chain fatty acid derived from arachidonic acid; reflects elongase activity and omega-6 metabolism." },
-      eicosadienoicC20_2n6: { name: "Eicosadienoic Acid C20:2n6", unit: "%", refMin: null, refMax: 0.26, desc: "Minor omega-6 fatty acid from linoleic acid elongation; elevated levels may indicate impaired delta-5 desaturase activity." },
-      aaEpaRatio: { name: "AA/EPA Ratio", unit: "", refMin: 10, refMax: 86, desc: "Arachidonic acid to EPA ratio; reflects the balance between pro-inflammatory omega-6 and anti-inflammatory omega-3 pathways." },
-      linoleicDglaRatio: { name: "Linoleic/DGLA Ratio", unit: "", refMin: 12.6, refMax: 31.5, desc: "Ratio of linoleic acid to DGLA; reflects delta-6 desaturase enzyme activity converting omega-6 to anti-inflammatory DGLA." }
-    }
-  },
   boneMetabolism: {
     label: "Bone Metabolism", icon: "\uD83E\uDDB4",
     markers: {
@@ -437,7 +403,39 @@ export const SPECIALTY_MARKER_DEFS = {
   "nutrientElements.zinc": { name: "Zinc (Urine)", unit: "\u00b5g/g creatinine", refMin: 63, refMax: 688, categoryLabel: "Nutrient Elements", icon: "\u2699\uFE0F", group: "OAT" },
   "nutrientElements.calcium": { name: "Calcium (Urine)", unit: "mg/g creatinine", refMin: 37, refMax: 313, categoryLabel: "Nutrient Elements", icon: "\u2699\uFE0F", group: "OAT" },
   "nutrientElements.magnesiumUrine": { name: "Magnesium (Urine)", unit: "mg/g creatinine", refMin: 41, refMax: 267, categoryLabel: "Nutrient Elements", icon: "\u2699\uFE0F", group: "OAT" },
-  "nutrientElements.sulfur": { name: "Sulfur", unit: "mg/g creatinine", refMin: 367, refMax: 1328, categoryLabel: "Nutrient Elements", icon: "\u2699\uFE0F", group: "OAT" }
+  "nutrientElements.sulfur": { name: "Sulfur", unit: "mg/g creatinine", refMin: 367, refMax: 1328, categoryLabel: "Nutrient Elements", icon: "\u2699\uFE0F", group: "OAT" },
+  // ── Fatty Acids (specialty — migrated from hardcoded schema) ──
+  // These markers appear on fatty acid profile tests (Spadia, ZinZino, OmegaQuant, etc.).
+  // AI detects the test product during PDF import and creates the appropriate custom markers.
+  "fattyAcids.palmiticC16": { name: "Palmitic Acid C16:0", unit: "%", refMin: 28.1, refMax: 30.1, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.stearicC18": { name: "Stearic Acid C18:0", unit: "%", refMin: 12.5, refMax: 13.8, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.oleicC18_1": { name: "Oleic Acid C18:1", unit: "%", refMin: 20.9, refMax: 23.4, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.linoleicC18_2": { name: "Linoleic Acid C18:2", unit: "%", refMin: 18.4, refMax: 21.3, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.glaC18_3": { name: "GLA C18:3", unit: "%", refMin: 0.11, refMax: 0.22, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.arachidonicC20_4": { name: "Arachidonic C20:4", unit: "%", refMin: 5.50, refMax: 8.50, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.dglaC20_3": { name: "DGLA C20:3", unit: "%", refMin: 0.91, refMax: 1.16, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.alaC18_3": { name: "ALA C18:3", unit: "%", refMin: 0.58, refMax: 0.89, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.epaC20_5": { name: "EPA C20:5", unit: "%", refMin: 3.23, refMax: 4.72, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.dpaC22_5": { name: "DPA C22:5", unit: "%", refMin: 1.95, refMax: 2.36, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.dhaC22_6": { name: "DHA C22:6", unit: "%", refMin: 3.95, refMax: 4.64, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.omega3Index": { name: "Omega-3 Index", unit: "%", refMin: 8.0, refMax: 12.0, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.omega6to3Ratio": { name: "Omega-6/3 Ratio", unit: "", refMin: 1.0, refMax: 4.0, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.membraneFluidity": { name: "Membrane Fluidity", unit: "", refMin: 1.0, refMax: 4.0, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.mentalResilience": { name: "Mental Resilience Idx", unit: "", refMin: 0.5, refMax: 1.0, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.nervonicC24_1": { name: "Nervonic Acid C24:1", unit: "%", refMin: 1.1, refMax: 1.8, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.arachidicC20_0": { name: "Arachidic Acid C20:0", unit: "%", refMin: 0.24, refMax: 0.40, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.behenicC22_0": { name: "Behenic Acid C22:0", unit: "%", refMin: 0.88, refMax: 1.61, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.tricosanoicC23_0": { name: "Tricosanoic Acid C23:0", unit: "%", refMin: 0.19, refMax: 0.26, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.lignocericC24_0": { name: "Lignoceric Acid C24:0", unit: "%", refMin: 1.1, refMax: 1.9, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.pentadecanoicC15_0": { name: "Pentadecanoic Acid C15:0", unit: "%", refMin: 0.14, refMax: 0.30, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.margaricC17_0": { name: "Margaric Acid C17:0", unit: "%", refMin: 0.24, refMax: 0.45, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.palmitoleicC16_1n7": { name: "Palmitoleic Acid C16:1n7", unit: "%", refMin: null, refMax: 2.58, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.vaccenicC18_1n7": { name: "Vaccenic Acid C18:1n7", unit: "%", refMin: null, refMax: 1.65, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.elaidicC18_1n9t": { name: "Elaidic Acid C18:1n9t", unit: "%", refMin: null, refMax: 0.59, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.docosatetraenoicC22_4n6": { name: "Docosatetraenoic Acid C22:4n6", unit: "%", refMin: 0.45, refMax: 1.25, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.eicosadienoicC20_2n6": { name: "Eicosadienoic Acid C20:2n6", unit: "%", refMin: null, refMax: 0.26, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.aaEpaRatio": { name: "AA/EPA Ratio", unit: "", refMin: 10, refMax: 86, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true },
+  "fattyAcids.linoleicDglaRatio": { name: "Linoleic/DGLA Ratio", unit: "", refMin: 12.6, refMax: 31.5, categoryLabel: "Fatty Acids", icon: "\uD83D\uDC1F", group: "Fatty Acids", singlePoint: true }
 };
 
 // ── Model pricing ($/M tokens) ──
@@ -588,8 +586,6 @@ export const OPTIMAL_RANGES = {
   'differential.lymphocytes': { optimalMin: 1.5, optimalMax: 3.0 },
   // Coagulation
   'coagulation.homocysteine': { optimalMin: 5.0, optimalMax: 8.0 },
-  // Fatty Acids
-  'fattyAcids.omega3Index': { optimalMin: 8.0, optimalMax: 12.0 }
 };
 
 // Phase-specific reference ranges for cycle-dependent hormones (premenopausal female, SI units)
