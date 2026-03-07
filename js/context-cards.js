@@ -7,7 +7,27 @@ import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
 import { callClaudeAPI, hasAIProvider } from './api.js';
-import { getEMFSummary } from './emf.js';
+import { getEMFSeverity } from './schema.js';
+
+function getEMFSummary() {
+  const emf = state.importedData.emfAssessment;
+  if (!emf || !emf.assessments || emf.assessments.length === 0) return '';
+  const sorted = [...emf.assessments].sort((a, b) => b.date.localeCompare(a.date));
+  const latest = sorted[0];
+  let worst = null, worstIdx = -1;
+  const tierOrder = ['green', 'yellow', 'orange', 'red'];
+  for (const room of latest.rooms) {
+    const sleeping = room.sleeping !== false;
+    for (const [type, m] of Object.entries(room.measurements || {})) {
+      if (m && m.value != null) {
+        const sev = getEMFSeverity(type, m.value, sleeping);
+        if (sev) { const idx = tierOrder.indexOf(sev.color); if (idx > worstIdx) { worst = sev; worstIdx = idx; } }
+      }
+    }
+  }
+  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return `EMF: ${sorted.length} assessment${sorted.length > 1 ? 's' : ''} (latest: ${fmtDate(latest.date)}${worst ? ', ' + worst.label : ''})`;
+}
 
 // ── Context card summary generators ──
 

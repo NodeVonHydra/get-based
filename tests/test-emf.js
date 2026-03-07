@@ -90,6 +90,12 @@
   assert('43. EMF_MITIGATIONS is array', Array.isArray(EMF_MITIGATIONS) && EMF_MITIGATIONS.length >= 10);
   assert('44. Bedroom in room presets', EMF_ROOM_PRESETS.includes('Bedroom'));
 
+  // ── Lazy-load stub sync check ──
+  const emfMod = await import('/js/emf.js');
+  const emfWindowFns = ['openEMFAssessmentEditor','addEMFAssessment','toggleEMFAssessment','selectEMFRoom','handleEMFRoomDropdown','addEMFRoom','removeEMFRoom','deleteEMFAssessment','updateEMFField','updateEMFRoom','updateEMFMeasurement','updateEMFMeter','saveEMFExplicit','toggleEMFCompare','interpretEMFAssessment','interpretEMFComparison','closeEMFInterpretation','discussEMFInterpretation','addEMFPhotos','removeEMFPhoto','viewEMFPhoto','handleEMFPDF'];
+  const missingExports = emfWindowFns.filter(fn => typeof emfMod[fn] !== 'function');
+  assert('45. All lazy-stub fns exist in emf.js exports', missingExports.length === 0, missingExports.join(', '));
+
   console.log('=== Results ===');
   console.log(`${document.querySelectorAll('.test-pass').length || 48} passed, 0 failed`);
 })();
