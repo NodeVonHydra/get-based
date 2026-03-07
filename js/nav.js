@@ -170,4 +170,24 @@ export function renderProfileButton() {
 // Keep renderProfileDropdown as alias for backward compat (tests, other modules)
 export function renderProfileDropdown() { renderProfileButton(); }
 
-Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, toggleGroupAIContext, renderProfileDropdown, renderProfileButton, getAvatarColor });
+// ═══════════════════════════════════════════════
+// MOBILE SIDEBAR
+// ═══════════════════════════════════════════════
+export function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar-nav');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const isOpen = sidebar.classList.contains('mobile-open');
+  if (isOpen) {
+    closeMobileSidebar();
+  } else {
+    sidebar.classList.add('mobile-open');
+    backdrop.classList.add('show');
+  }
+}
+
+export function closeMobileSidebar() {
+  document.getElementById('sidebar-nav').classList.remove('mobile-open');
+  document.getElementById('sidebar-backdrop').classList.remove('show');
+}
+
+Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, toggleGroupAIContext, renderProfileDropdown, renderProfileButton, getAvatarColor, toggleMobileSidebar, closeMobileSidebar });

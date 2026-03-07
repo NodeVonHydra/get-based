@@ -83,7 +83,7 @@ Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstru
 
 ### EMF Assessment
 
-Baubiologie sub-module under Environment context card. Storage: `importedData.emfAssessment` (`{ assessments: [...] }`). Each assessment has date, consultant, notes, rooms array, sources/mitigations tags. Room measurements use `SBM_2015_THRESHOLDS` (5 types × 4 severity tiers). Separate PDF import pipeline in `emf.js` for consultant reports. Printable template at `data/emf-assessment-template.html`.
+Baubiologie sub-module under Environment context card. Storage: `importedData.emfAssessment` (`{ assessments: [...] }`). Each assessment has date, consultant, notes, rooms array with sleeping flag, sources/mitigations tags, room photos (base64, max 6). Room measurements use `SBM_2015_THRESHOLDS` with separate `sleeping`/`daytime` tier arrays — `getEMFSeverity(type, value, sleeping)`. Meter presets via `EMF_METER_PRESETS` in constants.js with `<datalist>` autocomplete. AI interpretation modal streams analysis per assessment or before/after comparison, saved to `assessment.interpretation`/`emf.comparisonInterpretation`. Separate PDF import pipeline in `emf.js` for consultant reports. Printable template at `data/emf-assessment-template.html`.
 
 ### Calculated Markers
 
@@ -109,7 +109,7 @@ Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI
 
 ### Header
 
-Logo: gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Profile: compact button with colored avatar dot + name — opens Client List modal. Buttons: Settings (gear) → Feedback (bug) → Discord (brand SVG) → ₿ Donate (orange text, BTCPay). Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
+Left: hamburger (mobile only) + gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Right: profile button → divider → dates + range toggle → divider → Settings (gear) + Feedback (bug) + ₿ Donate (orange text, BTCPay). Groups separated by `.header-divider` vertical lines. Mobile (≤768px): hides data group, dividers, feedback, donate. Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
 
 ### Dashboard Section Order
 
@@ -150,7 +150,7 @@ VitePress at `/docs` (source in `docs/`). 27 user guide pages + 8 contributor pa
 
 ### Responsive Layout
 
-Breakpoints: 3000/2000/1600/1400px (chat scaling), 1200px (cards 3→2 col), 1024px (sidebar → horizontal pills), 768px (compact header), 600/480/375px (mobile). Grid items: `min-width: 0; overflow: hidden`. Touch: `@media (pointer: coarse)` 44px tap targets; `@media (hover: none)` reveals hover-only elements.
+Breakpoints: 3000/2000/1600/1400px (chat scaling), 1200px (cards 3→2 col), 1024px (sidebar → hamburger slide-out with backdrop), 768px (compact header — hides dates, range, feedback, donate; header groups with dividers), 600/480/375px (mobile). Grid items: `min-width: 0; overflow: hidden`. Touch: `@media (pointer: coarse)` 44px tap targets; `@media (hover: none)` reveals hover-only elements. Mobile sidebar: `toggleMobileSidebar()`/`closeMobileSidebar()` in nav.js, auto-closes on navigation.
 
 ## Key Patterns
 

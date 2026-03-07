@@ -24,6 +24,8 @@ export function navigate(category, data) {
   document.querySelectorAll(".nav-item").forEach(el => {
     el.classList.toggle("active", el.dataset.category === category);
   });
+  // Close mobile sidebar on navigation
+  if (window.closeMobileSidebar) window.closeMobileSidebar();
   destroyAllCharts();
   if (category === "dashboard") showDashboard(data);
   else if (category === "correlations") showCorrelations(data);
@@ -881,6 +883,8 @@ export function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
   if (state.chartInstances["modal"]) { state.chartInstances["modal"].destroy(); delete state.chartInstances["modal"]; }
   document.removeEventListener('click', closeSuggestionsOnClickOutside);
+  // Clean up any child overlays (e.g. EMF interpretation) that may have been left open
+  if (window.closeEMFInterpretation) window.closeEMFInterpretation();
   // Refresh background view to reflect any edits made while modal was open
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");

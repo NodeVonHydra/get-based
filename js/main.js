@@ -191,6 +191,10 @@ document.addEventListener("keydown", e => {
     if (passphraseOverlay && passphraseOverlay.style.display === 'flex') return;
     const tourOverlay = document.getElementById("tour-overlay");
     if (tourOverlay) { window.endTour(); return; }
+    const sidebarNav = document.getElementById("sidebar-nav");
+    if (sidebarNav && sidebarNav.classList.contains("mobile-open")) { window.closeMobileSidebar(); return; }
+    const emfInterpOverlay = document.getElementById("emf-interp-overlay");
+    if (emfInterpOverlay && emfInterpOverlay.classList.contains("show")) { window.closeEMFInterpretation(); return; }
     const confirmOverlay = document.getElementById("confirm-dialog-overlay");
     if (confirmOverlay && confirmOverlay.classList.contains("show")) { confirmOverlay.classList.remove("show"); return; }
     const chatPanel = document.getElementById("chat-panel");
