@@ -14,7 +14,11 @@ import './notes.js';
 import './supplements.js';
 import './cycle.js';
 import './context-cards.js';
-import './emf.js';
+// emf.js is lazy-loaded on first use (1053 lines, only needed when user opens EMF editor)
+const _emfFns = ['openEMFAssessmentEditor','addEMFAssessment','toggleEMFAssessment','selectEMFRoom','handleEMFRoomDropdown','addEMFRoom','removeEMFRoom','deleteEMFAssessment','updateEMFField','updateEMFRoom','updateEMFMeasurement','updateEMFMeter','saveEMFExplicit','toggleEMFCompare','interpretEMFAssessment','interpretEMFComparison','closeEMFInterpretation','discussEMFInterpretation','addEMFPhotos','removeEMFPhoto','viewEMFPhoto','handleEMFPDF'];
+for (const fn of _emfFns) {
+  window[fn] = async function(...args) { const mod = await import('./emf.js'); for (const f of _emfFns) window[f] = mod[f]; return mod[fn](...args); };
+}
 import './pdf-import.js';
 import './export.js';
 import './chat.js';

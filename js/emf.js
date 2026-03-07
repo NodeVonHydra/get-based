@@ -75,7 +75,7 @@ function getRoomWorstSeverity(room) {
 }
 
 /** Worst severity across all rooms in an assessment */
-export function getWorstSeverity(assessment) {
+function getWorstSeverity(assessment) {
   let worst = null;
   let worstIdx = -1;
   const tierOrder = ['green', 'yellow', 'orange', 'red'];
@@ -87,17 +87,6 @@ export function getWorstSeverity(assessment) {
     }
   }
   return worst;
-}
-
-/** Summary string for Environment card */
-export function getEMFSummary() {
-  const emf = state.importedData.emfAssessment;
-  if (!emf || !emf.assessments || emf.assessments.length === 0) return '';
-  const sorted = [...emf.assessments].sort((a, b) => b.date.localeCompare(a.date));
-  const latest = sorted[0];
-  const worst = getWorstSeverity(latest);
-  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  return `EMF: ${sorted.length} assessment${sorted.length > 1 ? 's' : ''} (latest: ${fmtDate(latest.date)}${worst ? ', ' + worst.label : ''})`;
 }
 
 // ═══════════════════════════════════════════════
