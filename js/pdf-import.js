@@ -282,16 +282,23 @@ Your task:
    - "blood" for standard blood panels (CBC, metabolic, lipids, hormones, etc.)
    - "OAT" for Organic Acids Tests (Mosaic, Genova, Great Plains)
    - "Metabolomix+" for Genova Metabolomix+ profiles (combo: organic acids + amino acids + fatty acids)
+   - "fattyAcids" for standalone fatty acid profile tests. Identify the specific product/lab:
+     * Spadia Lab → ALL markers use category prefix "spadiaFA" (e.g., "spadiaFA.epaC20_5"), suggestedCategoryLabel "Spadia", suggestedGroup "Fatty Acids"
+     * ZinZino BalanceTest → ALL markers use category prefix "zinzinoFA" (e.g., "zinzinoFA.epaC20_5"), suggestedCategoryLabel "ZinZino", suggestedGroup "Fatty Acids"
+     * OmegaQuant (Basic/Plus/Complete) → ALL markers use category prefix "omegaquantFA" (e.g., "omegaquantFA.epaC20_5"), suggestedCategoryLabel "OmegaQuant", suggestedGroup "Fatty Acids"
+     * Other fatty acid labs → ALL markers use labNameFA prefix, suggestedCategoryLabel = lab name, suggestedGroup "Fatty Acids"
+     IMPORTANT: Put ALL markers from one test into ONE category (the product prefix). Do NOT split by fatty acid type (omega-3, omega-6, saturated, etc.) — those are subsections in the report, not separate categories. Do NOT use the generic "fattyAcids" prefix
    - "DUTCH" for dried urine hormone panels
    - "HTMA" for Hair Tissue Mineral Analysis
    - "GI" for stool tests (GI-MAP, Gut Zoomer)
    - Or a descriptive name for other specialty tests
-8. CRITICAL for specialty tests (testType ≠ "blood"): You MUST NOT set mappedKey to any standard blood work category key (biochemistry, hormones, electrolytes, lipids, iron, proteins, thyroid, vitamins, diabetes, tumorMarkers, coagulation, hematology, differential, fattyAcids, boneMetabolism). Even if a marker name matches (e.g., "Creatinine" in a urine OAT test is NOT "biochemistry.creatinine" which is serum). Always use test-type-prefixed keys from the reference list (oatMicrobial, oatMetabolic, etc.) or set mappedKey to null so it becomes a new custom marker. Different specimen types = different markers.
+8. CRITICAL for specialty tests (testType ≠ "blood"): You MUST NOT set mappedKey to any standard blood work category key (biochemistry, hormones, electrolytes, lipids, iron, proteins, thyroid, vitamins, diabetes, tumorMarkers, coagulation, hematology, differential, boneMetabolism) or "fattyAcids". Even if a marker name matches (e.g., "Creatinine" in a urine OAT test is NOT "biochemistry.creatinine" which is serum). Even if "fattyAcids.*" keys exist in the known markers list, do NOT match to them — always create new product-specific keys. Always use test-type-prefixed keys from the reference list (oatMicrobial, oatMetabolic, etc.) or set mappedKey to null so it becomes a new custom marker. Different specimen types = different markers.
 9. For markers that do NOT match any known key (mappedKey is null), also return:
    - suggestedKey: a "category.camelCaseKey" string. For specialty tests (testType ≠ "blood"), ALWAYS use a test-type-prefixed category (e.g., "oatNutritional", "dutchHormones"). Never use standard blood work categories for specialty test markers. The key part should be a concise camelCase identifier. NEVER use a suggestedKey that already exists in the known markers list above.
    - suggestedName: a clean English display name for the marker
    - suggestedCategoryLabel: short category label (e.g., "Microbial Overgrowth")
-   - suggestedGroup: test type group (e.g., "OAT", "DUTCH", "HTMA") — omit for standard blood work
+   - suggestedGroup: test type group (e.g., "OAT", "DUTCH", "HTMA", "Fatty Acids") — omit for standard blood work
+10. FATTY ACID TESTS: ALL markers from one test go into ONE category using the product prefix. Example for OmegaQuant: every marker (EPA, DHA, Palmitic, Oleic, Trans Fat Index, AA:EPA ratio — everything) uses suggestedKey "omegaquantFA.markerName", suggestedCategoryLabel "OmegaQuant", suggestedGroup "Fatty Acids". Do NOT create subcategories like "Omega-3 Fatty Acids" or "Saturated Fatty Acids" — those are report sections, not categories.
 
 Return ONLY valid JSON in this exact format, no other text:
 {
@@ -299,7 +306,8 @@ Return ONLY valid JSON in this exact format, no other text:
   "date": "YYYY-MM-DD",
   "markers": [
     {"rawName": "Test Name", "value": 5.23, "mappedKey": "category.marker", "unit": "mg/dL", "refMin": 70, "refMax": 100},
-    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "oatMicrobial.someMarker", "suggestedName": "Some Marker", "suggestedCategoryLabel": "Microbial Overgrowth", "suggestedGroup": "OAT", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0}
+    {"rawName": "Unknown Test", "value": 1.0, "mappedKey": null, "suggestedKey": "oatMicrobial.someMarker", "suggestedName": "Some Marker", "suggestedCategoryLabel": "Microbial Overgrowth", "suggestedGroup": "OAT", "unit": "mg/l", "refMin": 0.5, "refMax": 3.0},
+    {"rawName": "EPA C20:5", "value": 0.46, "mappedKey": null, "suggestedKey": "omegaquantFA.epaC20_5", "suggestedName": "EPA C20:5", "suggestedCategoryLabel": "OmegaQuant", "suggestedGroup": "Fatty Acids", "unit": "%", "refMin": null, "refMax": null}
   ]
 }`;
 
@@ -339,7 +347,15 @@ Return ONLY valid JSON in this exact format, no other text:
   if (jsonStart > 0) jsonStr = jsonStr.slice(jsonStart);
   const parsed = tryParseJSON(jsonStr);
 
-  const testType = parsed.testType || 'blood';
+  let testType = parsed.testType || 'blood';
+  // ── Fatty acid normalization: merge all AI categories into one product-prefixed category ──
+  // Detect fatty acid tests even if AI misclassified the testType
+  const detectedFA = _detectFAProduct(fileName, pdfText);
+  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
+  if (isFattyAcidTest && parsed.markers?.length) {
+    testType = 'fattyAcids';
+    _normalizeFattyAcidMarkers(parsed.markers, fileName, pdfText, detectedFA);
+  }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
     date: parsed.date || null,
@@ -579,42 +595,45 @@ export function confirmImport() {
   if (result.importHash) entry.importHash = result.importHash;
   for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
   // For non-blood imports, testType is the authoritative sidebar group for all markers
-  const importGroup = (result.testType && result.testType !== 'blood') ? result.testType : null;
+  const importGroup = (result.testType && result.testType !== 'blood')
+    ? (result.testType === 'fattyAcids' ? 'Fatty Acids' : result.testType)
+    : null;
   // Auto-create custom markers for matched specialty keys (uses PDF's reference ranges)
   if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of matched) {
-    if (SPECIALTY_MARKER_DEFS[m.mappedKey] && !state.importedData.customMarkers[m.mappedKey]) {
+    if (SPECIALTY_MARKER_DEFS[m.mappedKey]) {
       const def = SPECIALTY_MARKER_DEFS[m.mappedKey];
-      state.importedData.customMarkers[m.mappedKey] = {
-        name: def.name,
-        unit: m.unit || def.unit,
-        refMin: m.refMin != null ? m.refMin : def.refMin,
-        refMax: m.refMax != null ? m.refMax : def.refMax,
-        categoryLabel: def.categoryLabel,
-        icon: def.icon,
-        group: importGroup || def.group || null
-      };
+      const existing = state.importedData.customMarkers[m.mappedKey];
+      const cmDef = existing || {};
+      cmDef.name = cmDef.name || def.name;
+      cmDef.unit = m.unit || cmDef.unit || def.unit;
+      cmDef.refMin = m.refMin != null ? m.refMin : (cmDef.refMin != null ? cmDef.refMin : def.refMin);
+      cmDef.refMax = m.refMax != null ? m.refMax : (cmDef.refMax != null ? cmDef.refMax : def.refMax);
+      cmDef.icon = cmDef.icon || def.icon;
+      if (def.singlePoint) cmDef.singlePoint = true;
+      // Always update organizational fields from latest import
+      cmDef.categoryLabel = def.categoryLabel;
+      cmDef.group = importGroup || def.group || null;
+      state.importedData.customMarkers[m.mappedKey] = cmDef;
     }
   }
   // Save new (custom) marker values and definitions
-  if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
   for (const m of newMarkers) {
     entry.markers[m.suggestedKey] = normalizeToSI(m.suggestedKey, m.value, m.unit);
-    // Save definition only if not already defined
-    if (!state.importedData.customMarkers[m.suggestedKey]) {
-      const [catKey] = m.suggestedKey.split('.');
-      // Determine category label: use schema label if category exists, else AI-suggested or title-case the key
-      const schemaCategory = MARKER_SCHEMA[catKey];
-      const categoryLabel = schemaCategory ? schemaCategory.label : m.suggestedCategoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1);
-      state.importedData.customMarkers[m.suggestedKey] = {
-        name: m.suggestedName || m.rawName,
-        unit: m.unit || '',
-        refMin: m.refMin,
-        refMax: m.refMax,
-        categoryLabel,
-        group: importGroup || m.group || null
-      };
-    }
+    const [catKey] = m.suggestedKey.split('.');
+    const schemaCategory = MARKER_SCHEMA[catKey];
+    const categoryLabel = schemaCategory ? schemaCategory.label : m.suggestedCategoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1);
+    const existing = state.importedData.customMarkers[m.suggestedKey];
+    const cmDef = existing || {};
+    cmDef.name = cmDef.name || m.suggestedName || m.rawName;
+    cmDef.unit = m.unit || cmDef.unit || '';
+    cmDef.refMin = m.refMin != null ? m.refMin : cmDef.refMin;
+    cmDef.refMax = m.refMax != null ? m.refMax : cmDef.refMax;
+    if (result.testType === 'fattyAcids') cmDef.singlePoint = true;
+    // Always update organizational fields from latest import
+    cmDef.categoryLabel = categoryLabel;
+    cmDef.group = importGroup || m.suggestedGroup || m.group || cmDef.group || null;
+    state.importedData.customMarkers[m.suggestedKey] = cmDef;
   }
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
   recalculateHOMAIR(entry);
@@ -689,6 +708,48 @@ export function setupDropZone() {
     if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
+}
+
+// ── Fatty acid post-processing: normalize all AI categories into one product-prefixed category ──
+const FA_PRODUCT_PATTERNS = [
+  { patterns: ['zinzino', 'balancetest', 'balance test'], prefix: 'zinzinoFA', label: 'ZinZino' },
+  { patterns: ['omegaquant', 'ayumetrix'], prefix: 'omegaquantFA', label: 'OmegaQuant' },
+  { patterns: ['spadia'], prefix: 'spadiaFA', label: 'Spadia' },
+];
+
+function _detectFAProduct(fileName, pdfText) {
+  const fnLower = (fileName || '').toLowerCase();
+  const textLower = (pdfText || '').slice(0, 3000).toLowerCase();
+  for (const p of FA_PRODUCT_PATTERNS) {
+    for (const pat of p.patterns) {
+      if (fnLower.includes(pat) || textLower.includes(pat)) return { prefix: p.prefix, label: p.label };
+    }
+  }
+  return null;
+}
+
+function _normalizeFattyAcidMarkers(markers, fileName, pdfText, detectedProduct) {
+  let product = detectedProduct || _detectFAProduct(fileName, pdfText);
+  // Fallback: derive from first non-generic suggestedGroup the AI returned
+  if (!product) {
+    const firstLabel = markers.find(m => m.suggestedCategoryLabel && !/fatty|omega|saturated|trans|mono/i.test(m.suggestedCategoryLabel))?.suggestedCategoryLabel;
+    if (firstLabel) {
+      const prefix = firstLabel.toLowerCase().replace(/[^a-z0-9]/g, '') + 'FA';
+      product = { prefix, label: firstLabel };
+    } else {
+      product = { prefix: 'fattyAcidsTest', label: 'Fatty Acids Test' };
+    }
+  }
+  for (const m of markers) {
+    const markerPart = m.suggestedKey ? m.suggestedKey.split('.').pop()
+      : m.mappedKey ? m.mappedKey.split('.').pop()
+      : m.rawName.replace(/[^a-zA-Z0-9_]/g, '');
+    if (!markerPart) continue;
+    m.mappedKey = null;
+    m.suggestedKey = `${product.prefix}.${markerPart}`;
+    m.suggestedCategoryLabel = product.label;
+    m.suggestedGroup = 'Fatty Acids';
+  }
 }
 
 // Weighted step percentages: text extraction and PII are fast, AI analysis is the bulk
@@ -793,7 +854,7 @@ Your task:
    - refMax: the upper reference range bound (number or null)
 3. Match based on medical/biochemical equivalence, not just string similarity
 4. Only map to a marker if you're confident it's the correct match
-5. Identify the type of lab test. Return as "testType" field: "blood", "OAT", "DUTCH", "HTMA", "GI", or a descriptive name
+5. Identify the type of lab test. Return as "testType" field: "blood", "OAT", "fattyAcids", "DUTCH", "HTMA", "GI", or a descriptive name. For fatty acid tests: put ALL markers into ONE product-specific category — spadiaFA (Spadia), zinzinoFA (ZinZino), omegaquantFA (OmegaQuant), or labNameFA. Use suggestedCategoryLabel = product name, suggestedGroup = "Fatty Acids". Do NOT split by fatty acid type (omega-3/omega-6/saturated/trans)
 6. CRITICAL for specialty tests (testType ≠ "blood"): Do NOT use standard blood work category keys. Use test-type-prefixed keys or set mappedKey to null
 7. For unmatched markers, also return: suggestedKey, suggestedName, suggestedCategoryLabel, suggestedGroup
 
@@ -843,7 +904,14 @@ Return ONLY valid JSON in this exact format:
   if (jsonStart > 0) jsonStr = jsonStr.slice(jsonStart);
   const parsed = tryParseJSON(jsonStr);
 
-  const testType = parsed.testType || 'blood';
+  let testType = parsed.testType || 'blood';
+  // ── Fatty acid normalization (image pipeline) ──
+  const detectedFA = _detectFAProduct(fileName, '');
+  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
+  if (isFattyAcidTest && parsed.markers?.length) {
+    testType = 'fattyAcids';
+    _normalizeFattyAcidMarkers(parsed.markers, fileName, '', detectedFA);
+  }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
     date: parsed.date || null,
