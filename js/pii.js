@@ -688,6 +688,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           sendBtn.disabled = false;
           if (statusEl) statusEl.textContent = `Complete \u2014 ${charCount.toLocaleString()} chars \u2014 click text to edit`;
           stopBtn.style.display = 'none';
+          retryBtn.style.display = '';
           if (thinkingSection && hasThinking) { thinkingSection.open = false; thinkingSection.querySelector('summary').textContent = 'Thinking (done)'; }
           showDiffPreview(textarea.value);
           // Auto-fill search with patient name

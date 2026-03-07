@@ -1,10 +1,10 @@
 // views.js — Navigate, dashboard, category views, detail modal, compare, correlations
 
 import { state } from './state.js';
-import { CORRELATION_PRESETS, CHIP_COLORS, UNIT_CONVERSIONS } from './schema.js';
+import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
-import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown } from './data.js';
+import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
 import { profileStorageKey, setProfileSex, setProfileDob } from './profile.js';
 import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin, phaseBandPlugin } from './charts.js';
 import { renderSupplementsSection } from './supplements.js';
@@ -83,7 +83,7 @@ export function showDashboard(data) {
     <p>Summary of all blood work results across ${data.dates.length} collection date${data.dates.length !== 1 ? 's' : ''}</p></div>`;
 
   // ── 1. Drop zone ──
-  html += `<div class="drop-zone" id="drop-zone">
+  html += `<div class="drop-zone drop-zone-compact" id="drop-zone">
     <div class="drop-zone-icon">\uD83D\uDCC4</div>
     <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
     <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div></div>`;
@@ -711,9 +711,11 @@ export function showDetailModal(id) {
     const matchingNote = rawDate && state.importedData.notes ? state.importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
     const isManual = rawDate && state.importedData.manualValues && state.importedData.manualValues[dotKey + ':' + rawDate];
-    const deleteBtn = (v !== null && isManual) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
+    const manualBadge = isManual ? ' <span class="ref-edited-badge" title="Manually entered/edited">edited</span>' : '';
+    const deleteBtn = (v !== null) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
+    const editClick = rawDate && v !== null ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
     html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
-      <div class="mv-value val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div>
+      <div class="mv-value val-${s}"${editClick}>${v !== null ? formatValue(v) : "\u2014"}${manualBadge}</div>
       <div class="mv-status val-${s}">${sl}</div>${phaseInfo}</div>`;
   }
   html += `</div>`;
@@ -802,12 +804,13 @@ export function saveManualEntry(id) {
     entry = { date: date, markers: {} };
     state.importedData.entries.push(entry);
   }
-  entry.markers[dotKey] = value;
+  const storedValue = convertDisplayToSI(dotKey, value);
+  entry.markers[dotKey] = storedValue;
   // Track as manually added
   if (!state.importedData.manualValues) state.importedData.manualValues = {};
   state.importedData.manualValues[dotKey + ':' + date] = true;
   // Insulin dual-mapping
-  if (dotKey === 'hormones.insulin') entry.markers['diabetes.insulin_d'] = value;
+  if (dotKey === 'hormones.insulin') entry.markers['diabetes.insulin_d'] = storedValue;
   recalculateHOMAIR(entry);
   saveImportedData();
   window.buildSidebar();
@@ -842,10 +845,45 @@ export function deleteMarkerValue(id, date) {
   showNotification(`Removed value from ${date}`, 'info');
 }
 
+export function editMarkerValue(id, date, currentValue, event) {
+  const el = event.target.closest('.mv-value');
+  if (!el || el.querySelector('input')) return;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.step = 'any';
+  input.value = currentValue;
+  input.className = 'ref-edit-input';
+  input.style.cssText = 'width:80px;text-align:center;font-size:inherit';
+  el.textContent = '';
+  el.appendChild(input);
+  input.focus();
+  input.select();
+  const save = () => {
+    const newValue = parseFloat(input.value);
+    if (isNaN(newValue)) { showDetailModal(id); return; }
+    const dotKey = id.replace('_', '.');
+    const entry = state.importedData.entries?.find(e => e.date === date);
+    if (!entry) return;
+    const storedValue = convertDisplayToSI(dotKey, newValue);
+    entry.markers[dotKey] = storedValue;
+    if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; recalculateHOMAIR(entry); }
+    // Track as manually edited
+    if (!state.importedData.manualValues) state.importedData.manualValues = {};
+    state.importedData.manualValues[dotKey + ':' + date] = true;
+    saveImportedData();
+    showDetailModal(id);
+  };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); else if (e.key === 'Escape') showDetailModal(id); });
+}
+
 export function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
   if (state.chartInstances["modal"]) { state.chartInstances["modal"].destroy(); delete state.chartInstances["modal"]; }
   document.removeEventListener('click', closeSuggestionsOnClickOutside);
+  // Refresh background view to reflect any edits made while modal was open
+  const activeNav = document.querySelector(".nav-item.active");
+  navigate(activeNav ? activeNav.dataset.category : "dashboard");
 }
 
 
@@ -1163,17 +1201,8 @@ export function saveRefRange(id, type) {
   let newMax = maxEl.value !== '' ? parseFloat(maxEl.value) : null;
 
   // If user is in US mode, convert back to SI for storage (overrides are applied before unit conversion)
-  if (state.unitSystem === 'US') {
-    const conv = UNIT_CONVERSIONS[dotKey];
-    if (conv && conv.type === 'multiply' && conv.factor) {
-      if (newMin != null) newMin = parseFloat((newMin / conv.factor).toPrecision(6));
-      if (newMax != null) newMax = parseFloat((newMax / conv.factor).toPrecision(6));
-    } else if (conv && conv.type === 'hba1c') {
-      // US display is %, SI is mmol/mol: reverse IFCC→NGSP
-      if (newMin != null) newMin = parseFloat(((newMin - 2.15) * 10.929).toFixed(1));
-      if (newMax != null) newMax = parseFloat(((newMax - 2.15) * 10.929).toFixed(1));
-    }
-  }
+  if (newMin != null) newMin = convertDisplayToSI(dotKey, newMin);
+  if (newMax != null) newMax = convertDisplayToSI(dotKey, newMax);
 
   if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
   if (!state.importedData.refOverrides[dotKey]) state.importedData.refOverrides[dotKey] = {};
@@ -1239,6 +1268,7 @@ Object.assign(window, {
   openManualEntryForm,
   saveManualEntry,
   deleteMarkerValue,
+  editMarkerValue,
   closeModal,
   showCompare,
   setCompareDate1,
