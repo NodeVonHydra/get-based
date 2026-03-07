@@ -44,7 +44,7 @@ When both Local AI PII and the review editor are enabled, the review modal opens
 - **Edit freely** — the right panel becomes editable after streaming. The button changes to "Save & Send to AI" when you make changes
 - **Thinking tokens** — models that emit `<think>` tags or `reasoning_content` have their thinking stripped from the obfuscated output and shown in a collapsible section below the diff
 - **Stop** — cancel the stream mid-way and edit the partial result. The model is unloaded from VRAM when you click Stop, Cancel, or "Use regex instead"
-- **Retry** — re-run the AI obfuscation if the result looks wrong (appears after stop or error)
+- **Retry** — re-run the AI obfuscation if the result looks wrong (always available after streaming completes)
 - **Use regex instead** — switch to the fast rule-based method at any point
 
 Background scroll is locked while the review modal is open.
