@@ -442,7 +442,7 @@
     assert('crypto.js has getAutoBackupSnapshots function', src.includes('async function getAutoBackupSnapshots'));
     assert('crypto.js has restoreAutoBackup function', src.includes('async function restoreAutoBackup'));
     assert('crypto.js has MAX_SNAPSHOTS = 5', src.includes('MAX_SNAPSHOTS = 5'));
-    assert('crypto.js has AUTO_BACKUP_COOLDOWN = 10000', src.includes('AUTO_BACKUP_COOLDOWN = 10000'));
+    assert('crypto.js has AUTO_BACKUP_COOLDOWN = 300000', src.includes('AUTO_BACKUP_COOLDOWN = 300000'));
     assert('crypto.js has labcharts-last-autobackup', src.includes('labcharts-last-autobackup'));
   } catch (e) {
     assert('buildBackupSnapshot prefs check', false, e.message);

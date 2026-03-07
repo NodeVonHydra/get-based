@@ -349,6 +349,15 @@ export function getActiveData() {
   return data;
 }
 
+export function convertDisplayToSI(dotKey, value) {
+  if (state.unitSystem !== 'US') return value;
+  const conv = UNIT_CONVERSIONS[dotKey];
+  if (!conv) return value;
+  if (conv.type === 'multiply') return parseFloat((value / conv.factor).toPrecision(6));
+  if (conv.type === 'hba1c') return parseFloat(((value - 2.15) * 10.929).toFixed(1));
+  return value;
+}
+
 export function applyUnitConversion(data) {
   for (const [catKey, cat] of Object.entries(data.categories)) {
     for (const [markerKey, marker] of Object.entries(cat.markers)) {

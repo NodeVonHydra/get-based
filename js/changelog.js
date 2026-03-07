@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.4.2', date: '2026-03-07', title: 'Bugfixes & Improvements',
+    items: [
+      'Edit any value — click a value in the detail modal to change it inline, with "edited" badge',
+      'Fix: manually added values now store correctly in US unit mode',
+      'Compact drop zone on dashboard after first import',
+      'Auto-backup cooldown increased to 5 minutes to avoid snapshot churn',
+      'PII review: retry button stays visible after successful obfuscation',
+    ]
+  },
+  {
     version: '1.4.1', date: '2026-03-07', title: 'Bugfixes & Improvements',
     items: [
       'Fix: lab reference ranges from US-unit PDFs now import correctly',
