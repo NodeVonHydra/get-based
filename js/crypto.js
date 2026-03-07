@@ -1000,6 +1000,20 @@ export async function initFolderBackup() {
     } else {
       _folderHandle = handle;
       _folderPermissionLost = true;
+      // Re-request permission on first user interaction (requires user gesture)
+      const reauth = async () => {
+        document.removeEventListener('click', reauth);
+        document.removeEventListener('keydown', reauth);
+        try {
+          const p = await handle.requestPermission({ mode: 'readwrite' });
+          if (p === 'granted') {
+            _folderPermissionLost = false;
+            refreshFolderBackupUI();
+          }
+        } catch { /* user denied or browser blocked */ }
+      };
+      document.addEventListener('click', reauth);
+      document.addEventListener('keydown', reauth);
     }
   } catch { /* silent — folder may have been deleted */ }
 }
