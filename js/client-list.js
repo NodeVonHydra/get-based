@@ -123,6 +123,8 @@ function renderClientList() {
     </div>
     <div class="cl-header-right">
       <button class="cl-export-all-btn" onclick="window.exportAllDataJSON()">Export All</button>
+      <button class="cl-new-btn cl-demo-btn" onclick="closeClientList();window.loadDemoData('female')">+ Demo Sarah</button>
+      <button class="cl-new-btn cl-demo-btn" onclick="closeClientList();window.loadDemoData('male')">+ Demo Alex</button>
       <button class="cl-new-btn" onclick="openClientForm()">+ New Client</button>
       <button class="modal-close" onclick="closeClientList()" aria-label="Close">&times;</button>
     </div>

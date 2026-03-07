@@ -329,6 +329,26 @@
         "fattyAcids.membraneFluidity": 8.5,
         "fattyAcids.mentalResilience": 0.65
       }
+    },
+    {
+      "date": "2025-11-10",
+      "markers": {
+        "fattyAcids.palmiticC16": 27.5,
+        "fattyAcids.stearicC18": 12.8,
+        "fattyAcids.oleicC18_1": 23.2,
+        "fattyAcids.linoleicC18_2": 18.5,
+        "fattyAcids.glaC18_3": 0.18,
+        "fattyAcids.arachidonicC20_4": 5.90,
+        "fattyAcids.dglaC20_3": 1.15,
+        "fattyAcids.alaC18_3": 0.85,
+        "fattyAcids.epaC20_5": 3.20,
+        "fattyAcids.dpaC22_5": 1.95,
+        "fattyAcids.dhaC22_6": 4.50,
+        "fattyAcids.omega3Index": 7.8,
+        "fattyAcids.omega6to3Ratio": 2.1,
+        "fattyAcids.membraneFluidity": 5.8,
+        "fattyAcids.mentalResilience": 0.78
+      }
     }
   ],
   "notes": [
@@ -364,7 +384,17 @@
     "dinnerTime": "19:30",
     "snacks": "Mixed nuts, Greek yogurt with berries, dark chocolate",
     "snacksTime": "15:00",
-    "note": "Intermittent fasting — skips breakfast. High protein (~150g/day). Reduced refined carbs since July 2025. 2-3 coffees/day. Social alcohol 1-2 drinks on weekends."
+    "note": "Intermittent fasting — skips breakfast. High protein (~150g/day). Reduced refined carbs since July 2025. 2-3 coffees/day. Social alcohol 1-2 drinks on weekends.",
+    "bowelFrequency": "1x/day",
+    "stoolConsistency": "well-formed",
+    "bloating": "occasional",
+    "gas": "mild",
+    "acidReflux": "none",
+    "burping": "none",
+    "nausea": "none",
+    "appetite": "strong",
+    "abdominalPain": "none",
+    "foodSensitivities": ["gluten (mild)"]
   },
   "exercise": {
     "frequency": "5-6x/week",
@@ -432,5 +462,109 @@
     { "text": "Reduce homocysteine below 10 µmol/L", "severity": "minor" },
     { "text": "Maintain vitamin D between 100-150 nmol/L year-round", "severity": "mild" }
   ],
+  "emfAssessment": {
+    "assessments": [
+      {
+        "id": "emf_demo_m_1",
+        "date": "2025-10-15",
+        "label": "Initial assessment",
+        "consultant": "Building Biology consultant",
+        "rooms": [
+          {
+            "name": "Bedroom",
+            "location": "2nd floor, east side",
+            "sleeping": true,
+            "measurements": {
+              "acElectric": { "value": 28, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 45, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 85, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
+              "dirtyElectricity": { "value": 180, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+            },
+            "sources": ["ungrounded wiring", "WiFi router", "smart meter"],
+            "mitigations": [],
+            "note": "High AC electric from ungrounded Romex in walls. WiFi router in adjacent room. Smart meter on exterior wall directly below bedroom."
+          },
+          {
+            "name": "Home Office",
+            "location": "2nd floor, west side",
+            "sleeping": false,
+            "measurements": {
+              "acElectric": { "value": 42, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 120, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 250, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
+              "dirtyElectricity": { "value": 320, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+            },
+            "sources": ["multiple monitors at work", "WiFi router", "Bluetooth devices", "LED driver", "dimmer switch"],
+            "mitigations": ["wired ethernet"],
+            "note": "Triple monitor setup, WiFi router in same room, LED desk lamp with noisy driver. Already using wired ethernet for desktop."
+          },
+          {
+            "name": "Living Room",
+            "location": "1st floor, open plan",
+            "sleeping": false,
+            "measurements": {
+              "acElectric": { "value": 8, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 35, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 150, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+            },
+            "sources": ["smart TV", "WiFi router"],
+            "mitigations": [],
+            "note": "Lower electric fields on ground floor. RF elevated from neighbor's WiFi and nearby cell tower."
+          }
+        ],
+        "note": "New construction home (2021). Standard Romex wiring without grounded metal conduit. Smart meter installed by utility. Consultant recommended demand switch for bedroom circuit and relocating WiFi router."
+      },
+      {
+        "id": "emf_demo_m_2",
+        "date": "2026-01-20",
+        "label": "Post-remediation",
+        "consultant": "Building Biology consultant",
+        "rooms": [
+          {
+            "name": "Bedroom",
+            "location": "2nd floor, east side",
+            "sleeping": true,
+            "measurements": {
+              "acElectric": { "value": 0.5, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 42, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 12, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
+              "dirtyElectricity": { "value": 35, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+            },
+            "sources": ["smart meter"],
+            "mitigations": ["demand switch (Netzfreischalter)", "WiFi off at night", "router relocated", "Stetzerizer filters", "phone airplane mode at night"],
+            "note": "Demand switch installed on bedroom circuit — AC electric now in green range. WiFi router relocated to ground floor. Stetzerizer filters on bedroom outlets. Smart meter RF still detectable but reduced."
+          },
+          {
+            "name": "Home Office",
+            "location": "2nd floor, west side",
+            "sleeping": false,
+            "measurements": {
+              "acElectric": { "value": 15, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 85, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 45, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
+              "dirtyElectricity": { "value": 95, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+            },
+            "sources": ["multiple monitors at work", "LED driver"],
+            "mitigations": ["wired ethernet", "Stetzerizer filters", "shielded cables", "router relocated"],
+            "note": "Replaced LED desk lamp with incandescent. Shielded monitor cables. Stetzerizer filters on outlet strip. WiFi now downstairs — using wired only in office."
+          },
+          {
+            "name": "Living Room",
+            "location": "1st floor, open plan",
+            "sleeping": false,
+            "measurements": {
+              "acElectric": { "value": 6, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 30, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 120, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+            },
+            "sources": ["WiFi router", "cell tower"],
+            "mitigations": ["WiFi off at night", "distance from source"],
+            "note": "WiFi router now in this room (relocated from upstairs). RF from external cell tower unchanged."
+          }
+        ],
+        "note": "Follow-up after remediation. Bedroom dramatically improved — demand switch was the biggest win. Office improved with Stetzerizer filters and cable shielding. Living room RF from cell tower remains — shielding paint option discussed for future."
+      }
+    ]
+  },
   "customMarkers": {}
 }
