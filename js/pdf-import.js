@@ -272,6 +272,7 @@ Your task:
    - refMax: the upper reference range bound from the PDF (number or null)
 3. Match based on medical/biochemical equivalence, not just string similarity. For example:
    - "Glukóza" → "biochemistry.glucose" (Czech for glucose)
+   - "BUN" or "Blood Urea Nitrogen" → "biochemistry.urea"
    - "Triacylglyceroly" → "lipids.triglycerides"
    - Use the units and reference ranges to help disambiguate
 4. Only map to a marker if you're confident it's the correct match
@@ -457,8 +458,11 @@ export function showImportPreview(parseResult) {
     if (m.refMin == null && m.refMax == null) continue;
     const schemaRef = refLookup[m.mappedKey];
     if (!schemaRef) continue;
-    if ((m.refMin != null && schemaRef.refMin != null && m.refMin !== schemaRef.refMin) ||
-        (m.refMax != null && schemaRef.refMax != null && m.refMax !== schemaRef.refMax)) {
+    // Normalize PDF ranges to SI for accurate comparison against schema
+    const siMin = m.refMin != null ? normalizeToSI(m.mappedKey, m.refMin, m.unit) : null;
+    const siMax = m.refMax != null ? normalizeToSI(m.mappedKey, m.refMax, m.unit) : null;
+    if ((siMin != null && schemaRef.refMin != null && siMin !== schemaRef.refMin) ||
+        (siMax != null && schemaRef.refMax != null && siMax !== schemaRef.refMax)) {
       rangesDiffCount++;
     }
   }
@@ -621,8 +625,9 @@ export function confirmImport() {
     for (const m of matched) {
       if (m.refMin == null && m.refMax == null) continue;
       const ovr = state.importedData.refOverrides[m.mappedKey] || {};
-      if (m.refMin != null) ovr.refMin = m.refMin;
-      if (m.refMax != null) ovr.refMax = m.refMax;
+      // Convert ranges from PDF units to SI (same as marker values)
+      if (m.refMin != null) ovr.refMin = normalizeToSI(m.mappedKey, m.refMin, m.unit);
+      if (m.refMax != null) ovr.refMax = normalizeToSI(m.mappedKey, m.refMax, m.unit);
       state.importedData.refOverrides[m.mappedKey] = ovr;
     }
   }

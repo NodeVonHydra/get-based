@@ -421,8 +421,10 @@ function wordDiff(origLine, newLine) {
 }
 
 export function buildPIIDiffHTML(originalText, obfuscatedText) {
-  const origLines = originalText.split('\n');
-  const obfLines = obfuscatedText.split('\n');
+  // Trim leading/trailing blank lines to prevent misalignment (e.g. from thinking models)
+  const trimBlanks = s => s.replace(/^\n+/, '').replace(/\n+$/, '');
+  const origLines = trimBlanks(originalText).split('\n');
+  const obfLines = trimBlanks(obfuscatedText).split('\n');
   const maxLines = Math.max(origLines.length, obfLines.length);
   let leftHtml = '', rightHtml = '';
   for (let i = 0; i < maxLines; i++) {
@@ -465,7 +467,7 @@ function extractPatientName(text) {
   // Try label-based extraction (Czech/Slovak + English)
   const patterns = [
     /\b(?:jm[eé]no|p[rř][ií]jmen[ií])\b[:\s]+(.+)/im,
-    /\b(?:patient\s*name|patient|name)\b[:\s]+(.+)/im,
+    /\b(?:patient\s*name|patient)\b[:\s]+(.+)/im,
     /\b(?:surname|last\s*name|first\s*name)\b[:\s]+(.+)/im,
   ];
   for (const p of patterns) {
@@ -549,12 +551,38 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       if (!dirty) { dirty = true; sendBtn.textContent = 'Save & Send to AI'; }
     });
 
+    // Re-show diff preview on blur so highlights return after editing
+    textarea.addEventListener('blur', () => {
+      if (textarea.readOnly || !textarea.value) return;
+      setTimeout(() => {
+        if (document.activeElement !== textarea && overlay.parentNode) {
+          showDiffPreview(textarea.value);
+        }
+      }, 150);
+    });
+
     // Switch from highlighted diff view back to editable textarea
-    function switchToEditMode() {
+    function switchToEditMode(event) {
       const diffView = overlay.querySelector('.pii-diff-preview');
-      if (diffView) diffView.style.display = 'none';
+      if (!diffView) return;
+      // Find which line was clicked to position cursor there
+      let lineIdx = -1;
+      if (event && event.target && diffView.contains(event.target)) {
+        let el = event.target;
+        while (el && el.parentNode !== diffView) el = el.parentNode;
+        if (el) {
+          lineIdx = Array.from(diffView.children).indexOf(el);
+        }
+      }
+      diffView.style.display = 'none';
       textarea.style.display = '';
       textarea.focus();
+      if (lineIdx >= 0) {
+        const textLines = textarea.value.split('\n');
+        let offset = 0;
+        for (let i = 0; i < lineIdx && i < textLines.length; i++) offset += textLines[i].length + 1;
+        textarea.setSelectionRange(offset, offset);
+      }
     }
 
     // Show highlighted diff preview, hiding the textarea
