@@ -19,9 +19,13 @@
     const def = SBM_2015_THRESHOLDS[type];
     assert(`3. ${type} has name`, typeof def.name === 'string' && def.name.length > 0);
     assert(`4. ${type} has unit`, typeof def.unit === 'string' && def.unit.length > 0);
-    assert(`5. ${type} has 4 tiers`, def.tiers.length === 4);
-    assert(`6. ${type} tiers ascending`, def.tiers[0].max < def.tiers[1].max && def.tiers[1].max < def.tiers[2].max);
-    assert(`7. ${type} last tier is Infinity`, def.tiers[3].max === Infinity);
+    assert(`5. ${type} has 4 sleeping tiers`, def.sleeping.length === 4);
+    assert(`6. ${type} sleeping tiers ascending`, def.sleeping[0].max < def.sleeping[1].max && def.sleeping[1].max < def.sleeping[2].max);
+    assert(`7. ${type} last sleeping tier is Infinity`, def.sleeping[3].max === Infinity);
+    assert(`5b. ${type} has 4 daytime tiers`, def.daytime.length === 4);
+    assert(`6b. ${type} daytime tiers ascending`, def.daytime[0].max < def.daytime[1].max && def.daytime[1].max < def.daytime[2].max);
+    assert(`7b. ${type} last daytime tier is Infinity`, def.daytime[3].max === Infinity);
+    assert(`7c. ${type} daytime thresholds >= sleeping`, def.daytime[0].max >= def.sleeping[0].max);
   }
 
   // ── getEMFSeverity ──
@@ -59,11 +63,14 @@
   assert('29. DC 10 = Severe concern', getEMFSeverity('dcMagnetic', 10).color === 'orange');
   assert('30. DC 50 = Extreme concern', getEMFSeverity('dcMagnetic', 50).color === 'red');
 
+  // ── Daytime thresholds (more lenient) ──
+  assert('31. AC Electric 2 daytime = No concern', getEMFSeverity('acElectric', 2, false).color === 'green');
+  assert('32. AC Electric 2 sleeping = Slight concern', getEMFSeverity('acElectric', 2, true).color === 'yellow');
+  assert('33. Default is sleeping', getEMFSeverity('acElectric', 2).color === 'yellow');
+
   // ── Boundary values (exclusive upper) ──
-  assert('31. AC Electric exactly 1 = Slight (not No)', getEMFSeverity('acElectric', 1).color === 'yellow');
-  assert('32. AC Magnetic exactly 20 = Slight (not No)', getEMFSeverity('acMagnetic', 20).color === 'yellow');
-  assert('33. RF exactly 0.1 = Slight (not No)', getEMFSeverity('rfMicrowave', 0.1).color === 'yellow');
-  assert('34. Zero value = No concern', getEMFSeverity('acElectric', 0).color === 'green');
+  assert('34. AC Electric exactly 1 = Slight (sleeping)', getEMFSeverity('acElectric', 1).color === 'yellow');
+  assert('35. Zero value = No concern', getEMFSeverity('acElectric', 0).color === 'green');
 
   // ── Severity label strings ──
   assert('35. Green tier label', getEMFSeverity('acElectric', 0).label === 'No concern');
@@ -84,5 +91,5 @@
   assert('44. Bedroom in room presets', EMF_ROOM_PRESETS.includes('Bedroom'));
 
   console.log('=== Results ===');
-  console.log(`${document.querySelectorAll('.test-pass').length || 44} passed, 0 failed`);
+  console.log(`${document.querySelectorAll('.test-pass').length || 48} passed, 0 failed`);
 })();

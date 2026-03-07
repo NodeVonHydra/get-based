@@ -841,10 +841,11 @@ export function buildLabContext() {
     const latest = sorted[0];
     ctx += `Assessment: ${fmtDate(latest.date)}${latest.label ? ' (' + latest.label + ')' : ''}${latest.consultant ? ' by ' + latest.consultant : ''}\n`;
     for (const room of latest.rooms) {
-      ctx += `  ${room.name}${room.location ? ' (' + room.location + ')' : ''}:\n`;
+      const sleeping = room.sleeping !== false;
+      ctx += `  ${room.name}${room.location ? ' (' + room.location + ')' : ''}${sleeping ? ' [sleeping area]' : ''}:\n`;
       for (const [type, m] of Object.entries(room.measurements || {})) {
         if (m && m.value != null) {
-          const sev = getEMFSeverity(type, m.value);
+          const sev = getEMFSeverity(type, m.value, sleeping);
           const def = SBM_2015_THRESHOLDS[type];
           ctx += `    ${def.name}: ${m.value} ${m.unit}${sev ? ' — ' + sev.label : ''}\n`;
         }
@@ -853,6 +854,9 @@ export function buildLabContext() {
       if (room.mitigations && room.mitigations.length) ctx += `    Mitigations: ${room.mitigations.join(', ')}\n`;
     }
     if (sorted.length > 1) ctx += `(${sorted.length - 1} earlier assessment${sorted.length > 2 ? 's' : ''} also on file)\n`;
+    if (latest.interpretation && latest.interpretation.text) {
+      ctx += `\nAI Interpretation (${latest.interpretation.date ? new Date(latest.interpretation.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'recent'}):\n${latest.interpretation.text}\n`;
+    }
     ctx += '\n';
   }
 

@@ -55,6 +55,26 @@ export const ENV_EMF_MITIGATION = ['WiFi off at night', 'airplane mode sleep', '
 export const EMF_ROOM_PRESETS = ['Bedroom', 'Children\'s Room', 'Living Room', 'Kitchen', 'Office / Home Office', 'Nursery', 'Bathroom', 'Basement', 'Outdoor / Yard'];
 export const EMF_SOURCES = ['WiFi router', 'smart meter', 'cell tower', 'power lines', 'electrical panel', 'dimmer switch', 'LED driver', 'solar inverter', 'baby monitor', 'cordless phone (DECT)', 'Bluetooth devices', 'smart TV', 'microwave oven', 'induction cooktop', 'electric underfloor heating', 'ungrounded wiring', 'knob-and-tube wiring', 'unshielded cables', 'neighboring apartments'];
 export const EMF_MITIGATIONS = ['demand switch (Netzfreischalter)', 'WiFi off at night', 'wired ethernet', 'shielding paint (Yshield)', 'shielding fabric / canopy', 'Stetzerizer filters', 'grounding rod', 'router relocated', 'smart meter opt-out', 'breaker off at night', 'shielded cables', 'ferrite beads', 'distance from source', 'phone airplane mode at night'];
+
+// Common EMF meters — each entry lists which measurement types it covers
+export const EMF_METER_PRESETS = [
+  { name: 'Gigahertz NFA1000', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Gigahertz NFA400', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Gigahertz HFE35C', types: ['rfMicrowave'] },
+  { name: 'Gigahertz HFW35C', types: ['rfMicrowave'] },
+  { name: 'Gigahertz ME3830B', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Gigahertz ME3840B', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Gigahertz ME3951A', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Alpha Lab UHS2', types: ['rfMicrowave'] },
+  { name: 'Safe Living Technologies Safe and Sound Pro II', types: ['rfMicrowave'] },
+  { name: 'Safe Living Technologies Body Voltage Kit', types: ['acElectric'] },
+  { name: 'Safe Living Technologies EM3', types: ['acElectric', 'acMagnetic'] },
+  { name: 'Graham-Stetzer Microsurge Meter', types: ['dirtyElectricity'] },
+  { name: 'Alpha Lab GM2', types: ['dcMagnetic'] },
+  { name: 'TriField TF2', types: ['acElectric', 'acMagnetic', 'rfMicrowave'] },
+  { name: 'Cornet ED88TPlus5G', types: ['acElectric', 'acMagnetic', 'rfMicrowave'] },
+  { name: 'GQ EMF-390', types: ['acElectric', 'acMagnetic', 'rfMicrowave'] },
+];
 export const ENV_HOME_LIGHT = ['mostly LED lighting', 'incandescent bulbs', 'full-spectrum bulbs', 'fluorescent/CFL', 'natural daylight (large windows)', 'mixed lighting'];
 export const ENV_AIR = ['HEPA air purifier', 'open windows daily', 'houseplants', 'air quality monitor', 'near highway/traffic', 'industrial area nearby', 'wildfire smoke region', 'high pollen area'];
 export const ENV_TOXINS = ['mold exposure', 'heavy metals (lead/mercury)', 'pesticide exposure', 'plastic containers for food', 'non-stick cookware (PFAS)', 'conventional cleaning products', 'new car/furniture off-gassing', 'amalgam dental fillings', 'BPA/phthalate exposure', 'organic food mostly'];

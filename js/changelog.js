@@ -5,6 +5,17 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.5.1', date: '2026-03-07', title: 'EMF Improvements & Mobile',
+    items: [
+      'EMF: sleeping vs daytime SBM-2015 thresholds — severity adjusts per room type',
+      'EMF: AI interpretation modal — stream analysis of single assessments or before/after comparisons, saved with assessment',
+      'EMF: meter presets with autocomplete, room photos (up to 6 per room), before/after comparison view',
+      'Mobile: hamburger menu with slide-out sidebar replaces stacked category pills',
+      'Mobile: cleaner header — hides dates, range toggle, feedback, and donate on small screens',
+      'Desktop: header groups with subtle dividers between profile, data, and actions',
+    ]
+  },
+  {
     version: '1.5.0', date: '2026-03-06', title: 'EMF Assessment',
     items: [
       'Environment card: Baubiologie EMF assessment sub-module — track electromagnetic field measurements room by room',

@@ -856,12 +856,17 @@ export function openEnvironmentEditor() {
     ${renderSelectField('Primary water source', 'env-water', ENV_WATER, current.water)}
     ${renderTagsField('Water concerns', 'env-water-concerns', ENV_WATER_CONCERNS, current.waterConcerns)}
     <div class="ctx-editor-divider"></div>
-    ${renderTagsField('EMF exposure', 'env-emf', ENV_EMF, current.emf)}
+    ${state.importedData.emfAssessment?.assessments?.length
+      ? `<div class="ctx-field-group">
+          <label class="ctx-field-label">EMF</label>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">${escapeHTML(getEMFSummary())}</div>
+          <button class="import-btn import-btn-secondary" onclick="closeModal();setTimeout(()=>openEMFAssessmentEditor(),100)">View EMF Assessment →</button>
+        </div>`
+      : `${renderTagsField('EMF exposure', 'env-emf', ENV_EMF, current.emf)}
     ${renderTagsField('EMF mitigation', 'env-emf-mit', ENV_EMF_MITIGATION, current.emfMitigation)}
     <div class="ctx-field-group" style="margin-top:8px">
-      <button class="import-btn import-btn-secondary" onclick="closeModal();setTimeout(()=>openEMFAssessmentEditor(),100)">Open Baubiologie EMF Assessment →</button>
-      ${getEMFSummary() ? `<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${escapeHTML(getEMFSummary())}</div>` : ''}
-    </div>
+      <button class="import-btn import-btn-secondary" onclick="closeModal();setTimeout(()=>openEMFAssessmentEditor(),100)">Baubiologie EMF Assessment →</button>
+    </div>`}
     <div class="ctx-editor-divider"></div>
     ${renderSelectField('Home/work lighting', 'env-light', ENV_HOME_LIGHT, current.homeLight)}
     ${renderTagsField('Air quality', 'env-air', ENV_AIR, current.air)}
@@ -878,8 +883,9 @@ export function saveEnvironment() {
   const climate = getSelectedOption('env-climate');
   const water = getSelectedOption('env-water');
   const waterConcerns = getSelectedTags('env-water-concerns');
-  const emf = getSelectedTags('env-emf');
-  const emfMitigation = getSelectedTags('env-emf-mit');
+  const hasEMFAssessment = state.importedData.emfAssessment?.assessments?.length > 0;
+  const emf = hasEMFAssessment ? (state.importedData.environment?.emf || []) : getSelectedTags('env-emf');
+  const emfMitigation = hasEMFAssessment ? (state.importedData.environment?.emfMitigation || []) : getSelectedTags('env-emf-mit');
   const homeLight = getSelectedOption('env-light');
   const air = getSelectedTags('env-air');
   const toxins = getSelectedTags('env-toxins');
