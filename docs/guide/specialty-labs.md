@@ -1,20 +1,56 @@
 # Specialty Labs
 
-Beyond standard blood work, getbased supports specialty lab tests including Organic Acids Tests (OAT), amino acid panels, fatty acid profiles, toxic element screens, DUTCH hormone panels, Hair Tissue Mineral Analysis (HTMA), and GI panels. Import works the same way — drop the PDF and the AI handles the rest.
+Beyond standard blood work, getbased supports specialty lab tests. Two test types have dedicated support with built-in marker definitions; any other lab report goes through the generic custom marker pipeline where the AI extracts everything from your PDF.
 
 ## Supported Test Types
 
-| Test Type | Examples |
-|---|---|
-| OAT | Mosaic, Genova, Great Plains organic acids |
-| Amino Acids | Plasma or urine amino acid profiles |
-| Fatty Acids | Omega-3 index, fatty acid panels |
-| Toxic Elements | Heavy metals, toxic element screens |
-| DUTCH | Dried urine hormone panels |
-| HTMA | Hair Tissue Mineral Analysis |
-| GI | Stool analysis, gut health panels |
+### Dedicated support
 
-Any lab report that isn't standard blood work is auto-detected and routed through the specialty pipeline.
+| Test Type | Examples | Built-in Markers |
+|---|---|---|
+| **Metabolomix+** | Genova Metabolomix+ combo profiles | 165 markers across 10 categories |
+| **Fatty Acids** | Spadia, ZinZino BalanceTest, OmegaQuant | 29 reference markers |
+
+### Generic support (custom marker pipeline)
+
+Any other specialty lab report can be imported — the AI extracts marker names, units, and reference ranges directly from your PDF. No built-in definitions needed.
+
+Examples: DUTCH hormone panels, Hair Tissue Mineral Analysis (HTMA), GI-MAP, standalone OAT, and any other lab report.
+
+## Fatty Acid Labs
+
+Fatty acid tests are grouped by the product or lab that produced them. Each lab appears as its own subcategory under a **Fatty Acids** sidebar group, so results from different labs are never mixed together.
+
+**Auto-detected labs:**
+
+| Lab / Product | Detection |
+|---|---|
+| **Spadia** | PDF content or filename |
+| **ZinZino** (BalanceTest) | PDF content or filename |
+| **OmegaQuant** (Basic/Plus/Complete, Ayumetrix) | PDF content or filename |
+
+Other fatty acid labs are also supported — the AI identifies the lab name from the report and creates a product-specific category automatically.
+
+::: tip Comparing across labs
+Even though results from different fatty acid labs appear in separate subcategories, the AI chat can compare and interpret results across all your fatty acid tests in a single conversation.
+:::
+
+## Metabolomix+
+
+Genova Metabolomix+ imports create multiple subcategories under an **OAT** sidebar group:
+
+| Category | Markers | Examples |
+|---|---|---|
+| Microbial Overgrowth | 14 | Citramalic acid, HPHPA, arabinose |
+| Metabolic | 22 | Lactic, pyruvic, succinic, citric acid |
+| Neurotransmitters | 14 | HVA, VMA, quinolinic acid |
+| Nutritional & Detox | 24 | Methylmalonic, glutathione markers |
+| Amino Acids & Lipids | 18 | Urine amino acids, fatty acid metabolites |
+| Urine Amino Acids | 21 | Arginine, taurine, glycine |
+| Urine Amino Metabolites | 18 | Methylhistidine, sarcosine |
+| Toxic Elements | 18 | Lead, mercury, arsenic, cadmium |
+| Nutrient Elements | 14 | Selenium, zinc, calcium, magnesium |
+| Oxidative Stress | 2 | Lipid peroxides, 8-OHdG |
 
 ## How It Works
 
@@ -49,6 +85,8 @@ Click the group header to toggle visibility. Collapse state is remembered across
 ## Importing Multiple Specialty Tests
 
 If you import multiple reports of the same test type over time, the markers are matched to existing custom marker definitions. This gives you trend tracking across specialty labs just like standard blood work.
+
+For fatty acid tests, each lab stays in its own subcategory — importing a ZinZino report won't merge with your Spadia results. Re-importing a PDF updates the category labels if they were incorrect from a previous import.
 
 ::: warning Model consistency
 Use the same AI model for all imports of a given test type. Different models may generate different marker keys for the same test, which prevents proper trend tracking. See [AI Providers](./ai-providers.md#model-consistency) for details.
