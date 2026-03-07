@@ -1298,6 +1298,7 @@ body {
   cursor: pointer; font-family: inherit; transition: opacity 0.15s;
 }
 .cl-new-btn:hover { opacity: 0.85; }
+.cl-demo-btn { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
 .cl-back-btn {
   background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer;
   padding: 0 4px; line-height: 1; transition: color 0.15s;

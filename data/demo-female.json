@@ -335,6 +335,26 @@
         "fattyAcids.membraneFluidity": 5.2,
         "fattyAcids.mentalResilience": 0.72
       }
+    },
+    {
+      "date": "2026-01-25",
+      "markers": {
+        "fattyAcids.palmiticC16": 28.0,
+        "fattyAcids.stearicC18": 12.5,
+        "fattyAcids.oleicC18_1": 22.5,
+        "fattyAcids.linoleicC18_2": 18.2,
+        "fattyAcids.glaC18_3": 0.20,
+        "fattyAcids.arachidonicC20_4": 6.50,
+        "fattyAcids.dglaC20_3": 1.12,
+        "fattyAcids.alaC18_3": 0.82,
+        "fattyAcids.epaC20_5": 3.50,
+        "fattyAcids.dpaC22_5": 2.10,
+        "fattyAcids.dhaC22_6": 4.20,
+        "fattyAcids.omega3Index": 7.7,
+        "fattyAcids.omega6to3Ratio": 2.2,
+        "fattyAcids.membraneFluidity": 4.5,
+        "fattyAcids.mentalResilience": 0.80
+      }
     }
   ],
   "notes": [
@@ -371,7 +391,17 @@
     "dinnerTime": "19:00",
     "snacks": "Nuts, dark chocolate, seasonal fruit",
     "snacksTime": "15:30",
-    "note": "Higher protein focus (~120g/day). Red meat 2-3x/week for heme iron. Takes iron supplement away from coffee/tea. Green tea 1-2 cups/day."
+    "note": "Higher protein focus (~120g/day). Red meat 2-3x/week for heme iron. Takes iron supplement away from coffee/tea. Green tea 1-2 cups/day.",
+    "bowelFrequency": "1-2x/day",
+    "stoolConsistency": "well-formed",
+    "bloating": "moderate",
+    "gas": "moderate",
+    "acidReflux": "none",
+    "burping": "none",
+    "nausea": "occasional",
+    "appetite": "normal",
+    "abdominalPain": "occasional",
+    "foodSensitivities": ["dairy", "raw onion"]
   },
   "exercise": {
     "frequency": "5-6x/week",
@@ -454,6 +484,45 @@
       { "startDate": "2025-10-21", "endDate": "2025-10-25", "flow": "moderate", "notes": "" },
       { "startDate": "2025-09-22", "endDate": "2025-09-26", "flow": "heavy", "notes": "Heavy flow, mild cramps day 1-2" },
       { "startDate": "2025-08-24", "endDate": "2025-08-28", "flow": "moderate", "notes": "" }
+    ]
+  },
+  "emfAssessment": {
+    "assessments": [
+      {
+        "id": "emf_demo_f_1",
+        "date": "2025-11-08",
+        "label": "Initial home assessment",
+        "consultant": "",
+        "rooms": [
+          {
+            "name": "Bedroom",
+            "location": "3rd floor, courtyard side",
+            "sleeping": true,
+            "measurements": {
+              "acElectric": { "value": 3.2, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 25, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 8.5, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+            },
+            "sources": ["WiFi router", "neighboring apartments"],
+            "mitigations": ["WiFi off at night", "phone airplane mode at night"],
+            "note": "Courtyard-facing — shielded from cell towers by building mass. Low RF. AC electric slightly elevated from unshielded wiring in renovated walls."
+          },
+          {
+            "name": "Living Room",
+            "location": "3rd floor, street side",
+            "sleeping": false,
+            "measurements": {
+              "acElectric": { "value": 5.8, "unit": "V/m", "meter": "Gigahertz NFA1000" },
+              "acMagnetic": { "value": 65, "unit": "nT", "meter": "Gigahertz NFA1000" },
+              "rfMicrowave": { "value": 180, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+            },
+            "sources": ["cell tower", "neighboring apartments", "WiFi router", "Bluetooth devices"],
+            "mitigations": ["wired ethernet"],
+            "note": "Street-facing windows — cell tower on building across the street (approx 80m). RF notably higher on this side. Multiple neighbor WiFi networks visible."
+          }
+        ],
+        "note": "Self-measured with rented meters. Pre-1970 building, renovated 2018. Thick masonry walls provide good shielding on courtyard side. Street side has direct line-of-sight to cell tower. Considering shielding curtains for living room windows."
+      }
     ]
   },
   "customMarkers": {}
