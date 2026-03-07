@@ -28,10 +28,10 @@ If a marker you're looking for doesn't appear in the list, it may be a custom ma
 
 ## Editing Existing Values
 
-To correct a value you've already entered, import a new entry for the same date with the corrected value. Entries are merged by date, so the new value replaces the old one for that marker on that date.
+Click any value in the **detail modal** to edit it inline. Changed values show an **"edited"** badge so you can tell what came from a PDF import vs what you changed manually. You can also delete any value using the × button.
 
-::: warning Units
-Make sure you enter values in the units shown next to each marker. getbased stores data in SI units (EU mode) by default. If your results are in US units (e.g., mg/dL for glucose instead of mmol/L), switch to **US units** in **Settings → Display** before entering values, or convert manually.
+::: tip Units
+Enter values in whatever unit system you're currently using (US or SI). getbased automatically converts to its internal format when saving.
 :::
 
 ## Use Cases

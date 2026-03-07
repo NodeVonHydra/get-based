@@ -6,7 +6,7 @@ The dashboard is your home base in getbased. It displays everything in a single 
 
 Sections appear in this order:
 
-1. **Drop Zone** — Import a PDF or JSON file to get started (disappears once you have data)
+1. **Drop Zone** — Import a PDF or JSON file to get started (becomes a compact inline bar once you have data)
 2. **Interpretive Lens** — The scientific or clinical framework the AI uses when analyzing your results
 3. **Focus Card** — A single AI-generated sentence summarizing the most important finding right now
 4. **Context Cards** — Nine lifestyle cards covering what your GP typically doesn't ask

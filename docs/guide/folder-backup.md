@@ -27,7 +27,7 @@ Two files are written to your chosen folder:
 
 ## When Backups Run
 
-A backup is triggered automatically after data changes (same debounce as the IndexedDB auto-backup — 60 seconds after the last change). You can also trigger a manual backup from the Settings panel.
+A backup is triggered automatically after data changes (same debounce as the IndexedDB auto-backup — 5 minutes after the last change). You can also trigger a manual backup from the Settings panel.
 
 ## Browser Support
 
