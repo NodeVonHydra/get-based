@@ -320,6 +320,8 @@ export function closeChangelog() {
 
 export function maybeShowChangelog() {
   const seen = getSeenVersion();
+  // First visit — no changelog, just mark as seen
+  if (!seen) { markChangelogSeen(); return; }
   // Only show What's New on minor/major bumps, not patch
   if (getMajorMinor(seen) !== getMajorMinor(window.APP_VERSION)) {
     openChangelog(false);
