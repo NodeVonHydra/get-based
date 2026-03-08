@@ -1096,16 +1096,16 @@ async function writeFolderBackup() {
     const w1 = await latestFile.createWritable();
     await w1.write(json);
     await w1.close();
-    // Timestamped snapshot (YYYY-MM-DDTHH-MM)
+    // Daily snapshot — one per day, overwrite same day's file
     const now = new Date();
-    const ts = now.toISOString().slice(0, 16).replace(':', '-'); // 2026-03-05T14-30
-    const tsName = `getbased-backup-${ts}.json`;
+    const day = now.toISOString().slice(0, 10); // 2026-03-05
+    const tsName = `getbased-backup-${day}.json`;
     const tsFile = await _folderHandle.getFileHandle(tsName, { create: true });
     const w2 = await tsFile.createWritable();
     await w2.write(json);
     await w2.close();
-    // Prune: keep newest 4 timestamped files (+ latest = 5 total, matching IndexedDB)
-    const MAX_FOLDER_SNAPSHOTS = 4;
+    // Prune: keep newest 30 daily files (+ latest = ~1 month of daily backups)
+    const MAX_FOLDER_SNAPSHOTS = 30;
     const backupFiles = [];
     for await (const [name] of _folderHandle) {
       if (name.startsWith('getbased-backup-') && name.endsWith('.json') && name !== 'getbased-backup-latest.json') {

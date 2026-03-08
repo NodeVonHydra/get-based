@@ -223,9 +223,12 @@ export function renderAIProviderPanel(provider) {
     let orModelHtml;
     if (cachedORModels.length > 0) {
       const opts = buildModelOptions('openrouter', cachedORModels, orModel, function(m) { return m.name || m.id; });
+      const isCustom = !cachedORModels.some(m => m.id === orModel);
       orModelHtml = `<div style="margin-top:12px" id="openrouter-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="setOpenRouterModel(this.value);updateOpenRouterModelPricing(this.value)">${opts}</select>
+        <select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="onOpenRouterDropdownChange(this.value)">${opts}</select>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px"><input type="text" class="api-key-input" id="openrouter-custom-model" placeholder="Or enter model ID (e.g. arcee-ai/trinity-large-preview:free)" style="font-size:12px;flex:1${isCustom ? ';border-color:var(--accent)' : ''}" value="${isCustom ? escapeHTML(orModel) : ''}" onkeydown="if(event.key==='Enter'){applyCustomOpenRouterModel(this.value)}"><span id="openrouter-model-health" style="font-size:16px;min-width:20px;text-align:center"></span></div>
+        <span style="font-size:11px;color:var(--text-muted);margin-top:2px;display:block">Press Enter to apply — checks model connectivity</span>
         <div id="openrouter-model-pricing" style="margin-top:4px">${renderModelPricingHint('openrouter', orModel)}</div>
       </div>`;
     } else {
@@ -756,10 +759,53 @@ export function renderOpenRouterModelDropdown(models) {
   const area = document.getElementById('openrouter-model-area');
   if (!area || !models.length) return;
   const currentModel = getOpenRouterModel();
+  const isCustom = !models.some(m => m.id === currentModel);
   const opts = buildModelOptions('openrouter', models, currentModel, function(m) { return m.name || m.id; });
   area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
-    '<select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="setOpenRouterModel(this.value);updateOpenRouterModelPricing(this.value)">' + opts + '</select>' +
+    '<select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="onOpenRouterDropdownChange(this.value)">' + opts + '</select>' +
+    '<div style="margin-top:6px;display:flex;align-items:center;gap:8px"><input type="text" class="api-key-input" id="openrouter-custom-model" placeholder="Or enter model ID (e.g. arcee-ai/trinity-large-preview:free)" style="font-size:12px;flex:1' + (isCustom ? ';border-color:var(--accent)' : '') + '" value="' + (isCustom ? escapeHTML(currentModel) : '') + '" onkeydown="if(event.key===\'Enter\'){applyCustomOpenRouterModel(this.value)}"><span id="openrouter-model-health" style="font-size:16px;min-width:20px;text-align:center"></span></div>' +
+    '<span style="font-size:11px;color:var(--text-muted);margin-top:2px;display:block">Press Enter to apply — checks model connectivity</span>' +
     '<div id="openrouter-model-pricing" style="margin-top:4px">' + renderModelPricingHint('openrouter', currentModel) + '</div>';
+}
+
+export async function applyCustomOpenRouterModel(modelId) {
+  const id = modelId.trim();
+  if (!id) return;
+  setOpenRouterModel(id);
+  updateOpenRouterModelPricing(id);
+  const select = document.getElementById('openrouter-model-select');
+  const input = document.getElementById('openrouter-custom-model');
+  const inDropdown = select && [...select.options].some(o => o.value === id);
+  if (select) {
+    if (inDropdown) {
+      select.value = id;
+      if (input) { input.value = ''; input.style.borderColor = ''; }
+    } else {
+      select.selectedIndex = -1;
+    }
+  }
+  // Health check — verify model responds
+  const indicator = document.getElementById('openrouter-model-health');
+  if (indicator) { indicator.textContent = '⏳'; indicator.title = 'Checking...'; indicator.style.color = 'var(--text-muted)'; }
+  try {
+    await window.callClaudeAPI({ messages: [{ role: 'user', content: 'hi' }], maxTokens: 1 });
+    if (indicator) { indicator.textContent = '✓'; indicator.title = 'Model responding'; indicator.style.color = 'var(--green)'; }
+    if (input && !inDropdown) input.style.borderColor = 'var(--green)';
+    showNotification('Model set: ' + id, 'info');
+  } catch (e) {
+    if (indicator) { indicator.textContent = '✗'; indicator.title = e.message || 'Connection failed'; indicator.style.color = 'var(--red)'; }
+    if (input) input.style.borderColor = 'var(--red)';
+    showNotification('Model check failed: ' + (e.message || 'unknown error'), 'error');
+  }
+}
+
+export function onOpenRouterDropdownChange(value) {
+  setOpenRouterModel(value);
+  updateOpenRouterModelPricing(value);
+  const input = document.getElementById('openrouter-custom-model');
+  if (input) { input.value = ''; input.style.borderColor = ''; }
+  const health = document.getElementById('openrouter-model-health');
+  if (health) { health.textContent = ''; health.title = ''; }
 }
 
 /* ROUTSTR DISABLED — waiting for CORS fix (github.com/Routstr/routstr-core/issues/375)
@@ -843,6 +889,8 @@ Object.assign(window, {
   handleSaveOpenRouterKey,
   handleRemoveOpenRouterKey,
   renderOpenRouterModelDropdown,
+  applyCustomOpenRouterModel,
+  onOpenRouterDropdownChange,
   /* ROUTSTR DISABLED
   handleSaveRoutstrKey,
   handleRemoveRoutstrKey,

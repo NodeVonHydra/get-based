@@ -65,7 +65,7 @@ Choose and configure one of four AI backends:
 
 Each provider has its own panel:
 
-- **Anthropic, OpenRouter, Venice**: Paste your API key, select a model from the dropdown. The app fetches available models from the provider automatically when you open Settings.
+- **Anthropic, OpenRouter, Venice**: Paste your API key, select a model from the dropdown. OpenRouter also has a custom model input for any model ID not in the curated list — a health check indicator (✓/✗) confirms connectivity. The app fetches available models from the provider automatically when you open Settings.
 - **Local**: Enter your server URL (default `http://localhost:11434`), optionally add an API key, and choose from your locally available models. Works with any OpenAI-compatible server.
 
 See [AI Providers](./ai-providers.md) for full setup instructions.

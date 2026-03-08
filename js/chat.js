@@ -359,6 +359,10 @@ export async function switchToThread(threadId) {
     updateChatHeaderTitle();
     updatePersonalityBar();
   }
+  // Restore discussion state if this thread had an active discussion
+  if (thread && thread.discussionPersonas) {
+    showDiscussContinuePrompt(thread.discussionPersonas, thread.discussionOriginalPersonality);
+  }
   renderThreadList();
 }
 
@@ -1819,6 +1823,11 @@ export async function openChatPanel(prefillMessage) {
   restoreRailState();
   renderThreadList();
   await loadChatHistory();
+  // Restore discussion continue prompt if this thread had an active discussion
+  const activeThread = state.chatThreads.find(t => t.id === state.currentThreadId);
+  if (activeThread && activeThread.discussionPersonas) {
+    showDiscussContinuePrompt(activeThread.discussionPersonas, activeThread.discussionOriginalPersonality);
+  }
   if (prefillMessage) {
     const input = document.getElementById('chat-input');
     if (input) { input.value = prefillMessage; input.focus(); }
@@ -1871,6 +1880,13 @@ export async function sendChatMessage() {
   removeDiscussContinuePrompt();
   delete state._discussionPersonas;
   delete state._discussionOriginalPersonality;
+  // Clear persisted discussion state
+  const curThread = state.chatThreads.find(t => t.id === state.currentThreadId);
+  if (curThread && curThread.discussionPersonas) {
+    delete curThread.discussionPersonas;
+    delete curThread.discussionOriginalPersonality;
+    saveChatThreadIndex();
+  }
 
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('chat-send-btn');
@@ -2390,6 +2406,14 @@ function showDiscussContinuePrompt(personas, originalPersonality) {
   // Stash state for continue/done
   state._discussionPersonas = personas;
   state._discussionOriginalPersonality = originalPersonality;
+
+  // Persist discussion state to thread metadata
+  const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
+  if (thread) {
+    thread.discussionPersonas = personas;
+    thread.discussionOriginalPersonality = originalPersonality;
+    saveChatThreadIndex();
+  }
 }
 
 export function removeDiscussContinuePrompt() {
@@ -2405,6 +2429,14 @@ function cleanupDiscussionState() {
   if (picker) picker.remove();
   delete state._discussionPersonas;
   delete state._discussionOriginalPersonality;
+
+  // Clear persisted discussion state from thread metadata
+  const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
+  if (thread && thread.discussionPersonas) {
+    delete thread.discussionPersonas;
+    delete thread.discussionOriginalPersonality;
+    saveChatThreadIndex();
+  }
 }
 
 export async function continueDiscussion() {

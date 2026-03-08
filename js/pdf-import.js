@@ -268,8 +268,8 @@ Your task:
    - value: the numeric result (parse comma as decimal point, strip < > prefixes)
    - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
    - unit: the unit as shown in the PDF
-   - refMin: the lower reference range bound from the PDF (number or null)
-   - refMax: the upper reference range bound from the PDF (number or null)
+   - refMin: the lower reference range bound EXACTLY as printed on the PDF (number or null). Do NOT copy from the known markers list above — extract from the actual PDF text
+   - refMax: the upper reference range bound EXACTLY as printed on the PDF (number or null). Do NOT copy from the known markers list above — extract from the actual PDF text
 3. Match based on medical/biochemical equivalence, not just string similarity. For example:
    - "Glukóza" → "biochemistry.glucose" (Czech for glucose)
    - "BUN" or "Blood Urea Nitrogen" → "biochemistry.urea"
@@ -445,15 +445,20 @@ export function showImportPreview(parseResult) {
   // Build reference lookup (used for unmatched dropdown + range comparison)
   const refLookup = buildMarkerReference();
 
-  html += `<table class="import-table"><thead><tr><th>Status</th><th>Test Name</th><th>Value</th><th>Maps To</th></tr></thead><tbody>`;
+  html += `<table class="import-table"><thead><tr><th>Status</th><th>Test Name</th><th>Value</th><th>Lab Range</th><th>Maps To</th><th></th></tr></thead><tbody>`;
   for (const m of matched) {
-    html += `<tr><td class="matched">\u2713 Matched</td><td>${escapeHTML(m.rawName)}</td>
-      <td>${escapeHTML(String(m.value))}</td><td>${escapeHTML(m.mappedKey)}</td></tr>`;
+    const origIdx = markers.indexOf(m);
+    const labRange = (m.refMin != null || m.refMax != null) ? `${m.refMin ?? '?'}\u2013${m.refMax ?? '?'}` : '';
+    html += `<tr data-import-idx="${origIdx}"><td class="matched">\u2713 Matched</td><td>${escapeHTML(m.rawName)}</td>
+      <td>${escapeHTML(String(m.value))}</td><td style="font-size:12px;color:var(--text-secondary)">${escapeHTML(labRange)}</td><td>${escapeHTML(m.mappedKey)}</td>
+      <td><button class="import-exclude-btn" onclick="toggleImportRow(this)" title="Exclude from import">&times;</button></td></tr>`;
   }
   for (const m of newMarkers) {
-    const refInfo = (m.refMin != null || m.refMax != null) ? ` (${m.refMin ?? '?'}\u2013${m.refMax ?? '?'} ${escapeHTML(m.unit || '')})` : '';
-    html += `<tr><td class="new-marker">\u271A New</td><td>${escapeHTML(m.rawName)}</td>
-      <td>${escapeHTML(String(m.value))}</td><td>${escapeHTML(m.suggestedKey)}${refInfo}</td></tr>`;
+    const origIdx = markers.indexOf(m);
+    const labRange = (m.refMin != null || m.refMax != null) ? `${m.refMin ?? '?'}\u2013${m.refMax ?? '?'}` : '';
+    html += `<tr data-import-idx="${origIdx}"><td class="new-marker">\u271A New</td><td>${escapeHTML(m.rawName)}</td>
+      <td>${escapeHTML(String(m.value))}</td><td style="font-size:12px;color:var(--text-secondary)">${escapeHTML(labRange)}</td><td>${escapeHTML(m.suggestedKey)}</td>
+      <td><button class="import-exclude-btn" onclick="toggleImportRow(this)" title="Exclude from import">&times;</button></td></tr>`;
   }
   if (unmatched.length > 0) {
     const allKeys = Object.entries(refLookup).map(([key, def]) => ({ key, name: def.name }));
@@ -462,8 +467,10 @@ export function showImportPreview(parseResult) {
 
     for (const m of unmatched) {
       const origIdx = markers.indexOf(m);
-      html += `<tr><td class="unmatched">? Unmatched</td><td>${escapeHTML(m.rawName)}</td>
-        <td>${escapeHTML(String(m.value))}</td><td><select class="import-map-select" data-marker-idx="${origIdx}" onchange="mapUnmatchedMarker(this)"><option value="">— skip —</option>${optionsHtml}</select></td></tr>`;
+      const labRange = (m.refMin != null || m.refMax != null) ? `${m.refMin ?? '?'}\u2013${m.refMax ?? '?'}` : '';
+      html += `<tr data-import-idx="${origIdx}"><td class="unmatched">? Unmatched</td><td>${escapeHTML(m.rawName)}</td>
+        <td>${escapeHTML(String(m.value))}</td><td style="font-size:12px;color:var(--text-secondary)">${escapeHTML(labRange)}</td><td><select class="import-map-select" data-marker-idx="${origIdx}" onchange="mapUnmatchedMarker(this)"><option value="">— skip —</option>${optionsHtml}</select></td>
+        <td></td></tr>`;
     }
   }
   html += `</tbody></table>`;
@@ -558,6 +565,31 @@ export function applyManualImportDate(dateStr) {
   if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
 }
 
+export function toggleImportRow(btn) {
+  const row = btn.closest('tr');
+  if (!row) return;
+  const excluded = row.classList.toggle('import-excluded');
+  btn.textContent = excluded ? '+' : '\u00d7';
+  btn.title = excluded ? 'Include in import' : 'Exclude from import';
+  // Update import count
+  const result = window._pendingImport;
+  if (!result) return;
+  const excludedIdxs = _getExcludedIndices();
+  const matched = result.markers.filter((m, i) => m.matched && !excludedIdxs.has(i));
+  const newMarkers = result.markers.filter((m, i) => !m.matched && m.suggestedKey && !excludedIdxs.has(i));
+  const importCount = matched.length + newMarkers.length;
+  const confirmBtn = document.getElementById('import-confirm-btn');
+  if (confirmBtn) confirmBtn.textContent = `Import ${importCount} Marker${importCount !== 1 ? 's' : ''}`;
+}
+
+function _getExcludedIndices() {
+  const excluded = new Set();
+  for (const row of document.querySelectorAll('.import-table tr.import-excluded[data-import-idx]')) {
+    excluded.add(parseInt(row.dataset.importIdx, 10));
+  }
+  return excluded;
+}
+
 export function closeImportModal() {
   document.getElementById("import-modal-overlay").classList.remove("show");
   window._pendingImport = null;
@@ -578,8 +610,9 @@ export function confirmImport() {
     window.closeImportModal();
     return;
   }
-  const matched = result.markers.filter(m => m.matched);
-  const newMarkers = result.markers.filter(m => !m.matched && m.suggestedKey);
+  const excludedIdxs = _getExcludedIndices();
+  const matched = result.markers.filter((m, i) => m.matched && !excludedIdxs.has(i));
+  const newMarkers = result.markers.filter((m, i) => !m.matched && m.suggestedKey && !excludedIdxs.has(i));
   const importCount = matched.length + newMarkers.length;
   if (importCount === 0) { showNotification("No markers to import", "error"); window.closeImportModal(); return; }
   if (!state.importedData.entries) state.importedData.entries = [];
@@ -794,10 +827,14 @@ export async function showImportProgress(step, fileName) {
 export function hideImportProgress() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
-  dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
-    <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
+  if (dropZone.classList.contains('drop-zone-hidden')) {
+    dropZone.innerHTML = '';
+  } else {
+    dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
+      <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+      <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
+      <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -850,8 +887,8 @@ Your task:
    - value: the numeric result (parse comma as decimal point, strip < > prefixes)
    - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
    - unit: the unit as shown
-   - refMin: the lower reference range bound (number or null)
-   - refMax: the upper reference range bound (number or null)
+   - refMin: the lower reference range bound EXACTLY as printed on the report (number or null). Do NOT copy from the known markers list above
+   - refMax: the upper reference range bound EXACTLY as printed on the report (number or null). Do NOT copy from the known markers list above
 3. Match based on medical/biochemical equivalence, not just string similarity
 4. Only map to a marker if you're confident it's the correct match
 5. Identify the type of lab test. Return as "testType" field: "blood", "OAT", "fattyAcids", "DUTCH", "HTMA", "GI", or a descriptive name. For fatty acid tests: put ALL markers into ONE product-specific category — spadiaFA (Spadia), zinzinoFA (ZinZino), omegaquantFA (OmegaQuant), or labNameFA. Use suggestedCategoryLabel = product name, suggestedGroup = "Fatty Acids". Do NOT split by fatty acid type (omega-3/omega-6/saturated/trans)
@@ -1315,6 +1352,7 @@ Object.assign(window, {
   showImportPreview,
   applyManualImportDate,
   mapUnmatchedMarker,
+  toggleImportRow,
   closeImportModal,
   confirmImport,
   removeImportedEntry,

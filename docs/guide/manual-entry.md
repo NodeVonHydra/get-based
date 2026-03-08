@@ -28,7 +28,7 @@ If a marker you're looking for doesn't appear in the list, it may be a custom ma
 
 ## Editing Existing Values
 
-Click any value in the **detail modal** to edit it inline. Changed values show an **"edited"** badge so you can tell what came from a PDF import vs what you changed manually. You can also delete any value using the × button.
+Click any value in the **detail modal** to edit it inline. Changed values show an **"edited ×"** badge — click the × to revert to the original imported value. Manually added values (no original to revert to) show a **"manual"** badge. You can also delete any value using the delete button.
 
 ::: tip Units
 Enter values in whatever unit system you're currently using (US or SI). getbased automatically converts to its internal format when saving.

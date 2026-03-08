@@ -147,7 +147,7 @@
   assert('pdf-import imports SPECIALTY_MARKER_DEFS', pdfImportSrc.includes('SPECIALTY_MARKER_DEFS'));
   assert('buildMarkerReference includes specialty defs', pdfImportSrc.includes('Object.entries(SPECIALTY_MARKER_DEFS)'));
   assert('confirmImport auto-creates custom markers for specialty keys', pdfImportSrc.includes('SPECIALTY_MARKER_DEFS[m.mappedKey]'));
-  assert('Prompt asks for refMin/refMax on all markers', pdfImportSrc.includes('refMin: the lower reference range bound from the PDF'));
+  assert('Prompt asks for refMin/refMax on all markers', pdfImportSrc.includes('refMin: the lower reference range bound EXACTLY as printed on the PDF'));
 
   // ═══════════════════════════════════════
   // 7. getActiveData merges migrated specialty markers correctly
