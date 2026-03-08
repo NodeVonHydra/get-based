@@ -7,29 +7,22 @@ const CHANGELOG = [
   {
     version: '1.5.3', date: '2026-03-08', title: 'Import & Editing Improvements',
     items: [
-      'Import preview: exclude individual markers before confirming — toggle rows with × button',
-      'Import preview: Lab Range column shows reference ranges exactly as printed on the PDF',
-      'Import FAB: floating import button replaces inline drop zone on dashboard',
-      'Value editing: "edited ×" badge with one-click revert to original imported value',
-      'OpenRouter: custom model input field with connection health check indicator',
-      'Discuss mode: state persists across page refresh (resumes on thread switch)',
-      'Folder backup: daily snapshots with 30-day retention (was per-save with 4-file limit)',
-      'PII review: retry re-streams visibly instead of replacing silently',
-      'Removed Czech translations from marker names (glucose, creatinine, uric acid)',
+      'When importing a PDF, you can now exclude individual results and see the lab\'s reference ranges before confirming',
+      'New import button in the bottom-right corner for quicker access to importing',
+      'Changed a value? A revert button lets you go back to what the lab originally reported',
+      'Use any AI model on OpenRouter by typing its ID directly',
+      'AI discussions now pick up where you left off after refreshing the page',
+      'Automatic backups saved daily and kept for 30 days',
     ]
   },
   {
     version: '1.5.2', date: '2026-03-08', title: 'Chat & Discuss Mode Improvements',
     items: [
-      'Discuss mode: persona picker — click the discuss button to add another persona for a second opinion',
-      'Discuss mode: "joined the discussion" label when a new persona enters, natural auto-response',
-      'Discuss mode: state properly clears on thread switch and new thread creation',
-      'Detail modal: chart now renders correctly (was missing due to canvas ID mismatch)',
-      'Detail modal: stays open after adding a value manually instead of jumping to dashboard',
-      'Persona editor: hidden by default — click pencil icon to edit, Generate picks a contextual emoji',
-      'Persona generation: new "Unconventional Views" section, removed evidence-based checkbox',
-      'Settings Data tab: distinguishes manual entries from PDF imports with source labels',
-      'Chat header: updates immediately when a second persona responds in a thread',
+      'Get a second opinion — pick which AI persona joins your chat discussion',
+      'Marker charts and values display correctly in the detail view',
+      'Create custom AI personas with a cleaner editor and auto-generated emoji',
+      'New "Unconventional Views" option when creating AI personas',
+      'Imported vs manually entered values are now labeled in Settings',
     ]
   },
   {

@@ -180,7 +180,13 @@
   <script>if(location.protocol!=='file:'){var s=document.createElement('script');s.defer=true;s.src='https://cloud.umami.is/script.js';s.dataset.websiteId='92334e9d-eef3-484a-a5a9-59a3acfefc6d';document.head.appendChild(s)}</script>
   <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('/service-worker.js').then(function(reg) {
+      // When a new SW takes over, reload to get fresh assets
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (!refreshing) { refreshing = true; location.reload(); }
+      });
+    }).catch(function() {});
   }
   </script>
 </body>

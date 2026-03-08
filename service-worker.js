@@ -106,6 +106,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first: version.js — must always fetch fresh so SW detects new versions
+  if (url.pathname === '/version.js') {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   // Stale-while-revalidate: local app shell files
   event.respondWith(
     caches.match(event.request).then((cached) => {
