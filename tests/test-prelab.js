@@ -188,18 +188,18 @@
     return providerCheck !== -1 && providerCheck < panelOpen;
   })(), 'openChatPanel should let the panel open without a provider');
 
-  assert('renderChatMessages shows setup guide when no provider', chatSrc.includes('if (!hasAIProvider())') && chatSrc.includes('chat-setup-guide'),
-    'Should show friendly setup guide instead of error');
-  assert('Setup guide has OpenRouter', chatSrc.includes('startOpenRouterOAuth') && chatSrc.includes('paste a key manually'),
-    'Should have OAuth button and manual key option');
-  assert('Setup guide has Anthropic', chatSrc.includes('console.anthropic.com'),
+  assert('Chat onboarding has profile form', chatSrc.includes('chat-onboard-form') && chatSrc.includes('chat-onboard-name'),
+    'Should show profile setup form for new visitors');
+  assert('Chat onboarding has OpenRouter OAuth', chatSrc.includes('startOpenRouterOAuth') && chatSrc.includes('paste a key manually'),
+    'Should have OAuth button and manual key option for API step');
+  assert('Chat onboarding has Anthropic', chatSrc.includes('console.anthropic.com'),
     'Should link to Anthropic console');
-  assert('Setup guide has Venice', chatSrc.includes('venice.ai/settings/api'),
+  assert('Chat onboarding has Venice', chatSrc.includes('venice.ai/settings/api'),
     'Should link to Venice API settings');
-  assert('Setup guide has Ollama', chatSrc.includes('ollama.com'),
+  assert('Chat onboarding has Ollama', chatSrc.includes('ollama.com'),
     'Should link to Ollama download');
-  assert('Setup guide has settings button', chatSrc.includes("openSettingsModal('ai')"),
-    'Should have button that opens AI settings tab directly');
+  assert('Chat onboarding has settings opener', chatSrc.includes("openSettingsModal('ai')"),
+    'Should have link that opens AI settings tab directly');
   assert('sendChatMessage guards no provider', (() => {
     const fnStart = chatSrc.indexOf('export async function sendChatMessage()');
     const fnBody = chatSrc.substring(fnStart, fnStart + 300);

@@ -251,13 +251,13 @@ export function openMenstrualCycleEditor() {
           <label>Average Cycle Length (days)</label>
           ${stats.cycleLength != null
             ? `<div class="mc-auto-value" id="mc-cycle-length-auto" data-value="${stats.cycleLength}">${stats.cycleLength} days</div>`
-            : `<input type="number" id="mc-cycle-length" value="${mc.cycleLength || 28}" min="20" max="45">`}
+            : `<div class="mc-auto-value mc-auto-pending">${mc.cycleLength || 28} days <span class="mc-auto-hint">default — log 2+ periods to auto-calculate</span></div>`}
         </div>
         <div class="supp-form-field">
           <label>Average Period Length (days)</label>
           ${stats.periodLength != null
             ? `<div class="mc-auto-value" id="mc-period-length-auto" data-value="${stats.periodLength}">${stats.periodLength} days</div>`
-            : `<input type="number" id="mc-period-length" value="${mc.periodLength || 5}" min="2" max="10">`}
+            : `<div class="mc-auto-value mc-auto-pending">${mc.periodLength || 5} days <span class="mc-auto-hint">default — log periods with end dates to auto-calculate</span></div>`}
         </div>
       </div>
       <div class="supp-form-row">
@@ -265,11 +265,7 @@ export function openMenstrualCycleEditor() {
           <label>Regularity</label>
           ${stats.regularity != null
             ? `<div class="mc-auto-value" id="mc-regularity-auto" data-value="${stats.regularity}">${regLabels[stats.regularity]}</div>`
-            : `<select id="mc-regularity">
-            <option value="regular"${mc.regularity === 'regular' || !mc.regularity ? ' selected' : ''}>Regular</option>
-            <option value="irregular"${mc.regularity === 'irregular' ? ' selected' : ''}>Irregular</option>
-            <option value="very_irregular"${mc.regularity === 'very_irregular' ? ' selected' : ''}>Very Irregular</option>
-          </select>`}
+            : `<div class="mc-auto-value mc-auto-pending">${regLabels[mc.regularity] || 'Regular'} <span class="mc-auto-hint">default — log 3+ periods to auto-calculate</span></div>`}
         </div>
         <div class="supp-form-field">
           <label>Flow Strength</label>
@@ -382,15 +378,13 @@ export function clearMenstrualCycle() {
 
 export function syncMenstrualCycleProfileFromForm() {
   const stats = calculateCycleStats(state.importedData.menstrualCycle ? state.importedData.menstrualCycle.periods : []);
-  const cycleLengthEl = document.getElementById('mc-cycle-length');
-  const periodLengthEl = document.getElementById('mc-period-length');
-  const regularityEl = document.getElementById('mc-regularity');
+  const mc = state.importedData.menstrualCycle || {};
   const cycleLengthAuto = document.getElementById('mc-cycle-length-auto');
   const periodLengthAuto = document.getElementById('mc-period-length-auto');
   const regularityAuto = document.getElementById('mc-regularity-auto');
-  const cycleLength = cycleLengthAuto ? parseInt(cycleLengthAuto.dataset.value) : Math.max(20, Math.min(45, parseInt(cycleLengthEl.value) || 28));
-  const periodLength = periodLengthAuto ? parseInt(periodLengthAuto.dataset.value) : Math.max(2, Math.min(10, parseInt(periodLengthEl.value) || 5));
-  const regularity = regularityAuto ? regularityAuto.dataset.value : regularityEl.value;
+  const cycleLength = cycleLengthAuto ? parseInt(cycleLengthAuto.dataset.value) : (mc.cycleLength || 28);
+  const periodLength = periodLengthAuto ? parseInt(periodLengthAuto.dataset.value) : (mc.periodLength || 5);
+  const regularity = regularityAuto ? regularityAuto.dataset.value : (mc.regularity || 'regular');
   const flow = document.getElementById('mc-flow').value;
   const contraceptive = document.getElementById('mc-contraceptive').value.trim();
   const conditions = document.getElementById('mc-conditions').value.trim();

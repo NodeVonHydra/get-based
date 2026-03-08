@@ -5,7 +5,7 @@ import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
-import { profileStorageKey, setProfileSex, setProfileDob } from './profile.js';
+import { profileStorageKey } from './profile.js';
 import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin, phaseBandPlugin } from './charts.js';
 import { renderSupplementsSection } from './supplements.js';
 import { renderMenstrualCycleSection } from './cycle.js';
@@ -50,7 +50,7 @@ export function showDashboard(data) {
   if (!hasData) {
     let html = `<div class="welcome-hero">
       <h2>Welcome to getbased</h2>
-      <p class="welcome-hero-subtitle">Import your blood work to track biomarker trends over time</p>
+      <p class="welcome-hero-subtitle">Track your biomarkers, understand your health</p>
       <div class="drop-zone" id="drop-zone">
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
         <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
@@ -74,8 +74,9 @@ export function showDashboard(data) {
         </button>
       </div>
     </div>`;
-    html += `<details class="welcome-context-details">
-      <summary class="welcome-context-summary">Don\u2019t have labs yet? Tell the AI about yourself</summary>`;
+    const detailsOpen = sessionStorage.getItem('welcome-details-open') === '1';
+    html += `<details class="welcome-context-details"${detailsOpen ? ' open' : ''}>
+      <summary class="welcome-context-summary" onclick="setTimeout(()=>sessionStorage.setItem('welcome-details-open',document.querySelector('.welcome-context-details')?.open?'1':'0'),0)">Don\u2019t have labs yet? Tell the AI about yourself</summary>`;
     html += renderProfileContextCards();
     if (state.profileSex === 'female') html += renderMenstrualCycleSection(data);
     html += renderSupplementsSection();
@@ -1267,6 +1268,11 @@ export function revertRefRange(id, type) {
   showDetailModal(id);
   showNotification('Range reverted to default', 'info');
 }
+
+// ═══════════════════════════════════════════════
+// WELCOME INTRO (profile setup on first visit)
+// ═══════════════════════════════════════════════
+
 
 // ═══════════════════════════════════════════════
 // WINDOW EXPORTS

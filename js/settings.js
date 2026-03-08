@@ -34,6 +34,7 @@ function buildModelOptions(provider, models, currentModel, labelFn) {
 let _activeSettingsTab = 'display';
 
 export function openSettingsModal(tab) {
+  window._settingsHadProvider = !!window.hasAIProvider?.();
   const overlay = document.getElementById('settings-modal-overlay');
   const modal = document.getElementById('settings-modal');
   const currentTheme = getTheme();
@@ -512,8 +513,13 @@ export function updateSettingsUI() {
 }
 
 export function closeSettingsModal() {
+  const hadProvider = window._settingsHadProvider;
   document.getElementById('settings-modal-overlay').classList.remove('show');
   if (window.updateChatNudge) window.updateChatNudge();
+  // If user just connected an AI provider, open chat for the next onboarding step
+  if (!hadProvider && window.hasAIProvider?.()) {
+    setTimeout(() => window.openChatPanel?.(), 300);
+  }
 }
 
 function isHttpsToNonLocalhost(url) {
