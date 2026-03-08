@@ -190,8 +190,8 @@
 
   assert('renderChatMessages shows setup guide when no provider', chatSrc.includes('if (!hasAIProvider())') && chatSrc.includes('chat-setup-guide'),
     'Should show friendly setup guide instead of error');
-  assert('Setup guide has OpenRouter', chatSrc.includes('openrouter.ai/keys'),
-    'Should link to OpenRouter key page');
+  assert('Setup guide has OpenRouter', chatSrc.includes('startOpenRouterOAuth') && chatSrc.includes('paste a key manually'),
+    'Should have OAuth button and manual key option');
   assert('Setup guide has Anthropic', chatSrc.includes('console.anthropic.com'),
     'Should link to Anthropic console');
   assert('Setup guide has Venice', chatSrc.includes('venice.ai/settings/api'),

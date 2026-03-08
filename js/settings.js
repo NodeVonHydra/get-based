@@ -513,6 +513,7 @@ export function updateSettingsUI() {
 
 export function closeSettingsModal() {
   document.getElementById('settings-modal-overlay').classList.remove('show');
+  if (window.updateChatNudge) window.updateChatNudge();
 }
 
 function isHttpsToNonLocalhost(url) {

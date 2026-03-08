@@ -10,3 +10,4 @@ node_modules/
 dist-docs/
 docs/.vitepress/cache/
 BingSiteAuth.xml
+docs/plans/

@@ -449,10 +449,15 @@ export function maybeShowEncryptionNudge() {
 }
 
 export function maybeShowBackupNudge() {
-  // Skip if no profiles exist
+  // Skip if no profiles or no actual data to back up
   const profiles = localStorage.getItem('labcharts-profiles');
   if (!profiles) return;
-  try { if (JSON.parse(profiles).length === 0) return; } catch { return; }
+  let profileList;
+  try { profileList = JSON.parse(profiles); if (profileList.length === 0) return; } catch { return; }
+  const hasAnyData = profileList.some(p => {
+    try { const d = JSON.parse(localStorage.getItem(`labcharts-${p.id}-imported`) || '{}'); return d.entries && d.entries.length > 0; } catch { return false; }
+  });
+  if (!hasAnyData) return;
   // Skip if folder backup is active and healthy
   if (_folderHandle && !_folderPermissionLost) return;
   // Skip if snoozed

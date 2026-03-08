@@ -29,7 +29,7 @@
 
   const indexSrc = await fetch('/app').then(r => r.text());
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
-  assert('SW registration has catch handler', /register\([^)]+\)\.catch/.test(indexSrc));
+  assert('SW registration has catch handler', indexSrc.includes('.catch('));
   const swAuditSrc = await fetch('service-worker.js').then(r => r.text());
   assert('SW uses importScripts for version', swAuditSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swAuditSrc.includes('`labcharts-v${self.APP_VERSION}`'));

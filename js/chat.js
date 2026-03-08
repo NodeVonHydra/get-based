@@ -1592,7 +1592,7 @@ export function renderChatMessages() {
             <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
             <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
             <button class="or-oauth-btn" style="margin-top:8px" onclick="startOpenRouterOAuth()">Connect with OpenRouter</button>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:var(--accent)">paste a key manually</a></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('openrouter')},300)" style="color:var(--accent)">paste a key manually</a></div>
           </div>
           <div class="chat-setup-provider">
             <strong>Anthropic</strong><br>
@@ -1619,6 +1619,23 @@ export function renderChatMessages() {
 
   if (state.chatHistory.length === 0) {
     const personality = getActivePersonality();
+    const nudgeStage = localStorage.getItem('labcharts-chat-nudge');
+    const hasData = state.importedData?.entries?.length > 0;
+    const nudgeActive = nudgeStage === 'data' || nudgeStage === 'context' || (!hasData && hasAIProvider());
+    if (nudgeActive) {
+      // Render as real chat — AI greeting + ready for reply
+      let msg, ctaHtml = '';
+      if (!hasData) {
+        msg = `Hey there! \uD83D\uDC4B I'm your AI health analyst. Drop a lab PDF on the page to import your results, or tell me about yourself below — I'll suggest what to test first.`;
+        ctaHtml = `<button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>`;
+      } else {
+        msg = `Great, I can see your results! \uD83D\uDC4B Tell me more about your lifestyle — fill in a few cards on the dashboard and I'll give you much better insights.`;
+        ctaHtml = `<button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.profile-context-cards')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>`;
+      }
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div><div class="chat-msg chat-ai"><p>${msg}</p>${ctaHtml}</div>`;
+      updateDiscussButton();
+      return;
+    }
     const noDataPrompts = _getNoDataPrompts();
     const prompts = noDataPrompts || [
       'What are my most concerning results?',
@@ -1811,6 +1828,12 @@ export async function openChatPanel(prefillMessage) {
   document.body.style.overflow = 'hidden';
   const fab = document.getElementById('chat-fab');
   if (fab) fab.classList.add('hidden');
+  // Dismiss current nudge stage
+  const currentNudge = localStorage.getItem('labcharts-chat-nudge');
+  if (currentNudge) {
+    localStorage.setItem('labcharts-chat-nudge-dismissed', currentNudge);
+    setChatNudge(null);
+  }
   loadChatPersonality();
   updateChatHeaderTitle();
   updatePersonalityBar();
@@ -1843,6 +1866,62 @@ export function closeChatPanel() {
   document.body.style.overflow = '';
   const fab = document.getElementById('chat-fab');
   if (fab) fab.classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════
+// CHAT NUDGE (unread badge on FAB)
+// ═══════════════════════════════════════════════
+
+/**
+ * Show/hide the unread badge + gentle pulse on the chat FAB.
+ * Stages:
+ *   'api'   — no AI provider connected yet (first visit nudge)
+ *   'data'  — API connected but no lab data imported
+ *   'context' — data imported, nudge to fill context cards
+ *   null    — clear the nudge
+ */
+export function setChatNudge(stage) {
+  const fab = document.getElementById('chat-fab');
+  if (!fab) return;
+  let badge = fab.querySelector('.chat-fab-badge');
+  if (stage) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'chat-fab-badge';
+      fab.appendChild(badge);
+    }
+    fab.classList.add('chat-fab-nudge');
+    localStorage.setItem('labcharts-chat-nudge', stage);
+  } else {
+    if (badge) badge.remove();
+    fab.classList.remove('chat-fab-nudge');
+    localStorage.removeItem('labcharts-chat-nudge');
+  }
+}
+
+/** Check state and show appropriate nudge if user hasn't dismissed it. */
+export function updateChatNudge() {
+  const dismissed = localStorage.getItem('labcharts-chat-nudge-dismissed');
+  const hasData = state.importedData?.entries?.length > 0;
+
+  if (!hasAIProvider()) {
+    // Stage 1: no API — only nudge if never dismissed this stage
+    if (dismissed !== 'api') setChatNudge('api');
+    else setChatNudge(null);
+  } else if (!hasData) {
+    // Stage 2: API connected, no data
+    if (dismissed !== 'data') setChatNudge('data');
+    else setChatNudge(null);
+  } else {
+    // Stage 3: has data — nudge to fill context cards (once)
+    const filledCards = ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'healthGoals']
+      .filter(k => {
+        const v = state.importedData?.[k];
+        return v && typeof v === 'object' && Object.values(v).some(f => f != null && f !== '' && !(Array.isArray(f) && f.length === 0));
+      }).length;
+    if (filledCards < 3 && dismissed !== 'context') setChatNudge('context');
+    else setChatNudge(null);
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -2677,4 +2756,6 @@ Object.assign(window, {
   clearAttachments,
   updateAttachButtonVisibility,
   initChatImageHandlers,
+  setChatNudge,
+  updateChatNudge,
 });

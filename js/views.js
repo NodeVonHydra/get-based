@@ -54,7 +54,8 @@ export function showDashboard(data) {
       <div class="drop-zone" id="drop-zone">
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
         <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-        <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div></div>
+        <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div>
+        ${!hasAIProvider() ? '<div class="drop-zone-api-hint">Requires an AI connection — <a href="#" onclick="event.preventDefault();event.stopPropagation();closeChatPanel();window.openSettingsModal(\'ai\')">set up in 30 seconds</a></div>' : ''}</div>
       <div class="onboarding-divider">
         <span class="onboarding-divider-line"></span>
         <span class="onboarding-divider-text">or explore with demo data</span>
