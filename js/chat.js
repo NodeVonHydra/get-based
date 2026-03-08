@@ -1953,7 +1953,7 @@ export async function sendChatMessage() {
     const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
     // Send last 30 messages for context — tag messages from other personas
-    const apiMessages = state.chatHistory.filter(m => !m.joined && !m.hidden && m.role).slice(-30).map(m => {
+    const apiMessages = state.chatHistory.filter(m => !m.joined && m.role).slice(-30).map(m => {
       if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
         return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
       }
@@ -2299,7 +2299,7 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
       }
       const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
-      const apiMessages = state.chatHistory.filter(m => !m.joined && !m.hidden && m.role).slice(-30).map(m => {
+      const apiMessages = state.chatHistory.filter(m => !m.joined && m.role).slice(-30).map(m => {
         if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
           return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
         }
