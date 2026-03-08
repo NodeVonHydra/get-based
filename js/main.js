@@ -125,6 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Init chat image attachment handlers (paste, drag-drop, file input)
   window.initChatImageHandlers();
   window.updateAttachButtonVisibility();
+  window.updateChatNudge();
   document.getElementById("pdf-input").addEventListener("change", async e => {
     if (e.target.files.length > 0) {
       const files = Array.from(e.target.files);
@@ -253,4 +254,5 @@ registerRefreshCallback(() => {
   buildSidebar();
   const activeNav = document.querySelector('.nav-item.active');
   window.navigate(activeNav ? activeNav.dataset.category : 'dashboard');
+  window.updateChatNudge();
 });
