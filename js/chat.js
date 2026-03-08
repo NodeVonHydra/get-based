@@ -2376,7 +2376,7 @@ function showDiscussContinuePrompt(personas, originalPersonality) {
 
   const prompt = document.createElement('div');
   prompt.className = 'chat-discuss-continue';
-  prompt.innerHTML = '<input type="text" class="chat-discuss-steer" id="chat-discuss-steer" placeholder="Steer the debate (optional)..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();continueDiscussion()}">' +
+  prompt.innerHTML = '<input type="text" class="chat-discuss-steer" id="chat-discuss-steer" autocomplete="off" placeholder="Steer the debate (optional)..." onkeydown="if(event.key===\'Enter\'){event.preventDefault();continueDiscussion()}">' +
     '<div class="chat-discuss-continue-actions">' +
     '<button class="chat-discuss-continue-btn" onclick="continueDiscussion()">Continue</button>' +
     '<button class="chat-discuss-done-btn" onclick="endDiscussion()">Done</button>' +
