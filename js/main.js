@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await saveOpenRouterKey(key);
       setAIProvider('openrouter');
       fetchOpenRouterModels(key);
-      window._openSettingsAfterInit = 'ai';
+      window._openChatAfterInit = true;
       window.showNotification('Connected to OpenRouter successfully!', 'success');
     } catch (e) {
       window.showNotification('OpenRouter connection failed: ' + e.message, 'error', 6000);
@@ -118,6 +118,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window._openSettingsAfterInit) {
     window.openSettingsModal(window._openSettingsAfterInit);
     delete window._openSettingsAfterInit;
+  }
+  if (window._openChatAfterInit) {
+    delete window._openChatAfterInit;
+    setTimeout(() => window.openChatPanel(), 500);
   }
   updateHeaderDates();
   updateHeaderRangeToggle();

@@ -5,9 +5,9 @@ import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT } from './constants.js';
 import { calculateCost, formatCost, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
 import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
 import { formatTime } from './theme.js';
-import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers } from './data.js';
+import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
-import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
+import { getProfileLocation, getLatitudeFromLocation, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
@@ -1580,59 +1580,158 @@ export function renderChatMessages() {
   const container = document.getElementById('chat-messages');
   if (!container) return;
 
-  // No AI provider — show friendly setup guide instead of error
-  if (!hasAIProvider()) {
-    container.innerHTML = `<div class="chat-empty">
-      <div class="chat-empty-icon">🔑</div>
-      <div class="chat-setup-title">Set up an AI provider to start chatting</div>
-      <div class="chat-setup-guide">
-        <p>This chat uses an AI to analyze your labs, recommend tests, and answer health questions. You'll need an API key from one of these providers:</p>
-        <div class="chat-setup-providers">
-          <div class="chat-setup-provider">
-            <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
-            <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
-            <button class="or-oauth-btn" style="margin-top:8px" onclick="startOpenRouterOAuth()">Connect with OpenRouter</button>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('openrouter')},300)" style="color:var(--accent)">paste a key manually</a></div>
-          </div>
-          <div class="chat-setup-provider">
-            <strong>Anthropic</strong><br>
-            <span class="chat-setup-detail">Direct access to Claude models.</span><br>
-            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
-          </div>
-          <div class="chat-setup-provider">
-            <strong>Venice</strong><br>
-            <span class="chat-setup-detail">Privacy-focused cloud. Access to Claude, GPT, and open models.</span><br>
-            <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>
-          </div>
-          <div class="chat-setup-provider">
-            <strong>Local AI</strong><br>
-            <span class="chat-setup-detail">Run models locally with Ollama, LM Studio, or any OpenAI-compatible server.</span><br>
-            <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
-          </div>
-        </div>
-        <p>Once you have a key, paste it in Settings:</p>
-        <button class="chat-setup-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">Open AI Settings</button>
-      </div>
-    </div>`;
-    return;
-  }
-
+  // ── Onboarding flow: conversational chat bubbles guide through setup ──
   if (state.chatHistory.length === 0) {
     const personality = getActivePersonality();
-    const nudgeStage = localStorage.getItem('labcharts-chat-nudge');
     const hasData = state.importedData?.entries?.length > 0;
-    const nudgeActive = nudgeStage === 'data' || nudgeStage === 'context' || (!hasData && hasAIProvider());
-    if (nudgeActive) {
-      // Render as real chat — AI greeting + ready for reply
-      let msg, ctaHtml = '';
-      if (!hasData) {
-        msg = `Hey there! \uD83D\uDC4B I'm your AI health analyst. Drop a lab PDF on the page to import your results, or tell me about yourself below — I'll suggest what to test first.`;
-        ctaHtml = `<button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>`;
-      } else {
-        msg = `Great, I can see your results! \uD83D\uDC4B Tell me more about your lifestyle — fill in a few cards on the dashboard and I'll give you much better insights.`;
-        ctaHtml = `<button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.profile-context-cards')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>`;
-      }
-      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div><div class="chat-msg chat-ai"><p>${msg}</p>${ctaHtml}</div>`;
+    const currentP = getProfiles().find(p => p.id === state.currentProfile);
+    const hasProfile = currentP?.name && currentP.name !== 'Default' && state.profileSex;
+
+    // Stage 1: No profile — ask name/sex/DOB
+    if (!hasProfile) {
+      const pName = (currentP?.name && currentP.name !== 'Default') ? currentP.name : '';
+      const pSex = state.profileSex || '';
+      const pDob = state.profileDob || '';
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>Hey! 👋 I'm your AI health analyst. Before we start — tell me a bit about yourself:</p>
+          <div class="chat-onboard-form">
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Name</label>
+              <input type="text" class="chat-onboard-input" id="chat-onboard-name" placeholder="your name" value="${escapeHTML(pName)}" onchange="window.saveChatProfile()">
+            </div>
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Sex</label>
+              <div class="chat-onboard-sex">
+                <button class="welcome-sex-btn${pSex === 'male' ? ' active' : ''}" onclick="window.setChatProfileSex('male')">Male</button>
+                <button class="welcome-sex-btn${pSex === 'female' ? ' active' : ''}" onclick="window.setChatProfileSex('female')">Female</button>
+              </div>
+            </div>
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Born</label>
+              <input type="date" class="chat-onboard-input" id="chat-onboard-dob" value="${escapeHTML(pDob)}" onchange="window.saveChatProfile()">
+            </div>
+            <button class="chat-onboard-next" id="chat-onboard-next" onclick="window.saveChatProfile(true)" disabled>Continue →</button>
+          </div>
+        </div>`;
+      _updateOnboardNextBtn();
+      updateDiscussButton();
+      return;
+    }
+
+    // Stage 2: Profile set, no AI — connect provider (full list)
+    if (!hasAIProvider()) {
+      const name = currentP?.name || 'there';
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>Nice to meet you, ${escapeHTML(name)}! To analyze your labs and answer health questions, I need an AI connection. Pick a provider:</p>
+          <div class="chat-setup-providers">
+            <div class="chat-setup-provider">
+              <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
+              <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
+              <button class="or-oauth-btn" style="margin-top:8px" onclick="startOpenRouterOAuth()">Connect with OpenRouter</button>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('openrouter')},300)" style="color:var(--accent)">paste a key manually</a></div>
+            </div>
+            <div class="chat-setup-provider">
+              <strong>Anthropic</strong><br>
+              <span class="chat-setup-detail">Direct access to Claude models.</span><br>
+              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
+            </div>
+            <div class="chat-setup-provider">
+              <strong>Venice</strong><br>
+              <span class="chat-setup-detail">Privacy-focused cloud. Access to Claude, GPT, and open models.</span><br>
+              <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>
+            </div>
+            <div class="chat-setup-provider">
+              <strong>Local AI</strong><br>
+              <span class="chat-setup-detail">Run models locally with Ollama, LM Studio, or any OpenAI-compatible server.</span><br>
+              <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
+            </div>
+          </div>
+          <p style="font-size:13px">Once you have a key, paste it in Settings:</p>
+          <button class="chat-setup-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">Open AI Settings</button>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
+
+    // Stage 3+: API connected — guide through cards and import
+    const filled = _countFilledCards();
+    const nudgeStage = localStorage.getItem('labcharts-chat-nudge');
+    const name = currentP?.name || 'there';
+
+    const isFemale = state.profileSex === 'female';
+    const mc = state.importedData?.menstrualCycle;
+    const hasCycle = mc?.periods?.length > 0 || mc?.cycleLength;
+    const cycleHint = (isFemale && !hasCycle) ? `<div class="chat-onboard-cycle-hint">
+            <p>🩸 <strong>One more thing</strong> — when was your last period? This helps me recommend the best day to draw blood and correctly interpret your hormones, iron, and inflammation — these shift significantly throughout your cycle.</p>
+            <div class="chat-onboard-cycle-form">
+              <div class="chat-onboard-cycle-dates">
+                <label class="chat-onboard-label">Started on the</label>
+                <input type="number" class="chat-onboard-input chat-onboard-day" id="chat-onboard-period-start" min="1" max="31" placeholder="?" oninput="window._updatePeriodBtn()">
+                <label class="chat-onboard-label">ended on the</label>
+                <input type="number" class="chat-onboard-input chat-onboard-day" id="chat-onboard-period-end" min="1" max="31" placeholder="?" oninput="window._updatePeriodBtn()">
+              </div>
+              <button class="chat-onboard-next" id="chat-onboard-period-btn" onclick="window.saveChatPeriod()" disabled>Save</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">You can add more detail later in the full <a href="#" onclick="event.stopPropagation();closeChatPanel();window.openMenstrualCycleEditor?.()" style="color:var(--accent)">cycle editor</a>.</div>
+          </div>` : '';
+
+    // 3a: All 9 cards filled, no data — full picture
+    if (nudgeStage === 'ready' || (filled >= 9 && !hasData)) {
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>Amazing, ${escapeHTML(name)} — you filled everything in! I have a really complete picture of your lifestyle now. Ask me anything.</p>
+          ${cycleHint}
+          <div class="chat-onboard-actions">
+            <button class="chat-prompt-btn" onclick="useChatPrompt('Based on my full profile, what blood tests should I get and why?')">What tests should I get?</button>
+            <button class="chat-prompt-btn" onclick="useChatPrompt('What can you tell about my health from my lifestyle info?')">Analyze my lifestyle</button>
+          </div>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
+
+    // 3b: No data, some cards filled — show progress, encourage more
+    if (!hasData && filled > 0) {
+      const remaining = 9 - filled;
+      const progressPct = Math.round((filled / 9) * 100);
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>${filled >= 6 ? `Almost there, ${escapeHTML(name)}!` : filled >= 3 ? `Nice progress, ${escapeHTML(name)}!` : `Good start, ${escapeHTML(name)}!`} You've filled ${filled} of 9 cards.</p>
+          <div class="chat-onboard-progress"><div class="chat-onboard-progress-bar" style="width:${progressPct}%"></div></div>
+          <p style="font-size:12px;color:var(--text-muted);margin:4px 0 0">Each card you fill makes my test recommendations and health analysis more accurate. Skip anything you'd rather not share — it's all optional.</p>
+          ${cycleHint}
+          <div class="chat-onboard-actions">
+            <button class="chat-onboard-cta" onclick="closeChatPanel();sessionStorage.setItem('welcome-details-open','1');document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">📋 Continue — ${remaining} card${remaining !== 1 ? 's' : ''} left</button>
+            <button class="chat-prompt-btn" onclick="useChatPrompt('Based on what you know about me so far, what blood tests should I get?')">That's enough — recommend tests</button>
+          </div>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
+
+    // 3c: No data, no cards — initial prompt
+    if (!hasData) {
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>You're all set, ${escapeHTML(name)}! 🎉</p>
+          <p>Drop a lab PDF on the page to import your results — or if you don't have labs yet, tell me about your lifestyle and I'll recommend what to test first. It takes about 3 minutes and makes a big difference.</p>
+          <div class="chat-onboard-actions">
+            <button class="chat-onboard-cta" onclick="closeChatPanel();sessionStorage.setItem('welcome-details-open','1');document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">📋 Fill in my lifestyle cards</button>
+          </div>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
+
+    // Stage 4: Has data, few context cards — nudge lifestyle
+    if (filled < 3 && (nudgeStage === 'context' || nudgeStage === 'data')) {
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>Great, I can see your results! 👋 Fill in a few lifestyle cards on the dashboard and I'll give you much better insights.</p>
+          <button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.profile-context-cards')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>
+        </div>`;
       updateDiscussButton();
       return;
     }
@@ -1828,9 +1927,9 @@ export async function openChatPanel(prefillMessage) {
   document.body.style.overflow = 'hidden';
   const fab = document.getElementById('chat-fab');
   if (fab) fab.classList.add('hidden');
-  // Dismiss current nudge stage
+  // Dismiss current nudge stage (but not 'profile' — user must complete the form)
   const currentNudge = localStorage.getItem('labcharts-chat-nudge');
-  if (currentNudge) {
+  if (currentNudge && currentNudge !== 'profile') {
     localStorage.setItem('labcharts-chat-nudge-dismissed', currentNudge);
     setChatNudge(null);
   }
@@ -1875,10 +1974,11 @@ export function closeChatPanel() {
 /**
  * Show/hide the unread badge + gentle pulse on the chat FAB.
  * Stages:
- *   'api'   — no AI provider connected yet (first visit nudge)
- *   'data'  — API connected but no lab data imported
+ *   'profile' — no name/sex set yet (first visit)
+ *   'api'     — no AI provider connected
+ *   'data'    — API connected but no lab data imported
  *   'context' — data imported, nudge to fill context cards
- *   null    — clear the nudge
+ *   null      — clear the nudge
  */
 export function setChatNudge(stage) {
   const fab = document.getElementById('chat-fab');
@@ -1903,17 +2003,19 @@ export function setChatNudge(stage) {
 export function updateChatNudge() {
   const dismissed = localStorage.getItem('labcharts-chat-nudge-dismissed');
   const hasData = state.importedData?.entries?.length > 0;
+  const currentP = getProfiles().find(p => p.id === state.currentProfile);
+  const hasProfile = currentP?.name && currentP.name !== 'Default' && state.profileSex;
 
-  if (!hasAIProvider()) {
-    // Stage 1: no API — only nudge if never dismissed this stage
+  if (!hasProfile) {
+    // Stage 0: no profile — always nudge (can't dismiss)
+    setChatNudge('profile');
+  } else if (!hasAIProvider()) {
     if (dismissed !== 'api') setChatNudge('api');
     else setChatNudge(null);
   } else if (!hasData) {
-    // Stage 2: API connected, no data
     if (dismissed !== 'data') setChatNudge('data');
     else setChatNudge(null);
   } else {
-    // Stage 3: has data — nudge to fill context cards (once)
     const filledCards = ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'healthGoals']
       .filter(k => {
         const v = state.importedData?.[k];
@@ -1922,6 +2024,94 @@ export function updateChatNudge() {
     if (filledCards < 3 && dismissed !== 'context') setChatNudge('context');
     else setChatNudge(null);
   }
+}
+
+// ═══════════════════════════════════════════════
+// CHAT ONBOARDING PROFILE FORM HELPERS
+// ═══════════════════════════════════════════════
+
+function _updateOnboardNextBtn() {
+  const btn = document.getElementById('chat-onboard-next');
+  if (!btn) return;
+  const name = document.getElementById('chat-onboard-name')?.value?.trim();
+  const sex = state.profileSex;
+  btn.disabled = !(name && sex);
+}
+
+export function setChatProfileSex(sex) {
+  document.querySelectorAll('.chat-onboard-form .welcome-sex-btn').forEach(b => b.classList.remove('active'));
+  const btns = document.querySelectorAll('.chat-onboard-form .welcome-sex-btn');
+  if (sex === 'male' && btns[0]) btns[0].classList.add('active');
+  if (sex === 'female' && btns[1]) btns[1].classList.add('active');
+  setProfileSex(state.currentProfile, sex);
+  state.profileSex = sex;
+  _updateOnboardNextBtn();
+}
+
+export function saveChatProfile(advance) {
+  const nameEl = document.getElementById('chat-onboard-name');
+  const dobEl = document.getElementById('chat-onboard-dob');
+  const name = nameEl?.value?.trim();
+  const dob = dobEl?.value;
+  if (name) renameProfile(state.currentProfile, name);
+  if (dob) { setProfileDob(state.currentProfile, dob); state.profileDob = dob; }
+  window.renderProfileButton?.();
+  _updateOnboardNextBtn();
+  if (advance && name && state.profileSex) {
+    // Profile complete — advance to next stage
+    updateChatNudge();
+    renderChatMessages();
+  }
+}
+
+export function _updatePeriodBtn() {
+  const start = document.getElementById('chat-onboard-period-start')?.value;
+  const end = document.getElementById('chat-onboard-period-end')?.value;
+  const btn = document.getElementById('chat-onboard-period-btn');
+  if (btn) btn.disabled = !(start && end);
+}
+
+export function saveChatPeriod() {
+  const startDay = parseInt(document.getElementById('chat-onboard-period-start')?.value);
+  const endDay = parseInt(document.getElementById('chat-onboard-period-end')?.value);
+  if (!startDay || !endDay) return;
+  // Build full dates — assume current month, or previous month if start day is in the future
+  const now = new Date();
+  let year = now.getFullYear(), month = now.getMonth();
+  if (startDay > now.getDate()) month--; // last month
+  if (month < 0) { month = 11; year--; }
+  const pad = n => String(n).padStart(2, '0');
+  const startDate = `${year}-${pad(month + 1)}-${pad(startDay)}`;
+  // End day — same month as start, or next month if end < start (period crossed months)
+  let eMonth = month, eYear = year;
+  if (endDay < startDay) { eMonth++; if (eMonth > 11) { eMonth = 0; eYear++; } }
+  const endDate = `${eYear}-${pad(eMonth + 1)}-${pad(endDay)}`;
+  const periodDays = Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / 86400000));
+  if (!state.importedData.menstrualCycle) state.importedData.menstrualCycle = {};
+  const mc = state.importedData.menstrualCycle;
+  if (!mc.periods) mc.periods = [];
+  mc.periods.push({ startDate, endDate, flow: 'medium' });
+  if (!mc.cycleLength) mc.cycleLength = 28;
+  mc.periodLength = periodDays;
+  saveImportedData();
+  showNotification('Cycle tracking set up!', 'success');
+  renderChatMessages();
+}
+
+/** Called by context-cards.js after saving a card. Nudges or advances the onboarding. */
+function _countFilledCards() {
+  return ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'healthGoals']
+    .filter(k => {
+      const v = state.importedData?.[k];
+      return v && typeof v === 'object' && Object.values(v).some(f => f != null && f !== '' && !(Array.isArray(f) && f.length === 0));
+    }).length;
+}
+
+export function onContextCardSaved() {
+  const filled = _countFilledCards();
+  const hasData = state.importedData?.entries?.length > 0;
+  if (hasData) return;
+  setChatNudge(filled >= 9 ? 'ready' : 'context');
 }
 
 // ═══════════════════════════════════════════════
@@ -2758,4 +2948,9 @@ Object.assign(window, {
   initChatImageHandlers,
   setChatNudge,
   updateChatNudge,
+  setChatProfileSex,
+  saveChatProfile,
+  saveChatPeriod,
+  _updatePeriodBtn,
+  onContextCardSaved,
 });

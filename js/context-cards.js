@@ -416,9 +416,8 @@ export function contextEditorActions(hasCurrent, saveFn, clearFn) {
 export function saveAndRefresh(msg) {
   saveImportedData();
   window.closeModal();
-  const activeNav = document.querySelector(".nav-item.active");
-  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showNotification(msg, 'success');
+  if (window.onContextCardSaved) window.onContextCardSaved();
 }
 
 function getTimePlaceholder() {
@@ -554,8 +553,6 @@ export function saveDiagnoses() {
 
 export function closeDiagnoses() {
   window.closeModal();
-  const activeNav = document.querySelector(".nav-item.active");
-  window.navigate(activeNav ? activeNav.dataset.category : "dashboard");
 }
 
 export function clearDiagnoses() {
