@@ -42,6 +42,10 @@ export function showDashboard(data) {
   const main = document.getElementById("main-content");
   const hasData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singlePoint && c.singleDate);
 
+  // Show/hide import FAB based on whether dashboard has data
+  const importFab = document.getElementById('import-fab');
+  if (importFab) importFab.classList.toggle('hidden', !hasData);
+
   // ── Empty state: welcome hero + collapsed context ──
   if (!hasData) {
     let html = `<div class="welcome-hero">
@@ -83,12 +87,8 @@ export function showDashboard(data) {
   // ── Has data: full dashboard ──
   let html = `<div class="category-header"><h2>Dashboard Overview</h2>
     <p>Summary of all blood work results across ${data.dates.length} collection date${data.dates.length !== 1 ? 's' : ''}</p></div>`;
-
-  // ── 1. Drop zone ──
-  html += `<div class="drop-zone drop-zone-compact" id="drop-zone">
-    <div class="drop-zone-icon">\uD83D\uDCC4</div>
-    <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
-    <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div></div>`;
+  // Drop zone hidden element for drag-drop + file input (no visible space on dashboard)
+  html += `<div class="drop-zone drop-zone-hidden" id="drop-zone"></div>`;
 
   // ── 2. Onboarding Banner (Step 2) ──
   html += renderOnboardingBanner();
@@ -712,8 +712,13 @@ export function showDetailModal(id) {
     const rawDate = marker.singlePoint ? null : data.dates[i];
     const matchingNote = rawDate && state.importedData.notes ? state.importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
-    const isManual = rawDate && state.importedData.manualValues && state.importedData.manualValues[dotKey + ':' + rawDate];
-    const manualBadge = isManual ? ' <span class="ref-edited-badge" title="Manually entered">manual</span>' : '';
+    const mvKey = dotKey + ':' + rawDate;
+    const manualVal = rawDate && state.importedData.manualValues && state.importedData.manualValues[mvKey];
+    const isManual = manualVal !== undefined && manualVal !== null;
+    const canRevert = isManual && manualVal !== true;
+    const manualBadge = canRevert
+      ? ` <span class="ref-edited-badge" title="Edited — click to revert" onclick="event.stopPropagation();revertMarkerValue('${id}','${rawDate}')">edited \u00d7</span>`
+      : isManual ? ' <span class="ref-edited-badge" title="Manually entered">manual</span>' : '';
     const deleteBtn = (v !== null) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
     const editClick = rawDate && v !== null ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
     html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
@@ -868,17 +873,35 @@ export function editMarkerValue(id, date, currentValue, event) {
     const dotKey = id.replace('_', '.');
     const entry = state.importedData.entries?.find(e => e.date === date);
     if (!entry) return;
+    // Track as manually edited — store original value for revert (true = manual entry with no original)
+    if (!state.importedData.manualValues) state.importedData.manualValues = {};
+    const mvKey = dotKey + ':' + date;
+    if (!(mvKey in state.importedData.manualValues)) {
+      // First edit — save original SI value for revert
+      state.importedData.manualValues[mvKey] = entry.markers[dotKey] != null ? entry.markers[dotKey] : true;
+    }
     const storedValue = convertDisplayToSI(dotKey, newValue);
     entry.markers[dotKey] = storedValue;
     if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; recalculateHOMAIR(entry); }
-    // Track as manually edited
-    if (!state.importedData.manualValues) state.importedData.manualValues = {};
-    state.importedData.manualValues[dotKey + ':' + date] = true;
     saveImportedData();
     showDetailModal(id);
   };
   input.addEventListener('blur', save);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); else if (e.key === 'Escape') showDetailModal(id); });
+}
+
+export function revertMarkerValue(id, date) {
+  const dotKey = id.replace('_', '.');
+  const mvKey = dotKey + ':' + date;
+  const original = state.importedData.manualValues?.[mvKey];
+  if (original == null || original === true) return;
+  const entry = state.importedData.entries?.find(e => e.date === date);
+  if (!entry) return;
+  entry.markers[dotKey] = original;
+  if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = original; recalculateHOMAIR(entry); }
+  delete state.importedData.manualValues[mvKey];
+  saveImportedData();
+  showDetailModal(id);
 }
 
 export function closeModal() {
@@ -1275,6 +1298,7 @@ Object.assign(window, {
   saveManualEntry,
   deleteMarkerValue,
   editMarkerValue,
+  revertMarkerValue,
   closeModal,
   showCompare,
   setCompareDate1,

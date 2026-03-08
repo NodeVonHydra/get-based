@@ -9,9 +9,9 @@ You need an AI provider configured in **Settings → AI Provider**. If you haven
 ## How to Import
 
 1. Open the getbased dashboard
-2. Drag your lab PDF and drop it onto the **drop zone** at the top of the page
+2. Click the **import button** (document icon, bottom-right corner) or drag a PDF anywhere onto the page
 3. Wait while the AI reads and analyzes the report (typically 5–20 seconds)
-4. Review the **import preview**
+4. Review the **import preview** — exclude any rows you don't want by clicking the × button
 5. Click **Confirm** to save the results
 
 That's it. Your data appears in charts immediately after confirming.
@@ -32,6 +32,8 @@ Before anything is saved, getbased shows you exactly what it found:
 - **Green — Matched**: Markers recognized and mapped to a known biomarker (e.g., glucose, TSH, ferritin)
 - **Blue — New**: Markers not in the built-in list, auto-created as [custom markers](./custom-markers.md) with AI-suggested names and reference ranges
 - **Yellow — Unmatched**: Results the AI found but could not confidently identify — these are skipped
+
+The preview table shows each marker's value, the lab's reference range as printed on the PDF, and the internal mapping. Click the **×** button on any row to exclude it from import — the button toggles to **+** so you can re-include it. The confirm button updates its count as you exclude or re-include rows.
 
 Review the preview carefully. You can dismiss the import if something looks wrong and try again.
 

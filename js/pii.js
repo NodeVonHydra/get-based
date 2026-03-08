@@ -463,22 +463,7 @@ export function showPIIDiffViewer(originalText, obfuscatedText) {
   requestAnimationFrame(() => overlay.classList.add('show'));
 }
 
-function extractPatientName(text) {
-  // Try label-based extraction (Czech/Slovak + English)
-  const patterns = [
-    /\b(?:jm[eé]no|p[rř][ií]jmen[ií])\b[:\s]+(.+)/im,
-    /\b(?:patient\s*name|patient)\b[:\s]+(.+)/im,
-    /\b(?:surname|last\s*name|first\s*name)\b[:\s]+(.+)/im,
-  ];
-  for (const p of patterns) {
-    const m = text.match(p);
-    if (m) {
-      const name = m[1].trim().replace(/\s{2,}.*/, ''); // trim trailing columns
-      if (name && name.length > 1 && name.length < 60) return name;
-    }
-  }
-  return null;
-}
+// extractPatientName dropped — too unreliable across PDF layouts
 
 export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) {
   return new Promise(resolve => {
@@ -637,10 +622,14 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         // Reset state
         abortController = new AbortController();
         textarea.value = '';
+        textarea.style.display = '';
         textarea.readOnly = true;
         sendBtn.disabled = true;
         stopBtn.style.display = '';
         retryBtn.style.display = 'none';
+        // Clear previous diff preview so streaming is visible
+        const prevDiff = overlay.querySelector('.pii-diff-preview');
+        if (prevDiff) prevDiff.style.display = 'none';
         statusEl.className = 'pii-stream-status pii-stream-waiting';
         statusEl.textContent = 'Waiting for model response\u2026';
         if (thinkingSection) { thinkingSection.style.display = 'none'; thinkingContent.textContent = ''; }
@@ -691,12 +680,6 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           retryBtn.style.display = '';
           if (thinkingSection && hasThinking) { thinkingSection.open = false; thinkingSection.querySelector('summary').textContent = 'Thinking (done)'; }
           showDiffPreview(textarea.value);
-          // Auto-fill search with patient name
-          const name = extractPatientName(originalText);
-          if (name && searchInput) {
-            searchInput.value = name;
-            searchInput.dispatchEvent(new Event('input'));
-          }
         }).catch(err => {
           flushToTextarea();
           if (err.name === 'AbortError') return; // stop button already handled

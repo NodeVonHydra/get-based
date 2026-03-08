@@ -5,6 +5,20 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.5.3', date: '2026-03-08', title: 'Import & Editing Improvements',
+    items: [
+      'Import preview: exclude individual markers before confirming — toggle rows with × button',
+      'Import preview: Lab Range column shows reference ranges exactly as printed on the PDF',
+      'Import FAB: floating import button replaces inline drop zone on dashboard',
+      'Value editing: "edited ×" badge with one-click revert to original imported value',
+      'OpenRouter: custom model input field with connection health check indicator',
+      'Discuss mode: state persists across page refresh (resumes on thread switch)',
+      'Folder backup: daily snapshots with 30-day retention (was per-save with 4-file limit)',
+      'PII review: retry re-streams visibly instead of replacing silently',
+      'Removed Czech translations from marker names (glucose, creatinine, uric acid)',
+    ]
+  },
+  {
     version: '1.5.2', date: '2026-03-08', title: 'Chat & Discuss Mode Improvements',
     items: [
       'Discuss mode: persona picker — click the discuss button to add another persona for a second opinion',

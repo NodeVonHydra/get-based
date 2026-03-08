@@ -23,7 +23,7 @@ Each backup is a full snapshot of your getbased database:
 Two files are written to your chosen folder:
 
 - **`getbased-backup-latest.json`** — always-current snapshot, overwritten on each backup
-- **`getbased-backup-YYYY-MM-DD.json`** — daily dated snapshot, one per day
+- **`getbased-backup-YYYY-MM-DD.json`** — daily dated snapshot, one per day (up to 30 days retained)
 
 ## When Backups Run
 

@@ -40,7 +40,7 @@ When both Local AI PII and the review editor are enabled, the review modal opens
 
 - **Progress indicator** — a pulsing green dot while the model loads, then a percentage counter as text streams in
 - **Word-level diffs** — after streaming completes, both panels show highlighted differences: red for removed words on the left, green for added words on the right. Click the right panel to switch into edit mode
-- **Auto-search** — the patient name from the original PDF is auto-filled into the search bar so you can instantly verify it was replaced
+- **Search bar** — use the search field to find and verify that specific text (e.g., your name) was properly replaced
 - **Edit freely** — the right panel becomes editable after streaming. The button changes to "Save & Send to AI" when you make changes
 - **Thinking tokens** — models that emit `<think>` tags or `reasoning_content` have their thinking stripped from the obfuscated output and shown in a collapsible section below the diff
 - **Stop** — cancel the stream mid-way and edit the partial result. The model is unloaded from VRAM when you click Stop, Cancel, or "Use regex instead"

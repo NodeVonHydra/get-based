@@ -36,9 +36,8 @@
   const nameResult = obfuscatePDFText(nameText);
   assert('English "Name:" replaced', !nameResult.obfuscated.includes('Jane Doe'), `got: ${nameResult.obfuscated.split('\n')[0]}`);
 
-  // extractPatientName patterns are in source
-  assert('extractPatientName has English patterns', piiSrc.includes('patient\\s*name') || piiSrc.includes('Patient Name'));
-  assert('extractPatientName has surname pattern', piiSrc.includes('surname') && piiSrc.includes('last\\s*name'));
+  // extractPatientName dropped — too unreliable across PDF layouts
+  assert('extractPatientName removed', piiSrc.includes('extractPatientName dropped'));
 
   // ═══════════════════════════════════════
   // 2. US Lab (LabCorp-style) Regex Patterns

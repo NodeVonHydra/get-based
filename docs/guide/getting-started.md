@@ -28,7 +28,7 @@ Once installed, the full app shell works offline. AI features (PDF import, chat)
 
 ## Guided Tour
 
-When you open the app for the first time, a 7-step spotlight tour walks you through the key areas of the interface — the import drop zone, category navigation, lifestyle context cards, settings, and the AI chat panel. Use the **Next** button to advance, or press **Escape** to dismiss.
+When you open the app for the first time, a 7-step spotlight tour walks you through the key areas of the interface — the import button, category navigation, lifestyle context cards, settings, and the AI chat panel. Use the **Next** button to advance, or press **Escape** to dismiss.
 
 You can replay the tour at any time from **Settings → Display → Take a Tour**.
 
@@ -54,7 +54,7 @@ In **Settings → Profile**, enter your biological sex and date of birth. These 
 
 ### 3. Import Your First Lab Report
 
-Drag and drop any lab PDF onto the drop zone at the top of the dashboard. The AI reads the report, maps results to known biomarkers, and shows you a preview before saving anything.
+Click the **import button** (document icon, bottom-right) or drag and drop any lab PDF onto the page. The AI reads the report, maps results to known biomarkers, and shows you a preview before saving anything.
 
 If you don't have a PDF handy, try one of the **demo profiles** first. On the welcome screen, click **Sarah** (iron & hormones story) or **Alex** (metabolic health journey) to load a fully populated profile with 4 blood draws, fatty acid panels, supplements, context cards, EMF assessments, and notes. You can also load demo profiles later from the **Client List** (click your profile in the header) using the **+ Demo Sarah** or **+ Demo Alex** buttons.
 

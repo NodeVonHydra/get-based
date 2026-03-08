@@ -35,7 +35,7 @@ A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini
 1. Get an API key at [openrouter.ai](https://openrouter.ai)
 2. In Settings → AI Provider, select **OpenRouter**
 3. Paste your API key
-4. Choose a model from the curated dropdown
+4. Choose a model from the curated dropdown, or type any model ID into the custom input field below it (a health check confirms connectivity)
 
 ::: tip One-click connect
 The OAuth button also appears in the chat setup guide when no provider is configured, making it easy for new users to get started.
