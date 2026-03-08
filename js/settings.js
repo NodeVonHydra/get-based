@@ -777,16 +777,26 @@ export function renderRoutstrModelDropdown(models) { ... }
 export function renderDataEntriesSection() {
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
   if (entries.length === 0) {
-    return '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No imported data yet. Drop a PDF or JSON file on the dashboard to get started.</div>';
+    return '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">No data yet. Drop a PDF or JSON file on the dashboard, or add values manually.</div>';
   }
   const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+  const manualValues = state.importedData.manualValues || {};
   let html = '';
   for (const entry of sorted) {
     const d = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const cnt = Object.keys(entry.markers).length;
-    const modelLabel = entry.importedWith?.modelId ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${escapeHTML(entry.importedWith.modelId)}</span>` : '';
+    const entryMarkerKeys = Object.keys(entry.markers);
+    const manualCount = entryMarkerKeys.filter(k => manualValues[k + ':' + entry.date]).length;
+    const isFullyManual = !entry.importedWith && manualCount === cnt;
+    const sourceLabel = isFullyManual
+      ? '<span style="color:var(--accent);margin-left:8px;font-size:11px">manual entry</span>'
+      : entry.importedWith?.modelId
+        ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${escapeHTML(entry.importedWith.modelId)}</span>`
+        : manualCount > 0
+          ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${manualCount} manual</span>`
+          : '';
     html += `<div class="imported-entry">
-      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${modelLabel}</span>
+      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${sourceLabel}</span>
       <div class="ie-actions">
         <button class="ie-remove" onclick="removeImportedEntry('${entry.date}');refreshDataEntriesSection()">Remove</button>
       </div>

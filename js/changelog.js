@@ -5,6 +5,20 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.5.2', date: '2026-03-08', title: 'Chat & Discuss Mode Improvements',
+    items: [
+      'Discuss mode: persona picker — click the discuss button to add another persona for a second opinion',
+      'Discuss mode: "joined the discussion" label when a new persona enters, natural auto-response',
+      'Discuss mode: state properly clears on thread switch and new thread creation',
+      'Detail modal: chart now renders correctly (was missing due to canvas ID mismatch)',
+      'Detail modal: stays open after adding a value manually instead of jumping to dashboard',
+      'Persona editor: hidden by default — click pencil icon to edit, Generate picks a contextual emoji',
+      'Persona generation: new "Unconventional Views" section, removed evidence-based checkbox',
+      'Settings Data tab: distinguishes manual entries from PDF imports with source labels',
+      'Chat header: updates immediately when a second persona responds in a thread',
+    ]
+  },
+  {
     version: '1.5.1', date: '2026-03-07', title: 'EMF Improvements & Mobile',
     items: [
       'EMF: sleeping vs daytime SBM-2015 thresholds — severity adjusts per room type',
