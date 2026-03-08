@@ -190,8 +190,6 @@
   assert('Generate button text', genBtn && genBtn.textContent.trim() === 'Generate');
   const textarea = section.querySelector('.chat-personality-custom-textarea');
   assert('Textarea exists', !!textarea);
-  const ebCheckbox = document.getElementById('chat-personality-evidence-based');
-  assert('Evidence-based checkbox exists', !!ebCheckbox);
   const saveBtn = section.querySelector('.chat-personality-custom-save');
   assert('Save button exists', !!saveBtn);
   // Editor populated with active custom personality
@@ -202,7 +200,7 @@
   console.log('%c▶ 12. CSS classes', 'font-weight:bold');
   const sheets = Array.from(document.styleSheets);
   let foundDelete = false, foundAddBtn = false, foundWrapper = false;
-  let foundHeader = false, foundNameInput = false, foundGenBtn = false, foundFooter = false, foundEvLabel = false, foundSaveDisabled = false;
+  let foundHeader = false, foundNameInput = false, foundGenBtn = false, foundFooter = false, foundSaveDisabled = false;
   for (const sheet of sheets) {
     try {
       for (const rule of sheet.cssRules || []) {
@@ -214,7 +212,6 @@
         if (sel.includes('.chat-personality-custom-name-input')) foundNameInput = true;
         if (sel.includes('.chat-personality-generate-btn')) foundGenBtn = true;
         if (sel.includes('.chat-personality-custom-footer')) foundFooter = true;
-        if (sel.includes('.chat-personality-evidence-label')) foundEvLabel = true;
         if (sel.includes('.chat-personality-custom-save:disabled')) foundSaveDisabled = true;
       }
     } catch {}
@@ -226,14 +223,12 @@
   assert('CSS: .chat-personality-custom-name-input exists', foundNameInput);
   assert('CSS: .chat-personality-generate-btn exists', foundGenBtn);
   assert('CSS: .chat-personality-custom-footer exists', foundFooter);
-  assert('CSS: .chat-personality-evidence-label exists', foundEvLabel);
   assert('CSS: .chat-personality-custom-save:disabled exists', foundSaveDisabled);
 
   // ── 13. sendChatMessage uses custom_ prefix check ──
   console.log('%c▶ 13. sendChatMessage custom_ prefix', 'font-weight:bold');
   const sendSrc = window.sendChatMessage.toString();
   assert('sendChatMessage checks custom_ prefix', sendSrc.includes("startsWith('custom_')") || sendSrc.includes('startsWith("custom_")'));
-  assert('sendChatMessage reads evidenceBased', sendSrc.includes('evidenceBased'));
   assert('sendChatMessage uses Persona: prefix', sendSrc.includes('Persona:'));
 
   // ── 14. Thread metadata ──
@@ -343,15 +338,15 @@
   // ── 26. startDiscussion source ──
   console.log('%c▶ 26. startDiscussion source', 'font-weight:bold');
   const discSrc = window.startDiscussion.toString();
-  assert('startDiscussion collects personas', discSrc.includes('personas'));
-  assert('startDiscussion restores personality', discSrc.includes('originalPersonality'));
-  assert('startDiscussion shows continue prompt', discSrc.includes('showDiscussContinuePrompt'));
+  assert('startDiscussion shows persona picker', discSrc.includes('showDiscussPersonaPicker'));
+  const pickerSrc = window.startDiscussionFromPicker.toString();
+  assert('startDiscussionFromPicker delegates to _runDiscussion', pickerSrc.includes('_runDiscussion'));
   const contSrc = window.continueDiscussion.toString();
   assert('continueDiscussion removes prompt', contSrc.includes('removeDiscussContinuePrompt'));
   assert('continueDiscussion runs another round', contSrc.includes('runDiscussionRound'));
   assert('continueDiscussion reads steer input', contSrc.includes('chat-discuss-steer'));
   const endSrc = window.endDiscussion.toString();
-  assert('endDiscussion removes prompt', endSrc.includes('removeDiscussContinuePrompt'));
+  assert('endDiscussion cleans up state', endSrc.includes('cleanupDiscussionState'));
   assert('endDiscussion restores personality', endSrc.includes('currentChatPersonality'));
 
   // ── 27. Steer input CSS ──

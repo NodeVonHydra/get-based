@@ -328,9 +328,15 @@ export function createNewThread() {
   state.chatThreads.unshift(thread);
   pruneOldThreads();
   saveChatThreadIndex();
+  cleanupDiscussionState();
+  // Reset to default personality for new thread
+  state.currentChatPersonality = 'default';
+  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, 'default');
   state.currentThreadId = id;
   state.chatHistory = [];
   renderChatMessages();
+  updateChatHeaderTitle();
+  updatePersonalityBar();
   renderThreadList();
   // Focus input
   const input = document.getElementById('chat-input');
@@ -341,6 +347,7 @@ export async function switchToThread(threadId) {
   if (threadId === state.currentThreadId) return;
   // Save current thread messages
   await saveChatHistory();
+  cleanupDiscussionState();
   // Switch
   state.currentThreadId = threadId;
   await loadChatHistory();
@@ -1255,7 +1262,7 @@ export function updatePersonalityBar() {
   if (!section) return;
   const customs = getCustomPersonalities();
   const isCustomActive = state.currentChatPersonality && state.currentChatPersonality.startsWith('custom_');
-  const showEditor = isCustomActive || _editingPersonalityId === 'new';
+  const showEditor = _editingPersonalityId === 'new' || (isCustomActive && _editingPersonalityId === state.currentChatPersonality);
   let html = '<div class="chat-personality-divider">Custom</div>';
   for (const cp of customs) {
     const isActive = cp.id === state.currentChatPersonality;
@@ -1268,6 +1275,7 @@ export function updatePersonalityBar() {
         </div>
         <span class="chat-personality-opt-check">&#10003;</span>
       </button>
+      <button class="chat-personality-edit" onclick="event.stopPropagation(); editCustomPersonality('${escapeHTML(cp.id)}')" title="Edit personality">&#9998;</button>
       <button class="chat-personality-delete" onclick="event.stopPropagation(); deleteCustomPersonality('${escapeHTML(cp.id)}')" title="Delete personality">&times;</button>
     </div>`;
   }
@@ -1279,7 +1287,6 @@ export function updatePersonalityBar() {
     </div>
     <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
     <div class="chat-personality-custom-footer">
-      <label class="chat-personality-evidence-label"><input type="checkbox" id="chat-personality-evidence-based" onchange="markPersonalityDirty()"> Enforce evidence-based accuracy</label>
       <button class="chat-personality-custom-save" onclick="saveCustomPersonality()" disabled>Save</button>
     </div>
   </div>`;
@@ -1289,10 +1296,8 @@ export function updatePersonalityBar() {
     const cp = getCustomPersonality();
     const textarea = section.querySelector('.chat-personality-custom-textarea');
     const nameInput = document.getElementById('chat-personality-custom-name');
-    const ebCheckbox = document.getElementById('chat-personality-evidence-based');
     if (textarea) { textarea.value = cp.promptText; autoResizePersonaTextarea(); }
     if (nameInput) nameInput.value = cp.name !== 'Custom Personality' ? cp.name : '';
-    if (ebCheckbox) ebCheckbox.checked = cp.evidenceBased;
     _editingPersonalityId = state.currentChatPersonality;
     snapshotPersonalityClean();
   } else if (_editingPersonalityId === 'new') {
@@ -1310,6 +1315,7 @@ export function togglePersonalityBar() {
 
 // Track which custom personality is being edited (ID, 'new', or null)
 let _editingPersonalityId = null;
+let _generatedPersonaIcon = null;
 
 // Dirty state tracking for custom personality
 let _personaCleanState = null;
@@ -1317,11 +1323,9 @@ let _personaCleanState = null;
 function _getPersonaCurrentState() {
   const nameInput = document.getElementById('chat-personality-custom-name');
   const textarea = document.querySelector('.chat-personality-custom-textarea');
-  const ebCheckbox = document.getElementById('chat-personality-evidence-based');
   return {
     name: nameInput ? nameInput.value : '',
-    text: textarea ? textarea.value : '',
-    eb: ebCheckbox ? ebCheckbox.checked : false
+    text: textarea ? textarea.value : ''
   };
 }
 
@@ -1335,7 +1339,7 @@ export function markPersonalityDirty() {
   const saveBtn = document.querySelector('.chat-personality-custom-save');
   if (!saveBtn || !_personaCleanState) { if (saveBtn) saveBtn.disabled = false; return; }
   const cur = _getPersonaCurrentState();
-  const dirty = cur.name !== _personaCleanState.name || cur.text !== _personaCleanState.text || cur.eb !== _personaCleanState.eb;
+  const dirty = cur.name !== _personaCleanState.name || cur.text !== _personaCleanState.text;
   saveBtn.disabled = !dirty;
 }
 
@@ -1349,11 +1353,10 @@ export function autoResizePersonaTextarea() {
 export function saveCustomPersonality() {
   const textarea = document.querySelector('.chat-personality-custom-textarea');
   const nameInput = document.getElementById('chat-personality-custom-name');
-  const ebCheckbox = document.getElementById('chat-personality-evidence-based');
   if (!textarea) return;
   const name = (nameInput ? nameInput.value.trim() : '') || 'Custom Personality';
-  const icon = pickPersonaIcon(name);
-  const evidenceBased = ebCheckbox ? ebCheckbox.checked : false;
+  const icon = _generatedPersonaIcon || pickPersonaIcon(name);
+  _generatedPersonaIcon = null;
   const promptText = textarea.value.trim();
   const customs = getCustomPersonalities();
   let id;
@@ -1361,11 +1364,11 @@ export function saveCustomPersonality() {
     // Update existing
     id = _editingPersonalityId;
     const idx = customs.findIndex(p => p.id === id);
-    if (idx >= 0) customs[idx] = { ...customs[idx], name, icon, promptText, evidenceBased };
+    if (idx >= 0) customs[idx] = { ...customs[idx], name, icon, promptText };
   } else {
     // Create new
     id = 'custom_' + Date.now().toString(36);
-    customs.push({ id, name, icon, promptText, evidenceBased });
+    customs.push({ id, name, icon, promptText });
   }
   saveCustomPersonalities(customs);
   _editingPersonalityId = id;
@@ -1379,6 +1382,15 @@ export function saveCustomPersonality() {
 
 export function startNewCustomPersonality() {
   _editingPersonalityId = 'new';
+  updatePersonalityBar();
+}
+
+export function editCustomPersonality(id) {
+  _editingPersonalityId = id;
+  // Select the persona if not already active
+  if (state.currentChatPersonality !== id) {
+    setChatPersonality(id);
+  }
   updatePersonalityBar();
 }
 
@@ -1432,8 +1444,14 @@ Write in second person ("You are..."). Output a rich persona description coverin
 5. **Lifestyle & Optimization Lens**: What lifestyle factors do they always ask about? Diet, light exposure, sleep, environment, hormones — what's their hierarchy? What interventions do they champion?
 6. **Character & Personality**: Temperament, humor style, patience level. How they handle disagreement, uncertainty, or when a patient pushes back. What makes them passionate or frustrated?
 7. **Signature Recommendations**: Specific tests, supplements, protocols, or lifestyle changes they'd commonly suggest. What's their go-to advice?
+8. **Unconventional Views**: Where do their views diverge from mainstream medical consensus? How do they naturally acknowledge this in conversation — using their own voice, not disclaimers? (e.g. "Conventional endocrinology won't tell you this, but..." or "The literature is catching up to what we've known for years...")
 
-Be extremely specific — include actual phrases, real concepts they'd reference, genuine intellectual positions. This persona should feel unmistakably like talking to the real person, not a generic impression. Aim for 400-500 words. Do NOT include any disclaimers or accuracy warnings — just the pure persona.`;
+Be extremely specific — include actual phrases, real concepts they'd reference, genuine intellectual positions. This persona should feel unmistakably like talking to the real person, not a generic impression. Aim for 400-500 words. Do NOT include any disclaimers or accuracy warnings — just the pure persona.
+
+End the persona with this exact paragraph (copy it verbatim, do not modify):
+"When your views diverge from mainstream medical consensus, acknowledge it naturally in your own voice and style — never with generic disclaimers, never breaking character. Your perspective is the point."
+
+IMPORTANT: On the very first line, output ONLY a single emoji that best captures this specific person's identity or what they're most known for — not just their profession. Think about what makes them unique (e.g. ☀️ for someone known for sun exposure protocols, 🧊 for a cold therapy advocate, 🍖 for a carnivore diet proponent). Then a blank line, then the persona description.`;
 
     const { text } = await callClaudeAPI({
       system: systemPrompt,
@@ -1444,7 +1462,18 @@ Be extremely specific — include actual phrases, real concepts they'd reference
         autoResizePersonaTextarea();
       }
     });
-    textarea.value = text;
+    // Extract AI-picked emoji from first line
+    const lines = text.split('\n');
+    const firstLine = lines[0].trim();
+    const emojiMatch = firstLine.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?(\u200D(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?))*)/u);
+    if (emojiMatch && emojiMatch[0] && firstLine.length <= 4) {
+      _generatedPersonaIcon = emojiMatch[0];
+      // Strip emoji line from prompt text
+      const rest = lines.slice(1).join('\n').replace(/^\n+/, '');
+      textarea.value = rest;
+    } else {
+      textarea.value = text;
+    }
     autoResizePersonaTextarea();
     markPersonalityDirty();
     textarea.placeholder = 'Describe how you want the AI to communicate, or type a name above and click Generate...';
@@ -1601,6 +1630,7 @@ export function renderChatMessages() {
         ${prompts.map(p => `<button class="chat-prompt-btn" onclick="useChatPrompt('${escapeHTML(p)}')">${escapeHTML(p)}</button>`).join('\n        ')}
       </div>
     </div>`;
+    updateDiscussButton();
     return;
   }
   let html = '';
@@ -1608,6 +1638,13 @@ export function renderChatMessages() {
   for (let i = 0; i < state.chatHistory.length; i++) {
     const msg = state.chatHistory[i];
     const cls = msg.role === 'user' ? 'chat-user' : 'chat-ai';
+    // "Joined" system messages
+    if (msg.joined) {
+      html += `<div class="chat-persona-joined">${msg.joinIcon || ''} ${escapeHTML(msg.joinName || '')} joined the discussion</div>`;
+      continue;
+    }
+    // Hidden auto messages (instruction sent to API but not shown)
+    if (msg.hidden) continue;
     // Show persona label when personality changes between AI messages
     if (msg.role === 'assistant' && msg.personalityName && msg.personalityName !== lastPersonaName) {
       html += `<div class="chat-persona-label">${msg.personalityIcon || ''} ${escapeHTML(msg.personalityName)}</div>`;
@@ -1893,9 +1930,6 @@ export async function sendChatMessage() {
       const cp = getCustomPersonality();
       if (cp.promptText) {
         personalityPrompt = `\n\nPersona: ${cp.promptText}`;
-        if (cp.evidenceBased) {
-          personalityPrompt += '\n\nIMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.';
-        }
       }
     } else if (personality.promptAddition) {
       personalityPrompt = '\n\n' + personality.promptAddition;
@@ -1919,7 +1953,7 @@ export async function sendChatMessage() {
     const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
     // Send last 30 messages for context — tag messages from other personas
-    const apiMessages = state.chatHistory.slice(-30).map(m => {
+    const apiMessages = state.chatHistory.filter(m => !m.joined && !m.hidden && m.role).slice(-30).map(m => {
       if (m.role === 'assistant' && m.personalityName && m.personalityName !== currentPersonaName) {
         return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
       }
@@ -2085,6 +2119,7 @@ export async function sendChatMessage() {
   _chatAbortController = null;
   setSendButtonMode(sendBtn, 'idle');
   updateDiscussButton();
+  updateChatHeaderTitle();
   container.scrollTop = container.scrollHeight;
 }
 
@@ -2168,7 +2203,14 @@ export function getThreadPersonaCount() {
 export function updateDiscussButton() {
   const btn = document.getElementById('chat-discuss-btn');
   if (!btn) return;
-  btn.style.display = getThreadPersonaCount() >= 2 ? 'flex' : 'none';
+  const hasAssistant = state.chatHistory && state.chatHistory.some(m => m.role === 'assistant');
+  if (!hasAssistant) { btn.style.display = 'none'; return; }
+  btn.style.display = 'flex';
+  const count = getThreadPersonaCount();
+  btn.style.opacity = count >= 2 ? '1' : '0.5';
+  btn.title = count >= 2
+    ? 'Continue the debate'
+    : 'Add another persona for a second opinion';
 }
 
 function collectDiscussionPersonas() {
@@ -2198,7 +2240,7 @@ function collectDiscussionPersonas() {
 
 const DEFAULT_DISCUSS_PROMPT = 'Respond to the other analyst\'s points above. Where do you agree or disagree? Add any insights they may have missed.';
 
-async function runDiscussionRound(personas, steerPrompt) {
+async function runDiscussionRound(personas, steerPrompt, opts = {}) {
   const container = document.getElementById('chat-messages');
   const sendBtn = document.getElementById('chat-send-btn');
   if (!container) return;
@@ -2208,13 +2250,22 @@ async function runDiscussionRound(personas, steerPrompt) {
 
   const promptText = steerPrompt || DEFAULT_DISCUSS_PROMPT;
 
+  // Check if any persona has already responded in this thread
+  const hasExistingDebate = state.chatHistory.some(m => m.role === 'assistant' && m.personalityName);
+
   try {
-    for (const persona of personas) {
+    for (let pi = 0; pi < personas.length; pi++) {
       if (_chatAbortController.signal.aborted) break;
+      const persona = personas[pi];
 
       state.currentChatPersonality = persona.id;
 
-      const autoMsg = { role: 'user', content: promptText, auto: true };
+      // First persona in a fresh debate gets an open prompt, not a rebuttal prompt
+      const isFirstEver = !hasExistingDebate && pi === 0;
+      const msgText = isFirstEver
+        ? (steerPrompt || 'Share your analysis and interpretation of these lab results.')
+        : promptText;
+      const autoMsg = { role: 'user', content: msgText, auto: true, hidden: !!opts.hideAutoMsg };
       state.chatHistory.push(autoMsg);
       renderChatMessages();
       saveChatHistory();
@@ -2232,9 +2283,6 @@ async function runDiscussionRound(personas, steerPrompt) {
         const cp = getCustomPersonality();
         if (cp.promptText) {
           personalityPrompt = `\n\nPersona: ${cp.promptText}`;
-          if (cp.evidenceBased) {
-            personalityPrompt += '\n\nIMPORTANT: Your medical analysis must remain accurate, evidence-based, and grounded in peer-reviewed research. Never sacrifice accuracy for personality.';
-          }
         }
       } else if (personality.promptAddition) {
         personalityPrompt = '\n\n' + personality.promptAddition;
@@ -2251,7 +2299,7 @@ async function runDiscussionRound(personas, steerPrompt) {
       }
       const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
-      const apiMessages = state.chatHistory.slice(-30).map(m => {
+      const apiMessages = state.chatHistory.filter(m => !m.joined && !m.hidden && m.role).slice(-30).map(m => {
         if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
           return { role: m.role, content: `[Response from ${m.personalityName}]\n${m.content}` };
         }
@@ -2351,6 +2399,14 @@ export function removeDiscussContinuePrompt() {
   if (el) el.remove();
 }
 
+function cleanupDiscussionState() {
+  removeDiscussContinuePrompt();
+  const picker = document.querySelector('.discuss-persona-picker');
+  if (picker) picker.remove();
+  delete state._discussionPersonas;
+  delete state._discussionOriginalPersonality;
+}
+
 export async function continueDiscussion() {
   // Read steer input before removing the prompt
   const steerInput = document.getElementById('chat-discuss-steer');
@@ -2361,49 +2417,147 @@ export async function continueDiscussion() {
   if (!personas || personas.length < 2) return;
 
   await runDiscussionRound(personas, steerText || null);
-
-  // Restore and show continue prompt again
-  state.currentChatPersonality = originalPersonality;
-  localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, originalPersonality);
-  updateDiscussButton();
-
-  if (!_chatAbortController) { // not aborted
-    showDiscussContinuePrompt(personas, originalPersonality);
-  }
+  _finishDiscussionRound(personas, originalPersonality);
 }
 
 export function endDiscussion() {
-  removeDiscussContinuePrompt();
   const orig = state._discussionOriginalPersonality;
+  cleanupDiscussionState();
   if (orig) {
     state.currentChatPersonality = orig;
     localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, orig);
   }
-  delete state._discussionPersonas;
-  delete state._discussionOriginalPersonality;
   updateDiscussButton();
 }
 
 export async function startDiscussion() {
   if (_chatAbortController) return; // already streaming
-  if (getThreadPersonaCount() < 2) return;
 
-  const personas = collectDiscussionPersonas();
-  if (personas.length < 2) return;
+  if (getThreadPersonaCount() >= 2) {
+    // Already have 2+ personas — run another round
+    const personas = collectDiscussionPersonas();
+    if (personas.length < 2) return;
+    return _runDiscussion(personas);
+  }
 
-  const originalPersonality = state.currentChatPersonality;
+  // Only 1 persona — show picker to add a second
+  showDiscussPersonaPicker();
+}
 
-  await runDiscussionRound(personas);
+function showDiscussPersonaPicker() {
+  const allPersonas = [
+    ...CHAT_PERSONALITIES.map(p => ({ id: p.id, name: p.name, icon: p.icon })),
+    ...getCustomPersonalities().map(p => ({ id: p.id, name: p.name, icon: p.icon || '✏️' }))
+  ];
+  if (allPersonas.length < 2) return;
 
-  // Restore original personality
+  // Remove existing picker
+  const existing = document.querySelector('.discuss-persona-picker');
+  if (existing) { existing.remove(); return; }
+
+  const container = document.querySelector('.chat-input-area');
+  if (!container) return;
+
+  // Find which persona is already active in this thread
+  const activePersonaIds = new Set();
+  for (const m of state.chatHistory) {
+    if (m.role === 'assistant' && m.personalityName) {
+      const bp = CHAT_PERSONALITIES.find(p => p.name === m.personalityName);
+      if (bp) activePersonaIds.add(bp.id);
+      else {
+        const cp = getCustomPersonalities().find(p => p.name === m.personalityName);
+        if (cp) activePersonaIds.add(cp.id);
+      }
+    }
+  }
+  const hasActive = activePersonaIds.size > 0;
+  const needsOne = hasActive && activePersonaIds.size < 2;
+
+  const picker = document.createElement('div');
+  picker.className = 'discuss-persona-picker';
+  picker.innerHTML = `
+    <div class="discuss-picker-header">${needsOne ? 'Add another persona to the debate' : 'Pick two personas to debate'}</div>
+    <div class="discuss-picker-list">
+      ${allPersonas.map(p => {
+        const isActive = activePersonaIds.has(p.id);
+        const checked = isActive ? ' checked' : '';
+        const locked = isActive && needsOne;
+        return `<label class="discuss-picker-item${locked ? ' locked' : ''}">
+        <input type="checkbox" value="${escapeHTML(p.id)}" data-name="${escapeHTML(p.name)}" data-icon="${escapeHTML(p.icon)}"${checked}${locked ? ' disabled' : ''} data-locked="${locked ? '1' : ''}">
+        <span>${p.icon} ${escapeHTML(p.name)}</span>
+      </label>`;
+      }).join('')}
+    </div>
+    <button class="discuss-picker-start"${needsOne ? '' : ' disabled'} onclick="startDiscussionFromPicker()">${needsOne ? 'Add to Discussion' : 'Start Debate'}</button>`;
+
+  function updatePickerState() {
+    const lockedCount = picker.querySelectorAll('input[data-locked="1"]').length;
+    const checkedCount = picker.querySelectorAll('input:checked:not([data-locked="1"])').length;
+    const total = lockedCount + checkedCount;
+    const startBtn = picker.querySelector('.discuss-picker-start');
+    startBtn.disabled = total !== 2;
+    // Limit to 2 total
+    if (total >= 2) {
+      picker.querySelectorAll('input:not(:checked):not([data-locked="1"])').forEach(cb => cb.disabled = true);
+    } else {
+      picker.querySelectorAll('input:not([data-locked="1"])').forEach(cb => cb.disabled = false);
+    }
+  }
+  picker.addEventListener('change', updatePickerState);
+  updatePickerState();
+
+  container.insertBefore(picker, container.firstChild);
+}
+
+export async function startDiscussionFromPicker() {
+  const picker = document.querySelector('.discuss-persona-picker');
+  if (!picker) return;
+  // Collect locked (already in thread) and newly checked personas
+  const lockedInputs = picker.querySelectorAll('input[data-locked="1"]');
+  const checkedInputs = picker.querySelectorAll('input:checked:not([data-locked="1"])');
+  const allSelected = [...lockedInputs, ...checkedInputs];
+  if (allSelected.length !== 2) return;
+
+  const lockedIds = new Set(Array.from(lockedInputs).map(cb => cb.value));
+  const allPersonas = allSelected.map(cb => ({
+    id: cb.value,
+    name: cb.dataset.name,
+    icon: cb.dataset.icon
+  }));
+  // Only the NEW persona (not locked) responds — they're joining the conversation
+  const newPersonas = allPersonas.filter(p => !lockedIds.has(p.id));
+  picker.remove();
+
+  if (newPersonas.length > 0) {
+    // Adding a second persona — only they respond (one turn)
+    return _runSingleTurn(newPersonas[0], allPersonas);
+  }
+  // Shouldn't happen, but fallback
+  return _runDiscussion(allPersonas);
+}
+
+function _finishDiscussionRound(personas, originalPersonality) {
   state.currentChatPersonality = originalPersonality;
   localStorage.setItem(`labcharts-${state.currentProfile}-chatPersonality`, originalPersonality);
   updateDiscussButton();
-
-  // Show continue prompt if round completed (not aborted)
+  updateChatHeaderTitle();
   if (!_chatAbortController) {
     showDiscussContinuePrompt(personas, originalPersonality);
   }
+}
+
+async function _runSingleTurn(persona, allPersonas) {
+  const originalPersonality = state.currentChatPersonality;
+  state.chatHistory.push({ joined: true, joinName: persona.name, joinIcon: persona.icon });
+  const joinPrompt = 'You\'ve just joined this conversation. Review the discussion above and weigh in with your perspective.';
+  await runDiscussionRound([persona], joinPrompt, { hideAutoMsg: true });
+  _finishDiscussionRound(allPersonas, originalPersonality);
+}
+
+async function _runDiscussion(personas) {
+  const originalPersonality = state.currentChatPersonality;
+  await runDiscussionRound(personas);
+  _finishDiscussionRound(personas, originalPersonality);
 }
 
 // ═══════════════════════════════════════════════
@@ -2446,8 +2600,10 @@ Object.assign(window, {
   sendChatMessage,
   handleChatKeydown,
   startDiscussion,
+  startDiscussionFromPicker,
   continueDiscussion,
   endDiscussion,
+  editCustomPersonality,
   removeDiscussContinuePrompt,
   updateDiscussButton,
   getThreadPersonaCount,

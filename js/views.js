@@ -700,7 +700,7 @@ export function showDetailModal(id) {
     <h3>${escapeHTML(marker.name)}</h3>
     <div class="modal-unit">${escapeHTML(marker.unit)}${rangeInfo}</div>
     <div class="marker-description" id="marker-desc"></div>
-    <div class="modal-chart"><canvas id="modal-chart"></canvas></div>
+    <div class="modal-chart"><canvas id="chart-modal"></canvas></div>
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
@@ -713,7 +713,7 @@ export function showDetailModal(id) {
     const matchingNote = rawDate && state.importedData.notes ? state.importedData.notes.find(n => n.date === rawDate) : null;
     const noteIcon = matchingNote ? `<div class="mv-note" onclick="event.stopPropagation();this.parentElement.parentElement.querySelector('.mv-note-text').classList.toggle('show')">&#128221;</div><div class="mv-note-text">${escapeHTML(matchingNote.text)}</div>` : '';
     const isManual = rawDate && state.importedData.manualValues && state.importedData.manualValues[dotKey + ':' + rawDate];
-    const manualBadge = isManual ? ' <span class="ref-edited-badge" title="Manually entered/edited">edited</span>' : '';
+    const manualBadge = isManual ? ' <span class="ref-edited-badge" title="Manually entered">manual</span>' : '';
     const deleteBtn = (v !== null) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
     const editClick = rawDate && v !== null ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
     html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
@@ -733,7 +733,7 @@ export function showDetailModal(id) {
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
-    if (document.getElementById("modal-chart")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);
+    if (document.getElementById("chart-modal")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);
   }, 50);
   // Display marker description (sync for schema markers, async fetch for custom)
   const descEl = document.getElementById('marker-desc');
@@ -821,6 +821,8 @@ export function saveManualEntry(id) {
   const activeNav = document.querySelector(".nav-item.active");
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showNotification(`Added ${state.markerRegistry[id]?.name || id}: ${value} on ${date}`, 'success');
+  // Re-open detail modal so user stays in context (#29)
+  setTimeout(() => showDetailModal(id), 50);
 }
 
 export function deleteMarkerValue(id, date) {

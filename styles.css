@@ -1827,13 +1827,6 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 6px; gap: 8px;
 }
-.chat-personality-evidence-label {
-  display: flex; align-items: center; gap: 5px; font-size: 11px;
-  color: var(--text-muted); cursor: pointer; user-select: none;
-}
-.chat-personality-evidence-label input[type="checkbox"] {
-  accent-color: var(--accent); margin: 0; cursor: pointer;
-}
 .chat-personality-custom-save {
   padding: 4px 14px; font-size: 11px; font-family: inherit;
   background: var(--accent-gradient); color: white; border: none; border-radius: 4px;
@@ -1871,6 +1864,39 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   z-index: 1;
 }
 .chat-personality-delete:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+.chat-personality-edit {
+  position: absolute; top: 50%; right: 30px; transform: translateY(-50%);
+  width: 20px; height: 20px; border: none; background: none; cursor: pointer;
+  color: var(--text-muted); font-size: 13px; line-height: 1; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s, color 0.15s, background 0.15s;
+  z-index: 1;
+}
+.chat-personality-opt-wrapper:hover .chat-personality-edit { opacity: 1; }
+.chat-personality-edit:hover { color: var(--accent); background: rgba(99,102,241,0.1); }
+.discuss-persona-picker {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  background: var(--bg-card); display: flex; flex-direction: column; gap: 8px;
+}
+.discuss-picker-header { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.discuss-picker-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.discuss-picker-item {
+  display: flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border: 1px solid var(--border); border-radius: 20px; cursor: pointer;
+  font-size: 13px; color: var(--text-secondary); transition: all 0.15s;
+  user-select: none;
+}
+.discuss-picker-item:hover { border-color: var(--accent); color: var(--text-primary); }
+.discuss-picker-item:has(input:checked) { border-color: var(--accent); background: rgba(99,102,241,0.1); color: var(--text-primary); }
+.discuss-picker-item input { display: none; }
+.discuss-picker-start {
+  align-self: flex-end; padding: 6px 16px; border-radius: 16px; border: 1px solid var(--accent);
+  background: transparent; color: var(--accent); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.discuss-picker-start:hover:not(:disabled) { background: var(--accent); color: white; }
+.discuss-picker-start:disabled { opacity: 0.4; cursor: default; }
+.discuss-picker-item.locked { opacity: 0.6; cursor: default; border-color: var(--accent); background: rgba(99,102,241,0.1); }
 .chat-personality-add-btn {
   display: flex; align-items: center; justify-content: center; width: 100%;
   padding: 8px 10px; border: 1px dashed var(--border); background: none;
@@ -1902,6 +1928,10 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 .chat-persona-label {
   align-self: flex-start; font-size: 11px; color: var(--text-muted);
   font-weight: 500; padding: 2px 0; margin-top: 4px;
+}
+.chat-persona-joined {
+  align-self: center; font-size: 12px; color: var(--text-muted);
+  font-style: italic; padding: 6px 0; opacity: 0.7;
 }
 /* Markdown elements in chat messages */
 .chat-para { margin: 0 0 10px 0; }
