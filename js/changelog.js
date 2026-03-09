@@ -5,6 +5,18 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.6.0', date: '2026-03-09', title: 'Chat-Driven Onboarding',
+    items: [
+      'New visitors get a friendly chat walkthrough — set up your profile, connect AI, and fill context cards step by step',
+      'Location field in profile setup with automatic latitude detection for light & circadian context',
+      'Quick-add supplements and medications during onboarding',
+      'Menstrual cycle setup integrated into the onboarding flow for female profiles',
+      'Context card options now filter by sex and prevent contradictory selections',
+      'Saving a context card immediately regenerates the AI health summary',
+      'First-time visitors see the chat guide instead of the app tour',
+    ]
+  },
+  {
     version: '1.5.3', date: '2026-03-08', title: 'Import & Editing Improvements',
     items: [
       'When importing a PDF, you can now exclude individual results and see the lab\'s reference ranges before confirming',
