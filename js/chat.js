@@ -1558,6 +1558,8 @@ export function clearChatHistory() {
     }
   }
   renderChatMessages();
+  updateChatHeaderTitle();
+  updateDiscussButton();
   showNotification('Chat history cleared', 'info');
 }
 

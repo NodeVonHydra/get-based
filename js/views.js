@@ -331,8 +331,8 @@ export async function loadFocusCard() {
     const healthGoals = state.importedData.healthGoals || [];
     const hasGoals = healthGoals.some(g => g.severity === 'major');
     const focusSystem = hasGoals
-      ? 'You are a blood work analyst. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its direction, and why it matters. No preamble, no disclaimer.'
-      : 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
+      ? 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its value, direction, and why it matters. No preamble, no disclaimer.'
+      : 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its value, direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
     const apiCall = callClaudeAPI({
       system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
@@ -544,9 +544,15 @@ export function renderChartCard(id, marker, dateLabels) {
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
-  const r = getEffectiveRange(marker);
-  const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
-  html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : ''}</div>`;
+  let rangeHtml = '';
+  if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+    rangeHtml = `<div class="chart-ref-range">Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Optimal: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span> ${escapeHTML(marker.unit)}</div>`;
+  } else {
+    const r = getEffectiveRange(marker);
+    const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
+    rangeHtml = r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : '';
+  }
+  html += `</div>${rangeHtml}</div>`;
   return html;
 }
 
@@ -617,10 +623,16 @@ export function renderFattyAcidsView(cat) {
     const r = getEffectiveRange(marker);
     const v = marker.values[0], s = getStatus(v, r.min, r.max);
     const pos = Math.max(0, Math.min(100, getRangePosition(v, r.min, r.max)));
-    const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
+    let faRangeText;
+    if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+      faRangeText = `Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
+    } else {
+      const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
+      faRangeText = `${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}`;
+    }
     html += `<div class="fa-card"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
       <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + escapeHTML(marker.unit) : ""}</div>
-      <div class="fa-card-ref">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}</div>
+      <div class="fa-card-ref">${faRangeText}</div>
       <div class="range-bar" style="margin-top:8px;width:100%"><div class="range-bar-fill" style="left:0;width:100%"></div>
       <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></div>`;
   }

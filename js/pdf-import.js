@@ -641,6 +641,7 @@ export function confirmImport() {
     modelId: result.costInfo?.modelId || null
   };
   if (result.importHash) entry.importHash = result.importHash;
+  if (result.fileName) entry.sourceFile = result.fileName;
   for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood')
