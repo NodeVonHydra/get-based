@@ -1814,7 +1814,7 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 .chat-sources-slider::before {
   content: ''; position: absolute; left: 2px; top: 2px;
   width: 12px; height: 12px; border-radius: 50%;
-  background: #fff; transition: transform 0.2s;
+  background: var(--bg-primary); transition: transform 0.2s;
 }
 #chat-sources-checkbox:checked + .chat-sources-slider {
   background: var(--accent);
@@ -3017,10 +3017,6 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
   background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border) 50%, var(--bg-hover) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-}
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }
 /* Passphrase / Encryption Modal */
 .passphrase-overlay {
