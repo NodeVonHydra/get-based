@@ -159,9 +159,18 @@ export function buildMarkerReference() {
     }
   }
   // Include custom markers from previous imports (override specialty defaults)
+  // Build set of standard marker short names to filter out corrupted FA-prefixed duplicates
+  const _stdMarkerNames = new Set();
+  for (const cat of Object.values(MARKER_SCHEMA)) {
+    if (cat.calculated) continue;
+    for (const mk of Object.keys(cat.markers)) _stdMarkerNames.add(mk);
+  }
   const custom = (state.importedData && state.importedData.customMarkers) ? state.importedData.customMarkers : {};
   for (const [fullKey, def] of Object.entries(custom)) {
     if (!ref[fullKey]) {
+      // Skip corrupted entries: custom category but marker name matches a standard marker
+      const [catKey, markerKey] = fullKey.split('.');
+      if (markerKey && !MARKER_SCHEMA[catKey] && _stdMarkerNames.has(markerKey)) continue;
       ref[fullKey] = { name: def.name, unit: def.unit, refMin: def.refMin, refMax: def.refMax };
     }
   }
@@ -349,12 +358,15 @@ Return ONLY valid JSON in this exact format, no other text:
 
   let testType = parsed.testType || 'blood';
   // ── Fatty acid normalization: merge all AI categories into one product-prefixed category ──
-  // Detect fatty acid tests even if AI misclassified the testType
+  // Only normalize when AI says fattyAcids, or product detected AND AI didn't say blood.
+  // Labs like Spadia do both blood work and FA tests — product name alone isn't enough.
   const detectedFA = _detectFAProduct(fileName, pdfText);
-  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
+  const isFattyAcidTest = testType === 'fattyAcids' || (!!detectedFA && testType !== 'blood');
   if (isFattyAcidTest && parsed.markers?.length) {
-    testType = 'fattyAcids';
     _normalizeFattyAcidMarkers(parsed.markers, fileName, pdfText, detectedFA);
+    // Only override testType if AI explicitly classified as fattyAcids
+    if (testType === 'fattyAcids') { /* already set */ }
+    else if (isDebugMode()) console.log(`[Import] FA product detected but AI testType=${testType} — standard markers preserved`);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
@@ -530,7 +542,7 @@ export function showImportPreview(parseResult) {
   html += `<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px">
     <button class="import-btn import-btn-secondary" onclick="closeImportModal()">${cancelLabel}</button>
     <button class="import-btn import-btn-primary" id="import-confirm-btn" onclick="confirmImport()"${importDisabled}>Import ${importCount} Markers</button></div>`;
-  parseResult._importProfileId = state.currentProfile;
+  if (!parseResult._importProfileId) parseResult._importProfileId = state.currentProfile;
   window._pendingImport = parseResult;
   modal.innerHTML = html;
   overlay.classList.add("show");
@@ -593,6 +605,9 @@ function _getExcludedIndices() {
 export function closeImportModal() {
   document.getElementById("import-modal-overlay").classList.remove("show");
   window._pendingImport = null;
+  // Restore batch progress visibility for the next file
+  const dropZone = document.getElementById("drop-zone");
+  if (dropZone) dropZone.style.display = '';
   if (window._batchImportResolve) {
     const resolve = window._batchImportResolve;
     window._batchImportResolve = null;
@@ -691,6 +706,9 @@ export function confirmImport() {
     window._batchImportContext = null;
     document.getElementById("import-modal-overlay").classList.remove("show");
     window._pendingImport = null;
+    // Restore batch progress visibility for the next file
+    const dropZone = document.getElementById("drop-zone");
+    if (dropZone) dropZone.style.display = '';
     resolve('import');
   } else {
     window.closeImportModal();
@@ -762,6 +780,7 @@ function _detectFAProduct(fileName, pdfText) {
 }
 
 function _normalizeFattyAcidMarkers(markers, fileName, pdfText, detectedProduct) {
+  const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   let product = detectedProduct || _detectFAProduct(fileName, pdfText);
   // Fallback: derive from first non-generic suggestedGroup the AI returned
   if (!product) {
@@ -774,6 +793,14 @@ function _normalizeFattyAcidMarkers(markers, fileName, pdfText, detectedProduct)
     }
   }
   for (const m of markers) {
+    // Never rewrite markers already matched to standard schema categories
+    if (m.mappedKey) {
+      const catKey = m.mappedKey.split('.')[0];
+      if (standardCats.has(catKey)) {
+        if (isDebugMode()) console.log(`[FA Normalize] Skipping ${m.mappedKey} — standard category`);
+        continue;
+      }
+    }
     const markerPart = m.suggestedKey ? m.suggestedKey.split('.').pop()
       : m.mappedKey ? m.mappedKey.split('.').pop()
       : m.rawName.replace(/[^a-zA-Z0-9_]/g, '');
@@ -816,9 +843,19 @@ function _buildProgressHTML(step, fileName) {
   return html;
 }
 
+function _ensureDropZone() {
+  let dz = document.getElementById("drop-zone");
+  if (dz) return dz;
+  // Create a floating drop zone if not on dashboard (e.g. FAB import from category view)
+  dz = document.createElement('div');
+  dz.id = 'drop-zone';
+  dz.className = 'drop-zone drop-zone-hidden';
+  document.body.appendChild(dz);
+  return dz;
+}
+
 export async function showImportProgress(step, fileName) {
-  const dropZone = document.getElementById("drop-zone");
-  if (!dropZone) return;
+  const dropZone = _ensureDropZone();
   dropZone.innerHTML = _buildProgressHTML(step, fileName);
   // Yield to browser so it actually paints the progress before heavy work continues
   await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -827,6 +864,8 @@ export async function showImportProgress(step, fileName) {
 export function hideImportProgress() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
+  // Remove dynamically created drop zone (from FAB import on non-dashboard views)
+  if (dropZone.parentElement === document.body) { dropZone.remove(); return; }
   if (dropZone.classList.contains('drop-zone-hidden')) {
     dropZone.innerHTML = '';
   } else {
@@ -942,29 +981,61 @@ Return ONLY valid JSON in this exact format:
   const parsed = tryParseJSON(jsonStr);
 
   let testType = parsed.testType || 'blood';
-  // ── Fatty acid normalization (image pipeline) ──
+  // ── Fatty acid normalization (image pipeline) — same logic as text pipeline ──
   const detectedFA = _detectFAProduct(fileName, '');
-  const isFattyAcidTest = testType === 'fattyAcids' || !!detectedFA;
+  const isFattyAcidTest = testType === 'fattyAcids' || (!!detectedFA && testType !== 'blood');
   if (isFattyAcidTest && parsed.markers?.length) {
-    testType = 'fattyAcids';
     _normalizeFattyAcidMarkers(parsed.markers, fileName, '', detectedFA);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
     date: parsed.date || null,
     testType,
-    markers: (parsed.markers || []).map(m => ({
-      rawName: m.rawName || '',
-      value: typeof m.value === 'number' ? m.value : parseFloat(m.value),
-      mappedKey: m.mappedKey || null,
-      unit: m.unit || '',
-      refMin: m.refMin != null ? m.refMin : null,
-      refMax: m.refMax != null ? m.refMax : null,
-      suggestedKey: m.suggestedKey || null,
-      suggestedName: m.suggestedName || null,
-      suggestedCategoryLabel: m.suggestedCategoryLabel || null,
-      suggestedGroup: m.suggestedGroup || null,
-    })),
+    markers: (parsed.markers || []).map(m => {
+      let mappedKey = m.mappedKey || null;
+      let matched = !!mappedKey;
+      // Guard: never allow standard blood work mappings for specialty tests
+      if (matched && testType !== 'blood') {
+        const catKey = mappedKey.split('.')[0];
+        if (standardCats.has(catKey)) {
+          if (!m.suggestedKey) {
+            const markerPart = mappedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+            const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
+            const catSuffix = catKey.charAt(0).toUpperCase() + catKey.slice(1);
+            m.suggestedKey = `${prefix}${catSuffix}.${markerPart}`;
+            m.suggestedName = m.suggestedName || m.rawName;
+            m.suggestedCategoryLabel = m.suggestedCategoryLabel || MARKER_SCHEMA[catKey]?.label || catSuffix;
+            m.suggestedGroup = m.suggestedGroup || testType;
+          }
+          mappedKey = null;
+          matched = false;
+        }
+      }
+      if (!matched && m.suggestedKey && testType !== 'blood') {
+        const sugCat = m.suggestedKey.split('.')[0];
+        if (standardCats.has(sugCat)) {
+          const markerPart = m.suggestedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+          const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
+          const catSuffix = sugCat.charAt(0).toUpperCase() + sugCat.slice(1);
+          m.suggestedKey = `${prefix}${catSuffix}.${markerPart}`;
+          m.suggestedCategoryLabel = m.suggestedCategoryLabel || MARKER_SCHEMA[sugCat]?.label || catSuffix;
+          m.suggestedGroup = testType;
+        }
+      }
+      return {
+        rawName: m.rawName || '',
+        value: typeof m.value === 'number' ? m.value : parseFloat(m.value),
+        mappedKey,
+        matched,
+        unit: m.unit || '',
+        refMin: m.refMin != null ? m.refMin : null,
+        refMax: m.refMax != null ? m.refMax : null,
+        suggestedKey: m.suggestedKey || null,
+        suggestedName: m.suggestedName || null,
+        suggestedCategoryLabel: m.suggestedCategoryLabel || null,
+        suggestedGroup: m.suggestedGroup || null,
+      };
+    }),
     usage: usage || {},
     provider,
     imageMode: true,
@@ -983,12 +1054,10 @@ async function _showImageModeDialog() {
         <strong>Image mode</strong> sends page screenshots to the AI instead. This skips PII obfuscation — the AI will see the full page images including any personal information.
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('cancel')">Cancel</button>
-        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('text')">Try text anyway</button>
-        <button class="btn" style="padding:7px 16px;border-radius:6px;border:none;background:var(--accent-gradient);color:white;cursor:pointer;font-weight:500" onclick="this.closest('.confirm-dialog-overlay')?.classList.remove('show');(${resolve.name}||arguments.callee).__resolve('image')">Use image mode</button>
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer">Cancel</button>
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer">Try text anyway</button>
+        <button class="btn" style="padding:7px 16px;border-radius:6px;border:none;background:var(--accent-gradient);color:white;cursor:pointer;font-weight:500">Use image mode</button>
       </div>`;
-    // Simple resolve via global callback
-    window._imageDialogResolve = resolve;
     dialog.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
         const action = btn.textContent.trim();
@@ -1003,6 +1072,7 @@ async function _showImageModeDialog() {
 }
 
 export async function handlePDFFile(file, forceImageMode = false) {
+  const _startProfileId = state.currentProfile;
   try {
     await showImportProgress(0, file.name);
     const pdfText = await extractPDFText(file);
@@ -1055,6 +1125,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
         cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
       };
       result.importHash = hashString(file.name + file.size);
+      result._importProfileId = _startProfileId;
       if (!result.date) showNotification("Could not find collection date in PDF", "error");
       if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF images", "error"); return; }
       await showImportProgress(3, file.name);
@@ -1160,6 +1231,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
       cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
     };
     result.importHash = hashString(pdfText);
+    result._importProfileId = _startProfileId;
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
@@ -1325,8 +1397,7 @@ export async function handleBatchPDFs(pdfFiles) {
 }
 
 export async function showBatchImportProgress(step, fileName, current, total) {
-  const dropZone = document.getElementById("drop-zone");
-  if (!dropZone) return;
+  const dropZone = _ensureDropZone();
   let html = `<div class="batch-progress-counter">Processing file ${current} of ${total}</div>`;
   html += _buildProgressHTML(step, fileName);
   dropZone.innerHTML = html;
@@ -1334,6 +1405,9 @@ export async function showBatchImportProgress(step, fileName, current, total) {
 }
 
 export function showImportPreviewAsync(result, fileName, current, total) {
+  // Hide batch progress so it doesn't cover the import preview modal
+  const dropZone = document.getElementById("drop-zone");
+  if (dropZone) dropZone.style.display = 'none';
   return new Promise(resolve => {
     window._batchImportResolve = resolve;
     window._batchImportContext = { current, total };

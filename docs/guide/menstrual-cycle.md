@@ -8,13 +8,14 @@ Cycle tracking is only available when your profile sex is set to **Female**. You
 
 ## Setting Up Cycle Tracking
 
-Scroll to the **Menstrual Cycle** section on the dashboard (below the context cards) and click to open the editor. You can record:
+You can set up cycle tracking during the chat onboarding (new users) or from the **Menstrual Cycle** section on the dashboard. The editor includes:
 
-- **Cycle length** and **period length** — auto-calculated from your period log once you have enough entries, or set manually
-- **Regularity** — auto-calculated from period history
-- **Typical flow** — light, normal, heavy, or very heavy
-- **Contraceptive use** — if applicable
-- **Conditions** — e.g., PCOS, endometriosis, perimenopause
+- **Cycle status** — Active (regular), Perimenopause/irregular, Postmenopause, Pregnant, Breastfeeding, or Absent (other reason)
+- **Cycle length**, **period length**, **regularity**, and **typical flow** — all auto-calculated from your period log (shown as read-only values)
+- **Contraceptive** — grouped dropdown: hormonal (OCP, Mirena, implant, patch, ring, Depo) and non-hormonal (copper IUD, barrier, FAM)
+- **Conditions** — e.g., PCOS, endometriosis, fibroids
+
+When your cycle status is set to a non-cycling state (postmenopause, pregnant, breastfeeding, absent), the stats fields and period log are hidden since they don't apply.
 
 ## Logging Periods
 
@@ -22,7 +23,7 @@ In the editor, use the period log to record individual periods. For each period 
 
 - Start and end date
 - Flow level for that period
-- **Symptoms** — multi-select from 10 options including Cramps, Mood swings, Fatigue, Bloating, Headache, Acne, Breast tenderness, Back pain, Insomnia, and Spotting
+- **Symptoms** — multi-select from 17 options including Cramps, Mood swings, Fatigue, Bloating, Headache, Acne, Breast tenderness, Insomnia, Back pain, Nausea, Hot flashes, Night sweats, Anxiety, Food cravings, Spotting, Clots, and Dizziness
 - Free-text notes
 
 The more periods you log, the more accurate your auto-calculated stats become.
@@ -34,14 +35,15 @@ Once you have logged enough periods, getbased calculates cycle statistics automa
 | Stat | Requires |
 |------|----------|
 | Cycle length | 2+ periods |
-| Period length | 1+ periods |
+| Period length | 1+ periods with end dates |
 | Regularity | 3+ periods |
+| Typical flow | 1+ periods with flow set |
 
-Regularity is classified as **regular** (low variation), **irregular** (moderate), or **very irregular** (high). These values update automatically as you add more period entries and are shown as read-only in the editor.
+Regularity is classified as **regular** (low variation), **irregular** (moderate), or **very irregular** (high). Typical flow is the most common flow level from your last 6 entries. All values update automatically as you add more period entries and are shown as read-only in the editor — there are no manual overrides.
 
 ## Phase-Aware Reference Ranges
 
-For **estradiol** and **progesterone**, getbased applies reference ranges specific to each cycle phase rather than a single flat range. The phases are:
+For **estradiol**, **progesterone**, **LH**, and **FSH**, getbased applies reference ranges specific to each cycle phase rather than a single flat range. Phase ranges are automatically disabled for users on hormonal contraception or with a non-cycling status. The phases are:
 
 - **Menstrual** (days 1–5 approximately)
 - **Follicular** (after menstrual, up to ovulation)
@@ -75,6 +77,8 @@ If you are 35 or older and have logged 4 or more periods, getbased watches for p
 - Increasing cycle-to-cycle variability
 - Cycles frequently exceeding 38 days
 - Predominantly heavy flow
+- Vasomotor symptoms (hot flashes, night sweats)
+- Possible skipped cycles (gaps > 1.5× average)
 
 Two or more of these indicators triggers a perimenopause pattern alert on the dashboard. This is informational — not a diagnosis.
 

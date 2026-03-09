@@ -14,7 +14,7 @@ The single source of truth for all biomarker definitions. No runtime logic — p
 - `MARKER_SCHEMA` — nested object: `{ categoryKey: { label, icon, markers: { markerKey: { name, unit, refMin, refMax, refMin_f, refMax_f, desc } } } }`. Categories include `biochemistry`, `hormones`, `electrolytes`, `lipids`, `hematology`, `differential`, `thyroid`, `proteins`, `vitamins`, `diabetes`, `inflammation`, `fattyAcids`, `calculatedRatios`, and others
 - `UNIT_CONVERSIONS` — keyed by `"category.markerKey"`: `{ type: 'multiply', factor, unit }` for EU→US conversions
 - `OPTIMAL_RANGES` — keyed by `"category.markerKey"`: `{ optimalMin, optimalMax, optimalMin_f?, optimalMax_f? }`
-- `PHASE_RANGES` — keyed by `"category.markerKey"`: `{ menstrual: { min, max }, follicular: {...}, ovulatory: {...}, luteal: {...} }` — currently covers `hormones.estradiol` and `hormones.progesterone`
+- `PHASE_RANGES` — keyed by `"category.markerKey"`: `{ menstrual: { min, max }, follicular: {...}, ovulatory: {...}, luteal: {...} }` — covers `hormones.estradiol`, `hormones.progesterone`, `hormones.lh`, and `hormones.fsh`
 - `CHIP_COLORS` — status → CSS color string
 - `MODEL_PRICING` — AI model pricing metadata, keyed by provider/model
 

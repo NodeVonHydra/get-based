@@ -50,7 +50,7 @@ Choose between **24-hour** and **12-hour** (AM/PM) time display. This affects ho
 
 ### Guided Tour
 
-Click **Take a Tour** to replay the 7-step spotlight walkthrough. The tour highlights the drop zone, sidebar navigation, lifestyle context cards, settings, feedback button, and AI chat panel. It's the same tour that appears automatically on your first visit.
+Click **Take a Tour** to replay the 7-step spotlight walkthrough. The tour highlights the drop zone, sidebar navigation, lifestyle context cards, settings, feedback button, and AI chat panel. The tour auto-triggers after your first data import.
 
 ## AI Provider
 

@@ -192,12 +192,18 @@ export function getActiveData() {
     return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   });
 
-  // Compute top-level phase labels for charts (female + cycle data)
-  const isFemaleForPhase = state.profileSex === 'female';
-  const mcForPhase = state.importedData && state.importedData.menstrualCycle;
-  if (isFemaleForPhase && mcForPhase && mcForPhase.periods && mcForPhase.periods.length > 0) {
+  // Cycle phase gating — shared by phase labels (charts) and phase-specific ref ranges
+  const isFemale = state.profileSex === 'female';
+  const mc = state.importedData && state.importedData.menstrualCycle;
+  const _hormonalContraceptives = ['ocp', 'pill', 'patch', 'ring', 'implant', 'mirena', 'hormonal iud', 'depo', 'injection'];
+  const _isHormonalBC = mc?.contraceptive && _hormonalContraceptives.some(h => mc.contraceptive.toLowerCase().includes(h));
+  const _isActiveCycle = !mc?.cycleStatus || mc.cycleStatus === 'regular' || mc.cycleStatus === 'perimenopause';
+  const _hasCyclePhases = isFemale && mc && mc.periods && mc.periods.length > 0 && !_isHormonalBC && _isActiveCycle;
+
+  // Compute top-level phase labels for charts (female + active cycle, no hormonal BC)
+  if (_hasCyclePhases) {
     data.phaseLabels = sortedDates.map(d => {
-      const p = _getCyclePhase(d, mcForPhase);
+      const p = _getCyclePhase(d, mc);
       return p ? p.phase : null;
     });
   }
@@ -242,9 +248,7 @@ export function getActiveData() {
   }
 
   // Compute phase-specific reference ranges for cycle-dependent markers
-  const isFemale = state.profileSex === 'female';
-  const mc = state.importedData && state.importedData.menstrualCycle;
-  if (isFemale && mc && mc.periods && mc.periods.length > 0) {
+  if (_hasCyclePhases) {
     for (const [fullKey, phaseMap] of Object.entries(PHASE_RANGES)) {
       const [catKey, markerKey] = fullKey.split('.');
       const marker = data.categories[catKey] && data.categories[catKey].markers[markerKey];

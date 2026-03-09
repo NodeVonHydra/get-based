@@ -1,13 +1,13 @@
 // chat.js — AI chat panel, markdown rendering, personalities, conversation threads
 
 import { state } from './state.js';
-import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT } from './constants.js';
+import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT, LATITUDE_BANDS } from './constants.js';
 import { calculateCost, formatCost, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
 import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
-import { getProfileLocation, getLatitudeFromLocation, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
+import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
@@ -670,8 +670,17 @@ export function buildLabContext() {
   if (mc && state.profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
     ctx += `## Menstrual Cycle\n`;
-    ctx += `Profile: ${mc.cycleLength || 28}-day cycle (${mc.periodLength || 5}-day period), ${regLabel}, ${mc.flow || 'moderate'} flow.`;
-    if (mc.contraceptive) ctx += ` Contraceptive: ${mc.contraceptive}.`;
+    const statusCtx = { perimenopause: 'Status: Perimenopause (irregular/transitional).', postmenopause: 'Status: Postmenopause (no active cycle).', pregnant: 'Status: Currently pregnant.', breastfeeding: 'Status: Currently breastfeeding (postpartum).', absent: 'Status: No active menstrual cycle.' };
+    if (mc.cycleStatus && statusCtx[mc.cycleStatus]) {
+      ctx += statusCtx[mc.cycleStatus];
+    } else {
+      ctx += `Profile: ${mc.cycleLength || 28}-day cycle (${mc.periodLength || 5}-day period), ${regLabel}, ${mc.flow || 'moderate'} flow.`;
+    }
+    if (mc.contraceptive) {
+      const _hormonalBC = ['ocp', 'pill', 'patch', 'ring', 'implant', 'mirena', 'hormonal iud', 'depo', 'injection'];
+      const isHormonal = _hormonalBC.some(h => mc.contraceptive.toLowerCase().includes(h));
+      ctx += ` Contraceptive: ${mc.contraceptive}${isHormonal ? ' (HORMONAL — suppresses natural cycle phases; phase-specific hormone ranges do NOT apply)' : ''}.`;
+    }
     if (mc.conditions) ctx += ` Conditions: ${mc.conditions}.`;
     ctx += '\n';
     const periods = (mc.periods || []).slice().sort((a, b) => b.startDate.localeCompare(a.startDate));
@@ -683,19 +692,24 @@ export function buildLabContext() {
         return desc;
       }).join(', ')}\n`;
     }
-    if (data.dates.length > 0) {
-      const phases = getBloodDrawPhases(mc, data.dates);
-      const phaseDates = Object.entries(phases);
-      if (phaseDates.length > 0) {
-        ctx += `\nBlood draw cycle context:\n`;
-        for (const [date, p] of phaseDates) {
-          ctx += `- ${fmtDate(date)}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
+    const _isActiveCycleCtx = !mc.cycleStatus || mc.cycleStatus === 'regular' || mc.cycleStatus === 'perimenopause';
+    const _hormonalBCCtx = ['ocp', 'pill', 'patch', 'ring', 'implant', 'mirena', 'hormonal iud', 'depo', 'injection'];
+    const _isHormonalBCCtx = mc.contraceptive && _hormonalBCCtx.some(h => mc.contraceptive.toLowerCase().includes(h));
+    if (_isActiveCycleCtx && !_isHormonalBCCtx) {
+      if (data.dates.length > 0) {
+        const phases = getBloodDrawPhases(mc, data.dates);
+        const phaseDates = Object.entries(phases);
+        if (phaseDates.length > 0) {
+          ctx += `\nBlood draw cycle context:\n`;
+          for (const [date, p] of phaseDates) {
+            ctx += `- ${fmtDate(date)}: Day ${p.cycleDay} (${p.phaseName} phase)\n`;
+          }
         }
       }
-    }
-    const drawRec = getNextBestDrawDate(mc);
-    if (drawRec) {
-      ctx += `\nNext optimal blood draw window: ${drawRec.description}\n`;
+      const drawRec = getNextBestDrawDate(mc);
+      if (drawRec) {
+        ctx += `\nNext optimal blood draw window: ${drawRec.description}\n`;
+      }
     }
     const perimenopause = detectPerimenopausePattern(mc, state.profileDob);
     if (perimenopause) {
@@ -1587,14 +1601,15 @@ export function renderChatMessages() {
     const currentP = getProfiles().find(p => p.id === state.currentProfile);
     const hasProfile = currentP?.name && currentP.name !== 'Default' && state.profileSex;
 
-    // Stage 1: No profile — ask name/sex/DOB
+    // Stage 1: No profile — ask name/sex/DOB/location
     if (!hasProfile) {
       const pName = (currentP?.name && currentP.name !== 'Default') ? currentP.name : '';
       const pSex = state.profileSex || '';
       const pDob = state.profileDob || '';
+      const pLoc = getProfileLocation(state.currentProfile);
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>Hey! 👋 I'm your AI health analyst. Before we start — tell me a bit about yourself:</p>
+          <p>Hey! 👋 I'll be your AI health analyst — I help you understand blood work, track trends, and spot what matters. First, tell me a bit about yourself:</p>
           <div class="chat-onboard-form">
             <div class="chat-onboard-row">
               <label class="chat-onboard-label">Name</label>
@@ -1609,22 +1624,30 @@ export function renderChatMessages() {
             </div>
             <div class="chat-onboard-row">
               <label class="chat-onboard-label">Born</label>
-              <input type="date" class="chat-onboard-input" id="chat-onboard-dob" value="${escapeHTML(pDob)}" onchange="window.saveChatProfile()">
+              <input type="date" class="chat-onboard-input" id="chat-onboard-dob" value="${escapeHTML(pDob)}" min="1900-01-01" max="${new Date().toISOString().slice(0, 10)}">
             </div>
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Location</label>
+              <input type="text" class="chat-onboard-input" id="chat-onboard-country" placeholder="e.g. Germany" value="${escapeHTML(pLoc.country || '')}" oninput="window.saveChatLocation()">
+            </div>
+            <div id="chat-onboard-lat" style="font-size:12px;margin:2px 0 0 52px"></div>
+            <div style="font-size:11px;color:var(--text-muted);margin:2px 0 0 52px;line-height:1.3">Latitude affects vitamin D, circadian rhythm, and seasonal health patterns.</div>
             <button class="chat-onboard-next" id="chat-onboard-next" onclick="window.saveChatProfile(true)" disabled>Continue →</button>
           </div>
         </div>`;
       _updateOnboardNextBtn();
+      if (pLoc.country) saveChatLocation(); // show latitude for pre-filled country
       updateDiscussButton();
       return;
     }
 
     // Stage 2: Profile set, no AI — connect provider (full list)
-    if (!hasAIProvider()) {
+    const providerSkipped = localStorage.getItem(`labcharts-onboard-provider-skipped-${state.currentProfile}`);
+    if (!hasAIProvider() && !providerSkipped) {
       const name = currentP?.name || 'there';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>Nice to meet you, ${escapeHTML(name)}! To analyze your labs and answer health questions, I need an AI connection. Pick a provider:</p>
+          <p>Nice to meet you, ${escapeHTML(name)}! I need an AI brain to analyze your labs. Pick a provider — OpenRouter is the easiest to get started:</p>
           <div class="chat-setup-providers">
             <div class="chat-setup-provider">
               <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
@@ -1648,8 +1671,11 @@ export function renderChatMessages() {
               <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
             </div>
           </div>
-          <p style="font-size:13px">Once you have a key, paste it in Settings:</p>
+          <p style="font-size:13px">Got a key from one of these? Paste it here:</p>
           <button class="chat-setup-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">Open AI Settings</button>
+          <div style="text-align:center;margin-top:12px">
+            <a href="#" onclick="event.preventDefault();window.skipProviderSetup()" style="color:var(--text-muted);font-size:12px">Skip for now — I'll set this up later</a>
+          </div>
         </div>`;
       updateDiscussButton();
       return;
@@ -1657,35 +1683,82 @@ export function renderChatMessages() {
 
     // Stage 3+: API connected — guide through cards and import
     const filled = _countFilledCards();
-    const nudgeStage = localStorage.getItem('labcharts-chat-nudge');
     const name = currentP?.name || 'there';
 
     const isFemale = state.profileSex === 'female';
     const mc = state.importedData?.menstrualCycle;
-    const hasCycle = mc?.periods?.length > 0 || mc?.cycleLength;
-    const cycleHint = (isFemale && !hasCycle) ? `<div class="chat-onboard-cycle-hint">
-            <p>🩸 <strong>One more thing</strong> — when was your last period? This helps me recommend the best day to draw blood and correctly interpret your hormones, iron, and inflammation — these shift significantly throughout your cycle.</p>
-            <div class="chat-onboard-cycle-form">
+    const hasCycle = mc?.periods?.length > 0 || mc?.cycleLength || mc?.cycleStatus;
+    const supps = state.importedData.supplements || [];
+    const extrasDone = localStorage.getItem(`labcharts-onboard-extras-done-${state.currentProfile}`);
+
+    // Stage 3-extras: Cycle + supplements (dedicated step, shown once before cards/import)
+    if (!hasData && !extrasDone) {
+      const cycleSection = (isFemale && !hasCycle) ? `<div class="chat-onboard-cycle-hint">
+            <p>🩸 Do you currently have a menstrual cycle? This helps me interpret hormones, iron, and inflammation — they shift significantly with cycle phase.</p>
+            <div class="chat-onboard-cycle-options" id="chat-onboard-cycle-options">
+              <button class="ctx-btn-option" onclick="window.showCyclePeriodEntry()">Yes — I get regular periods</button>
+              <button class="ctx-btn-option" onclick="window.saveCycleStatus('perimenopause')">They're irregular / perimenopause</button>
+              <button class="ctx-btn-option" onclick="window.showCycleNoMensesOptions()">No — not currently menstruating</button>
+            </div>
+            <div class="chat-onboard-cycle-options" id="chat-onboard-cycle-no-menses" style="display:none">
+              <p style="font-size:13px;margin:0 0 6px;color:var(--text-muted)">What's the reason? This helps me interpret your labs correctly.</p>
+              <button class="ctx-btn-option" onclick="window.saveCycleStatus('postmenopause')">Menopause</button>
+              <button class="ctx-btn-option" onclick="window.saveCycleStatus('pregnant')">Pregnant</button>
+              <button class="ctx-btn-option" onclick="window.saveCycleStatus('breastfeeding')">Breastfeeding</button>
+              <button class="ctx-btn-option" onclick="window.saveCycleStatus('absent')">Other reason</button>
+            </div>
+            <div class="chat-onboard-cycle-form" id="chat-onboard-cycle-entry" style="display:none">
+              <p style="font-size:13px;margin:8px 0 4px">When did your last period start and end? (day of month)</p>
               <div class="chat-onboard-cycle-dates">
-                <label class="chat-onboard-label">Started on the</label>
+                <label class="chat-onboard-label">Started</label>
                 <input type="number" class="chat-onboard-input chat-onboard-day" id="chat-onboard-period-start" min="1" max="31" placeholder="?" oninput="window._updatePeriodBtn()">
-                <label class="chat-onboard-label">ended on the</label>
+                <label class="chat-onboard-label">ended</label>
                 <input type="number" class="chat-onboard-input chat-onboard-day" id="chat-onboard-period-end" min="1" max="31" placeholder="?" oninput="window._updatePeriodBtn()">
               </div>
+              <div id="chat-onboard-period-preview" style="font-size:12px;color:var(--text-muted);margin:4px 0"></div>
               <button class="chat-onboard-next" id="chat-onboard-period-btn" onclick="window.saveChatPeriod()" disabled>Save</button>
             </div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">You can add more detail later in the full <a href="#" onclick="event.stopPropagation();closeChatPanel();window.openMenstrualCycleEditor?.()" style="color:var(--accent)">cycle editor</a>.</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">You can always change this later in the <a href="#" onclick="event.stopPropagation();closeChatPanel();window.openMenstrualCycleEditor?.()" style="color:var(--accent)">cycle editor</a>.</div>
           </div>` : '';
+      const suppList = supps.map((s, i) => `<div class="chat-onboard-supp-item"><span>${escapeHTML(s.name)}${s.dosage ? ' — ' + escapeHTML(s.dosage) : ''} <span style="color:var(--text-muted);font-size:11px">(${s.type})</span></span><button class="chat-onboard-supp-remove" onclick="window.removeChatSupplement(${i})" title="Remove">&times;</button></div>`).join('');
+      const suppSection = `<div class="chat-onboard-supps">
+            <p>💊 Are you taking any supplements or medications? These can significantly affect your lab results.</p>
+            <div id="chat-onboard-supp-list">${suppList}</div>
+            <div class="chat-onboard-supp-form">
+              <input type="text" class="chat-onboard-input" id="chat-onboard-supp-name" placeholder="Name (e.g. Creatine, Metformin)" style="flex:2" onkeydown="if(event.key==='Enter'){event.preventDefault();window.addChatSupplement()}">
+              <input type="text" class="chat-onboard-input" id="chat-onboard-supp-dose" placeholder="Dosage (e.g. 5g/day)" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();window.addChatSupplement()}">
+              <select class="chat-onboard-input" id="chat-onboard-supp-type" style="flex:0 0 auto;width:auto">
+                <option value="supplement">Supplement</option>
+                <option value="medication">Medication</option>
+              </select>
+              <button class="chat-onboard-supp-add" onclick="window.addChatSupplement()">+</button>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Press + or Enter to add. You can always edit these later on the dashboard.</div>
+          </div>`;
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai" style="width:88%">
+          <p>${hasAIProvider() ? 'Great, we\'re connected! 🎉' : 'Nice!'} A couple of quick things that help me give better advice:</p>
+          ${cycleSection}
+          ${suppSection}
+          <div class="chat-onboard-actions">
+            <button class="chat-onboard-cta" onclick="window.skipOnboardingExtras()">Continue →</button>
+          </div>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
 
     // 3a: All 9 cards filled, no data — full picture
-    if (nudgeStage === 'ready' || (filled >= 9 && !hasData)) {
+    if (filled >= 9 && !hasData) {
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>Amazing, ${escapeHTML(name)} — you filled everything in! I have a really complete picture of your lifestyle now. Ask me anything.</p>
-          ${cycleHint}
+          <p>${escapeHTML(name)}, you filled everything in — I have a really complete picture of your lifestyle now. ${hasAIProvider() ? 'Even without lab data, I can already help:' : 'Import your labs or connect an AI provider to get personalized insights.'}</p>
           <div class="chat-onboard-actions">
-            <button class="chat-prompt-btn" onclick="useChatPrompt('Based on my full profile, what blood tests should I get and why?')">What tests should I get?</button>
-            <button class="chat-prompt-btn" onclick="useChatPrompt('What can you tell about my health from my lifestyle info?')">Analyze my lifestyle</button>
+            ${hasAIProvider()
+              ? `<button class="chat-prompt-btn" onclick="useChatPrompt('Based on my full profile, what blood tests should I get and why?')">What tests should I get?</button>
+                 <button class="chat-prompt-btn" onclick="useChatPrompt('What can you tell about my health from my lifestyle info?')">Analyze my lifestyle</button>`
+              : `<button class="chat-onboard-cta" onclick="closeChatPanel()">📄 Import a lab PDF</button>
+                 <button class="chat-prompt-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">⚙️ Connect AI to get recommendations</button>`}
           </div>
         </div>`;
       updateDiscussButton();
@@ -1700,11 +1773,12 @@ export function renderChatMessages() {
         <div class="chat-msg chat-ai">
           <p>${filled >= 6 ? `Almost there, ${escapeHTML(name)}!` : filled >= 3 ? `Nice progress, ${escapeHTML(name)}!` : `Good start, ${escapeHTML(name)}!`} You've filled ${filled} of 9 cards.</p>
           <div class="chat-onboard-progress"><div class="chat-onboard-progress-bar" style="width:${progressPct}%"></div></div>
-          <p style="font-size:12px;color:var(--text-muted);margin:4px 0 0">Each card you fill makes my test recommendations and health analysis more accurate. Skip anything you'd rather not share — it's all optional.</p>
-          ${cycleHint}
+          <p style="font-size:12px;color:var(--text-muted);margin:4px 0 0">The more I know about your lifestyle, the better I can interpret your results and recommend what to test. Everything is optional.</p>
           <div class="chat-onboard-actions">
             <button class="chat-onboard-cta" onclick="closeChatPanel();sessionStorage.setItem('welcome-details-open','1');document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">📋 Continue — ${remaining} card${remaining !== 1 ? 's' : ''} left</button>
-            <button class="chat-prompt-btn" onclick="useChatPrompt('Based on what you know about me so far, what blood tests should I get?')">That's enough — recommend tests</button>
+            ${hasAIProvider()
+              ? `<button class="chat-prompt-btn" onclick="useChatPrompt('Based on what you know about me so far, what blood tests should I get?')">Skip ahead — recommend tests</button>`
+              : `<button class="chat-prompt-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">⚙️ Connect AI to get recommendations</button>`}
           </div>
         </div>`;
       updateDiscussButton();
@@ -1715,10 +1789,15 @@ export function renderChatMessages() {
     if (!hasData) {
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>You're all set, ${escapeHTML(name)}! 🎉</p>
-          <p>Drop a lab PDF on the page to import your results — or if you don't have labs yet, tell me about your lifestyle and I'll recommend what to test first. It takes about 3 minutes and makes a big difference.</p>
+          <p>You're ready to go, ${escapeHTML(name)}! Here's how to get the most out of this:</p>
+          <p style="font-size:13px;margin:4px 0"><strong>Have lab results?</strong> Drop a PDF on the page — I'll extract everything and build your dashboard with trend charts, flags, and insights.</p>
+          <p style="font-size:13px;margin:4px 0"><strong>No labs yet?</strong> Tell me about your lifestyle and I'll recommend what to test first.</p>
           <div class="chat-onboard-actions">
+            <button class="chat-onboard-cta" onclick="closeChatPanel()">📄 Import a lab PDF</button>
             <button class="chat-onboard-cta" onclick="closeChatPanel();sessionStorage.setItem('welcome-details-open','1');document.querySelector('.welcome-context-details')?.setAttribute('open','');document.querySelector('.welcome-context-details')?.scrollIntoView({behavior:'smooth'})">📋 Fill in my lifestyle cards</button>
+            ${hasAIProvider()
+              ? `<button class="chat-prompt-btn" onclick="useChatPrompt('I don\\'t have any labs yet. Based on my profile, what blood tests should I get and why?')">Just tell me what to test</button>`
+              : `<button class="chat-prompt-btn" onclick="closeChatPanel();setTimeout(()=>window.openSettingsModal('ai'),300)">⚙️ Connect AI to get recommendations</button>`}
           </div>
         </div>`;
       updateDiscussButton();
@@ -1726,11 +1805,14 @@ export function renderChatMessages() {
     }
 
     // Stage 4: Has data, few context cards — nudge lifestyle
-    if (filled < 3 && (nudgeStage === 'context' || nudgeStage === 'data')) {
+    if (filled < 3) {
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>Great, I can see your results! 👋 Fill in a few lifestyle cards on the dashboard and I'll give you much better insights.</p>
-          <button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.profile-context-cards')?.scrollIntoView({behavior:'smooth'})">Fill in my lifestyle cards</button>
+          <p>I can see your lab results — nice! 👋 I can already analyze these, but if you fill in a few lifestyle cards I'll give you much more personalized insights.</p>
+          <div class="chat-onboard-actions">
+            <button class="chat-prompt-btn" onclick="closeChatPanel();document.querySelector('.profile-context-cards')?.scrollIntoView({behavior:'smooth'})">📋 Fill in lifestyle cards</button>
+            <button class="chat-prompt-btn" onclick="useChatPrompt('What are my most concerning results?')">Analyze my results now</button>
+          </div>
         </div>`;
       updateDiscussButton();
       return;
@@ -1800,9 +1882,14 @@ export function renderChatMessages() {
   container.scrollTop = container.scrollHeight;
   updateDiscussButton();
   updateChatHeaderTitle();
+  _updateChatInputState();
 }
 
 export function useChatPrompt(text) {
+  if (!hasAIProvider()) {
+    showNotification('Connect an AI provider first — open Settings → AI to set one up.', 'info');
+    return;
+  }
   const input = document.getElementById('chat-input');
   if (input) { input.value = text; sendChatMessage(); }
 }
@@ -1930,7 +2017,7 @@ export async function openChatPanel(prefillMessage) {
   // Dismiss current nudge stage (but not 'profile' — user must complete the form)
   const currentNudge = localStorage.getItem('labcharts-chat-nudge');
   if (currentNudge && currentNudge !== 'profile') {
-    localStorage.setItem('labcharts-chat-nudge-dismissed', currentNudge);
+    localStorage.setItem(`labcharts-chat-nudge-dismissed-${state.currentProfile}`, currentNudge);
     setChatNudge(null);
   }
   loadChatPersonality();
@@ -1950,6 +2037,7 @@ export async function openChatPanel(prefillMessage) {
   if (activeThread && activeThread.discussionPersonas) {
     showDiscussContinuePrompt(activeThread.discussionPersonas, activeThread.discussionOriginalPersonality);
   }
+  _updateChatInputState();
   if (prefillMessage) {
     const input = document.getElementById('chat-input');
     if (input) { input.value = prefillMessage; input.focus(); }
@@ -1957,6 +2045,17 @@ export async function openChatPanel(prefillMessage) {
     const input = document.getElementById('chat-input');
     if (input) input.focus();
   }
+}
+
+function _updateChatInputState() {
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send-btn');
+  const noAI = !hasAIProvider();
+  if (input) {
+    input.disabled = noAI;
+    input.placeholder = noAI ? 'Connect an AI provider in Settings to chat' : 'Ask about your lab results...';
+  }
+  if (sendBtn) sendBtn.disabled = noAI;
 }
 
 export function closeChatPanel() {
@@ -2001,7 +2100,7 @@ export function setChatNudge(stage) {
 
 /** Check state and show appropriate nudge if user hasn't dismissed it. */
 export function updateChatNudge() {
-  const dismissed = localStorage.getItem('labcharts-chat-nudge-dismissed');
+  const dismissed = localStorage.getItem(`labcharts-chat-nudge-dismissed-${state.currentProfile}`);
   const hasData = state.importedData?.entries?.length > 0;
   const currentP = getProfiles().find(p => p.id === state.currentProfile);
   const hasProfile = currentP?.name && currentP.name !== 'Default' && state.profileSex;
@@ -2048,13 +2147,66 @@ export function setChatProfileSex(sex) {
   _updateOnboardNextBtn();
 }
 
+var _chatLocTimer = null;
+export function saveChatLocation() {
+  const country = document.getElementById('chat-onboard-country')?.value?.trim();
+  if (country == null) return;
+  setProfileLocation(state.currentProfile, country, '');
+  const el = document.getElementById('chat-onboard-lat');
+  if (!el) return;
+  if (!country) { el.textContent = ''; return; }
+
+  // Check AI cache first
+  const cacheKey = (country + '|').toLowerCase();
+  const cached = getLocationCache()[cacheKey];
+  if (cached !== undefined) {
+    const band = latitudeToBand(cached);
+    el.style.color = 'var(--green)';
+    el.textContent = '\u2713 ' + Math.abs(Math.round(cached)) + '\u00b0' + (cached >= 0 ? 'N' : 'S') + ' \u2014 ' + LATITUDE_BANDS[band];
+    return;
+  }
+  // Hardcoded fallback
+  const latStr = getLatitudeFromLocation();
+  if (latStr) {
+    el.style.color = 'var(--green)';
+    el.textContent = '\u2713 ' + latStr;
+  } else if (hasAIProvider()) {
+    el.style.color = 'var(--text-muted)';
+    el.textContent = 'Detecting\u2026';
+  } else {
+    el.textContent = '';
+  }
+  // Debounced AI refinement
+  if (_chatLocTimer) clearTimeout(_chatLocTimer);
+  if (hasAIProvider()) {
+    _chatLocTimer = setTimeout(async () => {
+      await detectLatitudeWithAI(country, '');
+      // Re-read cache after AI detection
+      const lat = getLocationCache()[(country + '|').toLowerCase()];
+      const latEl = document.getElementById('chat-onboard-lat');
+      if (lat !== undefined && latEl) {
+        const band = latitudeToBand(lat);
+        latEl.style.color = 'var(--green)';
+        latEl.textContent = '\u2713 ' + Math.abs(Math.round(lat)) + '\u00b0' + (lat >= 0 ? 'N' : 'S') + ' \u2014 ' + LATITUDE_BANDS[band];
+      }
+    }, 1500);
+  }
+}
+
 export function saveChatProfile(advance) {
   const nameEl = document.getElementById('chat-onboard-name');
   const dobEl = document.getElementById('chat-onboard-dob');
   const name = nameEl?.value?.trim();
   const dob = dobEl?.value;
   if (name) renameProfile(state.currentProfile, name);
-  if (dob) { setProfileDob(state.currentProfile, dob); state.profileDob = dob; }
+  if (dob) {
+    const dobYear = parseInt(dob.slice(0, 4));
+    if (dobYear >= 1900 && dobYear <= new Date().getFullYear()) {
+      setProfileDob(state.currentProfile, dob); state.profileDob = dob;
+    }
+    // Silently ignore invalid DOB — user can fix before clicking Continue
+  }
+  saveChatLocation();
   window.renderProfileButton?.();
   _updateOnboardNextBtn();
   if (advance && name && state.profileSex) {
@@ -2064,37 +2216,146 @@ export function saveChatProfile(advance) {
   }
 }
 
+export function showCycleNoMensesOptions() {
+  const options = document.getElementById('chat-onboard-cycle-options');
+  const noMenses = document.getElementById('chat-onboard-cycle-no-menses');
+  if (options) options.style.display = 'none';
+  if (noMenses) noMenses.style.display = 'block';
+}
+
+export function showCyclePeriodEntry() {
+  const options = document.getElementById('chat-onboard-cycle-options');
+  const entry = document.getElementById('chat-onboard-cycle-entry');
+  if (options) options.style.display = 'none';
+  if (entry) entry.style.display = 'block';
+}
+
+export function saveCycleStatus(status) {
+  if (!state.importedData.menstrualCycle) state.importedData.menstrualCycle = {};
+  state.importedData.menstrualCycle.cycleStatus = status;
+  if (!state.importedData.menstrualCycle.periods) state.importedData.menstrualCycle.periods = [];
+  saveImportedData();
+  const labels = { perimenopause: 'Perimenopause noted', postmenopause: 'Noted — postmenopause', pregnant: 'Noted — pregnant', breastfeeding: 'Noted — breastfeeding', absent: 'Noted — no active cycle' };
+  showNotification(labels[status] || 'Cycle status saved', 'success');
+  _refreshDashboardCycle();
+  renderChatMessages();
+}
+
+function _inferPeriodDates(startDay, endDay) {
+  const now = new Date();
+  let year = now.getFullYear(), month = now.getMonth();
+  if (startDay > now.getDate()) month--;
+  if (month < 0) { month = 11; year--; }
+  const pad = n => String(n).padStart(2, '0');
+  const startDate = `${year}-${pad(month + 1)}-${pad(startDay)}`;
+  let eMonth = month, eYear = year;
+  if (endDay < startDay) { eMonth++; if (eMonth > 11) { eMonth = 0; eYear++; } }
+  const endDate = `${eYear}-${pad(eMonth + 1)}-${pad(endDay)}`;
+  return { startDate, endDate };
+}
+
 export function _updatePeriodBtn() {
-  const start = document.getElementById('chat-onboard-period-start')?.value;
-  const end = document.getElementById('chat-onboard-period-end')?.value;
+  const startVal = document.getElementById('chat-onboard-period-start')?.value;
+  const endVal = document.getElementById('chat-onboard-period-end')?.value;
   const btn = document.getElementById('chat-onboard-period-btn');
-  if (btn) btn.disabled = !(start && end);
+  const preview = document.getElementById('chat-onboard-period-preview');
+  const startDay = parseInt(startVal);
+  const endDay = parseInt(endVal);
+  if (btn) btn.disabled = !(startDay && endDay);
+  if (preview && startDay && endDay) {
+    const { startDate, endDate } = _inferPeriodDates(startDay, endDay);
+    const s = new Date(startDate + 'T00:00:00');
+    const e = new Date(endDate + 'T00:00:00');
+    const days = Math.max(1, Math.round((e - s) / 86400000));
+    const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    if (days <= 10) {
+      preview.textContent = `→ ${fmt(s)} – ${fmt(e)} (${days} day${days !== 1 ? 's' : ''})`;
+      preview.style.color = 'var(--text-muted)';
+    } else {
+      preview.textContent = `→ ${fmt(s)} – ${fmt(e)} (${days} days) — that seems long, double-check?`;
+      preview.style.color = 'var(--yellow)';
+    }
+  } else if (preview) {
+    preview.textContent = '';
+  }
 }
 
 export function saveChatPeriod() {
   const startDay = parseInt(document.getElementById('chat-onboard-period-start')?.value);
   const endDay = parseInt(document.getElementById('chat-onboard-period-end')?.value);
   if (!startDay || !endDay) return;
-  // Build full dates — assume current month, or previous month if start day is in the future
-  const now = new Date();
-  let year = now.getFullYear(), month = now.getMonth();
-  if (startDay > now.getDate()) month--; // last month
-  if (month < 0) { month = 11; year--; }
-  const pad = n => String(n).padStart(2, '0');
-  const startDate = `${year}-${pad(month + 1)}-${pad(startDay)}`;
-  // End day — same month as start, or next month if end < start (period crossed months)
-  let eMonth = month, eYear = year;
-  if (endDay < startDay) { eMonth++; if (eMonth > 11) { eMonth = 0; eYear++; } }
-  const endDate = `${eYear}-${pad(eMonth + 1)}-${pad(endDay)}`;
+  const { startDate, endDate } = _inferPeriodDates(startDay, endDay);
   const periodDays = Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / 86400000));
   if (!state.importedData.menstrualCycle) state.importedData.menstrualCycle = {};
   const mc = state.importedData.menstrualCycle;
   if (!mc.periods) mc.periods = [];
-  mc.periods.push({ startDate, endDate, flow: 'medium' });
+  mc.periods.push({ startDate, endDate, flow: 'moderate' });
+  mc.cycleStatus = 'regular';
   if (!mc.cycleLength) mc.cycleLength = 28;
   mc.periodLength = periodDays;
   saveImportedData();
   showNotification('Cycle tracking set up!', 'success');
+  _refreshDashboardCycle();
+  renderChatMessages();
+}
+
+export function addChatSupplement() {
+  const nameEl = document.getElementById('chat-onboard-supp-name');
+  const doseEl = document.getElementById('chat-onboard-supp-dose');
+  const typeEl = document.getElementById('chat-onboard-supp-type');
+  const name = nameEl?.value?.trim();
+  if (!name) { nameEl?.focus(); return; }
+  if (!state.importedData.supplements) state.importedData.supplements = [];
+  state.importedData.supplements.push({
+    name,
+    dosage: doseEl?.value?.trim() || '',
+    type: typeEl?.value || 'supplement',
+    startDate: new Date().toISOString().slice(0, 10),
+    endDate: null
+  });
+  saveImportedData();
+  _refreshDashboardSupps();
+  renderChatMessages();
+}
+
+export function removeChatSupplement(idx) {
+  if (!state.importedData.supplements?.[idx]) return;
+  state.importedData.supplements.splice(idx, 1);
+  saveImportedData();
+  _refreshDashboardSupps();
+  renderChatMessages();
+}
+
+function _refreshDashboardSupps() {
+  const el = document.querySelector('.supp-timeline-section');
+  if (el && window.renderSupplementsSection) el.outerHTML = window.renderSupplementsSection();
+}
+
+function _refreshDashboardCycle() {
+  // Ensure the lifestyle details section is open so the cycle section is visible
+  const details = document.querySelector('.welcome-context-details');
+  if (details && !details.open) { details.setAttribute('open', ''); sessionStorage.setItem('welcome-details-open', '1'); }
+  const el = document.querySelector('.cycle-section');
+  if (el && window.renderMenstrualCycleSection) {
+    el.outerHTML = window.renderMenstrualCycleSection(window.getActiveData());
+  } else if (!el && state.profileSex === 'female' && window.renderMenstrualCycleSection) {
+    // Cycle section doesn't exist yet — insert it after context cards
+    const supps = document.querySelector('.supp-timeline-section');
+    if (supps) supps.insertAdjacentHTML('beforebegin', window.renderMenstrualCycleSection(window.getActiveData()));
+  }
+}
+
+export function skipProviderSetup() {
+  localStorage.setItem(`labcharts-onboard-provider-skipped-${state.currentProfile}`, '1');
+  renderChatMessages();
+}
+
+export function skipOnboardingExtras() {
+  localStorage.setItem(`labcharts-onboard-extras-done-${state.currentProfile}`, '1');
+  // Ensure the lifestyle details section is open so cycle/supplements are visible
+  sessionStorage.setItem('welcome-details-open', '1');
+  // Re-render dashboard to reflect cycle + supplement changes from onboarding
+  if (window.navigate) window.navigate('dashboard');
   renderChatMessages();
 }
 
@@ -2110,8 +2371,14 @@ function _countFilledCards() {
 export function onContextCardSaved() {
   const filled = _countFilledCards();
   const hasData = state.importedData?.entries?.length > 0;
-  if (hasData) return;
-  setChatNudge(filled >= 9 ? 'ready' : 'context');
+  if (!hasData) {
+    setChatNudge(filled >= 9 ? 'ready' : 'context');
+  }
+  // Re-render chat if open so progress bar / nudge updates
+  const panel = document.getElementById('chat-panel');
+  if (panel?.classList.contains('open') && state.chatHistory.length === 0) {
+    renderChatMessages();
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -2950,7 +3217,15 @@ Object.assign(window, {
   updateChatNudge,
   setChatProfileSex,
   saveChatProfile,
+  saveChatLocation,
   saveChatPeriod,
+  addChatSupplement,
+  removeChatSupplement,
+  skipProviderSetup,
+  skipOnboardingExtras,
+  showCycleNoMensesOptions,
+  showCyclePeriodEntry,
+  saveCycleStatus,
   _updatePeriodBtn,
   onContextCardSaved,
 });

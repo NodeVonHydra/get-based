@@ -219,8 +219,15 @@ export function showDashboard(data) {
   loadContextHealthDots();
   loadCommitHash();
 
-  // Auto-trigger guided tour on first visit
-  if (window.startTour) window.startTour(true);
+  // Auto-trigger guided tour on first visit — but skip if no data (chat onboarding handles new users)
+  const _p = window.getProfiles?.()?.find(p => p.id === state.currentProfile);
+  const _hasProfile = _p?.name && _p.name !== 'Default' && state.profileSex;
+  if (_hasProfile && hasData) {
+    if (window.startTour) window.startTour(true);
+  } else if (!hasData) {
+    // First-time visitor: auto-open chat onboarding after a short delay
+    setTimeout(() => window.openChatPanel?.(), 800);
+  }
 }
 
 // ── Commit Hash ──

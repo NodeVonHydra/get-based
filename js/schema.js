@@ -36,7 +36,10 @@ export const MARKER_SCHEMA = {
       calcitonin: { name: "Calcitonin", unit: "ng/l", refMin: 1.0, refMax: 11.8, refMin_f: 1.0, refMax_f: 4.6, desc: "A thyroid hormone that lowers blood calcium; used as a tumor marker for medullary thyroid carcinoma." },
       dht: { name: "DHT", unit: "nmol/l", refMin: 0.86, refMax: 3.40, refMin_f: 0.12, refMax_f: 0.86, desc: "A potent androgen converted from testosterone; drives male-pattern hair loss and prostate growth." },
       igf1: { name: "IGF-1", unit: "\u00b5g/l", refMin: 96.4, refMax: 227.8, desc: "A growth-factor hormone mediating the effects of growth hormone; reflects GH status and influences tissue repair." },
-      insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "The hormone regulating blood sugar uptake into cells; elevated fasting levels indicate insulin resistance." }
+      insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "The hormone regulating blood sugar uptake into cells; elevated fasting levels indicate insulin resistance." },
+      lh: { name: "LH", unit: "U/l", refMin: 1.7, refMax: 8.6, refMin_f: 2.4, refMax_f: 12.6, desc: "Luteinizing hormone; triggers ovulation in women and stimulates testosterone production in men. Surges mid-cycle." },
+      fsh: { name: "FSH", unit: "U/l", refMin: 1.5, refMax: 12.4, refMin_f: 3.5, refMax_f: 12.5, desc: "Follicle-stimulating hormone; drives egg maturation in women and sperm production in men. Rises in menopause." },
+      prolactin: { name: "Prolactin", unit: "µg/l", refMin: 4.0, refMax: 15.2, refMin_f: 4.8, refMax_f: 23.3, desc: "Stimulates milk production; elevated levels can suppress ovulation and indicate pituitary issues." }
     }
   },
   electrolytes: {
@@ -229,7 +232,8 @@ export const CORRELATION_PRESETS = [
   { label: "Iron Panel", markers: ["iron.iron", "iron.ferritin", "iron.transferrin"] },
   { label: "Lipid Panel", markers: ["lipids.cholesterol", "lipids.hdl", "lipids.ldl", "lipids.triglycerides"] },
   { label: "Vitamin D vs Calcium", markers: ["vitamins.vitaminD", "electrolytes.calciumTotal"] },
-  { label: "TSH vs T3 vs T4", markers: ["thyroid.tsh", "thyroid.ft3", "thyroid.ft4"] }
+  { label: "TSH vs T3 vs T4", markers: ["thyroid.tsh", "thyroid.ft3", "thyroid.ft4"] },
+  { label: "LH vs FSH vs Estradiol", markers: ["hormones.lh", "hormones.fsh", "hormones.estradiol"] }
 ];
 export const CHIP_COLORS = ['#4f8cff','#34d399','#f87171','#fbbf24','#a78bfa','#f472b6','#38bdf8','#fb923c'];
 
@@ -602,6 +606,18 @@ export const PHASE_RANGES = {
     follicular: { min: 0.18, max: 2.5  },
     ovulatory:  { min: 0.18, max: 9.5  },
     luteal:     { min: 5.7,  max: 75.9 }
+  },
+  'hormones.lh': {
+    menstrual:  { min: 2.4,  max: 12.6 },
+    follicular: { min: 2.4,  max: 12.6 },
+    ovulatory:  { min: 14.0, max: 95.6 },
+    luteal:     { min: 1.0,  max: 11.4 }
+  },
+  'hormones.fsh': {
+    menstrual:  { min: 3.5,  max: 12.5 },
+    follicular: { min: 3.5,  max: 12.5 },
+    ovulatory:  { min: 4.7,  max: 21.5 },
+    luteal:     { min: 1.7,  max: 7.7  }
   }
 };
 

@@ -150,6 +150,24 @@
     MARKER_SCHEMA.calculatedRatios.markers.bunCreatRatio.refMax === 20);
 
   // ═══════════════════════════════════════
+  // 6. FA normalization doesn't rewrite standard markers
+  // ═══════════════════════════════════════
+  console.log('%c 6. FA normalization safety ', 'font-weight:bold;color:#f59e0b');
+
+  // Verify _normalizeFattyAcidMarkers skips standard-category markers
+  assert('_normalizeFattyAcidMarkers defined', src.includes('function _normalizeFattyAcidMarkers('));
+  assert('FA normalize checks standardCats', src.includes('standardCats.has(catKey)'));
+  assert('FA normalize skips standard markers', src.includes('continue') && src.includes('standard category'));
+
+  // Verify FA normalization requires AI agreement — product detection alone + blood testType must NOT trigger
+  assert('FA trigger requires AI agreement or non-blood testType',
+    src.includes("testType !== 'blood'") && src.includes('detectedFA') && src.includes('isFattyAcidTest'));
+
+  // Verify guard at line 367 only fires for non-blood tests
+  assert('Guard checks testType !== blood',
+    src.includes("testType !== 'blood'") && src.includes('Import Guard'));
+
+  // ═══════════════════════════════════════
   // Results
   // ═══════════════════════════════════════
   console.log(`%c\n=== Results ===\n${pass} passed, ${fail} failed`, 'color:#38bdf8');

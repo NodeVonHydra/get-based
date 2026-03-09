@@ -38,7 +38,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `settings.js` — settings modal, provider panels, privacy section
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
-  - `tour.js` — first-visit guided tour (spotlight walkthrough) + cycle tour
+  - `tour.js` — guided tour (spotlight walkthrough, auto-triggers after first data import) + cycle tour
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
   - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete)
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
@@ -79,7 +79,7 @@ Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn
 
 ### Menstrual Cycle Tracking
 
-Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. Features: phase-aware reference ranges (`PHASE_RANGES` for estradiol/progesterone), cycle phase bands on charts (`phaseBandPlugin`), auto-calculated stats from period log, perimenopause detection, heavy flow + iron alerts. All included in AI context. See `cycle.js` and `data.js` for algorithms.
+Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. `cycleStatus` field: `regular`, `perimenopause`, `postmenopause`, `pregnant`, `breastfeeding`, `absent`. Features: phase-aware reference ranges (`PHASE_RANGES` for estradiol, progesterone, LH, FSH — gated on active cycle + no hormonal BC), cycle phase bands on charts (`phaseBandPlugin`), auto-calculated stats (cycle/period length, regularity, flow) from period log, structured contraceptive dropdown, perimenopause detection (6 indicators), heavy flow + iron alerts. Non-cycling statuses hide stats/period log in editor and skip phase features. All included in AI context. See `cycle.js` and `data.js` for algorithms.
 
 ### EMF Assessment
 

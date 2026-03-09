@@ -22,7 +22,7 @@
   {
     const mod = await import('./js/constants.js');
     assert('PERIOD_SYMPTOMS exists', Array.isArray(mod.PERIOD_SYMPTOMS));
-    assert('PERIOD_SYMPTOMS has 10 items', mod.PERIOD_SYMPTOMS.length === 10, `got ${mod.PERIOD_SYMPTOMS?.length}`);
+    assert('PERIOD_SYMPTOMS has 17 items', mod.PERIOD_SYMPTOMS.length === 17, `got ${mod.PERIOD_SYMPTOMS?.length}`);
     assert('PERIOD_SYMPTOMS includes Cramps', mod.PERIOD_SYMPTOMS.includes('Cramps'));
     assert('PERIOD_SYMPTOMS includes Fatigue', mod.PERIOD_SYMPTOMS.includes('Fatigue'));
     assert('PERIOD_SYMPTOMS includes Nausea', mod.PERIOD_SYMPTOMS.includes('Nausea'));
@@ -307,7 +307,7 @@
   {
     const src = await fetch('js/data.js').then(r => r.text());
     assert('getActiveData computes data.phaseLabels', src.includes('data.phaseLabels = sortedDates.map'));
-    assert('Uses _getCyclePhase for phaseLabels', src.includes('_getCyclePhase(d, mcForPhase)'));
+    assert('Uses _getCyclePhase for phaseLabels', src.includes('_getCyclePhase(d, mc)'));
   }
 
   // ── Summary ──

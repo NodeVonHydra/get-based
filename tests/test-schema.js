@@ -91,7 +91,8 @@
   // ═══════════════════════════════════════
   console.log('%c 4. Migration in profile.js ', 'font-weight:bold;color:#f59e0b');
 
-  assert('profile.js imports SPECIALTY_MARKER_DEFS', profileSrc.includes("import { SPECIALTY_MARKER_DEFS } from './schema.js'"));
+  assert('profile.js imports MARKER_SCHEMA and SPECIALTY_MARKER_DEFS',
+    profileSrc.includes('MARKER_SCHEMA') && profileSrc.includes('SPECIALTY_MARKER_DEFS') && profileSrc.includes("from './schema.js'"));
   assert('Migration scans entry markers', profileSrc.includes('SPECIALTY_MARKER_DEFS[key]'));
   assert('Migration writes to customMarkers', profileSrc.includes('data.customMarkers[key]'));
   assert('Migration includes icon', profileSrc.includes('icon: def.icon'));
