@@ -1,7 +1,7 @@
 // settings.js — Settings modal (profile, display, AI provider, privacy)
 
 import { state } from './state.js';
-import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
+import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
@@ -852,6 +852,9 @@ export function renderDataEntriesSection() {
     const entryMarkerKeys = Object.keys(entry.markers);
     const manualCount = entryMarkerKeys.filter(k => manualValues[k + ':' + entry.date]).length;
     const isFullyManual = !entry.importedWith && manualCount === cnt;
+    const fileLabel = entry.sourceFile
+      ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px" title="${escapeAttr(entry.sourceFile)}">${escapeHTML(entry.sourceFile.length > 30 ? entry.sourceFile.slice(0, 27) + '...' : entry.sourceFile)}</span>`
+      : '';
     const sourceLabel = isFullyManual
       ? '<span style="color:var(--accent);margin-left:8px;font-size:11px">manual entry</span>'
       : entry.importedWith?.modelId
@@ -860,7 +863,7 @@ export function renderDataEntriesSection() {
           ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${manualCount} manual</span>`
           : '';
     html += `<div class="imported-entry">
-      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${sourceLabel}</span>
+      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${fileLabel}${sourceLabel}</span>
       <div class="ie-actions">
         <button class="ie-remove" onclick="removeImportedEntry('${entry.date}');refreshDataEntriesSection()">Remove</button>
       </div>

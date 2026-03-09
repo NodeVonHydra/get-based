@@ -599,6 +599,8 @@ body {
   font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
 }
 .import-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+#import-modal { max-width: 840px; }
+.import-table .matched, .import-table .unmatched, .import-table .new-marker, .import-table .skipped { white-space: nowrap; }
 .import-table .matched { color: var(--green); }
 .import-table .unmatched { color: var(--yellow); }
 .import-table .new-marker { color: var(--accent); font-weight: 500; }
@@ -747,6 +749,12 @@ body {
   font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-muted); margin-bottom: 10px;
 }
+.ctx-refresh-all-btn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px;
+  padding: 2px 6px; margin-left: 6px; border-radius: var(--radius-sm); vertical-align: middle;
+  transition: color 0.2s, background 0.2s;
+}
+.ctx-refresh-all-btn:hover { color: var(--accent); background: var(--bg-card); }
 .context-section-subtitle {
   font-size: 13px; color: var(--text-muted); margin-top: 2px; margin-bottom: 8px;
 }

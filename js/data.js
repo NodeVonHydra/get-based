@@ -448,6 +448,7 @@ export function setDateRange(range) {
   const activeNav = document.querySelector('.nav-item.active');
   const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
   window.navigate(activeCat);
+  window.buildSidebar();
 }
 
 export function renderChartLayersDropdown() {

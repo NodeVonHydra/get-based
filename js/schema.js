@@ -103,6 +103,7 @@ export const MARKER_SCHEMA = {
     markers: {
       vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0, desc: "Sum of D2 and D3 forms; essential for calcium absorption, bone health, immune function, and mood regulation." },
       vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0, desc: "The form of vitamin D produced by sun exposure and supplements; the most bioactive and clinically relevant form." },
+      calcitriol: { name: "Calcitriol (1,25-(OH)\u2082D)", unit: "pmol/l", refMin: 36.5, refMax: 216.2, desc: "The active hormonal form of vitamin D produced by the kidneys; regulates calcium absorption and bone metabolism. Ordered for kidney disease or calcium disorders." },
       vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, desc: "A fat-soluble vitamin essential for vision, immune defense, and cell growth; both deficiency and excess are harmful." }
     }
   },
@@ -207,7 +208,10 @@ export const UNIT_CONVERSIONS = {
   'iron.iron': { factor: 5.585, usUnit: '\u00b5g/dl', type: 'multiply' },
   'vitamins.vitaminD': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
   'vitamins.vitaminD3': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
+  'vitamins.calcitriol': { factor: 0.4006, usUnit: 'pg/ml', type: 'multiply' },
+  'vitamins.vitaminA': { factor: 28.65, usUnit: '\u00b5g/dl', type: 'multiply' },
   'hematology.hemoglobin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  'hematology.hematocrit': { factor: 100, usUnit: '%', type: 'multiply' },
   'electrolytes.calciumTotal': { factor: 4.008, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.phosphorus': { factor: 3.097, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.magnesium': { factor: 2.431, usUnit: 'mg/dl', type: 'multiply' },
