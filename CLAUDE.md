@@ -123,7 +123,7 @@ Left: hamburger (mobile only) + gradient wordmark `getbased` (Outfit 800, `--acc
 - **Guided tours**: 7-step app tour (auto on first visit) + 8-step cycle tour. Generic engine: `runTour(steps, storageKey, auto)`
 - **What's New modal**: `CHANGELOG` array in changelog.js. `APP_VERSION` in `/version.js` — single source of truth for app + SW cache. Patch bumps skip What's New; minor/major show it
 - **Chart layers**: single dropdown controlling note dots, supplement bars, cycle phase bands. Persisted per-profile
-- **Onboarding**: welcome hero → profile banner → completion toast. Pre-lab path: no-data context assembly, context-aware chat prompts
+- **Onboarding**: chat-driven 5-stage wizard (profile → API → extras → cards → has-data nudge). First-time visitors get auto-opened chat instead of guided tour. Per-profile state in localStorage. Pre-lab path: no-data context assembly, context-aware chat prompts
 
 ## Development
 
