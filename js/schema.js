@@ -39,7 +39,7 @@ export const MARKER_SCHEMA = {
       insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "The hormone regulating blood sugar uptake into cells; elevated fasting levels indicate insulin resistance." },
       lh: { name: "LH", unit: "U/l", refMin: 1.7, refMax: 8.6, refMin_f: 2.4, refMax_f: 12.6, desc: "Luteinizing hormone; triggers ovulation in women and stimulates testosterone production in men. Surges mid-cycle." },
       fsh: { name: "FSH", unit: "U/l", refMin: 1.5, refMax: 12.4, refMin_f: 3.5, refMax_f: 12.5, desc: "Follicle-stimulating hormone; drives egg maturation in women and sperm production in men. Rises in menopause." },
-      prolactin: { name: "Prolactin", unit: "µg/l", refMin: 4.0, refMax: 15.2, refMin_f: 4.8, refMax_f: 23.3, desc: "Stimulates milk production; elevated levels can suppress ovulation and indicate pituitary issues." }
+      prolactin: { name: "Prolactin", unit: "\u00b5g/l", refMin: 4.0, refMax: 15.2, refMin_f: 4.8, refMax_f: 23.3, desc: "Stimulates milk production; elevated levels can suppress ovulation and indicate pituitary issues." }
     }
   },
   electrolytes: {
@@ -200,18 +200,30 @@ export const UNIT_CONVERSIONS = {
   'hormones.progesterone': { factor: 0.3145, usUnit: 'ng/ml', type: 'multiply' },
   'hormones.dheaS': { factor: 36.87, usUnit: '\u00b5g/dl', type: 'multiply' },
   'hormones.dht': { factor: 28.818, usUnit: 'ng/dl', type: 'multiply' },
+  'hormones.igf1': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'hormones.prolactin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'hormones.calcitonin': { factor: 1, usUnit: 'pg/ml', type: 'multiply' },
   'lipids.cholesterol': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.triglycerides': { factor: 88.57, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.hdl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.ldl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.nonHdl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'iron.iron': { factor: 5.585, usUnit: '\u00b5g/dl', type: 'multiply' },
+  'iron.ferritin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'iron.transferrin': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'iron.tibc': { factor: 5.585, usUnit: '\u00b5g/dl', type: 'multiply' },
   'vitamins.vitaminD': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
   'vitamins.vitaminD3': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
   'vitamins.calcitriol': { factor: 0.4006, usUnit: 'pg/ml', type: 'multiply' },
   'vitamins.vitaminA': { factor: 28.65, usUnit: '\u00b5g/dl', type: 'multiply' },
   'hematology.hemoglobin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'hematology.hematocrit': { factor: 100, usUnit: '%', type: 'multiply' },
+  'hematology.mchc': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  'differential.neutrophilsPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'differential.lymphocytesPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'differential.monocytesPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'boneMetabolism.osteocalcin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'tumorMarkers.psa': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
   'electrolytes.calciumTotal': { factor: 4.008, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.phosphorus': { factor: 3.097, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.magnesium': { factor: 2.431, usUnit: 'mg/dl', type: 'multiply' },
@@ -220,7 +232,13 @@ export const UNIT_CONVERSIONS = {
   'electrolytes.zinc': { factor: 6.54, usUnit: '\u00b5g/dl', type: 'multiply' },
   'proteins.totalProtein': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'proteins.albumin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  'proteins.ceruloplasmin': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'lipids.apoB': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'lipids.apoAI': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'thyroid.ft4': { factor: 0.07769, usUnit: 'ng/dl', type: 'multiply' },
+  'thyroid.ft3': { factor: 0.6513, usUnit: 'pg/dl', type: 'multiply' },
   'thyroid.t4total': { factor: 0.07769, usUnit: '\u00b5g/dl', type: 'multiply' },
+  'thyroid.t3total': { factor: 0.6513, usUnit: 'ng/dl', type: 'multiply' },
   'diabetes.hba1c': { type: 'hba1c' },
   'calculatedRatios.tgHdlRatio': { factor: 2.29, usUnit: '', type: 'multiply' }
 };
@@ -577,6 +595,7 @@ export const OPTIMAL_RANGES = {
   'thyroid.ft4': { optimalMin: 14.0, optimalMax: 17.0 },
   // Vitamins
   'vitamins.vitaminD': { optimalMin: 100.0, optimalMax: 200.0 },
+  'vitamins.calcitriol': { optimalMin: 60.0, optimalMax: 160.0 },
   'vitamins.vitaminA': { optimalMin: 1.40, optimalMax: 2.10 },
   // Diabetes
   'diabetes.hba1c': { optimalMin: 20.0, optimalMax: 36.0 },

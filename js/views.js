@@ -412,7 +412,7 @@ export function completeOnboardingSex(sex) {
 
 export function completeOnboardingProfile() {
   const activeSexBtn = document.querySelector('.onboarding-sex-btn.active');
-  const sex = activeSexBtn ? (activeSexBtn.textContent.toLowerCase()) : null;
+  const sex = activeSexBtn ? (activeSexBtn.textContent.trim().toLowerCase()) : null;
   const dobInput = document.getElementById('onboarding-dob');
   const dob = dobInput ? dobInput.value : null;
   localStorage.setItem(profileStorageKey(state.currentProfile, 'onboarded'), 'profile-set');
