@@ -13,7 +13,7 @@ export const COMMON_CONDITIONS = [
 export const DIET_TYPES = ['omnivore', 'pescatarian', 'vegetarian', 'vegan', 'keto', 'low-carb', 'paleo', 'carnivore', 'mediterranean', 'other'];
 export const DIET_RESTRICTIONS = ['gluten-free', 'dairy-free', 'nut-free', 'soy-free', 'egg-free', 'sugar-free', 'seed oil-free', 'low-sodium', 'low-FODMAP'];
 export const DIET_PATTERNS = ['3 meals/day', '2 meals/day', 'IF 16:8', 'IF 18:6', 'IF 20:4', 'OMAD', 'no pattern'];
-export const EXERCISE_FREQ = ['sedentary', '1-2x/week', '3-4x/week', '5-6x/week', 'daily'];
+export const EXERCISE_FREQ = ['none', '1-2x/week', '3-4x/week', '5-6x/week', 'daily'];
 export const EXERCISE_TYPES = ['strength', 'cardio/running', 'cycling', 'swimming', 'yoga/mobility', 'walking', 'HIIT', 'sports', 'martial arts'];
 export const EXERCISE_INTENSITY = ['light', 'moderate', 'intense', 'mixed'];
 export const DAILY_MOVEMENT = ['sedentary desk job', 'some walking', 'active job', 'very active'];
@@ -43,7 +43,7 @@ export const LOVE_LIBIDO = ['high', 'normal', 'low', 'very low', 'variable'];
 export const LOVE_FREQUENCY = ['daily', 'few times/week', 'weekly', 'few times/month', 'monthly', 'rarely', 'none'];
 export const LOVE_ORGASM = ['consistently', 'usually', 'sometimes', 'rarely', 'never', 'not applicable'];
 export const LOVE_RELATIONSHIP = ['supportive & secure', 'mostly good', 'strained', 'conflicted', 'emotionally distant', 'codependent', 'new & exciting'];
-export const LOVE_CONCERNS = ['low desire', 'erectile issues', 'pain during sex', 'performance anxiety', 'mismatched libido', 'hormonal changes', 'medication side effects', 'body image', 'trust issues', 'communication problems'];
+export const LOVE_CONCERNS = ['low desire', 'erectile issues', 'vaginal dryness', 'pain during sex', 'performance anxiety', 'mismatched libido', 'hormonal changes', 'medication side effects', 'body image', 'trust issues', 'communication problems'];
 export const ENV_SETTING = ['urban city center', 'urban residential', 'suburban', 'rural', 'near ocean/lake', 'mountain/altitude', 'island'];
 export const ENV_CLIMATE = ['tropical', 'dry/arid', 'temperate', 'cold/northern', 'Mediterranean', 'monsoon/humid'];
 export const ENV_WATER = ['spring water', 'well water', 'reverse osmosis', 'filtered (carbon)', 'tap water (unfiltered)', 'deuterium-depleted', 'distilled', 'bottled'];
@@ -94,7 +94,8 @@ export const FOOD_SENSITIVITIES = ['gluten', 'dairy', 'eggs', 'soy', 'nuts', 'FO
 // ── Menstrual cycle symptoms ──
 export const PERIOD_SYMPTOMS = [
   'Cramps', 'Mood swings', 'Fatigue', 'Bloating', 'Headache',
-  'Acne', 'Breast tenderness', 'Insomnia', 'Back pain', 'Nausea'
+  'Acne', 'Breast tenderness', 'Insomnia', 'Back pain', 'Nausea',
+  'Hot flashes', 'Night sweats', 'Anxiety', 'Food cravings', 'Spotting', 'Clots', 'Dizziness'
 ];
 
 // ── Country/Latitude data ──

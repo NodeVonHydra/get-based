@@ -5,14 +5,18 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.6.0', date: '2026-03-09', title: 'Chat-Driven Onboarding',
+    version: '1.6.0', date: '2026-03-09', title: 'Chat Onboarding & Cycle Overhaul',
     items: [
       'New visitors get a friendly chat walkthrough — set up your profile, connect AI, and fill context cards step by step',
-      'Location field in profile setup with automatic latitude detection for light & circadian context',
+      'Menstrual cycle setup integrated into onboarding — regular periods, perimenopause, menopause, pregnancy, breastfeeding',
+      'Cycle status field throughout the app — stats, period log, and phase features adapt to your status',
+      'LH, FSH, and prolactin added to hormone markers with phase-aware reference ranges for LH and FSH',
+      'Hormonal contraception auto-detected — phase ranges and chart bands disabled when on hormonal BC',
+      'Flow strength now auto-calculated from your period log entries',
+      'Contraceptive field replaced with structured dropdown (hormonal and non-hormonal options)',
+      'Expanded period symptoms to 17 options including hot flashes, night sweats, anxiety, and clots',
+      'Perimenopause detection now checks for vasomotor symptoms and skipped cycles',
       'Quick-add supplements and medications during onboarding',
-      'Menstrual cycle setup integrated into the onboarding flow for female profiles',
-      'Context card options now filter by sex and prevent contradictory selections',
-      'Saving a context card immediately regenerates the AI health summary',
       'First-time visitors see the chat guide instead of the app tour',
     ]
   },

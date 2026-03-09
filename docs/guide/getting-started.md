@@ -26,9 +26,19 @@ getbased is installable as a Progressive Web App on desktop and mobile. Look for
 
 Once installed, the full app shell works offline. AI features (PDF import, chat) still need a network connection to reach your AI provider.
 
+## Chat Onboarding
+
+When you open the app for the first time, the chat panel guides you through setup in a conversational flow:
+
+1. **Profile** — name, sex, date of birth, location
+2. **AI provider** — connect OpenRouter (one-click OAuth), Anthropic, Venice, or Local AI. You can skip this step and set it up later
+3. **Extras** — menstrual cycle setup (female profiles), supplements & medications, lifestyle context cards
+
+Each step is optional and skippable. The onboarding adapts based on your profile — female users get cycle tracking options (regular periods, perimenopause, postmenopause, pregnant, breastfeeding).
+
 ## Guided Tour
 
-When you open the app for the first time, a 7-step spotlight tour walks you through the key areas of the interface — the import button, category navigation, lifestyle context cards, settings, and the AI chat panel. Use the **Next** button to advance, or press **Escape** to dismiss.
+After you import your first lab data, a 7-step spotlight tour walks you through the key areas of the interface — the import button, category navigation, lifestyle context cards, settings, and the AI chat panel. Use the **Next** button to advance, or press **Escape** to dismiss.
 
 You can replay the tour at any time from **Settings → Display → Take a Tour**.
 
@@ -36,7 +46,7 @@ You can replay the tour at any time from **Settings → Display → Take a Tour*
 
 ### 1. Configure an AI Provider
 
-PDF import, the AI chat panel, and several dashboard features require an AI provider. Open **Settings** (gear icon in the header) and go to the **AI Provider** tab.
+PDF import, the AI chat panel, and several dashboard features require an AI provider. You can set this up during chat onboarding, or open **Settings** (gear icon in the header) and go to the **AI Provider** tab.
 
 See the [AI Providers](./ai-providers.md) page for a full comparison and setup instructions for each option.
 
@@ -46,7 +56,7 @@ Charts, manual entry, JSON import/export, data tables, trend alerts, and correla
 
 ### 2. Set Your Profile
 
-In **Settings → Profile**, enter your biological sex and date of birth. These affect:
+Set your profile during chat onboarding, or in **Settings → Profile**. Your biological sex and date of birth affect:
 
 - Reference ranges for sex-specific markers (hormones, hematology)
 - PhenoAge (biological age) calculation, which requires your DOB

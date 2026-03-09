@@ -429,7 +429,7 @@ Each AI feature has independent caching to avoid redundant API calls:
 
 5. **Empty-card guards**: Cards with no meaningful content are completely omitted rather than sent as empty sections. Each card has a specific content check (not just truthiness).
 
-6. **Phase-aware values**: For female profiles with cycle data, estradiol and progesterone values include per-date phase labels and phase-specific reference ranges inline.
+6. **Phase-aware values**: For female profiles with active cycle data, estradiol, progesterone, LH, and FSH values include per-date phase labels and phase-specific reference ranges inline. Disabled for hormonal contraception and non-cycling statuses (postmenopause, pregnant, breastfeeding).
 
 7. **Effective ranges**: `askAIAboutMarker()` uses effective (phase-aware) reference ranges, not the static schema ranges. Also includes trend direction with percentage change.
 

@@ -54,11 +54,11 @@
                               │
                               ▼
                   Compute cycle phase labels
-                  (female profiles with period data)
+                  (active cycle, no hormonal BC)
                               │
                               ▼
                   Compute phase-specific ref ranges
-                  (estradiol and progesterone)
+                  (estradiol, progesterone, LH, FSH)
                               │
                               ▼
                   Calculate ratios

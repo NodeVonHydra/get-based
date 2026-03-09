@@ -1,7 +1,7 @@
 // profile.js — Profile CRUD, sex/DOB, location, data migration
 
 import { state } from './state.js';
-import { SPECIALTY_MARKER_DEFS } from './schema.js';
+import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS } from './schema.js';
 import { COUNTRY_LATITUDES, LATITUDE_BANDS } from './constants.js';
 import { showNotification } from './utils.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
@@ -151,6 +151,53 @@ export function migrateProfileData(data) {
       if (cm.group === undefined && SPECIALTY_MARKER_DEFS[key]) {
         cm.group = SPECIALTY_MARKER_DEFS[key].group || null;
       }
+    }
+  }
+  // Fix corrupted FA-prefixed standard markers (bug: _normalizeFattyAcidMarkers rewrote blood work to FA categories)
+  if (data.customMarkers && data.entries?.length) {
+    // Phase 1: relocate markers whose key matches a standard schema marker
+    const _stdLookup = {};
+    for (const [catKey, cat] of Object.entries(MARKER_SCHEMA)) {
+      for (const mk of Object.keys(cat.markers)) _stdLookup[mk] = `${catKey}.${mk}`;
+    }
+    const toDelete = [];
+    for (const [fullKey, def] of Object.entries(data.customMarkers)) {
+      const [catKey, markerKey] = fullKey.split('.');
+      if (!markerKey || MARKER_SCHEMA[catKey]) continue;
+      const stdKey = _stdLookup[markerKey];
+      if (!stdKey) continue;
+      for (const entry of data.entries) {
+        if (entry.markers?.[fullKey] !== undefined) {
+          if (entry.markers[stdKey] === undefined) entry.markers[stdKey] = entry.markers[fullKey];
+          delete entry.markers[fullKey];
+        }
+      }
+      toDelete.push(fullKey);
+    }
+    for (const key of toDelete) delete data.customMarkers[key];
+    // Phase 2: clean up remaining FA-prefixed markers from entries that also contain standard blood markers.
+    // An entry with both standard markers and FA-prefixed markers = corrupted blood import.
+    // Pure FA-only entries (legitimate FA tests) are left alone.
+    const _stdCats = new Set(Object.keys(MARKER_SCHEMA));
+    for (const entry of data.entries) {
+      if (!entry.markers) continue;
+      const keys = Object.keys(entry.markers);
+      const hasStandard = keys.some(k => _stdCats.has(k.split('.')[0]));
+      if (!hasStandard) continue;
+      for (const key of keys) {
+        const catKey = key.split('.')[0];
+        if (!_stdCats.has(catKey) && !SPECIALTY_MARKER_DEFS[key] && (catKey.endsWith('FA') || catKey === 'fattyAcidsTest')) {
+          delete entry.markers[key];
+        }
+      }
+    }
+    // Phase 3: remove orphaned customMarkers (no values left in any entry)
+    for (const fullKey of Object.keys(data.customMarkers)) {
+      const catKey = fullKey.split('.')[0];
+      if (MARKER_SCHEMA[catKey] || SPECIALTY_MARKER_DEFS[fullKey]) continue;
+      if (!(catKey.endsWith('FA') || catKey === 'fattyAcidsTest')) continue;
+      const hasValues = data.entries.some(e => e.markers?.[fullKey] !== undefined);
+      if (!hasValues) delete data.customMarkers[fullKey];
     }
   }
   // Initialize new fields if missing

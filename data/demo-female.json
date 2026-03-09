@@ -23,6 +23,9 @@
         "hormones.estradiol": 285.0,
         "hormones.progesterone": 0.350,
         "hormones.insulin": 6.00,
+        "hormones.lh": 4.8,
+        "hormones.fsh": 6.2,
+        "hormones.prolactin": 12.5,
         "electrolytes.sodium": 140,
         "electrolytes.potassium": 4.1,
         "electrolytes.chloride": 104,
@@ -92,6 +95,9 @@
         "hormones.estradiol": 310.0,
         "hormones.progesterone": 12.50,
         "hormones.insulin": 5.50,
+        "hormones.lh": 2.8,
+        "hormones.fsh": 3.1,
+        "hormones.prolactin": 14.2,
         "hormones.calcitonin": 2.1,
         "electrolytes.sodium": 141,
         "electrolytes.potassium": 4.0,
@@ -171,6 +177,9 @@
         "hormones.estradiol": 195.0,
         "hormones.progesterone": 0.280,
         "hormones.insulin": 6.20,
+        "hormones.lh": 5.4,
+        "hormones.fsh": 7.8,
+        "hormones.prolactin": 11.8,
         "hormones.igf1": 172.0,
         "electrolytes.sodium": 139,
         "electrolytes.potassium": 4.2,
@@ -254,6 +263,9 @@
         "hormones.estradiol": 425.0,
         "hormones.progesterone": 0.420,
         "hormones.insulin": 5.80,
+        "hormones.lh": 8.2,
+        "hormones.fsh": 9.5,
+        "hormones.prolactin": 13.0,
         "hormones.igf1": 168.0,
         "hormones.dht": 0.45,
         "electrolytes.sodium": 140,
@@ -471,6 +483,7 @@
     { "text": "Support bone density (family history of osteoporosis)", "severity": "minor" }
   ],
   "menstrualCycle": {
+    "cycleStatus": "regular",
     "cycleLength": 29,
     "periodLength": 5,
     "regularity": "regular",
@@ -478,12 +491,12 @@
     "contraceptive": "",
     "conditions": "",
     "periods": [
-      { "startDate": "2026-01-16", "endDate": "2026-01-20", "flow": "moderate", "notes": "Normal flow, less fatigue than usual — iron helping?" },
-      { "startDate": "2025-12-18", "endDate": "2025-12-23", "flow": "heavy", "notes": "Heavier than usual, 6 days. Extra fatigued." },
-      { "startDate": "2025-11-19", "endDate": "2025-11-23", "flow": "moderate", "notes": "" },
-      { "startDate": "2025-10-21", "endDate": "2025-10-25", "flow": "moderate", "notes": "" },
-      { "startDate": "2025-09-22", "endDate": "2025-09-26", "flow": "heavy", "notes": "Heavy flow, mild cramps day 1-2" },
-      { "startDate": "2025-08-24", "endDate": "2025-08-28", "flow": "moderate", "notes": "" }
+      { "startDate": "2026-01-16", "endDate": "2026-01-20", "flow": "moderate", "symptoms": ["Cramps", "Fatigue"], "notes": "Normal flow, less fatigue than usual — iron helping?" },
+      { "startDate": "2025-12-18", "endDate": "2025-12-23", "flow": "heavy", "symptoms": ["Cramps", "Fatigue", "Bloating", "Clots"], "notes": "Heavier than usual, 6 days. Extra fatigued." },
+      { "startDate": "2025-11-19", "endDate": "2025-11-23", "flow": "moderate", "symptoms": ["Cramps", "Back pain"], "notes": "" },
+      { "startDate": "2025-10-21", "endDate": "2025-10-25", "flow": "moderate", "symptoms": ["Bloating"], "notes": "" },
+      { "startDate": "2025-09-22", "endDate": "2025-09-26", "flow": "heavy", "symptoms": ["Cramps", "Fatigue", "Mood swings", "Clots"], "notes": "Heavy flow, mild cramps day 1-2" },
+      { "startDate": "2025-08-24", "endDate": "2025-08-28", "flow": "moderate", "symptoms": ["Breast tenderness"], "notes": "" }
     ]
   },
   "emfAssessment": {

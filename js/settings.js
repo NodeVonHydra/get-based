@@ -522,6 +522,13 @@ export function closeSettingsModal() {
   }
 }
 
+/** After a successful key save, auto-close settings and return to chat if we came from onboarding. */
+function _returnToChatIfOnboarding() {
+  if (window._settingsHadProvider) return; // already had a provider — user is just reconfiguring
+  if (!window.hasAIProvider?.()) return;
+  closeSettingsModal();
+}
+
 function isHttpsToNonLocalhost(url) {
   if (location.protocol !== 'https:') return false;
   try {
@@ -569,6 +576,7 @@ export async function testOllamaConnection() {
     // Also refresh privacy section status
     initSettingsOllamaCheck();
     updatePrivacyStatusCard();
+    _returnToChatIfOnboarding();
   } catch (e) {
     dot.classList.add('disconnected');
     text.textContent = (e instanceof TypeError || e.message?.includes('Failed to fetch'))
@@ -653,6 +661,7 @@ export async function handleSaveApiKey() {
       status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
     }
     showNotification('API key saved', 'success');
+    _returnToChatIfOnboarding();
   } else {
     status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }
@@ -697,6 +706,7 @@ export async function handleSaveVeniceKey() {
       status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
     }
     showNotification('Venice API key saved', 'success');
+    _returnToChatIfOnboarding();
   } else {
     status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }
@@ -746,6 +756,7 @@ export async function handleSaveOpenRouterKey() {
       status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
     }
     showNotification('OpenRouter API key saved', 'success');
+    _returnToChatIfOnboarding();
   } else {
     status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
   }

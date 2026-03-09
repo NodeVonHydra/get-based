@@ -82,7 +82,12 @@ export function getVeniceModelDisplay() {
 export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
 export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
-export function getOpenRouterModel() { return localStorage.getItem('labcharts-openrouter-model') || 'anthropic/claude-sonnet-4-6'; }
+export function getOpenRouterModel() {
+  let m = localStorage.getItem('labcharts-openrouter-model');
+  // Fix legacy hyphenated IDs (OpenRouter uses dots: anthropic/claude-sonnet-4.6)
+  if (m === 'anthropic/claude-sonnet-4-6') { m = 'anthropic/claude-sonnet-4.6'; localStorage.setItem('labcharts-openrouter-model', m); }
+  return m || 'anthropic/claude-sonnet-4.6';
+}
 export function setOpenRouterModel(model) { localStorage.setItem('labcharts-openrouter-model', model); }
 export function getOpenRouterModelDisplay() {
   const id = getOpenRouterModel();
@@ -217,7 +222,7 @@ export async function fetchOpenRouterModels(key) {
     localStorage.setItem('labcharts-openrouter-vision-models', JSON.stringify(visionIds));
     localStorage.setItem('labcharts-openrouter-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-openrouter-model') && models.length) {
-      const claude = models.find(function(m) { return m.id === 'anthropic/claude-sonnet-4-6'; });
+      const claude = models.find(function(m) { return m.id === 'anthropic/claude-sonnet-4.6'; });
       if (claude) setOpenRouterModel(claude.id);
     }
     return models;

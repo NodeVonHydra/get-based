@@ -392,7 +392,38 @@ export function renderTagsField(label, id, options, selected) {
     </div></div>`;
 }
 
-export function toggleCtxTag(btn) { btn.classList.toggle('active'); }
+const _CTX_EXCLUSIONS = [
+  ['no screens 1-2h before bed', 'screen in bed'],
+  ['dim lights after sunset', 'bright lights until bed'],
+  ['early dinner (before 6pm)', 'late dinner (after 8pm)'],
+];
+export function toggleCtxTag(btn) {
+  const text = btn.textContent.trim();
+  const isNone = text.toLowerCase() === 'none';
+  const group = btn.parentElement;
+  if (isNone) {
+    // Toggling "none" on → deselect all others
+    if (!btn.classList.contains('active')) {
+      group.querySelectorAll('.ctx-tag.active').forEach(b => b.classList.remove('active'));
+    }
+  } else {
+    // Toggling a specific option → deselect "none" and contradictory pairs
+    group.querySelectorAll('.ctx-tag.active').forEach(b => {
+      if (b.textContent.trim().toLowerCase() === 'none') b.classList.remove('active');
+    });
+    if (!btn.classList.contains('active')) {
+      for (const pair of _CTX_EXCLUSIONS) {
+        const other = pair[0] === text ? pair[1] : pair[1] === text ? pair[0] : null;
+        if (other) {
+          group.querySelectorAll('.ctx-tag.active').forEach(b => {
+            if (b.textContent.trim() === other) b.classList.remove('active');
+          });
+        }
+      }
+    }
+  }
+  btn.classList.toggle('active');
+}
 
 export function getSelectedTags(containerId) {
   const el = document.getElementById(containerId);
@@ -418,6 +449,8 @@ export function saveAndRefresh(msg) {
   window.closeModal();
   showNotification(msg, 'success');
   if (window.onContextCardSaved) window.onContextCardSaved();
+  // Refresh health dots for the saved card (fingerprint will have changed)
+  loadContextHealthDots();
 }
 
 function getTimePlaceholder() {
@@ -493,7 +526,11 @@ export function filterConditionSuggestions() {
   if (!input || !container) return;
   const val = input.value.toLowerCase().trim();
   const existing = (state.importedData.diagnoses && state.importedData.diagnoses.conditions || []).map(c => c.name.toLowerCase());
-  const matches = val ? COMMON_CONDITIONS.filter(c => c.toLowerCase().includes(val) && !existing.includes(c.toLowerCase())) : COMMON_CONDITIONS.filter(c => !existing.includes(c.toLowerCase()));
+  const sexFiltered = COMMON_CONDITIONS.filter(c => {
+    if (state.profileSex === 'male' && (c === 'PCOS' || c === 'Endometriosis')) return false;
+    return true;
+  });
+  const matches = val ? sexFiltered.filter(c => c.toLowerCase().includes(val) && !existing.includes(c.toLowerCase())) : sexFiltered.filter(c => !existing.includes(c.toLowerCase()));
   if (matches.length === 0 || !val) { container.innerHTML = ''; return; }
   container.innerHTML = matches.slice(0, 8).map(m => `<div class="ctx-suggestion-item" onmousedown="selectConditionSuggestion('${escapeHTML(m)}')">${escapeHTML(m)}</div>`).join('');
 }
@@ -828,7 +865,11 @@ export function openLoveLifeEditor() {
     ${renderSelectField('Sexual frequency', 'love-frequency', LOVE_FREQUENCY, current.frequency)}
     ${renderSelectField('Orgasm', 'love-orgasm', LOVE_ORGASM, current.orgasm)}
     <div class="ctx-editor-divider"></div>
-    ${renderTagsField('Concerns', 'love-concerns', LOVE_CONCERNS, current.concerns)}
+    ${renderTagsField('Concerns', 'love-concerns', LOVE_CONCERNS.filter(c => {
+      if (state.profileSex === 'female' && c === 'erectile issues') return false;
+      if (state.profileSex === 'male' && c === 'vaginal dryness') return false;
+      return true;
+    }), current.concerns)}
     ${renderNoteField(current.note)}
     ${contextEditorActions(state.importedData.loveLife != null, 'saveLoveLife', 'clearLoveLife')}`;
   overlay.classList.add("show");
