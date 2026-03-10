@@ -42,7 +42,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
   - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete)
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
-  - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, focus card, onboarding
+  - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
 - **`tests/`** — 20 browser-based test files (`test-*.js`) + `verify-modules.js`
@@ -64,7 +64,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 2. **PII obfuscation**: When review enabled + Local AI available, modal opens immediately and streams AI obfuscation in real-time (`sanitizeWithOllamaStreaming`). "Use regex instead" button as explicit fallback. Without review, non-streaming `sanitizeWithOllama` with silent regex fallback. Without Local AI, regex-only
 3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs
 4. **Import preview**: matched/unmatched/new markers shown; user confirms before saving
-5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
+5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Users can also create custom markers manually via sidebar "+" button (`openCreateMarkerModal`). Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
 6. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
 7. **Sidebar grouping**: categories with `group` field (e.g., "OAT") render under collapsible sidebar headers. `toggleNavGroup()`, collapse state persisted in localStorage
 

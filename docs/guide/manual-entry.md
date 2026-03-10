@@ -24,7 +24,7 @@ Only enter the markers you have results for. Leave the rest blank. getbased uses
 
 The marker list is organized by the same 15 categories used throughout the app (biochemistry, hormones, lipids, etc.). You can scroll through a category or use the search box to find a marker by name.
 
-If a marker you're looking for doesn't appear in the list, it may be a custom marker from a previous PDF import. Custom markers also appear in the manual entry list once they've been created.
+If a marker you're looking for doesn't appear in the list, you can create it. Click the **+** button next to "Categories" in the sidebar to [create a custom marker](./custom-markers.md#creating-custom-markers-manually) — define the name, unit, category, and reference range, then add values to it.
 
 ## Editing Existing Values
 

@@ -858,6 +858,118 @@ export function saveManualEntry(id) {
   setTimeout(() => showDetailModal(id), 50);
 }
 
+export function openCreateMarkerModal() {
+  const modal = document.getElementById("detail-modal");
+  const overlay = document.getElementById("modal-overlay");
+  // Build category options from schema + existing custom categories
+  const data = getActiveData();
+  const catOptions = Object.entries(data.categories)
+    .filter(([, c]) => !c.calculated)
+    .map(([key, c]) => `<option value="${key}">${escapeHTML(c.label)}</option>`)
+    .join('');
+  modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Create New Biomarker</h3>
+    <div class="manual-entry-form">
+      <div class="me-field">
+        <label>Category</label>
+        <div class="cm-cat-row">
+          <select id="cm-category" onchange="document.getElementById('cm-new-cat').style.display=this.value==='__new__'?'block':'none'">
+            ${catOptions}
+            <option value="__new__">+ New category...</option>
+          </select>
+          <input type="text" id="cm-new-cat" placeholder="Category name" style="display:none;margin-top:6px">
+        </div>
+      </div>
+      <div class="me-field">
+        <label>Marker name</label>
+        <input type="text" id="cm-name" placeholder="e.g. Lipoprotein(a)" autofocus>
+      </div>
+      <div class="me-field">
+        <label>Unit</label>
+        <input type="text" id="cm-unit" placeholder="e.g. mg/dL, nmol/L, %">
+      </div>
+      <div class="me-field">
+        <label>Reference range (optional)</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="cm-ref-min" step="any" placeholder="Min">
+          <span style="line-height:36px">\u2013</span>
+          <input type="number" id="cm-ref-max" step="any" placeholder="Max">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="import-btn import-btn-primary" onclick="saveCustomMarker()">Create</button>
+        <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>`;
+  overlay.classList.add("show");
+  setTimeout(() => { const el = document.getElementById('cm-name'); if (el) el.focus(); }, 50);
+}
+
+export function saveCustomMarker() {
+  const catSelect = document.getElementById('cm-category');
+  const newCatInput = document.getElementById('cm-new-cat');
+  const nameInput = document.getElementById('cm-name');
+  const unitInput = document.getElementById('cm-unit');
+  const refMinInput = document.getElementById('cm-ref-min');
+  const refMaxInput = document.getElementById('cm-ref-max');
+  if (!nameInput?.value.trim()) { showNotification('Please enter a marker name', 'error'); return; }
+  const name = nameInput.value.trim();
+  // Determine category key and label
+  let catKey, catLabel;
+  if (catSelect.value === '__new__') {
+    catLabel = (newCatInput?.value || '').trim();
+    if (!catLabel) { showNotification('Please enter a category name', 'error'); return; }
+    catKey = catLabel.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/)
+      .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join('');
+    if (!catKey || /^\d/.test(catKey)) catKey = 'custom' + catKey.charAt(0).toUpperCase() + catKey.slice(1);
+  } else {
+    catKey = catSelect.value;
+    catLabel = catSelect.options[catSelect.selectedIndex].text;
+  }
+  // Generate marker key from name (camelCase)
+  const markerKey = name
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .split(/\s+/)
+    .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('');
+  if (!markerKey) { showNotification('Could not generate a valid key from marker name', 'error'); return; }
+  const fullKey = catKey + '.' + markerKey;
+  // Check for conflicts
+  const data = getActiveData();
+  const existingCat = data.categories[catKey];
+  if (existingCat?.markers[markerKey]) {
+    showNotification('A marker with this name already exists in that category', 'error');
+    return;
+  }
+  // Parse optional ref range
+  const refMin = refMinInput?.value ? parseFloat(refMinInput.value) : null;
+  const refMax = refMaxInput?.value ? parseFloat(refMaxInput.value) : null;
+  // Save custom marker definition
+  if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
+  state.importedData.customMarkers[fullKey] = {
+    name,
+    unit: (unitInput?.value || '').trim(),
+    refMin: isNaN(refMin) ? null : refMin,
+    refMax: isNaN(refMax) ? null : refMax,
+    categoryLabel: catLabel
+  };
+  saveImportedData();
+  window.buildSidebar();
+  closeModal();
+  showNotification(`Created "${name}" in ${catLabel}`, 'success');
+  // Register marker and open manual entry to add first value
+  const id = catKey + '_' + markerKey;
+  state.markerRegistry[id] = {
+    name,
+    unit: (unitInput?.value || '').trim(),
+    refMin: isNaN(refMin) ? null : refMin,
+    refMax: isNaN(refMax) ? null : refMax,
+    custom: true
+  };
+  setTimeout(() => openManualEntryForm(id), 100);
+}
+
 export function deleteMarkerValue(id, date) {
   const dotKey = id.replace('_', '.');
   if (!state.importedData.entries) return;
@@ -1329,6 +1441,8 @@ Object.assign(window, {
   revertRefRange,
   openManualEntryForm,
   saveManualEntry,
+  openCreateMarkerModal,
+  saveCustomMarker,
   deleteMarkerValue,
   editMarkerValue,
   revertMarkerValue,

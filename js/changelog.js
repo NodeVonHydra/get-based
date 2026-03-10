@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.6.2', date: '2026-03-10', title: 'Create Custom Biomarkers',
+    items: [
+      'Manually create new biomarkers — "+" button next to Categories in the sidebar',
+      'Define marker name, unit, category (existing or new), and reference range',
+      'After creation, immediately prompts to add the first value',
+      'Custom markers are included in the AI marker reference for future PDF imports',
+    ]
+  },
+  {
     version: '1.6.1', date: '2026-03-10', title: 'Import Fixes, Usage Tracking & New Markers',
     items: [
       'AI usage tracking — see per-profile and total AI costs in Settings → AI tab',
