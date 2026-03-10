@@ -416,7 +416,13 @@ export function filterDatesByRange(data) {
     const filteredCat = { ...cat, markers: {} };
     for (const [mKey, marker] of Object.entries(cat.markers)) {
       if (marker.singlePoint || cat.singlePoint) {
-        filteredCat.markers[mKey] = marker;
+        // Hide single-point markers whose date is outside the filtered range
+        const spDate = marker.singleDate || cat.singleDate;
+        if (spDate && spDate < cutoffStr) {
+          filteredCat.markers[mKey] = { ...marker, values: [null], singleDate: null };
+        } else {
+          filteredCat.markers[mKey] = marker;
+        }
       } else {
         filteredCat.markers[mKey] = {
           ...marker,

@@ -114,7 +114,7 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Code Cleanup ', 'font-weight:bold;color:#f59e0b');
 
-  assert('pdf-import.js imports formatCost from schema', pdfSrc.includes("formatCost } from './schema.js'") || pdfSrc.includes("formatCost} from './schema.js'"));
+  assert('pdf-import.js imports formatCost from schema', pdfSrc.includes('formatCost') && pdfSrc.includes("from './schema.js'"));
   const localFormatCost = pdfSrc.match(/^function formatCost/m);
   assert('pdf-import.js no local formatCost', !localFormatCost);
 

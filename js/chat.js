@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT, LATITUDE_BANDS } from './constants.js';
-import { calculateCost, formatCost, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
+import { calculateCost, formatCost, trackUsage, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
 import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
@@ -2589,6 +2589,7 @@ export async function sendChatMessage() {
     const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
+      trackUsage(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
     }
     if (searchTerms) assistantMsg.sourcesPending = true;
     state.chatHistory.push(assistantMsg);
@@ -2901,6 +2902,7 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
       const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon, modelId: _dMsgModelId, modelDisplay: _dMsgModelDisplay };
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
+        trackUsage(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
       }
       state.chatHistory.push(assistantMsg);
       saveChatHistory();
