@@ -540,7 +540,14 @@ export function renderChartCard(id, marker, dateLabels) {
     <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
     <div class="chart-values">`;
   const labels = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
-  for (let i = 0; i < marker.values.length; i++) {
+  // Trim leading/trailing nulls to match chart trimming
+  let valStart = 0, valEnd = marker.values.length - 1;
+  if (!marker.singlePoint && marker.values.length > 1) {
+    valStart = marker.values.findIndex(v => v !== null);
+    if (valStart < 0) valStart = 0;
+    while (valEnd > valStart && marker.values[valEnd] === null) valEnd--;
+  }
+  for (let i = valStart; i <= valEnd; i++) {
     const v = marker.values[i];
     const ri = getEffectiveRangeForDate(marker, i);
     const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
