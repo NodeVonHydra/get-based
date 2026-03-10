@@ -6,8 +6,8 @@ import { escapeHTML, hashString, showNotification, hasCardContent } from './util
 import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
-import { callClaudeAPI, hasAIProvider } from './api.js';
-import { getEMFSeverity } from './schema.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
+import { getEMFSeverity, trackUsage } from './schema.js';
 
 function getEMFSummary() {
   const emf = state.importedData.emfAssessment;
@@ -191,7 +191,8 @@ export function renderProfileContextCards() {
   } else if (!_ccHasLabs) {
     _ccSubtitle = `<div class="context-section-subtitle">${_ccMissingDemo ? 'Set your sex and date of birth in Settings, then open' : 'All filled \u2014 open'} the chat to get personalized test recommendations based on your profile.</div>`;
   }
-  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span>${_ccSubtitle}</div>`;
+  const _refreshBtn = hasAIProvider() ? `<button class="ctx-refresh-all-btn" onclick="event.stopPropagation();refreshAllHealthDots()" title="Refresh all AI insights">&#x21bb;</button>` : '';
+  let html = `<div style="margin-top:16px"><span class="context-section-title">What your GP won't ask you (${filledCount}/${cardDefs.length} filled)</span>${_refreshBtn}${_ccSubtitle}</div>`;
   html += `<div class="profile-context-cards">`;
   for (const c of cardDefs) {
     const filled = isContextFilled(c.key);
@@ -326,6 +327,9 @@ Tips must be concise (8 words max, e.g. "Low D may link to limited sun" not "Con
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
     ]);
     const text = (result && typeof result === 'object') ? (result.text || '') : (typeof result === 'string' ? result : '');
+    if (result && typeof result === 'object' && result.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), result.usage.inputTokens || 0, result.usage.outputTokens || 0);
+    }
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       let parsed;
@@ -356,6 +360,14 @@ Tips must be concise (8 words max, e.g. "Low D may link to limited sun" not "Con
   } catch(e) {
     for (const k of staleKeys) applyDotColor(k, 'gray');
   }
+}
+
+export function refreshAllHealthDots() {
+  if (!hasAIProvider()) { showNotification('Set up an AI provider first', 'error'); return; }
+  const cacheKey = profileStorageKey(state.currentProfile, 'contextHealth');
+  try { localStorage.removeItem(cacheKey); } catch(e) {}
+  loadContextHealthDots();
+  showNotification('Refreshing all insights...', 'info');
 }
 
 // ═══════════════════════════════════════════════
@@ -446,6 +458,9 @@ export function contextEditorActions(hasCurrent, saveFn, clearFn) {
 
 export function saveAndRefresh(msg) {
   saveImportedData();
+  // Preserve details open state before closeModal re-renders the dashboard
+  const details = document.querySelector('.welcome-context-details');
+  if (details?.open) sessionStorage.setItem('welcome-details-open', '1');
   window.closeModal();
   showNotification(msg, 'success');
   if (window.onContextCardSaved) window.onContextCardSaved();
@@ -1117,6 +1132,7 @@ Object.assign(window, {
   applyAISummary,
   getCardFingerprint,
   loadContextHealthDots,
+  refreshAllHealthDots,
   renderSelectField,
   selectCtxOption,
   getSelectedOption,

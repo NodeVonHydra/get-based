@@ -1,6 +1,7 @@
 // main.js — Entry point, DOMContentLoaded, global event listeners
 
 import { state } from './state.js';
+window._getActiveProfileId = () => state.currentProfile;
 import './schema.js';
 import './constants.js';
 import './utils.js';

@@ -483,7 +483,7 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
         <div class="pii-diff-viewer">
           <div class="pii-diff-left"><div class="pii-diff-header">Original (stays local)</div>${leftHtml}</div>
           <div class="pii-diff-right">
-            <div class="pii-diff-header">Sent to AI (editable)</div>
+            <div class="pii-diff-header">Sent to AI <button class="pii-edit-btn" id="pii-edit-btn" type="button">&#9998; Edit</button></div>
             ${isStreaming ? '<details class="pii-thinking-section" id="pii-thinking-section" style="display:none"><summary>Thinking\u2026</summary><pre class="pii-thinking-content" id="pii-thinking-content"></pre></details>' : ''}
             <textarea class="pii-edit-textarea" id="pii-edit-textarea" spellcheck="false"${isStreaming ? ' readonly' : ''}>${initialText}</textarea>
             ${isStreaming ? '<div class="pii-stream-status pii-stream-waiting" id="pii-stream-status">Waiting for model response\u2026</div>' : ''}
@@ -583,6 +583,9 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       diffView.title = 'Click to edit';
       diffView.style.cursor = 'pointer';
     }
+
+    // Edit button
+    overlay.querySelector('#pii-edit-btn').addEventListener('click', (e) => switchToEditMode(e));
 
     // Regex fallback button
     overlay.querySelector('#pii-review-regex').addEventListener('click', () => {

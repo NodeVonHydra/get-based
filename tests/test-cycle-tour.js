@@ -16,7 +16,7 @@
   const tourSrc = await fetch('/js/tour.js').then(r => r.text());
   const appStepCount = (tourSrc.match(/const TOUR_STEPS\s*=\s*\[([\s\S]*?)\];/)||[])[1];
   const appSteps = appStepCount ? appStepCount.split('{ target:').length - 1 : 0;
-  assert('App tour has 7 steps', appSteps === 7, `found ${appSteps}`);
+  assert('App tour has 8 steps', appSteps === 8, `found ${appSteps}`);
 
   // --- 2. CYCLE_TOUR_STEPS structure ---
   console.log('%c[2] Cycle tour steps', 'font-weight:bold');

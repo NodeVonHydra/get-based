@@ -1,8 +1,9 @@
 // settings.js — Settings modal (profile, display, AI provider, privacy)
 
 import { state } from './state.js';
-import { escapeHTML, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
+import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
+import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
@@ -127,6 +128,12 @@ export function openSettingsModal(tab) {
 
       <div class="settings-section" id="privacy-section">
         ${renderPrivacySection()}
+      </div>
+
+      <div class="settings-group-title">AI Usage</div>
+
+      <div class="settings-section" id="ai-usage-section">
+        ${renderAIUsageSection()}
       </div>
     </div>
 
@@ -852,6 +859,9 @@ export function renderDataEntriesSection() {
     const entryMarkerKeys = Object.keys(entry.markers);
     const manualCount = entryMarkerKeys.filter(k => manualValues[k + ':' + entry.date]).length;
     const isFullyManual = !entry.importedWith && manualCount === cnt;
+    const fileLabel = entry.sourceFile
+      ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px" title="${escapeAttr(entry.sourceFile)}">${escapeHTML(entry.sourceFile.length > 30 ? entry.sourceFile.slice(0, 27) + '...' : entry.sourceFile)}</span>`
+      : '';
     const sourceLabel = isFullyManual
       ? '<span style="color:var(--accent);margin-left:8px;font-size:11px">manual entry</span>'
       : entry.importedWith?.modelId
@@ -860,7 +870,7 @@ export function renderDataEntriesSection() {
           ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px">${manualCount} manual</span>`
           : '';
     html += `<div class="imported-entry">
-      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${sourceLabel}</span>
+      <span class="ie-info"><span class="ie-date">${d}</span><span class="ie-count">${cnt} markers</span>${fileLabel}${sourceLabel}</span>
       <div class="ie-actions">
         <button class="ie-remove" onclick="removeImportedEntry('${entry.date}');refreshDataEntriesSection()">Remove</button>
       </div>
@@ -877,6 +887,32 @@ export function renderDataEntriesSection() {
 export function refreshDataEntriesSection() {
   const el = document.getElementById('data-entries-section');
   if (el) el.innerHTML = renderDataEntriesSection();
+}
+
+function formatTokens(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
+  return String(n);
+}
+
+function renderAIUsageSection() {
+  const pu = getProfileUsage(state.currentProfile);
+  const gu = getGlobalUsage();
+  const profileName = state.profiles?.[state.currentProfile]?.name || 'Current profile';
+  let html = '<div style="font-size:13px;color:var(--text-secondary);line-height:2">';
+  html += `<div><strong>${escapeHTML(profileName)}</strong>: ${formatCost(pu.totalCost)} · ${pu.requestCount} request${pu.requestCount !== 1 ? 's' : ''} · ${formatTokens(pu.totalInputTokens + pu.totalOutputTokens)} tokens</div>`;
+  html += `<div><strong>All profiles</strong>: ${formatCost(gu.totalCost)} · ${gu.requestCount} request${gu.requestCount !== 1 ? 's' : ''} · ${formatTokens(gu.totalInputTokens + gu.totalOutputTokens)} tokens</div>`;
+  html += '</div>';
+  if (pu.requestCount > 0) {
+    html += `<button class="import-btn import-btn-secondary" style="margin-top:8px;font-size:11px" onclick="resetCurrentProfileUsage()">Reset profile usage</button>`;
+  }
+  return html;
+}
+
+function resetCurrentProfileUsage() {
+  resetProfileUsage(state.currentProfile);
+  const el = document.getElementById('ai-usage-section');
+  if (el) el.innerHTML = renderAIUsageSection();
 }
 
 Object.assign(window, {
@@ -916,4 +952,5 @@ Object.assign(window, {
   */
   renderDataEntriesSection,
   refreshDataEntriesSection,
+  resetCurrentProfileUsage,
 });
