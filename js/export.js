@@ -400,6 +400,16 @@ export function importDataJSON(file) {
         showNotification('Invalid JSON format: missing entries array', 'error');
         return;
       }
+      // v2 client export with profile metadata — create a new profile
+      if (json.profile?.name) {
+        const p = json.profile;
+        const profileId = createProfile(p.name, {
+          sex: p.sex || null, dob: p.dob || null,
+          location: p.location || null, tags: p.tags || [],
+          avatar: p.avatar || null
+        });
+        await loadProfile(profileId);
+      }
       let count = 0;
       for (const entry of json.entries) {
         if (!entry.date || !entry.markers) continue;
@@ -547,7 +557,8 @@ export function importDataJSON(file) {
       window.buildSidebar();
       window.updateHeaderDates();
       window.navigate('dashboard');
-      showNotification(`Imported ${count} date entr${count === 1 ? 'y' : 'ies'} from JSON`, 'success');
+      const profileMsg = json.profile?.name ? ` into "${json.profile.name}"` : '';
+      showNotification(`Imported ${count} date entr${count === 1 ? 'y' : 'ies'}${profileMsg}`, 'success');
     } catch (err) {
       showNotification('Error parsing JSON: ' + err.message, 'error');
     }

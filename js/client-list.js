@@ -122,6 +122,8 @@ function renderClientList() {
       <h2 class="cl-title">Clients <span class="cl-count">(${profiles.filter(p => p.status !== 'archived').length})</span></h2>
     </div>
     <div class="cl-header-right">
+      <button class="cl-export-all-btn" onclick="document.getElementById('cl-json-import').click()">Import</button>
+      <input type="file" id="cl-json-import" accept=".json" style="display:none" onchange="if(this.files[0]){closeClientList();window.importDataJSON(this.files[0]);this.value=''}">
       <button class="cl-export-all-btn" onclick="window.exportAllDataJSON()">Export All</button>
       <button class="cl-new-btn cl-demo-btn" onclick="closeClientList();window.loadDemoData('female')">+ Demo Sarah</button>
       <button class="cl-new-btn cl-demo-btn" onclick="closeClientList();window.loadDemoData('male')">+ Demo Alex</button>

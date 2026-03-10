@@ -164,6 +164,8 @@ export function migrateProfileData(data) {
     for (const [fullKey, def] of Object.entries(data.customMarkers)) {
       const [catKey, markerKey] = fullKey.split('.');
       if (!markerKey || MARKER_SCHEMA[catKey]) continue;
+      // Don't relocate legitimate specialty markers that happen to share a name with standard ones
+      if (SPECIALTY_MARKER_DEFS[fullKey]) continue;
       const stdKey = _stdLookup[markerKey];
       if (!stdKey) continue;
       for (const entry of data.entries) {

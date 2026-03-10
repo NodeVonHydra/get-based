@@ -381,9 +381,16 @@ Return ONLY valid JSON in this exact format, no other text:
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
           if (isDebugMode()) console.log(`[Import Guard] Demoted ${mappedKey} — standard category in ${testType} test`);
-          // Preserve AI's suggested fields or construct fallback from the standard category
-          if (!m.suggestedKey) {
-            const markerPart = mappedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+          // Check if a specialty equivalent exists by marker name
+          const markerPart = mappedKey.split('.')[1];
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          if (specialtyMatch) {
+            const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
+            m.suggestedKey = specialtyMatch;
+            m.suggestedName = sDef.name;
+            m.suggestedCategoryLabel = sDef.categoryLabel;
+            m.suggestedGroup = m.suggestedGroup || sDef.group || testType;
+          } else if (!m.suggestedKey) {
             const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
             const originalCat = MARKER_SCHEMA[catKey];
             const catSuffix = catKey.charAt(0).toUpperCase() + catKey.slice(1);
@@ -394,6 +401,25 @@ Return ONLY valid JSON in this exact format, no other text:
           }
           mappedKey = null;
           matched = false;
+        }
+      }
+      // Guard: even for blood testType, remap to specialty key if adapter detected a product
+      // This catches AI misidentifying specialty tests as blood
+      if (matched && testType === 'blood' && detected) {
+        const catKey = mappedKey.split('.')[0];
+        if (standardCats.has(catKey)) {
+          const markerPart = mappedKey.split('.')[1];
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          if (specialtyMatch) {
+            const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
+            if (isDebugMode()) console.log(`[Import Guard] Remapped ${mappedKey} → ${specialtyMatch} (adapter detected)`);
+            m.suggestedKey = specialtyMatch;
+            m.suggestedName = sDef.name;
+            m.suggestedCategoryLabel = sDef.categoryLabel;
+            m.suggestedGroup = sDef.group || testType;
+            mappedKey = null;
+            matched = false;
+          }
         }
       }
       // Guard: also rewrite suggestedKey if AI used a standard category for specialty test
@@ -964,8 +990,15 @@ Return ONLY valid JSON in this exact format:
       if (matched && testType !== 'blood') {
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
-          if (!m.suggestedKey) {
-            const markerPart = mappedKey.split('.')[1] || m.rawName.replace(/[^a-zA-Z0-9]/g, '');
+          const markerPart = mappedKey.split('.')[1];
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          if (specialtyMatch) {
+            const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
+            m.suggestedKey = specialtyMatch;
+            m.suggestedName = sDef.name;
+            m.suggestedCategoryLabel = sDef.categoryLabel;
+            m.suggestedGroup = m.suggestedGroup || sDef.group || testType;
+          } else if (!m.suggestedKey) {
             const prefix = testType.toLowerCase().replace(/[^a-z]/g, '');
             const catSuffix = catKey.charAt(0).toUpperCase() + catKey.slice(1);
             m.suggestedKey = `${prefix}${catSuffix}.${markerPart}`;
@@ -975,6 +1008,23 @@ Return ONLY valid JSON in this exact format:
           }
           mappedKey = null;
           matched = false;
+        }
+      }
+      // Guard: even for blood testType, remap to specialty key if adapter detected a product
+      if (matched && testType === 'blood' && detected) {
+        const catKey = mappedKey.split('.')[0];
+        if (standardCats.has(catKey)) {
+          const markerPart = mappedKey.split('.')[1];
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          if (specialtyMatch) {
+            const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
+            m.suggestedKey = specialtyMatch;
+            m.suggestedName = sDef.name;
+            m.suggestedCategoryLabel = sDef.categoryLabel;
+            m.suggestedGroup = sDef.group || testType;
+            mappedKey = null;
+            matched = false;
+          }
         }
       }
       if (!matched && m.suggestedKey && testType !== 'blood') {

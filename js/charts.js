@@ -371,10 +371,22 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
   const canvas = document.getElementById("chart-" + id);
   if (!canvas) return;
   const tc = getChartColors();
-  const dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
-  const values = marker.values;
-  const valid = values.filter(v => v !== null);
+  let dates = marker.singlePoint ? [marker.singleDateLabel || "N/A"] : dateLabels;
+  let values = marker.values;
+  let valid = values.filter(v => v !== null);
   if (valid.length === 0) return;
+  // Trim leading/trailing nulls so charts don't show empty date gaps
+  if (!marker.singlePoint && values.length > 1) {
+    let first = values.findIndex(v => v !== null);
+    let last = values.length - 1;
+    while (last > first && values[last] === null) last--;
+    if (first > 0 || last < values.length - 1) {
+      values = values.slice(first, last + 1);
+      dates = dates.slice(first, last + 1);
+      if (chartDates) chartDates = chartDates.slice(first, last + 1);
+      if (phaseLabels) phaseLabels = phaseLabels.slice(first, last + 1);
+    }
+  }
 
   // PhenoAge: add chronological age line for comparison
   const isPhenoAge = marker.name && marker.name.startsWith('PhenoAge');
