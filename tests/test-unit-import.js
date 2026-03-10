@@ -141,10 +141,10 @@
   assert('ALT IU/L and U/L give same result',
     altIU === altUL, `IU/L=${altIU}, U/L=${altUL}`);
 
-  // Hematocrit: 45% → 0.45 fraction
+  // Hematocrit: 45% stays as 45 (stored natively as %)
   const hctSI = testNormalize('hematology.hematocrit', 45, '%');
-  assert('Hematocrit 45% → 0.45',
-    Math.abs(hctSI - 0.45) < 0.001, `got ${hctSI}`);
+  assert('Hematocrit 45% stays 45',
+    Math.abs(hctSI - 45) < 0.001, `got ${hctSI}`);
 
   // Vitamin A: 50 µg/dL → ~1.745 µmol/L
   const vitASI = testNormalize('vitamins.vitaminA', 50, '\u00b5g/dl');

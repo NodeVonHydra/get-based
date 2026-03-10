@@ -6,8 +6,8 @@ import { escapeHTML, hashString, showNotification, hasCardContent } from './util
 import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
-import { callClaudeAPI, hasAIProvider } from './api.js';
-import { getEMFSeverity } from './schema.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
+import { getEMFSeverity, trackUsage } from './schema.js';
 
 function getEMFSummary() {
   const emf = state.importedData.emfAssessment;
@@ -327,6 +327,9 @@ Tips must be concise (8 words max, e.g. "Low D may link to limited sun" not "Con
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
     ]);
     const text = (result && typeof result === 'object') ? (result.text || '') : (typeof result === 'string' ? result : '');
+    if (result && typeof result === 'object' && result.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), result.usage.inputTokens || 0, result.usage.outputTokens || 0);
+    }
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       let parsed;

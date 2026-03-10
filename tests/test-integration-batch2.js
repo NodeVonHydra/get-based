@@ -32,7 +32,7 @@
     'iron.ferritin', 'iron.transferrin', 'iron.tibc',
     'thyroid.ft4', 'thyroid.ft3', 'thyroid.t3total',
     'proteins.ceruloplasmin', 'lipids.apoB', 'lipids.apoAI',
-    'hematology.mchc', 'hematology.hematocrit',
+    'hematology.mchc',
     'differential.neutrophilsPct', 'differential.lymphocytesPct', 'differential.monocytesPct',
     'boneMetabolism.osteocalcin', 'tumorMarkers.psa',
     'vitamins.vitaminA', 'vitamins.calcitriol'
@@ -263,23 +263,21 @@
     'coagulation.homocysteine',
     // Unitless or % — no conversion
     'hormones.fai', 'iron.transferrinSat', 'lipids.cholHdlRatio',
-    'hematology.rdwcv', 'hematology.hematocrit', // hematocrit has conversion
+    'hematology.rdwcv', 'hematology.hematocrit',
     'calculatedRatios.tgHdlRatio', 'calculatedRatios.ldlHdlRatio',
     'calculatedRatios.apoBapoAIRatio', 'calculatedRatios.nlr',
     'calculatedRatios.plr', 'calculatedRatios.deRitisRatio',
     'calculatedRatios.copperZincRatio', 'calculatedRatios.bunCreatRatio',
     'calculatedRatios.freeWaterDeficit', 'calculatedRatios.phenoAge',
-    // Standard units same in US (fl, pg, 10^9/l, 10^12/l)
+    // Standard units same in US (fl, pg, 10^9/l, 10^12/l, %)
     'hematology.wbc', 'hematology.rbc', 'hematology.mcv', 'hematology.mch',
-    'hematology.platelets', 'hematology.mpv', 'hematology.pdw',
+    'hematology.platelets', 'hematology.mpv', 'hematology.pdw', 'hematology.pct',
     'differential.neutrophils', 'differential.lymphocytes',
     'differential.monocytes', 'differential.eosinophils', 'differential.basophils',
     // eGFR (ml/s vs ml/min is display convention, not a conversion)
     'biochemistry.egfr',
     // Diabetes (insulin_d mirrors hormones.insulin, homaIR is unitless)
     'diabetes.insulin_d', 'diabetes.homaIR',
-    // These already have conversions
-    'hematology.hematocrit',
   ]);
 
   let unconverted = [];

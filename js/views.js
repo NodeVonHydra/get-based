@@ -1,7 +1,7 @@
 // views.js — Navigate, dashboard, category views, detail modal, compare, correlations
 
 import { state } from './state.js';
-import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
+import { CORRELATION_PRESETS, CHIP_COLORS, trackUsage } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
@@ -10,7 +10,7 @@ import { createLineChart, getMarkerDescription, getNotesForChart, getSupplements
 import { renderSupplementsSection } from './supplements.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
-import { callClaudeAPI, hasAIProvider } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
 import { setupDropZone } from './pdf-import.js';
 import { buildLabContext } from './chat.js';
 
@@ -340,6 +340,9 @@ export async function loadFocusCard() {
     });
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
     const result = await Promise.race([apiCall, timeout]);
+    if (result && typeof result === 'object' && result.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), result.usage.inputTokens || 0, result.usage.outputTokens || 0);
+    }
     const text = (result && typeof result === 'object') ? result.text : (result || '');
     const trimmed = (text || '').trim();
     if (trimmed) {
@@ -677,12 +680,16 @@ export async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   if (cache[markerId]) return cache[markerId];
   if (!hasAIProvider()) return null;
   try {
-    const { text: resp } = await callClaudeAPI({
+    const descResult = await callClaudeAPI({
       system: 'You are a concise medical reference. Reply with exactly one sentence (max 30 words) explaining what this blood biomarker measures and why it matters clinically. No preamble.',
       messages: [{ role: 'user', content: `${markerName} (${unit})` }],
       maxTokens: 100
     });
-    const text = (resp || '').trim();
+    if (descResult && descResult.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), descResult.usage.inputTokens || 0, descResult.usage.outputTokens || 0);
+    }
+    const resp = (descResult && descResult.text) || '';
+    const text = resp.trim();
     if (text) {
       cache[markerId] = text;
       localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -706,7 +713,7 @@ export function showDetailModal(id) {
   const overrides = state.importedData?.refOverrides?.[dotKey] || {};
   const refEditable = (label, min, max, type) => {
     const isEdited = type === 'optimal' ? (overrides.optimalMin != null || overrides.optimalMax != null) : (overrides.refMin != null || overrides.refMax != null);
-    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range — click to revert" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">edited \u00d7</span>` : '';
+    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range from your lab — click to revert to default" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">lab \u00d7</span>` : '';
     return ` &middot; ${type === 'optimal' ? '<span style="color:var(--green)">' : ''}${label}: <span class="ref-editable" onclick="editRefRange('${id}','${type}',event)" title="Click to edit">${min} \u2013 ${max}</span>${editedBadge}${type === 'optimal' ? '</span>' : ''}`;
   };
   if (state.rangeMode === 'both') {

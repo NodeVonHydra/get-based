@@ -200,6 +200,50 @@ export function migrateProfileData(data) {
       if (!hasValues) delete data.customMarkers[fullKey];
     }
   }
+  // Backfill insulin mirror: sync hormones.insulin ↔ diabetes.insulin_d — v1.6.1
+  if (data.entries) {
+    for (const entry of data.entries) {
+      if (!entry.markers) continue;
+      if (entry.markers['hormones.insulin'] !== undefined && entry.markers['diabetes.insulin_d'] === undefined) {
+        entry.markers['diabetes.insulin_d'] = entry.markers['hormones.insulin'];
+      }
+      if (entry.markers['diabetes.insulin_d'] !== undefined && entry.markers['hormones.insulin'] === undefined) {
+        entry.markers['hormones.insulin'] = entry.markers['diabetes.insulin_d'];
+      }
+    }
+  }
+  // Migrate trombocrit/plateletcrit custom markers → hematology.pct — v1.6.1
+  if (data.entries && data.customMarkers) {
+    const pctAliases = Object.keys(data.customMarkers).filter(k =>
+      /tromb|plateletcrit|thrombocrit/i.test(k) && k !== 'hematology.pct'
+    );
+    for (const oldKey of pctAliases) {
+      for (const entry of data.entries) {
+        if (entry.markers?.[oldKey] != null && entry.markers['hematology.pct'] == null) {
+          entry.markers['hematology.pct'] = entry.markers[oldKey];
+        }
+        delete entry.markers?.[oldKey];
+      }
+      delete data.customMarkers[oldKey];
+    }
+  }
+  // Migrate hematocrit from fraction (0.45) to percentage (45%) — v1.6.1
+  if (data.entries) {
+    for (const entry of data.entries) {
+      const hct = entry.markers?.['hematology.hematocrit'];
+      if (hct != null && hct < 1) {
+        entry.markers['hematology.hematocrit'] = parseFloat((hct * 100).toFixed(1));
+      }
+    }
+  }
+  // Migrate hematocrit refOverrides from fraction to percentage
+  if (data.refOverrides?.['hematology.hematocrit']) {
+    const ovr = data.refOverrides['hematology.hematocrit'];
+    if (ovr.refMin != null && ovr.refMin < 1) ovr.refMin = parseFloat((ovr.refMin * 100).toFixed(1));
+    if (ovr.refMax != null && ovr.refMax < 1) ovr.refMax = parseFloat((ovr.refMax * 100).toFixed(1));
+    if (ovr.optimalMin != null && ovr.optimalMin < 1) ovr.optimalMin = parseFloat((ovr.optimalMin * 100).toFixed(1));
+    if (ovr.optimalMax != null && ovr.optimalMax < 1) ovr.optimalMax = parseFloat((ovr.optimalMax * 100).toFixed(1));
+  }
   // Initialize new fields if missing
   if (data.healthGoals === undefined) data.healthGoals = [];
   if (data.sleepRest === undefined) data.sleepRest = null;
