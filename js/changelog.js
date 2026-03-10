@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.0', date: '2026-03-10', title: 'Specialty Labs & Custom Markers',
+    items: [
+      'Improved specialty lab support — better detection and categorization for OAT, fatty acid, and combination reports',
+      'Delete custom biomarkers — click any custom marker and use "Delete this marker" at the bottom',
+      'Set optimal ranges when creating new biomarkers via the "+" button',
+    ]
+  },
+  {
     version: '1.6.2', date: '2026-03-10', title: 'Create Custom Biomarkers',
     items: [
       'Manually create new biomarkers — "+" button next to Categories in the sidebar',

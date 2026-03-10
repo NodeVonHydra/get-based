@@ -199,14 +199,20 @@
   // ═══════════════════════════════════════
   console.log('%c 6. FA normalization safety ', 'font-weight:bold;color:#f59e0b');
 
-  // Verify _normalizeFattyAcidMarkers skips standard-category markers
-  assert('_normalizeFattyAcidMarkers defined', src.includes('function _normalizeFattyAcidMarkers('));
-  assert('FA normalize checks standardCats', src.includes('standardCats.has(catKey)'));
-  assert('FA normalize skips standard markers', src.includes('continue') && src.includes('standard category'));
+  // Verify FA normalization uses adapters.js (not inline functions)
+  assert('pdf-import imports adapter functions', src.includes("from './adapters.js'"));
+  assert('Inline FA functions removed', !src.includes('function _normalizeFattyAcidMarkers(') && !src.includes('FA_PRODUCT_PATTERNS'));
+  assert('Uses detectProduct from adapters', src.includes('detectProduct('));
+  assert('Uses normalizeWithAdapter from adapters', src.includes('normalizeWithAdapter('));
 
-  // Verify FA normalization requires AI agreement — product detection alone + blood testType must NOT trigger
-  assert('FA trigger requires AI agreement or non-blood testType',
-    src.includes("testType !== 'blood'") && src.includes('detectedFA') && src.includes('isFattyAcidTest'));
+  // FA normalize logic lives in adapters.js — check it there
+  const adapterSrc = await fetch('js/adapters.js').then(r => r.text());
+  assert('FA normalize checks standardCats', adapterSrc.includes('standardCats.has(catKey)'));
+  assert('FA normalize skips standard markers', adapterSrc.includes('continue') && adapterSrc.includes('standard category'));
+
+  // Verify adapter normalization requires AI agreement — product detection alone + blood testType must NOT trigger
+  assert('Adapter normalization requires non-blood testType',
+    src.includes("testType !== 'blood'") && src.includes('detected') && src.includes('needsAdapterNormalize'));
 
   // Verify guard at line 367 only fires for non-blood tests
   assert('Guard checks testType !== blood',

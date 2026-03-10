@@ -7,6 +7,7 @@ import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashStri
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, /* ROUTSTR DISABLED: getRoutstrModelDisplay, */ getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
+import { detectProduct, normalizeWithAdapter, getAdapterByTestType } from './adapters.js';
 
 
 // ═══════════════════════════════════════════════
@@ -358,16 +359,15 @@ Return ONLY valid JSON in this exact format, no other text:
   const parsed = tryParseJSON(jsonStr);
 
   let testType = parsed.testType || 'blood';
-  // ── Fatty acid normalization: merge all AI categories into one product-prefixed category ──
-  // Only normalize when AI says fattyAcids, or product detected AND AI didn't say blood.
-  // Labs like Spadia do both blood work and FA tests — product name alone isn't enough.
-  const detectedFA = _detectFAProduct(fileName, pdfText);
-  const isFattyAcidTest = testType === 'fattyAcids' || (!!detectedFA && testType !== 'blood');
-  if (isFattyAcidTest && parsed.markers?.length) {
-    _normalizeFattyAcidMarkers(parsed.markers, fileName, pdfText, detectedFA);
-    // Only override testType if AI explicitly classified as fattyAcids
-    if (testType === 'fattyAcids') { /* already set */ }
-    else if (isDebugMode()) console.log(`[Import] FA product detected but AI testType=${testType} — standard markers preserved`);
+  // ── Adapter-based normalization (fatty acids, Metabolomix+, future specialty labs) ──
+  // Run adapter normalization when: product detected AND not plain blood, AI says fattyAcids, or testType has a registered adapter
+  const detected = detectProduct(fileName, pdfText);
+  const adapterForTestType = !detected && testType !== 'blood' ? getAdapterByTestType(testType) : null;
+  const needsAdapterNormalize = testType === 'fattyAcids' || (!!detected && testType !== 'blood') || !!adapterForTestType;
+  if (needsAdapterNormalize && parsed.markers?.length) {
+    const adapter = detected?.adapter || adapterForTestType || getAdapterByTestType('fattyAcids');
+    normalizeWithAdapter(adapter, parsed.markers, fileName, pdfText, detected?.product);
+    if (isDebugMode()) console.log(`[Import] Adapter ${adapter?.id || 'fattyAcids'} normalized ${parsed.markers.length} markers (testType=${testType})`);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {
@@ -682,7 +682,8 @@ export function confirmImport() {
     if (result.testType === 'fattyAcids') cmDef.singlePoint = true;
     // Always update organizational fields from latest import
     cmDef.categoryLabel = categoryLabel;
-    cmDef.group = importGroup || m.suggestedGroup || m.group || cmDef.group || null;
+    // FA-normalized markers carry their own group — don't override with testType-based importGroup
+    cmDef.group = m.suggestedGroup || importGroup || m.group || cmDef.group || null;
     state.importedData.customMarkers[m.suggestedKey] = cmDef;
   }
   // Mirror insulin between hormones and diabetes categories (AI may map to either)
@@ -773,57 +774,6 @@ export function setupDropZone() {
     if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
-}
-
-// ── Fatty acid post-processing: normalize all AI categories into one product-prefixed category ──
-const FA_PRODUCT_PATTERNS = [
-  { patterns: ['zinzino', 'balancetest', 'balance test'], prefix: 'zinzinoFA', label: 'ZinZino' },
-  { patterns: ['omegaquant', 'ayumetrix'], prefix: 'omegaquantFA', label: 'OmegaQuant' },
-  { patterns: ['spadia'], prefix: 'spadiaFA', label: 'Spadia' },
-];
-
-function _detectFAProduct(fileName, pdfText) {
-  const fnLower = (fileName || '').toLowerCase();
-  const textLower = (pdfText || '').slice(0, 3000).toLowerCase();
-  for (const p of FA_PRODUCT_PATTERNS) {
-    for (const pat of p.patterns) {
-      if (fnLower.includes(pat) || textLower.includes(pat)) return { prefix: p.prefix, label: p.label };
-    }
-  }
-  return null;
-}
-
-function _normalizeFattyAcidMarkers(markers, fileName, pdfText, detectedProduct) {
-  const standardCats = new Set(Object.keys(MARKER_SCHEMA));
-  let product = detectedProduct || _detectFAProduct(fileName, pdfText);
-  // Fallback: derive from first non-generic suggestedGroup the AI returned
-  if (!product) {
-    const firstLabel = markers.find(m => m.suggestedCategoryLabel && !/fatty|omega|saturated|trans|mono/i.test(m.suggestedCategoryLabel))?.suggestedCategoryLabel;
-    if (firstLabel) {
-      const prefix = firstLabel.toLowerCase().replace(/[^a-z0-9]/g, '') + 'FA';
-      product = { prefix, label: firstLabel };
-    } else {
-      product = { prefix: 'fattyAcidsTest', label: 'Fatty Acids Test' };
-    }
-  }
-  for (const m of markers) {
-    // Never rewrite markers already matched to standard schema categories
-    if (m.mappedKey) {
-      const catKey = m.mappedKey.split('.')[0];
-      if (standardCats.has(catKey)) {
-        if (isDebugMode()) console.log(`[FA Normalize] Skipping ${m.mappedKey} — standard category`);
-        continue;
-      }
-    }
-    const markerPart = m.suggestedKey ? m.suggestedKey.split('.').pop()
-      : m.mappedKey ? m.mappedKey.split('.').pop()
-      : m.rawName.replace(/[^a-zA-Z0-9_]/g, '');
-    if (!markerPart) continue;
-    m.mappedKey = null;
-    m.suggestedKey = `${product.prefix}.${markerPart}`;
-    m.suggestedCategoryLabel = product.label;
-    m.suggestedGroup = 'Fatty Acids';
-  }
 }
 
 // Weighted step percentages: text extraction and PII are fast, AI analysis is the bulk
@@ -995,11 +945,13 @@ Return ONLY valid JSON in this exact format:
   const parsed = tryParseJSON(jsonStr);
 
   let testType = parsed.testType || 'blood';
-  // ── Fatty acid normalization (image pipeline) — same logic as text pipeline ──
-  const detectedFA = _detectFAProduct(fileName, '');
-  const isFattyAcidTest = testType === 'fattyAcids' || (!!detectedFA && testType !== 'blood');
-  if (isFattyAcidTest && parsed.markers?.length) {
-    _normalizeFattyAcidMarkers(parsed.markers, fileName, '', detectedFA);
+  // ── Adapter-based normalization (image pipeline) — same logic as text pipeline ──
+  const detected = detectProduct(fileName, '');
+  const adapterForTestType = !detected && testType !== 'blood' ? getAdapterByTestType(testType) : null;
+  const needsAdapterNormalize = testType === 'fattyAcids' || (!!detected && testType !== 'blood') || !!adapterForTestType;
+  if (needsAdapterNormalize && parsed.markers?.length) {
+    const adapter = detected?.adapter || adapterForTestType || getAdapterByTestType('fattyAcids');
+    normalizeWithAdapter(adapter, parsed.markers, fileName, '', detected?.product);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
   return {

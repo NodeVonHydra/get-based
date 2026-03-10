@@ -11,6 +11,7 @@
   console.log('%c Specialty Marker Refactor Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
   const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  const adaptersSrc = await fetch('js/adapters.js').then(r => r.text());
   const profileSrc = await fetch('js/profile.js').then(r => r.text());
   const dataSrc = await fetch('js/data.js').then(r => r.text());
   const pdfImportSrc = await fetch('js/pdf-import.js').then(r => r.text());
@@ -39,35 +40,40 @@
   }
 
   // ═══════════════════════════════════════
-  // 2. SPECIALTY_MARKER_DEFS exists and has 165 entries
+  // 2. SPECIALTY_MARKER_DEFS re-exported from adapters.js
   // ═══════════════════════════════════════
-  console.log('%c 2. SPECIALTY_MARKER_DEFS ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 2. SPECIALTY_MARKER_DEFS (via adapters.js) ', 'font-weight:bold;color:#f59e0b');
 
-  assert('SPECIALTY_MARKER_DEFS is exported', schemaSrc.includes('export const SPECIALTY_MARKER_DEFS'));
+  assert('schema.js re-exports SPECIALTY_MARKER_DEFS from adapters.js',
+    schemaSrc.includes('ADAPTER_MARKERS as SPECIALTY_MARKER_DEFS') && schemaSrc.includes("from './adapters.js'"));
 
-  // Count entries by counting key patterns
-  const defsBlock = schemaSrc.substring(
-    schemaSrc.indexOf('export const SPECIALTY_MARKER_DEFS'),
-    schemaSrc.indexOf('};\n\n// \u2500\u2500 Model pricing')
-  );
-  const entryCount = (defsBlock.match(/"[a-zA-Z]+\.\w+": \{/g) || []).length;
-  assert('SPECIALTY_MARKER_DEFS has 194 entries', entryCount === 194, `found ${entryCount}`);
+  // Count entries in adapters.js (the single source of truth)
+  const entryCount = (adaptersSrc.match(/"[a-zA-Z]+\.\w+": \{/g) || []).length;
+  assert('Adapter markers have 194 entries', entryCount === 194, `found ${entryCount}`);
 
   // Each entry has required fields
-  assert('Entries have name field', defsBlock.includes('name:'));
-  assert('Entries have unit field', defsBlock.includes('unit:'));
-  assert('Entries have refMin field', defsBlock.includes('refMin:'));
-  assert('Entries have refMax field', defsBlock.includes('refMax:'));
-  assert('Entries have categoryLabel field', defsBlock.includes('categoryLabel:'));
-  assert('Entries have icon field', defsBlock.includes('icon:'));
+  assert('Entries have name field', adaptersSrc.includes('name:'));
+  assert('Entries have unit field', adaptersSrc.includes('unit:'));
+  assert('Entries have refMin field', adaptersSrc.includes('refMin:'));
+  assert('Entries have refMax field', adaptersSrc.includes('refMax:'));
+  assert('Entries have categoryLabel field', adaptersSrc.includes('categoryLabel:'));
+  assert('Entries have icon field', adaptersSrc.includes('icon:'));
 
-  // Spot-check a few entries
-  assert('Has oatMicrobial.citramalic', defsBlock.includes('"oatMicrobial.citramalic"'));
-  assert('Has toxicElements.lead', defsBlock.includes('"toxicElements.lead"'));
-  assert('Has urineAmino.arginine', defsBlock.includes('"urineAmino.arginine"'));
-  assert('Has nutrientElements.selenium', defsBlock.includes('"nutrientElements.selenium"'));
-  assert('Has fattyAcids.omega3Index', defsBlock.includes('"fattyAcids.omega3Index"'));
-  assert('Has fattyAcids.epaC20_5', defsBlock.includes('"fattyAcids.epaC20_5"'));
+  // Spot-check entries across adapters
+  assert('Has oatMicrobial.citramalic', adaptersSrc.includes('"oatMicrobial.citramalic"'));
+  assert('Has toxicElements.lead', adaptersSrc.includes('"toxicElements.lead"'));
+  assert('Has urineAmino.arginine', adaptersSrc.includes('"urineAmino.arginine"'));
+  assert('Has nutrientElements.selenium', adaptersSrc.includes('"nutrientElements.selenium"'));
+  assert('Has fattyAcids.omega3Index', adaptersSrc.includes('"fattyAcids.omega3Index"'));
+  assert('Has fattyAcids.epaC20_5', adaptersSrc.includes('"fattyAcids.epaC20_5"'));
+
+  // Adapter registry structure
+  assert('adapters.js exports getAllAdapterMarkers', adaptersSrc.includes('export function getAllAdapterMarkers'));
+  assert('adapters.js exports detectProduct', adaptersSrc.includes('export function detectProduct'));
+  assert('adapters.js exports normalizeWithAdapter', adaptersSrc.includes('export function normalizeWithAdapter'));
+  assert('adapters.js has FA adapter with detect/normalize', adaptersSrc.includes("id: 'fattyAcids'") && adaptersSrc.includes('detect(') && adaptersSrc.includes('normalize('));
+  assert('adapters.js has OAT adapter', adaptersSrc.includes("id: 'oat'"));
+  assert('adapters.js has Metabolomix+ adapter', adaptersSrc.includes("id: 'metabolomix'") && adaptersSrc.includes('_detectMetabolomix') && adaptersSrc.includes('_normalizeMetabolomix'));
 
   // ═══════════════════════════════════════
   // 3. CORRELATION_PRESETS don't reference specialty keys
@@ -149,6 +155,11 @@
   assert('buildMarkerReference includes specialty defs', pdfImportSrc.includes('Object.entries(SPECIALTY_MARKER_DEFS)'));
   assert('confirmImport auto-creates custom markers for specialty keys', pdfImportSrc.includes('SPECIALTY_MARKER_DEFS[m.mappedKey]'));
   assert('Prompt asks for refMin/refMax on all markers', pdfImportSrc.includes('refMin: the lower reference range bound EXACTLY as printed on the PDF'));
+  // Adapter integration
+  assert('pdf-import imports adapter functions', pdfImportSrc.includes("from './adapters.js'"));
+  assert('Inline FA functions removed', !pdfImportSrc.includes('FA_PRODUCT_PATTERNS') && !pdfImportSrc.includes('function _detectFAProduct'));
+  assert('Uses detectProduct from adapters', pdfImportSrc.includes('detectProduct('));
+  assert('Uses normalizeWithAdapter from adapters', pdfImportSrc.includes('normalizeWithAdapter('));
 
   // ═══════════════════════════════════════
   // 7. getActiveData merges migrated specialty markers correctly

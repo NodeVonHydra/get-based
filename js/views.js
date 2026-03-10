@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { CORRELATION_PRESETS, CHIP_COLORS, trackUsage } from './schema.js';
-import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
+import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification, showConfirmDialog } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
 import { profileStorageKey } from './profile.js';
@@ -763,6 +763,10 @@ export function showDetailModal(id) {
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
+  // Show delete link for custom markers only
+  if (state.importedData?.customMarkers?.[dotKey]) {
+    html += `<div style="text-align:center;margin-top:8px"><a href="#" style="color:var(--text-muted);font-size:0.8rem" onclick="event.preventDefault();event.stopPropagation();deleteCustomMarker('${id}')">Delete this marker</a></div>`;
+  }
   modal.innerHTML = html;
   overlay.classList.add("show");
   setTimeout(() => {
@@ -896,6 +900,14 @@ export function openCreateMarkerModal() {
           <input type="number" id="cm-ref-max" step="any" placeholder="Max">
         </div>
       </div>
+      <div class="me-field">
+        <label>Optimal range (optional)</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="cm-opt-min" step="any" placeholder="Min">
+          <span style="line-height:36px">\u2013</span>
+          <input type="number" id="cm-opt-max" step="any" placeholder="Max">
+        </div>
+      </div>
       <div style="display:flex;gap:8px;margin-top:16px">
         <button class="import-btn import-btn-primary" onclick="saveCustomMarker()">Create</button>
         <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
@@ -945,15 +957,29 @@ export function saveCustomMarker() {
   // Parse optional ref range
   const refMin = refMinInput?.value ? parseFloat(refMinInput.value) : null;
   const refMax = refMaxInput?.value ? parseFloat(refMaxInput.value) : null;
+  const optMinInput = document.getElementById('cm-opt-min');
+  const optMaxInput = document.getElementById('cm-opt-max');
+  const optMin = optMinInput?.value ? parseFloat(optMinInput.value) : null;
+  const optMax = optMaxInput?.value ? parseFloat(optMaxInput.value) : null;
   // Save custom marker definition
   if (!state.importedData.customMarkers) state.importedData.customMarkers = {};
-  state.importedData.customMarkers[fullKey] = {
+  const cmDef = {
     name,
     unit: (unitInput?.value || '').trim(),
     refMin: isNaN(refMin) ? null : refMin,
     refMax: isNaN(refMax) ? null : refMax,
     categoryLabel: catLabel
   };
+  state.importedData.customMarkers[fullKey] = cmDef;
+  // Save optimal range as refOverride if provided
+  if (optMin != null && !isNaN(optMin) && optMax != null && !isNaN(optMax)) {
+    if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
+    state.importedData.refOverrides[fullKey] = {
+      ...(state.importedData.refOverrides[fullKey] || {}),
+      optimalMin: optMin,
+      optimalMax: optMax
+    };
+  }
   saveImportedData();
   window.buildSidebar();
   closeModal();
@@ -992,6 +1018,51 @@ export function deleteMarkerValue(id, date) {
   navigate(activeNav ? activeNav.dataset.category : "dashboard");
   showDetailModal(id);
   showNotification(`Removed value from ${date}`, 'info');
+}
+
+export function deleteCustomMarker(id) {
+  const dotKey = id.replace('_', '.');
+  const catKey = dotKey.split('.')[0];
+  const def = state.importedData?.customMarkers?.[dotKey];
+  if (!def) return;
+  // Find all custom markers in same category
+  const siblingsInCat = Object.keys(state.importedData.customMarkers).filter(k => k.startsWith(catKey + '.'));
+  const isLastInCat = siblingsInCat.length <= 1;
+  const msg = isLastInCat
+    ? `Delete "${def.name}" and the entire "${def.categoryLabel || catKey}" category? This cannot be undone.`
+    : `Delete "${def.name}" and all its values? This cannot be undone.`;
+  showConfirmDialog(msg, () => {
+    // Determine which keys to delete — just this marker, or all in category
+    const keysToDelete = isLastInCat ? siblingsInCat : [dotKey];
+    for (const key of keysToDelete) {
+      // Remove from all entries
+      if (state.importedData.entries) {
+        for (const entry of state.importedData.entries) {
+          if (entry.markers) delete entry.markers[key];
+        }
+      }
+      // Remove manual value tracking
+      if (state.importedData.manualValues) {
+        for (const k of Object.keys(state.importedData.manualValues)) {
+          if (k.startsWith(key + ':')) delete state.importedData.manualValues[k];
+        }
+      }
+      // Remove ref overrides
+      if (state.importedData.refOverrides) delete state.importedData.refOverrides[key];
+      // Remove custom marker definition
+      delete state.importedData.customMarkers[key];
+    }
+    // Clean up empty entries
+    if (state.importedData.entries) {
+      state.importedData.entries = state.importedData.entries.filter(e => Object.keys(e.markers || {}).length > 0);
+    }
+    saveImportedData();
+    closeModal();
+    window.buildSidebar();
+    updateHeaderDates();
+    navigate('dashboard');
+    showNotification(`Deleted "${def.name}"${isLastInCat && siblingsInCat.length > 1 ? ` and ${siblingsInCat.length - 1} other marker(s)` : ''}`, 'info');
+  });
 }
 
 export function editMarkerValue(id, date, currentValue, event) {
@@ -1444,6 +1515,7 @@ Object.assign(window, {
   openCreateMarkerModal,
   saveCustomMarker,
   deleteMarkerValue,
+  deleteCustomMarker,
   editMarkerValue,
   revertMarkerValue,
   closeModal,
