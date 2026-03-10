@@ -49,12 +49,13 @@
   console.log('%c 2. Tour Steps Content ', 'font-weight:bold;color:#f59e0b');
 
   assert('Step 1: Welcome (null target)', tourSrc.includes("target: null, title: 'Welcome to getbased'"));
-  assert('Step 2: Drop zone', tourSrc.includes("target: '#drop-zone', title: 'Import Your Results'"));
-  assert('Step 3: Sidebar nav', tourSrc.includes("target: '#sidebar-nav', title: 'Category Navigation'"));
-  assert('Step 4: Context cards', tourSrc.includes("target: '.profile-context-cards', title: 'Lifestyle Context'"));
-  assert('Step 5: Settings', tourSrc.includes("target: '.settings-btn', title: 'Settings'"));
-  assert('Step 6: Feedback', tourSrc.includes("target: '.feedback-btn', title: 'Send Feedback'"));
-  assert('Step 7: Chat FAB', tourSrc.includes("target: '#chat-fab', title: 'Ask AI'"));
+  assert('Step 2: Import FAB', tourSrc.includes("target: '#import-fab', title: 'Import More Labs'"));
+  assert('Step 3: Profile button', tourSrc.includes("target: '.profile-compact-btn', title: 'Your Profile'"));
+  assert('Step 4: Sidebar nav', tourSrc.includes("target: '#sidebar-nav', title: 'Category Navigation'"));
+  assert('Step 5: Context cards', tourSrc.includes("target: '.profile-context-cards', title: 'Lifestyle Context'"));
+  assert('Step 6: Settings', tourSrc.includes("target: '.settings-btn', title: 'Settings'"));
+  assert('Step 7: Feedback', tourSrc.includes("target: '.feedback-btn', title: 'Send Feedback'"));
+  assert('Step 8: Chat FAB', tourSrc.includes("target: '#chat-fab', title: 'Ask AI'"));
 
   // Count only within TOUR_STEPS (before CYCLE_TOUR_STEPS)
   const tourStepsStart = tourSrc.indexOf('const TOUR_STEPS');
@@ -63,7 +64,7 @@
     ? tourSrc.slice(tourStepsStart, cycleStepsStart)
     : tourSrc.slice(tourStepsStart, tourStepsStart + 2000);
   const stepMatches = tourStepsSection.match(/\{ target:/g);
-  assert('Exactly 7 steps in TOUR_STEPS', stepMatches && stepMatches.length === 7, `found ${stepMatches ? stepMatches.length : 0}`);
+  assert('Exactly 8 steps in TOUR_STEPS', stepMatches && stepMatches.length === 8, `found ${stepMatches ? stepMatches.length : 0}`);
 
   // ═══════════════════════════════════════
   // 3. Window exports callable
@@ -108,9 +109,9 @@
 
   // Progress dots
   const dots = tooltip.querySelectorAll('.tour-dot');
-  assert('7 progress dots rendered', dots.length === 7);
+  assert('8 progress dots rendered', dots.length === 8);
   assert('First dot is active', dots[0]?.classList.contains('active'));
-  assert('Other dots are inactive', !dots[1]?.classList.contains('active') && !dots[6]?.classList.contains('active'));
+  assert('Other dots are inactive', !dots[1]?.classList.contains('active') && !dots[7]?.classList.contains('active'));
 
   // Buttons: Skip + Next on first step
   const btns = tooltip.querySelectorAll('.tour-btn');
@@ -129,7 +130,7 @@
   await wait(100);
 
   const tooltip2 = document.getElementById('tour-tooltip');
-  assert('Step 1 title is "Import Your Results"', tooltip2?.querySelector('h4')?.textContent === 'Import Your Results');
+  assert('Step 1 title is "Import More Labs"', tooltip2?.querySelector('h4')?.textContent === 'Import More Labs');
 
   const dots2 = tooltip2.querySelectorAll('.tour-dot');
   assert('Second dot active on step 1', dots2[1]?.classList.contains('active'));
@@ -142,26 +143,26 @@
   assert('Back calls _tourGoToStep(0)', btns2[0]?.getAttribute('onclick')?.includes('_tourGoToStep(0)'));
   assert('Next calls _tourGoToStep(2)', btns2[1]?.getAttribute('onclick')?.includes('_tourGoToStep(2)'));
 
-  // Spotlight should be visible and positioned over #drop-zone
-  // Re-trigger step to re-position after smooth scroll has settled
+  // Spotlight should be visible and positioned over #import-fab
   const sl2 = document.getElementById('tour-spotlight');
   assert('Spotlight visible on step 1', sl2 && sl2.style.display === 'block');
 
-  const dropZone = document.getElementById('drop-zone');
-  if (dropZone) {
-    // Scroll target fully into view and wait for scroll + rAF to settle
-    dropZone.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+  const importFab = document.getElementById('import-fab');
+  if (importFab) {
+    // Make visible for positioning test (normally hidden until data loaded)
+    importFab.classList.remove('hidden');
+    importFab.scrollIntoView({ behavior: 'instant', block: 'nearest' });
     window._tourGoToStep(1);
     await wait(150);
-    const dzRect = dropZone.getBoundingClientRect();
+    const fabRect = importFab.getBoundingClientRect();
     const slLeft = parseFloat(sl2.style.left);
     const slTop = parseFloat(sl2.style.top);
-    assert('Spotlight left near drop-zone', Math.abs(slLeft - (dzRect.left - 8)) < 2, `sl=${slLeft} dz=${dzRect.left - 8}`);
-    assert('Spotlight top near drop-zone', Math.abs(slTop - (dzRect.top - 8)) < 2, `sl=${slTop} dz=${dzRect.top - 8}`);
-    assert('Spotlight width = drop-zone + 16px padding', Math.abs(parseFloat(sl2.style.width) - (dzRect.width + 16)) < 2);
-    assert('Spotlight height = drop-zone + 16px padding', Math.abs(parseFloat(sl2.style.height) - (dzRect.height + 16)) < 2);
+    assert('Spotlight left near import-fab', Math.abs(slLeft - (fabRect.left - 8)) < 2, `sl=${slLeft} fab=${fabRect.left - 8}`);
+    assert('Spotlight top near import-fab', Math.abs(slTop - (fabRect.top - 8)) < 2, `sl=${slTop} fab=${fabRect.top - 8}`);
+    assert('Spotlight width = import-fab + 16px padding', Math.abs(parseFloat(sl2.style.width) - (fabRect.width + 16)) < 2);
+    assert('Spotlight height = import-fab + 16px padding', Math.abs(parseFloat(sl2.style.height) - (fabRect.height + 16)) < 2);
   } else {
-    assert('Drop zone exists for spotlight test', false, '#drop-zone not found');
+    assert('Import FAB exists for spotlight test', false, '#import-fab not found');
   }
 
   // ═══════════════════════════════════════
@@ -183,20 +184,20 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Last Step — Done ', 'font-weight:bold;color:#f59e0b');
 
-  window._tourGoToStep(6);
+  window._tourGoToStep(7);
   await wait(100);
 
   const tooltip4 = document.getElementById('tour-tooltip');
-  assert('Step 6 title is "Ask AI"', tooltip4?.querySelector('h4')?.textContent === 'Ask AI');
+  assert('Step 7 title is "Ask AI"', tooltip4?.querySelector('h4')?.textContent === 'Ask AI');
 
   const btns4 = tooltip4.querySelectorAll('.tour-btn');
   assert('Last step has Back button', btns4[0]?.textContent.trim() === 'Back');
   assert('Last step has Done button (not Next)', btns4[1]?.textContent.trim() === 'Done');
   assert('Done calls endTour()', btns4[1]?.getAttribute('onclick')?.includes('endTour'));
-  assert('Back calls _tourGoToStep(5)', btns4[0]?.getAttribute('onclick')?.includes('_tourGoToStep(5)'));
+  assert('Back calls _tourGoToStep(6)', btns4[0]?.getAttribute('onclick')?.includes('_tourGoToStep(6)'));
 
   const dots4 = tooltip4.querySelectorAll('.tour-dot');
-  assert('Last dot (7th) is active on step 6', dots4[6]?.classList.contains('active'));
+  assert('Last dot (8th) is active on step 7', dots4[7]?.classList.contains('active'));
 
   // ═══════════════════════════════════════
   // 9. End tour — cleanup
@@ -322,7 +323,7 @@
   console.log('%c 17. Full Walkthrough (Steps 0-6) ', 'font-weight:bold;color:#f59e0b');
 
   const expectedTitles = [
-    'Welcome to getbased', 'Import Your Results', 'Category Navigation',
+    'Welcome to getbased', 'Import More Labs', 'Your Profile', 'Category Navigation',
     'Lifestyle Context', 'Settings', 'Send Feedback', 'Ask AI'
   ];
 

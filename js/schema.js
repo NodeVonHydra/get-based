@@ -39,7 +39,7 @@ export const MARKER_SCHEMA = {
       insulin: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "The hormone regulating blood sugar uptake into cells; elevated fasting levels indicate insulin resistance." },
       lh: { name: "LH", unit: "U/l", refMin: 1.7, refMax: 8.6, refMin_f: 2.4, refMax_f: 12.6, desc: "Luteinizing hormone; triggers ovulation in women and stimulates testosterone production in men. Surges mid-cycle." },
       fsh: { name: "FSH", unit: "U/l", refMin: 1.5, refMax: 12.4, refMin_f: 3.5, refMax_f: 12.5, desc: "Follicle-stimulating hormone; drives egg maturation in women and sperm production in men. Rises in menopause." },
-      prolactin: { name: "Prolactin", unit: "µg/l", refMin: 4.0, refMax: 15.2, refMin_f: 4.8, refMax_f: 23.3, desc: "Stimulates milk production; elevated levels can suppress ovulation and indicate pituitary issues." }
+      prolactin: { name: "Prolactin", unit: "\u00b5g/l", refMin: 4.0, refMax: 15.2, refMin_f: 4.8, refMax_f: 23.3, desc: "Stimulates milk production; elevated levels can suppress ovulation and indicate pituitary issues." }
     }
   },
   electrolytes: {
@@ -103,6 +103,7 @@ export const MARKER_SCHEMA = {
     markers: {
       vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0, desc: "Sum of D2 and D3 forms; essential for calcium absorption, bone health, immune function, and mood regulation." },
       vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0, desc: "The form of vitamin D produced by sun exposure and supplements; the most bioactive and clinically relevant form." },
+      calcitriol: { name: "Calcitriol (1,25-(OH)\u2082D)", unit: "pmol/l", refMin: 36.5, refMax: 216.2, desc: "The active hormonal form of vitamin D produced by the kidneys; regulates calcium absorption and bone metabolism. Ordered for kidney disease or calcium disorders." },
       vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, desc: "A fat-soluble vitamin essential for vision, immune defense, and cell growth; both deficiency and excess are harmful." }
     }
   },
@@ -132,14 +133,15 @@ export const MARKER_SCHEMA = {
       wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00, desc: "White blood cell count; the primary measure of immune system activity, elevated in infection and inflammation." },
       rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20, desc: "Red blood cell count; reflects oxygen-carrying capacity, with low values indicating anemia and high values polycythemia." },
       hemoglobin: { name: "Hemoglobin", unit: "g/l", refMin: 135, refMax: 175, refMin_f: 120, refMax_f: 160, desc: "The oxygen-carrying protein in red blood cells; the definitive marker for diagnosing anemia or polycythemia." },
-      hematocrit: { name: "Hematocrit", unit: "", refMin: 0.400, refMax: 0.500, refMin_f: 0.350, refMax_f: 0.450, desc: "The percentage of blood volume occupied by red blood cells; affected by hydration status, anemia, and altitude." },
+      hematocrit: { name: "Hematocrit", unit: "%", refMin: 40.0, refMax: 50.0, refMin_f: 35.0, refMax_f: 45.0, desc: "The percentage of blood volume occupied by red blood cells; affected by hydration status, anemia, and altitude." },
       mcv: { name: "MCV", unit: "fl", refMin: 82.0, refMax: 98.0, desc: "Average red blood cell size; helps classify anemia as microcytic (iron deficiency) or macrocytic (B12/folate deficiency)." },
       mch: { name: "MCH", unit: "pg", refMin: 28.0, refMax: 34.0, desc: "Average hemoglobin content per red blood cell; low values suggest iron deficiency, high values suggest B12 deficiency." },
       mchc: { name: "MCHC", unit: "g/l", refMin: 320, refMax: 360, desc: "Average hemoglobin concentration in red blood cells; helps differentiate types of anemia and detect spherocytosis." },
       rdwcv: { name: "RDW-CV", unit: "%", refMin: 10.0, refMax: 15.2, desc: "Variation in red blood cell size; elevated values suggest mixed nutritional deficiencies or early iron deficiency." },
       platelets: { name: "Platelets", unit: "10^9/l", refMin: 150, refMax: 400, desc: "Blood cells essential for clotting; low counts risk bleeding, high counts risk clotting or indicate inflammation." },
       mpv: { name: "MPV", unit: "fl", refMin: 7.8, refMax: 12.8, desc: "Average platelet size; larger platelets are more reactive, and elevated MPV is linked to cardiovascular risk." },
-      pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0, desc: "Variation in platelet size; elevated values suggest active platelet production or consumption in clotting disorders." }
+      pdw: { name: "PDW", unit: "fl", refMin: 9.0, refMax: 17.0, desc: "Variation in platelet size; elevated values suggest active platelet production or consumption in clotting disorders." },
+      pct: { name: "Plateletcrit", unit: "%", refMin: 0.15, refMax: 0.40, desc: "The percentage of blood volume occupied by platelets; analogous to hematocrit but for platelets, reflecting total platelet mass." }
     }
   },
   differential: {
@@ -199,15 +201,30 @@ export const UNIT_CONVERSIONS = {
   'hormones.progesterone': { factor: 0.3145, usUnit: 'ng/ml', type: 'multiply' },
   'hormones.dheaS': { factor: 36.87, usUnit: '\u00b5g/dl', type: 'multiply' },
   'hormones.dht': { factor: 28.818, usUnit: 'ng/dl', type: 'multiply' },
+  'hormones.igf1': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'hormones.prolactin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'hormones.calcitonin': { factor: 1, usUnit: 'pg/ml', type: 'multiply' },
   'lipids.cholesterol': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.triglycerides': { factor: 88.57, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.hdl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.ldl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'lipids.nonHdl': { factor: 38.67, usUnit: 'mg/dl', type: 'multiply' },
   'iron.iron': { factor: 5.585, usUnit: '\u00b5g/dl', type: 'multiply' },
+  'iron.ferritin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'iron.transferrin': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'iron.tibc': { factor: 5.585, usUnit: '\u00b5g/dl', type: 'multiply' },
   'vitamins.vitaminD': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
   'vitamins.vitaminD3': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
+  'vitamins.calcitriol': { factor: 0.4006, usUnit: 'pg/ml', type: 'multiply' },
+  'vitamins.vitaminA': { factor: 28.65, usUnit: '\u00b5g/dl', type: 'multiply' },
   'hematology.hemoglobin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  // hematocrit: stored as % natively (was fraction before v1.6.1, migrated in profile.js)
+  'hematology.mchc': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  'differential.neutrophilsPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'differential.lymphocytesPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'differential.monocytesPct': { factor: 100, usUnit: '%', type: 'multiply' },
+  'boneMetabolism.osteocalcin': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
+  'tumorMarkers.psa': { factor: 1, usUnit: 'ng/ml', type: 'multiply' },
   'electrolytes.calciumTotal': { factor: 4.008, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.phosphorus': { factor: 3.097, usUnit: 'mg/dl', type: 'multiply' },
   'electrolytes.magnesium': { factor: 2.431, usUnit: 'mg/dl', type: 'multiply' },
@@ -216,7 +233,13 @@ export const UNIT_CONVERSIONS = {
   'electrolytes.zinc': { factor: 6.54, usUnit: '\u00b5g/dl', type: 'multiply' },
   'proteins.totalProtein': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   'proteins.albumin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
+  'proteins.ceruloplasmin': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'lipids.apoB': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'lipids.apoAI': { factor: 100, usUnit: 'mg/dl', type: 'multiply' },
+  'thyroid.ft4': { factor: 0.07769, usUnit: 'ng/dl', type: 'multiply' },
+  'thyroid.ft3': { factor: 0.6513, usUnit: 'pg/dl', type: 'multiply' },
   'thyroid.t4total': { factor: 0.07769, usUnit: '\u00b5g/dl', type: 'multiply' },
+  'thyroid.t3total': { factor: 0.6513, usUnit: 'ng/dl', type: 'multiply' },
   'diabetes.hba1c': { type: 'hba1c' },
   'calculatedRatios.tgHdlRatio': { factor: 2.29, usUnit: '', type: 'multiply' }
 };
@@ -519,6 +542,41 @@ export function formatCost(usd) {
   return '$' + usd.toFixed(3);
 }
 
+// ── AI Usage Tracking ──────────────────────────────
+const _emptyUsage = () => ({ totalCost: 0, totalInputTokens: 0, totalOutputTokens: 0, requestCount: 0 });
+
+export function trackUsage(provider, modelId, inputTokens, outputTokens) {
+  try {
+    const cost = calculateCost(provider, modelId, inputTokens || 0, outputTokens || 0);
+    const inp = inputTokens || 0, out = outputTokens || 0;
+    if (inp === 0 && out === 0) return;
+
+    // Per-profile
+    const pid = window._getActiveProfileId ? window._getActiveProfileId() : 'default';
+    const pKey = `labcharts-${pid}-usage`;
+    const pu = JSON.parse(localStorage.getItem(pKey) || 'null') || _emptyUsage();
+    pu.totalCost += cost; pu.totalInputTokens += inp; pu.totalOutputTokens += out; pu.requestCount++;
+    localStorage.setItem(pKey, JSON.stringify(pu));
+
+    // Global
+    const gu = JSON.parse(localStorage.getItem('labcharts-global-usage') || 'null') || _emptyUsage();
+    gu.totalCost += cost; gu.totalInputTokens += inp; gu.totalOutputTokens += out; gu.requestCount++;
+    localStorage.setItem('labcharts-global-usage', JSON.stringify(gu));
+  } catch(e) { /* usage tracking is non-critical — never break chat/import */ }
+}
+
+export function getProfileUsage(profileId) {
+  return JSON.parse(localStorage.getItem(`labcharts-${profileId || 'default'}-usage`) || 'null') || _emptyUsage();
+}
+
+export function getGlobalUsage() {
+  return JSON.parse(localStorage.getItem('labcharts-global-usage') || 'null') || _emptyUsage();
+}
+
+export function resetProfileUsage(profileId) {
+  localStorage.removeItem(`labcharts-${profileId || 'default'}-usage`);
+}
+
 // Optimal ranges — evidence-based "ideal" bands from mortality meta-analyses,
 // longevity research (Attia, Patrick, Levine), and functional medicine (Weatherby/OptimalDX).
 // Sources: CKD Prognosis Consortium, ASH/Blood 2015, Harris & von Schacky 2004,
@@ -573,6 +631,7 @@ export const OPTIMAL_RANGES = {
   'thyroid.ft4': { optimalMin: 14.0, optimalMax: 17.0 },
   // Vitamins
   'vitamins.vitaminD': { optimalMin: 100.0, optimalMax: 200.0 },
+  'vitamins.calcitriol': { optimalMin: 60.0, optimalMax: 160.0 },
   'vitamins.vitaminA': { optimalMin: 1.40, optimalMax: 2.10 },
   // Diabetes
   'diabetes.hba1c': { optimalMin: 20.0, optimalMax: 36.0 },

@@ -141,6 +141,51 @@
   assert('ALT IU/L and U/L give same result',
     altIU === altUL, `IU/L=${altIU}, U/L=${altUL}`);
 
+  // Hematocrit: 45% stays as 45 (stored natively as %)
+  const hctSI = testNormalize('hematology.hematocrit', 45, '%');
+  assert('Hematocrit 45% stays 45',
+    Math.abs(hctSI - 45) < 0.001, `got ${hctSI}`);
+
+  // Vitamin A: 50 µg/dL → ~1.745 µmol/L
+  const vitASI = testNormalize('vitamins.vitaminA', 50, '\u00b5g/dl');
+  assert('Vitamin A 50 µg/dL → ~1.745 µmol/L',
+    Math.abs(vitASI - 1.745) < 0.05, `got ${vitASI}`);
+
+  // Calcitriol: 60 pg/mL → ~149.8 pmol/L
+  const calcSI = testNormalize('vitamins.calcitriol', 60, 'pg/ml');
+  assert('Calcitriol 60 pg/mL → ~149.8 pmol/L',
+    Math.abs(calcSI - 149.8) < 1, `got ${calcSI}`);
+
+  // Free T4: 1.2 ng/dL → ~15.44 pmol/L
+  const ft4SI = testNormalize('thyroid.ft4', 1.2, 'ng/dl');
+  assert('Free T4 1.2 ng/dL → ~15.44 pmol/L',
+    Math.abs(ft4SI - 15.44) < 0.5, `got ${ft4SI}`);
+
+  // Free T3: 3.5 pg/dL → ~5.37 pmol/L
+  const ft3SI = testNormalize('thyroid.ft3', 3.5, 'pg/dl');
+  assert('Free T3 3.5 pg/dL → ~5.37 pmol/L',
+    Math.abs(ft3SI - 5.37) < 0.2, `got ${ft3SI}`);
+
+  // Transferrin: 250 mg/dL → 2.5 g/L
+  const transSI = testNormalize('iron.transferrin', 250, 'mg/dl');
+  assert('Transferrin 250 mg/dL → 2.5 g/L',
+    Math.abs(transSI - 2.5) < 0.01, `got ${transSI}`);
+
+  // MCHC: 34.0 g/dL → 340 g/L
+  const mchcSI = testNormalize('hematology.mchc', 34.0, 'g/dl');
+  assert('MCHC 34 g/dL → 340 g/L',
+    Math.abs(mchcSI - 340) < 1, `got ${mchcSI}`);
+
+  // Ceruloplasmin: 25 mg/dL → 0.25 g/L
+  const ceruSI = testNormalize('proteins.ceruloplasmin', 25, 'mg/dl');
+  assert('Ceruloplasmin 25 mg/dL → 0.25 g/L',
+    Math.abs(ceruSI - 0.25) < 0.01, `got ${ceruSI}`);
+
+  // Factor-1 markers: unit label changes but value stays same
+  const ferritinSI = testNormalize('iron.ferritin', 80, 'ng/ml');
+  assert('Ferritin 80 ng/mL → 80 (factor 1)',
+    ferritinSI === 80, `got ${ferritinSI}`);
+
   // BUN/Creatinine ratio exists in schema
   const { MARKER_SCHEMA } = await import('/js/schema.js');
   assert('bunCreatRatio in calculatedRatios',

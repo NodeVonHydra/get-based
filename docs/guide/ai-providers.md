@@ -119,6 +119,32 @@ When you import lab PDFs, the AI generates marker keys (like `biochemistry.gluco
 For best results, pick a model and stick with it for all your imports. If you do switch, getbased runs a pre-flight check before each import and warns you if your model has changed since the last import.
 :::
 
+## How Much Does It Cost?
+
+AI providers charge you based on how much text you send and receive — but the amounts are tiny. getbased shows the exact cost of every interaction in the chat panel, so you always know what you're spending.
+
+Here's what real usage costs with the recommended models:
+
+| Model | Provider | Import a lab PDF | Chat message | First-time setup\* | Ongoing month\*\* |
+|---|---|---|---|---|---|
+| Claude Sonnet 4.6 | Anthropic / OpenRouter | ~$0.04 | ~$0.02 | **~$1.00** | **~$0.50** |
+| GPT 5.2 | OpenRouter / Venice | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
+| Gemini 3 Pro | OpenRouter / Venice | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
+| Grok 4 | OpenRouter / Venice | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
+| Any local model | Local AI (Ollama, LM Studio) | Free | Free | **Free** | **Free** |
+
+\* _First-time setup: importing your first labs + setting up your profile through chat (health goals, context cards, interpretive lens) — typically 3–5 imports and 30+ chat messages._
+
+\*\* _Ongoing month: 2–3 lab imports, 20–30 chat messages, dashboard AI features (focus card, health dots). Heavy users who chat daily may spend 2–3x more._
+
+::: tip No surprises
+Every AI response in getbased shows its cost right below the message. You can see exactly what each import and chat message costs as you use the app. Most users spend **well under $1/month**.
+:::
+
+::: tip Free option
+Run a local model with [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Jan](https://jan.ai) and pay nothing. You'll need a decent GPU (8GB+ VRAM) or a modern Mac with 16GB+ RAM for good results.
+:::
+
 ## Switching Providers
 
 You can switch providers at any time in Settings without losing any data. Your API keys are stored locally in your browser and are never sent to getbased servers.

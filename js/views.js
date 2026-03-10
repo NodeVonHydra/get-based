@@ -1,7 +1,7 @@
 // views.js — Navigate, dashboard, category views, detail modal, compare, correlations
 
 import { state } from './state.js';
-import { CORRELATION_PRESETS, CHIP_COLORS } from './schema.js';
+import { CORRELATION_PRESETS, CHIP_COLORS, trackUsage } from './schema.js';
 import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
@@ -10,7 +10,7 @@ import { createLineChart, getMarkerDescription, getNotesForChart, getSupplements
 import { renderSupplementsSection } from './supplements.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
-import { callClaudeAPI, hasAIProvider } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
 import { setupDropZone } from './pdf-import.js';
 import { buildLabContext } from './chat.js';
 
@@ -331,8 +331,8 @@ export async function loadFocusCard() {
     const healthGoals = state.importedData.healthGoals || [];
     const hasGoals = healthGoals.some(g => g.severity === 'major');
     const focusSystem = hasGoals
-      ? 'You are a blood work analyst. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its direction, and why it matters. No preamble, no disclaimer.'
-      : 'You are a blood work analyst. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
+      ? 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its value, direction, and why it matters. No preamble, no disclaimer.'
+      : 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its value, direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
     const apiCall = callClaudeAPI({
       system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
@@ -340,6 +340,9 @@ export async function loadFocusCard() {
     });
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
     const result = await Promise.race([apiCall, timeout]);
+    if (result && typeof result === 'object' && result.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), result.usage.inputTokens || 0, result.usage.outputTokens || 0);
+    }
     const text = (result && typeof result === 'object') ? result.text : (result || '');
     const trimmed = (text || '').trim();
     if (trimmed) {
@@ -412,7 +415,7 @@ export function completeOnboardingSex(sex) {
 
 export function completeOnboardingProfile() {
   const activeSexBtn = document.querySelector('.onboarding-sex-btn.active');
-  const sex = activeSexBtn ? (activeSexBtn.textContent.toLowerCase()) : null;
+  const sex = activeSexBtn ? (activeSexBtn.textContent.trim().toLowerCase()) : null;
   const dobInput = document.getElementById('onboarding-dob');
   const dob = dobInput ? dobInput.value : null;
   localStorage.setItem(profileStorageKey(state.currentProfile, 'onboarded'), 'profile-set');
@@ -544,9 +547,15 @@ export function renderChartCard(id, marker, dateLabels) {
     html += `<div class="chart-value-item"><div class="chart-value-date">${labels[i] || ''}</div>
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
-  const r = getEffectiveRange(marker);
-  const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
-  html += `</div>${r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : ''}</div>`;
+  let rangeHtml = '';
+  if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+    rangeHtml = `<div class="chart-ref-range">Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Optimal: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span> ${escapeHTML(marker.unit)}</div>`;
+  } else {
+    const r = getEffectiveRange(marker);
+    const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
+    rangeHtml = r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : '';
+  }
+  html += `</div>${rangeHtml}</div>`;
   return html;
 }
 
@@ -617,10 +626,16 @@ export function renderFattyAcidsView(cat) {
     const r = getEffectiveRange(marker);
     const v = marker.values[0], s = getStatus(v, r.min, r.max);
     const pos = Math.max(0, Math.min(100, getRangePosition(v, r.min, r.max)));
-    const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
+    let faRangeText;
+    if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+      faRangeText = `Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
+    } else {
+      const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
+      faRangeText = `${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}`;
+    }
     html += `<div class="fa-card"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
       <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + escapeHTML(marker.unit) : ""}</div>
-      <div class="fa-card-ref">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}</div>
+      <div class="fa-card-ref">${faRangeText}</div>
       <div class="range-bar" style="margin-top:8px;width:100%"><div class="range-bar-fill" style="left:0;width:100%"></div>
       <div class="range-bar-marker marker-${s}" style="left:${pos}%"></div></div></div>`;
   }
@@ -665,12 +680,16 @@ export async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   if (cache[markerId]) return cache[markerId];
   if (!hasAIProvider()) return null;
   try {
-    const { text: resp } = await callClaudeAPI({
+    const descResult = await callClaudeAPI({
       system: 'You are a concise medical reference. Reply with exactly one sentence (max 30 words) explaining what this blood biomarker measures and why it matters clinically. No preamble.',
       messages: [{ role: 'user', content: `${markerName} (${unit})` }],
       maxTokens: 100
     });
-    const text = (resp || '').trim();
+    if (descResult && descResult.usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), descResult.usage.inputTokens || 0, descResult.usage.outputTokens || 0);
+    }
+    const resp = (descResult && descResult.text) || '';
+    const text = resp.trim();
     if (text) {
       cache[markerId] = text;
       localStorage.setItem(cacheKey, JSON.stringify(cache));
@@ -694,7 +713,7 @@ export function showDetailModal(id) {
   const overrides = state.importedData?.refOverrides?.[dotKey] || {};
   const refEditable = (label, min, max, type) => {
     const isEdited = type === 'optimal' ? (overrides.optimalMin != null || overrides.optimalMax != null) : (overrides.refMin != null || overrides.refMax != null);
-    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range — click to revert" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">edited \u00d7</span>` : '';
+    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range from your lab — click to revert to default" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">lab \u00d7</span>` : '';
     return ` &middot; ${type === 'optimal' ? '<span style="color:var(--green)">' : ''}${label}: <span class="ref-editable" onclick="editRefRange('${id}','${type}',event)" title="Click to edit">${min} \u2013 ${max}</span>${editedBadge}${type === 'optimal' ? '</span>' : ''}`;
   };
   if (state.rangeMode === 'both') {

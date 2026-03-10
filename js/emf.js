@@ -2,7 +2,7 @@
 // Room-by-room EMF measurements with SBM-2015 severity ratings
 
 import { state } from './state.js';
-import { SBM_2015_THRESHOLDS, getEMFSeverity, calculateCost, formatCost } from './schema.js';
+import { SBM_2015_THRESHOLDS, getEMFSeverity, calculateCost, formatCost, trackUsage } from './schema.js';
 import { EMF_ROOM_PRESETS, EMF_SOURCES, EMF_MITIGATIONS, EMF_METER_PRESETS } from './constants.js';
 import { escapeHTML, showNotification, showConfirmDialog, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData } from './data.js';
@@ -876,6 +876,7 @@ function streamInterpretation(prompt, onComplete) {
       outputTokens: usage.outputTokens || 0,
       date: new Date().toISOString()
     };
+    trackUsage(provider, modelId, usage.inputTokens || 0, usage.outputTokens || 0);
 
     if (meta) meta.innerHTML = buildMetaLine(interp);
 

@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { escapeHTML, escapeAttr, hashString } from './utils.js';
-import { getActiveData, countFlagged } from './data.js';
+import { getActiveData, countFlagged, filterDatesByRange } from './data.js';
 import { getProfiles } from './profile.js';
 
 function _buildNavItem(key, cat) {
@@ -25,6 +25,7 @@ function _buildNavItem(key, cat) {
 
 export function buildSidebar(data) {
   if (!data) data = getActiveData();
+  data = filterDatesByRange(data);
   const nav = document.getElementById("sidebar-nav");
   let html = `<input type="text" class="sidebar-search" id="sidebar-search" placeholder="Search markers..." oninput="filterSidebar()">`;
   html += `<div class="nav-item active" data-category="dashboard" tabindex="0" role="button" onclick="window.navigate('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.navigate('dashboard')}">

@@ -2,21 +2,22 @@
 
 The guided tour is a step-by-step walkthrough that introduces the main features of getbased. The page dims and a spotlight highlights one element at a time, with a tooltip explaining what it does.
 
-## The App Tour (7 Steps)
+## The App Tour (8 Steps)
 
-The main tour covers seven stops:
+The main tour covers eight stops:
 
 1. **Welcome** — A brief introduction to getbased
-2. **Drop Zone** — Where to import your lab PDFs or JSON files
-3. **Sidebar Navigation** — How to move between biomarker categories
-4. **Context Cards** — The lifestyle cards that give AI analysis more context
-5. **Settings** — Where to set your profile, units, AI provider, and privacy options
-6. **Send Feedback** — How to report bugs or suggest features
-7. **Ask AI** — The chat panel for asking questions about your results
+2. **Import More Labs** — The floating import button for adding more PDFs or JSON files
+3. **Your Profile** — Switch profiles, manage clients, or load demo data
+4. **Sidebar Navigation** — How to move between biomarker categories
+5. **Context Cards** — The lifestyle cards that give AI analysis more context
+6. **Settings** — Where to set your profile, units, AI provider, and privacy options
+7. **Send Feedback** — How to report bugs or suggest features
+8. **Ask AI** — The chat panel for asking questions about your results
 
-## Auto-Trigger on First Visit
+## Auto-Trigger
 
-The tour starts automatically the first time you open the dashboard. It will not run again after you complete or skip it — getbased remembers your progress.
+The tour starts automatically after your first data import. New users go through the chat onboarding first, and the tour runs once they have lab data on the dashboard.
 
 ## Navigating the Tour
 

@@ -5,6 +5,31 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.6.1', date: '2026-03-10', title: 'Import Fixes, Usage Tracking & New Markers',
+    items: [
+      'AI usage tracking — see per-profile and total AI costs in Settings → AI tab',
+      'Cost guide added to docs — real-world pricing estimates for recommended models',
+      'Plateletcrit (PCT/Trombokrit) added as a built-in hematology marker',
+      'Calcitriol (1,25-(OH)₂D) added as a built-in vitamin marker',
+      'Hematocrit now displays with % unit (existing data auto-migrated)',
+      '18 missing unit conversions added (thyroid, iron, proteins, lipids, hematology, bone, tumor markers)',
+      'Insulin now syncs between Hormones and Diabetes categories regardless of how the AI mapped it',
+      'Both-range mode shows reference + optimal ranges on dashboard cards',
+      'Sidebar counts now match the active date range filter',
+      'Sidebar date filter hides single-point categories (Fatty Acids, etc.) outside the range',
+      'PDF filename shown in Settings data list',
+      'Refresh all health dots button (↻) on context cards',
+      'PII review: visible Edit button for obfuscated text',
+      'Reference range badges from lab imports show "lab ×" instead of "edited ×"',
+      'Import no longer stores redundant range overrides when lab ranges match defaults',
+      'Context cards preserve open/collapsed state on save',
+      'Focus card prompt improved for local models',
+      'Import preview: wider modal, status badges no longer wrap',
+      'Guided tour updated to 8 steps with import FAB and profile button',
+      'Light theme scrollbar improved for better visibility',
+    ]
+  },
+  {
     version: '1.6.0', date: '2026-03-09', title: 'Chat Onboarding & Cycle Overhaul',
     items: [
       'New visitors get a friendly chat walkthrough — set up your profile, connect AI, and fill context cards step by step',

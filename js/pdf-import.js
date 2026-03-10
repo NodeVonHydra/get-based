@@ -1,7 +1,7 @@
 // pdf-import.js — PDF parsing pipeline, import preview, drop zone, batch import
 
 import { state } from './state.js';
-import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, UNIT_CONVERSIONS, calculateCost, formatCost } from './schema.js';
+import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, UNIT_CONVERSIONS, calculateCost, formatCost, trackUsage } from './schema.js';
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
@@ -283,6 +283,7 @@ Your task:
    - "Glukóza" → "biochemistry.glucose" (Czech for glucose)
    - "BUN" or "Blood Urea Nitrogen" → "biochemistry.urea"
    - "Triacylglyceroly" → "lipids.triglycerides"
+   - "Trombokrit" / "Plateletcrit" / "PCT" (hematology) → "hematology.pct"
    - Use the units and reference ranges to help disambiguate
 4. Only map to a marker if you're confident it's the correct match
 5. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
@@ -641,6 +642,7 @@ export function confirmImport() {
     modelId: result.costInfo?.modelId || null
   };
   if (result.importHash) entry.importHash = result.importHash;
+  if (result.fileName) entry.sourceFile = result.fileName;
   for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood')
@@ -683,9 +685,11 @@ export function confirmImport() {
     cmDef.group = importGroup || m.suggestedGroup || m.group || cmDef.group || null;
     state.importedData.customMarkers[m.suggestedKey] = cmDef;
   }
+  // Mirror insulin between hormones and diabetes categories (AI may map to either)
   if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
+  if (entry.markers["diabetes.insulin_d"] !== undefined && entry.markers["hormones.insulin"] === undefined) entry.markers["hormones.insulin"] = entry.markers["diabetes.insulin_d"];
   recalculateHOMAIR(entry);
-  // Adopt PDF reference ranges if user opted in
+  // Adopt PDF reference ranges if user opted in (skip if range matches schema default)
   const adoptRanges = document.getElementById('import-adopt-ranges');
   if (adoptRanges && adoptRanges.checked) {
     if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
@@ -693,8 +697,18 @@ export function confirmImport() {
       if (m.refMin == null && m.refMax == null) continue;
       const ovr = state.importedData.refOverrides[m.mappedKey] || {};
       // Convert ranges from PDF units to SI (same as marker values)
-      if (m.refMin != null) ovr.refMin = normalizeToSI(m.mappedKey, m.refMin, m.unit);
-      if (m.refMax != null) ovr.refMax = normalizeToSI(m.mappedKey, m.refMax, m.unit);
+      const siMin = m.refMin != null ? normalizeToSI(m.mappedKey, m.refMin, m.unit) : null;
+      const siMax = m.refMax != null ? normalizeToSI(m.mappedKey, m.refMax, m.unit) : null;
+      // Look up schema default to avoid storing redundant overrides
+      const [ck, mk] = m.mappedKey.split('.');
+      const schemaDef = MARKER_SCHEMA[ck]?.markers?.[mk];
+      const sex = state.profileSex || 'male';
+      const defMin = schemaDef && sex === 'female' && schemaDef.refMin_f != null ? schemaDef.refMin_f : schemaDef?.refMin;
+      const defMax = schemaDef && sex === 'female' && schemaDef.refMax_f != null ? schemaDef.refMax_f : schemaDef?.refMax;
+      const approxEq = (a, b) => a != null && b != null && Math.abs(a - b) < Math.max(Math.abs(b) * 0.001, 0.001);
+      if (approxEq(siMin, defMin) && approxEq(siMax, defMax)) continue; // matches default — skip
+      if (siMin != null) ovr.refMin = siMin;
+      if (siMax != null) ovr.refMax = siMax;
       state.importedData.refOverrides[m.mappedKey] = ovr;
     }
   }
@@ -1124,6 +1138,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
         outputTokens: result.usage?.outputTokens || 0,
         cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
       };
+      trackUsage(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0);
       result.importHash = hashString(file.name + file.size);
       result._importProfileId = _startProfileId;
       if (!result.date) showNotification("Could not find collection date in PDF", "error");
@@ -1230,6 +1245,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
       outputTokens: result.usage?.outputTokens || 0,
       cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
     };
+    trackUsage(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0);
     result.importHash = hashString(pdfText);
     result._importProfileId = _startProfileId;
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
@@ -1329,6 +1345,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
     outputTokens: result.usage?.outputTokens || 0,
     cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
   };
+  trackUsage(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0);
   result.importHash = hashString(pdfText);
   if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
   if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); return 'no-markers'; }
