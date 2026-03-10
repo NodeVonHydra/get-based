@@ -51,7 +51,7 @@ export function buildSidebar(data) {
   }
 
   // Render blood work categories
-  html += `<div class="sidebar-title">Categories</div>`;
+  html += `<div class="sidebar-title">Categories <button class="sidebar-add-marker" onclick="event.stopPropagation();openCreateMarkerModal()" title="Create custom biomarker">+</button></div>`;
   for (const item of bloodWork) html += item.html;
 
   // Render specialty groups
