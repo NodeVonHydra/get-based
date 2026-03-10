@@ -8,7 +8,7 @@ You can create a new biomarker without importing a PDF:
 
 1. In the sidebar, click the **+** button next to "Categories"
 2. Choose an existing **category** or create a new one
-3. Enter the **marker name**, **unit**, and optionally a **reference range**
+3. Enter the **marker name**, **unit**, and optionally a **reference range** and **optimal range**
 4. Click **Create** — the app immediately opens the Add Value form so you can enter your first data point
 
 This is useful when you have results from a lab the AI doesn't fully support, or you want to track something not in the standard schema (e.g., deuterium levels, specialist tests, home monitoring devices).
@@ -48,7 +48,11 @@ This means an OAT import creates categories like "Nutritional Markers" and "Micr
 
 ## Editing Custom Markers
 
-Custom marker definitions (name, unit, reference range) are set when first created and won't be overwritten by future imports of the same marker. If you need to update a definition, you can do so by editing your exported JSON file and re-importing it.
+Custom marker definitions (name, unit, reference range) are set when first created and won't be overwritten by future imports of the same marker. Reference and optimal ranges can be edited by clicking the range values in the marker's detail modal.
+
+## Deleting Custom Markers
+
+To delete a custom marker and all its values, open the marker's detail modal and click **Delete this marker** at the bottom. If it's the last marker in its category, the entire category is removed. This cannot be undone.
 
 ::: tip Niche and specialty markers
 Custom markers work well for less common tests like omega-3 index, micronutrients, organic acids, or functional medicine panels that aren't in the standard schema. Import the PDF and the AI handles the mapping automatically.

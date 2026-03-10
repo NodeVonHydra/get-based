@@ -1,6 +1,6 @@
 # Module Reference
 
-All 28 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 29 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -15,8 +15,29 @@ The single source of truth for all biomarker definitions. No runtime logic — p
 - `UNIT_CONVERSIONS` — keyed by `"category.markerKey"`: `{ type: 'multiply', factor, unit }` for EU→US conversions
 - `OPTIMAL_RANGES` — keyed by `"category.markerKey"`: `{ optimalMin, optimalMax, optimalMin_f?, optimalMax_f? }`
 - `PHASE_RANGES` — keyed by `"category.markerKey"`: `{ menstrual: { min, max }, follicular: {...}, ovulatory: {...}, luteal: {...} }` — covers `hormones.estradiol`, `hormones.progesterone`, `hormones.lh`, and `hormones.fsh`
+- `SPECIALTY_MARKER_DEFS` — re-exported from `adapters.js` as `ADAPTER_MARKERS`. Used by `migrateProfileData()` and `buildMarkerReference()`
 - `CHIP_COLORS` — status → CSS color string
 - `MODEL_PRICING` — AI model pricing metadata, keyed by provider/model
+
+**Window exports:** none
+
+---
+
+### `adapters.js`
+
+Parser adapter registry for specialty lab detection and normalization. Single source of truth for all specialty marker definitions (OAT, fatty acids, Metabolomix+).
+
+**Key exports:**
+- `ADAPTER_MARKERS` — flat object keyed by `"category.markerKey"`: `{ name, unit, refMin, refMax, categoryLabel, icon, group, singlePoint? }` (194 entries). Re-exported from `schema.js` as `SPECIALTY_MARKER_DEFS`
+- `getAllAdapterMarkers()` — returns merged marker map from all registered adapters
+- `detectProduct(fileName, pdfText)` — runs all adapter `detect()` functions, returns `{ adapter, product: { prefix, label } }` or `null`
+- `normalizeWithAdapter(adapter, markers, fileName, pdfText, product)` — dispatches to `adapter.normalize()` for post-AI marker key/category rewriting
+- `getAdapterByTestType(testType)` — looks up adapter by AI-returned test type string
+
+**Adapter registry:** array of `{ id, testTypes[], markers, detect?, normalize? }`:
+- `fattyAcids` — 29 markers, detects Spadia/ZinZino/OmegaQuant by filename/text, normalizes to product-prefixed categories under "Fatty Acids" sidebar group
+- `metabolomix` — no unique markers (reuses OAT + FA), detects Genova Metabolomix+ reports, routes FA add-on markers to `metabolomixFA` prefix
+- `oat` — 165 markers, no detect/normalize (AI handles OAT categorization directly)
 
 **Window exports:** none
 
