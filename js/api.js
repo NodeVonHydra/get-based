@@ -352,9 +352,35 @@ export async function validateApiKey(key) {
   }
 }
 
-async function _fetchWithRetry(url, options, retries = 2) {
+// ─── Proxy support ───
+// When running on hosted version (not localhost), route cloud AI calls through
+// /api/proxy to eliminate CORS restrictions. Local AI skips the proxy.
+function _useProxy() {
+  const h = window.location.hostname;
+  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.');
+}
+
+function _proxyFetch(url, options) {
+  if (!_useProxy()) return fetch(url, options);
+  // Extract headers (minus Content-Type which the proxy sets) and body
+  const { 'Content-Type': _ct, ...fwdHeaders } = options.headers || {};
+  const proxyBody = {
+    url,
+    headers: fwdHeaders,
+    body: options.body, // already JSON string
+  };
+  return fetch('/api/proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(proxyBody),
+    signal: options.signal,
+  });
+}
+
+async function _fetchWithRetry(url, options, retries = 2, useProxy = true) {
+  const fetchFn = useProxy ? _proxyFetch : fetch;
   for (let i = 0; i <= retries; i++) {
-    const res = await fetch(url, options);
+    const res = await fetchFn(url, options);
     if (res.status !== 429 || i === retries) return res;
     const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
     const delay = Math.max(retryAfter * 1000, (i + 1) * 5000);
@@ -402,14 +428,17 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
   const timeoutSignal = AbortSignal.timeout(300000);
   const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
 
+  const headers = {
+    'Content-Type': 'application/json',
+    'x-api-key': key,
+    'anthropic-version': '2023-06-01',
+  };
+  // Direct browser access header only needed when NOT proxied
+  if (!_useProxy()) headers['anthropic-dangerous-direct-browser-access'] = 'true';
+
   const res = await _fetchWithRetry('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
+    headers,
     body: JSON.stringify(body),
     signal: fetchSignal
   });
@@ -556,7 +585,7 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
 // ═══════════════════════════════════════════════
 // SHARED OPENAI-COMPATIBLE API HELPER
 // ═══════════════════════════════════════════════
-async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream, signal }, extraHeaders = {}) {
+async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream, signal }, extraHeaders = {}, { useProxy = true } = {}) {
   const apiMessages = [];
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
@@ -578,7 +607,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
       },
       body: JSON.stringify(body),
       signal: fetchSignal
-    });
+    }, 2, useProxy);
   } catch (e) {
     if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error(`${providerName} API timed out after 5 min.`);
     throw new Error(`Cannot reach ${providerName} API: ${e.message}`);
@@ -635,7 +664,7 @@ export async function callOpenAICompatibleLocalAPI(opts) {
   const model = getOllamaMainModel();
   const url = config.url.replace(/\/+$/, '');
   const key = config.apiKey || 'not-needed';
-  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', opts);
+  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', opts, {}, { useProxy: false });
 }
 
 export async function callVeniceAPI(opts) {
