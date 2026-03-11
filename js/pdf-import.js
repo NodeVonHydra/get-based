@@ -125,7 +125,7 @@ function _showModelMismatchDialog(mismatch) {
   });
 }
 
-async function runPreflightChecks(pdfText) {
+async function runPreflightChecks(pdfText, fileName) {
   // 1. Duplicate file check (hash-based)
   const dupDate = checkDuplicateHash(pdfText);
   if (dupDate) {
@@ -142,7 +142,93 @@ async function runPreflightChecks(pdfText) {
     if (result === 'cancel') return false;
     // 'switched' or 'continue' both proceed with import
   }
+  // 3. Unsupported specialty test check — cheap AI classify before full analysis
+  if (hasAIProvider()) {
+    const detected = detectProduct(fileName || '', pdfText);
+    if (!detected) {
+      const classified = await _classifyTestType(pdfText);
+      if (classified && classified.testType !== 'blood') {
+        const adapter = getAdapterByTestType(classified.testType);
+        if (!adapter) {
+          const label = (classified.labName && classified.testType === 'comprehensive')
+            ? `${classified.labName} (${classified.testType})`
+            : classified.testType;
+          const proceed = await _showUnsupportedLabDialog(label);
+          if (!proceed) return false;
+        }
+      }
+    }
+  }
   return true;
+}
+
+/** Cheap AI call to classify test type from first ~2000 chars of PDF text */
+async function _classifyTestType(pdfText) {
+  const snippet = pdfText.slice(0, 2000);
+  try {
+    const { text: response } = await callClaudeAPI({
+      system: 'You classify lab reports. Respond with ONLY a JSON object, no other text.',
+      messages: [{ role: 'user', content: `What type of lab test is this PDF? Look at the header, lab name, and test names.
+
+Respond with ONE of:
+- {"testType": "blood"} — standard blood panels: CBC, CMP, BMP, lipid panel, thyroid, hormones, iron studies, liver/kidney panels, vitamins, tumor markers, coagulation, A1C, insulin, PSA. Typically 10–80 markers from a single specimen type.
+- {"testType": "OAT"} — Organic Acids Tests (urine)
+- {"testType": "fattyAcids"} — fatty acid profiles
+- {"testType": "Metabolomix+"} — Genova Metabolomix+
+- {"testType": "DUTCH"} — dried urine hormone panels
+- {"testType": "HTMA"} — Hair Tissue Mineral Analysis
+- {"testType": "GI"} — stool/GI tests
+- {"testType": "comprehensive", "labName": "HealthierOne"} — comprehensive or functional medicine panels that combine 100+ markers across multiple test types (blood + urine + other), or reports from labs like HealthierOne, Vibrant Wellness, etc. that go far beyond a standard blood panel. Include the lab/product name if identifiable.
+- {"testType": "<descriptive name>"} — other specialty tests not listed above
+
+Always include "labName" if you can identify the lab or product name from the text (e.g. "HealthierOne", "Vibrant Wellness", "Diagnostic Solutions", "Genova"). Omit if unclear.
+
+First ~2000 characters of the PDF:
+${snippet}` }],
+      maxTokens: 80
+    });
+    const text = (response || '').trim();
+    const json = text.match(/\{[^}]*\}/);
+    if (!json) return null;
+    try {
+      const parsed = JSON.parse(json[0]);
+      return parsed.testType ? { testType: parsed.testType, labName: parsed.labName || null } : null;
+    } catch { }
+    const match = text.match(/\{[^}]*"testType"\s*:\s*"([^"]+)"[^}]*\}/);
+    return match ? { testType: match[1], labName: null } : null;
+  } catch (e) {
+    if (isDebugMode()) console.log('[Preflight] Test type classification failed:', e.message);
+    return null; // fail open — proceed with import
+  }
+}
+
+function _showUnsupportedLabDialog(testType) {
+  return new Promise(resolve => {
+    let overlay = document.getElementById('confirm-dialog-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'confirm-dialog-overlay';
+      overlay.className = 'confirm-overlay';
+      document.body.appendChild(overlay);
+    }
+    const displayType = escapeHTML(testType);
+    overlay.innerHTML = `<div class="confirm-dialog" role="alertdialog" aria-modal="true" style="max-width:480px">
+      <p class="confirm-message" style="margin-bottom:12px">
+        We don't fully support <strong>${displayType}</strong> reports like this one yet. Importing will likely miss markers or map them incorrectly, and the AI costs may not be worth it.
+      </p>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">
+        In the meantime, you can add your markers manually using the <strong>+</strong> button in the sidebar.
+        <p style="margin:10px 0 0 0">We'd love to support this lab properly — <a href="https://github.com/elkimek/get-based/issues" target="_blank" rel="noopener" style="color:var(--accent)">let us know on GitHub</a>, or ask your lab to reach out!</p>
+      </div>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-btn-cancel" id="confirm-cancel">Cancel</button>
+        <button class="confirm-btn" id="confirm-ok" style="background:var(--yellow);color:#000">Import Anyway</button>
+      </div></div>`;
+    overlay.classList.add('show');
+    document.getElementById('confirm-ok').onclick = () => { overlay.classList.remove('show'); resolve(true); };
+    document.getElementById('confirm-cancel').onclick = () => { overlay.classList.remove('show'); resolve(false); };
+    overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -156,7 +242,14 @@ export function buildMarkerReference() {
     for (const [markerKey, marker] of Object.entries(cat.markers)) {
       const rMin = isFemale && marker.refMin_f != null ? marker.refMin_f : marker.refMin;
       const rMax = isFemale && marker.refMax_f != null ? marker.refMax_f : marker.refMax;
-      ref[`${catKey}.${markerKey}`] = { name: marker.name, unit: marker.unit, refMin: rMin, refMax: rMax };
+      const fullKey = `${catKey}.${markerKey}`;
+      // Show display units (e.g. "%" instead of "" for fraction markers) so the AI
+      // returns a recognizable unit that normalizeToSI can convert back to SI
+      const conv = UNIT_CONVERSIONS[fullKey];
+      const displayUnit = conv?.usUnit || marker.unit;
+      const displayMin = conv && conv.type === 'multiply' && rMin != null ? parseFloat((rMin * conv.factor).toPrecision(4)) : rMin;
+      const displayMax = conv && conv.type === 'multiply' && rMax != null ? parseFloat((rMax * conv.factor).toPrecision(4)) : rMax;
+      ref[fullKey] = { name: marker.name, unit: displayUnit, refMin: displayMin, refMax: displayMax };
     }
   }
   // Include custom markers from previous imports (override specialty defaults)
@@ -349,8 +442,10 @@ Return ONLY valid JSON in this exact format, no other text:
     onStream
   });
 
-  // Parse JSON from response (handle markdown code blocks, truncated output)
+  // Parse JSON from response (handle markdown code blocks, thinking tags, truncated output)
   let jsonStr = (response || '').trim();
+  // Strip thinking model tags (e.g. <think>...</think> from DeepSeek, Qwen, etc.)
+  jsonStr = jsonStr.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
   const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
   // Strip any leading text before the JSON object
@@ -370,20 +465,26 @@ Return ONLY valid JSON in this exact format, no other text:
     if (isDebugMode()) console.log(`[Import] Adapter ${adapter?.id || 'fattyAcids'} normalized ${parsed.markers.length} markers (testType=${testType})`);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
+  const _specialtyTypes = ['OAT', 'fattyAcids', 'Metabolomix+', 'DUTCH', 'HTMA', 'GI'];
   return {
     date: parsed.date || null,
     testType,
     markers: (parsed.markers || []).map(m => {
       let mappedKey = m.mappedKey || null;
       let matched = !!mappedKey;
-      // Guard: never allow standard blood work mappings for specialty tests
-      if (matched && testType !== 'blood') {
+      // Guard: never allow standard blood work mappings for known specialty tests
+      // Only fire for well-defined specialty types — not for mixed/comprehensive reports
+      if (matched && _specialtyTypes.includes(testType)) {
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
           if (isDebugMode()) console.log(`[Import Guard] Demoted ${mappedKey} — standard category in ${testType} test`);
-          // Check if a specialty equivalent exists by marker name
+          // Check if a specialty equivalent exists by marker name AND matching test type group
           const markerPart = mappedKey.split('.')[1];
-          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => {
+            if (k.split('.')[1] !== markerPart || standardCats.has(k.split('.')[0])) return false;
+            const sDef = SPECIALTY_MARKER_DEFS[k];
+            return sDef.group === testType || sDef.group?.toLowerCase() === testType.toLowerCase();
+          });
           if (specialtyMatch) {
             const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
             m.suggestedKey = specialtyMatch;
@@ -409,7 +510,12 @@ Return ONLY valid JSON in this exact format, no other text:
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
           const markerPart = mappedKey.split('.')[1];
-          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          // Only match specialty markers whose group aligns with the detected adapter
+          const adapterGroup = detected.adapter?.id === 'oat' ? 'OAT' : detected.adapter?.id === 'fattyAcids' ? 'Fatty Acids' : null;
+          const specialtyMatch = adapterGroup && Object.keys(SPECIALTY_MARKER_DEFS).find(k => {
+            if (k.split('.')[1] !== markerPart || standardCats.has(k.split('.')[0])) return false;
+            return SPECIALTY_MARKER_DEFS[k].group === adapterGroup;
+          });
           if (specialtyMatch) {
             const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
             if (isDebugMode()) console.log(`[Import Guard] Remapped ${mappedKey} → ${specialtyMatch} (adapter detected)`);
@@ -476,6 +582,13 @@ export function showImportPreview(parseResult) {
       Matched: <span style="color:var(--green)">${matched.length}</span> \u00b7
       New: <span style="color:var(--accent)">${newMarkers.length}</span> \u00b7
       Unmatched: <span style="color:var(--yellow)">${unmatched.length}</span></p>`;
+  // Quality warning — high unmatched ratio suggests unsupported lab
+  const unmatchedRatio = markers.length > 0 ? unmatched.length / markers.length : 0;
+  if (unmatchedRatio > 0.4 && unmatched.length > 10) {
+    html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--yellow);font-size:13px;line-height:1.5">
+      A large portion of markers couldn't be mapped. This lab report may not be well supported yet — review the results below carefully before importing.
+      You can <a href="https://github.com/elkimek/get-based/issues" target="_blank" rel="noopener" style="color:var(--accent)">request support</a> for this lab on GitHub.</div>`;
+  }
   if (!date) {
     html += `<div style="background:var(--yellow-bg);border:1px solid var(--yellow);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;color:var(--yellow)">
       Could not extract collection date from PDF. Please enter it manually:
@@ -523,17 +636,16 @@ export function showImportPreview(parseResult) {
     // Normalize PDF ranges to SI for accurate comparison against schema
     const siMin = m.refMin != null ? normalizeToSI(m.mappedKey, m.refMin, m.unit) : null;
     const siMax = m.refMax != null ? normalizeToSI(m.mappedKey, m.refMax, m.unit) : null;
-    if ((siMin != null && schemaRef.refMin != null && siMin !== schemaRef.refMin) ||
-        (siMax != null && schemaRef.refMax != null && siMax !== schemaRef.refMax)) {
+    if ((siMin !== schemaRef.refMin && !(siMin != null && schemaRef.refMin != null && Math.abs(siMin - schemaRef.refMin) < 0.001)) ||
+        (siMax !== schemaRef.refMax && !(siMax != null && schemaRef.refMax != null && Math.abs(siMax - schemaRef.refMax) < 0.001))) {
       rangesDiffCount++;
     }
   }
   if (rangesDiffCount > 0) {
-    const hasExistingEntries = state.importedData?.entries?.length > 0;
-    const defaultChecked = hasExistingEntries ? '' : ' checked';
+    const defaultChecked = ' checked';
     html += `<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--text-secondary);cursor:pointer">
       <input type="checkbox" id="import-adopt-ranges"${defaultChecked} style="accent-color:var(--accent);width:16px;height:16px">
-      Use this lab's reference ranges (updates ${rangesDiffCount} marker${rangesDiffCount !== 1 ? 's' : ''})</label>`;
+      Update reference ranges from this report (${rangesDiffCount} marker${rangesDiffCount !== 1 ? 's' : ''})</label>`;
   }
 
   // Privacy notice
@@ -668,7 +780,11 @@ export function confirmImport() {
     modelId: result.costInfo?.modelId || null
   };
   if (result.importHash) entry.importHash = result.importHash;
-  if (result.fileName) entry.sourceFile = result.fileName;
+  if (result.fileName) {
+    if (!entry.sourceFiles) entry.sourceFiles = entry.sourceFile ? [entry.sourceFile] : [];
+    if (!entry.sourceFiles.includes(result.fileName)) entry.sourceFiles.push(result.fileName);
+    entry.sourceFile = result.fileName; // backwards compat
+  }
   for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood')
@@ -734,8 +850,9 @@ export function confirmImport() {
       const defMax = schemaDef && sex === 'female' && schemaDef.refMax_f != null ? schemaDef.refMax_f : schemaDef?.refMax;
       const approxEq = (a, b) => a != null && b != null && Math.abs(a - b) < Math.max(Math.abs(b) * 0.001, 0.001);
       if (approxEq(siMin, defMin) && approxEq(siMax, defMax)) continue; // matches default — skip
-      if (siMin != null) ovr.refMin = siMin;
-      if (siMax != null) ovr.refMax = siMax;
+      ovr.refMin = siMin;
+      ovr.refMax = siMax;
+      ovr.refSource = 'import';
       state.importedData.refOverrides[m.mappedKey] = ovr;
     }
   }
@@ -803,7 +920,7 @@ export function setupDropZone() {
 }
 
 // Weighted step percentages: text extraction and PII are fast, AI analysis is the bulk
-const STEP_START_PCT = [5, 10, 15, 95];
+const STEP_START_PCT = [5, 8, 12, 15, 95];
 
 function _updateProgressPct(pct) {
   const fill = document.querySelector('.import-progress-bar-fill');
@@ -964,6 +1081,7 @@ Return ONLY valid JSON in this exact format:
   });
 
   let jsonStr = (response || '').trim();
+  jsonStr = jsonStr.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
   const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
   const jsonStart = jsonStr.indexOf('{');
@@ -980,18 +1098,23 @@ Return ONLY valid JSON in this exact format:
     normalizeWithAdapter(adapter, parsed.markers, fileName, '', detected?.product);
   }
   const standardCats = new Set(Object.keys(MARKER_SCHEMA));
+  const _specialtyTypes = ['OAT', 'fattyAcids', 'Metabolomix+', 'DUTCH', 'HTMA', 'GI'];
   return {
     date: parsed.date || null,
     testType,
     markers: (parsed.markers || []).map(m => {
       let mappedKey = m.mappedKey || null;
       let matched = !!mappedKey;
-      // Guard: never allow standard blood work mappings for specialty tests
-      if (matched && testType !== 'blood') {
+      // Guard: never allow standard blood work mappings for known specialty tests
+      if (matched && _specialtyTypes.includes(testType)) {
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
           const markerPart = mappedKey.split('.')[1];
-          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => {
+            if (k.split('.')[1] !== markerPart || standardCats.has(k.split('.')[0])) return false;
+            const sDef = SPECIALTY_MARKER_DEFS[k];
+            return sDef.group === testType || sDef.group?.toLowerCase() === testType.toLowerCase();
+          });
           if (specialtyMatch) {
             const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
             m.suggestedKey = specialtyMatch;
@@ -1015,7 +1138,11 @@ Return ONLY valid JSON in this exact format:
         const catKey = mappedKey.split('.')[0];
         if (standardCats.has(catKey)) {
           const markerPart = mappedKey.split('.')[1];
-          const specialtyMatch = Object.keys(SPECIALTY_MARKER_DEFS).find(k => k.split('.')[1] === markerPart && !standardCats.has(k.split('.')[0]));
+          const adapterGroup = detected.adapter?.id === 'oat' ? 'OAT' : detected.adapter?.id === 'fattyAcids' ? 'Fatty Acids' : null;
+          const specialtyMatch = adapterGroup && Object.keys(SPECIALTY_MARKER_DEFS).find(k => {
+            if (k.split('.')[1] !== markerPart || standardCats.has(k.split('.')[0])) return false;
+            return SPECIALTY_MARKER_DEFS[k].group === adapterGroup;
+          });
           if (specialtyMatch) {
             const sDef = SPECIALTY_MARKER_DEFS[specialtyMatch];
             m.suggestedKey = specialtyMatch;
@@ -1122,10 +1249,10 @@ export async function handlePDFFile(file, forceImageMode = false) {
         setTimeout(() => window.openSettingsModal(), 500);
         return;
       }
-      await showImportProgress(1, file.name);
+      await showImportProgress(3, file.name);
       const images = await extractPDFImages(file);
       if (images.length === 0) { hideImportProgress(); showNotification("Could not render PDF pages", "error"); return; }
-      await showImportProgress(2, file.name);
+      await showImportProgress(3, file.name);
       const analysisStart = performance.now();
       const result = await parseLabPDFWithAIImages(images, file.name, _updateProgressPct);
       const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
@@ -1145,7 +1272,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
       result._importProfileId = _startProfileId;
       if (!result.date) showNotification("Could not find collection date in PDF", "error");
       if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF images", "error"); return; }
-      await showImportProgress(3, file.name);
+      await showImportProgress(4, file.name);
       showImportPreview(result);
       hideImportProgress();
       return;
@@ -1162,13 +1289,12 @@ export async function handlePDFFile(file, forceImageMode = false) {
     }
 
     // Pre-flight checks — before spending tokens
-    hideImportProgress();
-    const preflight = await runPreflightChecks(pdfText);
-    if (!preflight) return;
-    await showImportProgress(0, file.name);
+    await showImportProgress(1, file.name);
+    const preflight = await runPreflightChecks(pdfText, file.name);
+    if (!preflight) { hideImportProgress(); return; }
 
     // PII obfuscation step
-    await showImportProgress(1, file.name);
+    await showImportProgress(2, file.name);
     let textForAI = pdfText;
     let privacyMethod = null;
     let privacyReplacements = 0;
@@ -1231,7 +1357,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
     }
     if (isDebugMode()) { console.log('[PII] Original:', pdfText); console.log('[PII] Obfuscated:', textForAI); }
 
-    await showImportProgress(2, file.name);
+    await showImportProgress(3, file.name);
     const analysisStart = performance.now();
     const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
     const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
@@ -1253,13 +1379,13 @@ export async function handlePDFFile(file, forceImageMode = false) {
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
     if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
-    await showImportProgress(3, file.name);
+    await showImportProgress(4, file.name);
     showImportPreview(result);
     hideImportProgress();
   } catch (err) {
     hideImportProgress();
     if (isDebugMode()) console.error("PDF parse error:", err);
-    showNotification("Error parsing PDF: " + err.message, "error");
+    showNotification("Error parsing PDF: " + err.message, "error", 10000);
   }
 }
 
@@ -1274,11 +1400,12 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   if (!pdfText.trim()) { showNotification(`${file.name}: PDF appears empty`, 'error'); return 'empty'; }
 
   // Pre-flight checks — before spending tokens
-  const preflight = await runPreflightChecks(pdfText);
+  await showBatchImportProgress(1, file.name, fileNum, totalFiles);
+  const preflight = await runPreflightChecks(pdfText, file.name);
   if (!preflight) return 'skipped';
 
   // PII obfuscation
-  await showBatchImportProgress(1, file.name, fileNum, totalFiles);
+  await showBatchImportProgress(2, file.name, fileNum, totalFiles);
   let textForAI = pdfText;
   let privacyMethod = null;
   let privacyReplacements = 0;
@@ -1331,7 +1458,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   }
   if (isDebugMode()) console.log(`[PII] ${file.name} \u2014 method: ${privacyMethod}, ${piiTime}s`);
 
-  await showBatchImportProgress(2, file.name, fileNum, totalFiles);
+  await showBatchImportProgress(3, file.name, fileNum, totalFiles);
   const analysisStart = performance.now();
   const result = await parseLabPDFWithAI(textForAI, file.name, _updateProgressPct);
   const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
@@ -1351,7 +1478,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   result.importHash = hashString(pdfText);
   if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
   if (result.markers.length === 0) { showNotification(`${file.name}: No markers found`, 'error'); return 'no-markers'; }
-  await showBatchImportProgress(3, file.name, fileNum, totalFiles);
+  await showBatchImportProgress(4, file.name, fileNum, totalFiles);
   const action = await showImportPreviewAsync(result, file.name, fileNum, totalFiles);
   return action === 'skip' ? 'skipped' : 'imported';
 }

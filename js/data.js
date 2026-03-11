@@ -149,10 +149,10 @@ export function getActiveData() {
     const cat = data.categories[catKey];
     if (cat && cat.markers[markerKey]) {
       const m = cat.markers[markerKey];
-      if (ovr.refMin != null) m.refMin = ovr.refMin;
-      if (ovr.refMax != null) m.refMax = ovr.refMax;
-      if (ovr.optimalMin != null) m.optimalMin = ovr.optimalMin;
-      if (ovr.optimalMax != null) m.optimalMax = ovr.optimalMax;
+      if ('refMin' in ovr) m.refMin = ovr.refMin;
+      if ('refMax' in ovr) m.refMax = ovr.refMax;
+      if ('optimalMin' in ovr) m.optimalMin = ovr.optimalMin;
+      if ('optimalMax' in ovr) m.optimalMax = ovr.optimalMax;
     }
   }
 

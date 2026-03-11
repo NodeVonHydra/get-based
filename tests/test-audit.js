@@ -290,8 +290,8 @@
   assert('Focus card uses buildFocusContext', viewsSrc.includes('buildFocusContext()'));
   assert('Focus card health-goals-aware system prompt', viewsSrc.includes('connect your finding to their most relevant goal'));
 
-  // askAIAboutMarker uses effective range
-  assert('askAIAboutMarker uses lr.min/lr.max', chatSrc.includes('${lr.min}') && chatSrc.includes('${lr.max}'));
+  // askAIAboutMarker uses actual reference range (not effective/optimal)
+  assert('askAIAboutMarker uses marker.refMin/refMax', chatSrc.includes('${marker.refMin}') && chatSrc.includes('${marker.refMax}'));
   assert('askAIAboutMarker has trend direction', chatSrc.includes("Trend: ${dir}"));
 
   // JSON.parse guard in health dots

@@ -5,6 +5,21 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.1', date: '2026-03-11', title: 'Jonseed Followups & Open-Ended Ranges',
+    items: [
+      'Open-ended reference ranges — clear min or max to set one-sided ranges (e.g. eGFR >59), charts show solid threshold line',
+      'Fixed "Ask AI about this marker" sending wrong reference range when optimal/both mode was active',
+      'Fixed edited ranges showing "lab" badge instead of "edited", with revert support for both',
+      'Fixed percentage biomarkers (Neutrophils %, etc.) importing with wrong reference ranges',
+      'Custom markers without ranges now show a clickable placeholder to add them',
+      'Fixed OpenRouter custom model pricing not updating — now fetches real pricing on Enter',
+      'Fixed thinking model JSON errors — <think> tags stripped before parsing, longer error display',
+      'Review & Edit panel: scroll position preserved, diff view is read-only until Edit clicked',
+      'Multiple PDF imports on the same date now tracked — Settings shows all filenames',
+      'Clearer error for insufficient API credits (402)',
+    ]
+  },
+  {
     version: '1.7.0', date: '2026-03-10', title: 'Specialty Labs & Custom Markers',
     items: [
       'Improved specialty lab support — better detection and categorization for OAT, fatty acid, and combination reports',

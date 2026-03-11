@@ -10,19 +10,40 @@ export const refBandPlugin = {
   id: "refBand",
   beforeDraw(chart) {
     const opts = chart.options.plugins.refBand;
-    if (!opts || !chart.chartArea || opts.refMin == null || opts.refMax == null) return;
-    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+    if (!opts || !chart.chartArea || (opts.refMin == null && opts.refMax == null)) return;
+    const { ctx, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
     if (!y) return;
-    const yMin = y.getPixelForValue(opts.refMin);
-    const yMax = y.getPixelForValue(opts.refMax);
     const cs = getComputedStyle(document.documentElement);
+    const bandColor = cs.getPropertyValue('--ref-band').trim();
+    const borderColor = cs.getPropertyValue('--ref-border').trim();
     ctx.save();
-    ctx.fillStyle = cs.getPropertyValue('--ref-band').trim();
-    ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
-    ctx.strokeStyle = cs.getPropertyValue('--ref-border').trim();
     ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    if (opts.refMin != null && opts.refMax != null) {
+      // Two-sided: shade the in-range band
+      const yMin = y.getPixelForValue(opts.refMin);
+      const yMax = y.getPixelForValue(opts.refMax);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
+      ctx.strokeStyle = borderColor;
+      ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    } else if (opts.refMin != null) {
+      // Lower bound only: shade above refMin (in-range zone) + solid line
+      const yMin = y.getPixelForValue(opts.refMin);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, top, right-left, yMin-top);
+      ctx.strokeStyle = borderColor;
+      ctx.setLineDash([]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+    } else {
+      // Upper bound only: shade below refMax (in-range zone) + solid line
+      const yMax = y.getPixelForValue(opts.refMax);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, yMax, right-left, bottom-yMax);
+      ctx.strokeStyle = borderColor;
+      ctx.setLineDash([]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    }
     ctx.restore();
   }
 };
@@ -32,18 +53,36 @@ export const optimalBandPlugin = {
   id: "optimalBand",
   beforeDraw(chart) {
     const opts = chart.options.plugins.optimalBand;
-    if (!opts || !chart.chartArea || opts.optimalMin == null || opts.optimalMax == null) return;
-    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+    if (!opts || !chart.chartArea || (opts.optimalMin == null && opts.optimalMax == null)) return;
+    const { ctx, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
     if (!y) return;
-    const yMin = y.getPixelForValue(opts.optimalMin);
-    const yMax = y.getPixelForValue(opts.optimalMax);
+    const bandColor = "rgba(52, 211, 153, 0.06)";
+    const borderColor = "rgba(52, 211, 153, 0.3)";
     ctx.save();
-    ctx.fillStyle = "rgba(52, 211, 153, 0.06)";
-    ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
-    ctx.strokeStyle = "rgba(52, 211, 153, 0.3)";
     ctx.setLineDash([3,3]); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    if (opts.optimalMin != null && opts.optimalMax != null) {
+      const yMin = y.getPixelForValue(opts.optimalMin);
+      const yMax = y.getPixelForValue(opts.optimalMax);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, Math.min(yMin,yMax), right-left, Math.abs(yMax-yMin));
+      ctx.strokeStyle = borderColor;
+      ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    } else if (opts.optimalMin != null) {
+      const yMin = y.getPixelForValue(opts.optimalMin);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, top, right-left, yMin-top);
+      ctx.strokeStyle = borderColor;
+      ctx.setLineDash([]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(left,yMin); ctx.lineTo(right,yMin); ctx.stroke();
+    } else {
+      const yMax = y.getPixelForValue(opts.optimalMax);
+      ctx.fillStyle = bandColor;
+      ctx.fillRect(left, yMax, right-left, bottom-yMax);
+      ctx.strokeStyle = borderColor;
+      ctx.setLineDash([]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(left,yMax); ctx.lineTo(right,yMax); ctx.stroke();
+    }
     ctx.restore();
   }
 };
@@ -440,7 +479,7 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
     options: { responsive:true, maintainAspectRatio:false,
       plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: tc.legendColor, font: { size: 11 }, boxWidth: 20, padding: 10 } },
         tooltip:{ backgroundColor:tc.tooltipBg, titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, borderColor:tc.tooltipBorder, borderWidth:1,
-          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const di = c.dataIndex; const pr = getEffectiveRangeForDate(marker, di); const phaseLabel = marker.phaseLabels && marker.phaseLabels[di]; const lines = []; if (phaseLabel) lines.push(`Phase: ${phaseLabel}`); if (pr.min != null && pr.max != null) { const rl = phaseLabel ? 'Phase ref' : (state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'); lines.push(`${rl}: ${formatValue(pr.min)} \u2013 ${formatValue(pr.max)}`); } return lines.join('\n'); } }},
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const di = c.dataIndex; const pr = getEffectiveRangeForDate(marker, di); const phaseLabel = marker.phaseLabels && marker.phaseLabels[di]; const lines = []; if (phaseLabel) lines.push(`Phase: ${phaseLabel}`); if (pr.min != null || pr.max != null) { const rl = phaseLabel ? 'Phase ref' : (state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'); const rMin = pr.min != null ? formatValue(pr.min) : '–'; const rMax = pr.max != null ? formatValue(pr.max) : '–'; lines.push(`${rl}: ${rMin} \u2013 ${rMax}`); } return lines.join('\n'); } }},
         refBand: (() => { const env = getPhaseRefEnvelope(marker); if (state.rangeMode === 'both') return { refMin: marker.refMin, refMax: marker.refMax }; if (env) return { refMin: env.min, refMax: env.max }; return { refMin: chartRange.min, refMax: chartRange.max }; })(),
         optimalBand: state.rangeMode === 'both' && marker.optimalMin != null ? { optimalMin: marker.optimalMin, optimalMax: marker.optimalMax } : false,
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,

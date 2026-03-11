@@ -363,8 +363,11 @@ body {
 .modal .modal-unit { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; }
 .ref-editable { cursor: pointer; border-bottom: 1px dashed var(--text-muted); padding-bottom: 1px; }
 .ref-editable:hover { color: var(--accent); border-color: var(--accent); }
-.ref-edit-input { width: 70px; padding: 2px 6px; font-size: 13px; font-family: var(--font-mono); background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.ref-edit-field { display: inline-flex; align-items: center; position: relative; }
+.ref-edit-input { width: 60px; padding: 2px 20px 2px 6px; font-size: 13px; font-family: var(--font-mono); background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .ref-edit-input:focus { border-color: var(--accent); outline: none; }
+.ref-edit-clear { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0 3px; line-height: 1; opacity: 0.5; }
+.ref-edit-clear:hover { opacity: 1; color: var(--red); }
 .ref-edit-save { padding: 2px 8px; font-size: 12px; background: var(--accent-gradient); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; margin-left: 4px; }
 .ref-edited-badge { font-size: 10px; color: var(--yellow); cursor: pointer; margin-left: 4px; opacity: 0.8; }
 .ref-edited-badge:hover { opacity: 1; text-decoration: underline; }
@@ -1537,8 +1540,9 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   width: 100%; padding: 10px 12px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--bg-primary);
   color: var(--text-primary); font-size: 13px; font-family: monospace;
-  margin-top: 8px;
+  margin-top: 8px; color-scheme: dark;
 }
+[data-theme="light"] .api-key-input { color-scheme: light; }
 .api-key-input:focus { border-color: var(--accent); }
 .api-key-status { font-size: 13px; margin-bottom: 4px; }
 .api-key-notice {
@@ -2459,7 +2463,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 /* Styled Confirmation Dialog */
 .confirm-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7); z-index: 300; display: none;
+  background: rgba(0,0,0,0.7); z-index: 1200; display: none;
   align-items: center; justify-content: center;
 }
 .confirm-overlay.show { display: flex; }

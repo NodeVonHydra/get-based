@@ -2704,7 +2704,7 @@ export function askAIAboutMarker(markerId) {
   const latestIdx = getLatestValueIndex(marker.values);
   const lr = getEffectiveRangeForDate(marker, latestIdx);
   const status = latestIdx !== -1 ? getStatus(marker.values[latestIdx], lr.min, lr.max) : 'no data';
-  let prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${lr.min}\u2013${lr.max} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}.`;
+  let prompt = `Tell me about my ${marker.name} results. Values: ${valuesText}. Reference range: ${marker.refMin}\u2013${marker.refMax} ${marker.unit}${marker.optimalMin != null ? `. Optimal range: ${marker.optimalMin}\u2013${marker.optimalMax}` : ''}. Current status: ${status}.`;
   if (marker.phaseLabels) prompt += ' Note: reference ranges shown are phase-specific for the menstrual cycle.';
   const nonNull = marker.values.filter(v => v !== null);
   if (nonNull.length >= 2) {

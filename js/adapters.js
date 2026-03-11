@@ -350,6 +350,9 @@ const ADAPTERS = [
 // Public API
 // ═══════════════════════════════════════════════
 
+/** Get list of all registered adapters (for tooling/inspection) */
+export function getAdapters() { return ADAPTERS; }
+
 /** Get all adapter markers merged into a single object (for buildMarkerReference) */
 export function getAllAdapterMarkers() {
   const all = {};

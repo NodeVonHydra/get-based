@@ -555,12 +555,13 @@ export function renderChartCard(id, marker, dateLabels) {
       <div class="chart-value-num val-${s}">${v !== null ? formatValue(v) : "\u2014"}</div></div>`;
   }
   let rangeHtml = '';
+  const fmtRange = (min, max) => `${min != null ? formatValue(min) : '–'} \u2013 ${max != null ? formatValue(max) : '–'}`;
   if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
-    rangeHtml = `<div class="chart-ref-range">Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Optimal: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span> ${escapeHTML(marker.unit)}</div>`;
+    rangeHtml = `<div class="chart-ref-range">Ref: ${fmtRange(marker.refMin, marker.refMax)} · <span style="color:var(--green)">Optimal: ${fmtRange(marker.optimalMin, marker.optimalMax)}</span> ${escapeHTML(marker.unit)}</div>`;
   } else {
     const r = getEffectiveRange(marker);
     const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
-    rangeHtml = r.min != null && r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)} ${escapeHTML(marker.unit)}</div>` : '';
+    rangeHtml = r.min != null || r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${fmtRange(r.min, r.max)} ${escapeHTML(marker.unit)}</div>` : '';
   }
   html += `</div>${rangeHtml}</div>`;
   return html;
@@ -719,17 +720,30 @@ export function showDetailModal(id) {
   let rangeInfo = '';
   const overrides = state.importedData?.refOverrides?.[dotKey] || {};
   const refEditable = (label, min, max, type) => {
-    const isEdited = type === 'optimal' ? (overrides.optimalMin != null || overrides.optimalMax != null) : (overrides.refMin != null || overrides.refMax != null);
-    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="Custom range from your lab — click to revert to default" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">lab \u00d7</span>` : '';
-    return ` &middot; ${type === 'optimal' ? '<span style="color:var(--green)">' : ''}${label}: <span class="ref-editable" onclick="editRefRange('${id}','${type}',event)" title="Click to edit">${min} \u2013 ${max}</span>${editedBadge}${type === 'optimal' ? '</span>' : ''}`;
+    const isEdited = type === 'optimal' ? ('optimalMin' in overrides || 'optimalMax' in overrides) : ('refMin' in overrides || 'refMax' in overrides);
+    const source = type === 'optimal' ? overrides.optimalSource : overrides.refSource;
+    const badgeLabel = source === 'manual' ? 'edited' : 'lab';
+    const badgeTitle = source === 'manual' ? 'Manually edited — click to revert to default' : 'Custom range from your lab — click to revert to default';
+    const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="${badgeTitle}" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">${badgeLabel} \u00d7</span>` : '';
+    const displayMin = min != null ? min : '–';
+    const displayMax = max != null ? max : '–';
+    return ` &middot; ${type === 'optimal' ? '<span style="color:var(--green)">' : ''}${label}: <span class="ref-editable" onclick="editRefRange('${id}','${type}',event)" title="Click to edit">${displayMin} \u2013 ${displayMax}</span>${editedBadge}${type === 'optimal' ? '</span>' : ''}`;
   };
+  const isCustom = !!state.importedData?.customMarkers?.[dotKey];
+  const hasRef = marker.refMin != null || marker.refMax != null;
+  const hasOpt = marker.optimalMin != null;
   if (state.rangeMode === 'both') {
-    if (marker.refMin != null && marker.refMax != null) rangeInfo += refEditable('Reference', marker.refMin, marker.refMax, 'ref');
-    if (marker.optimalMin != null) rangeInfo += refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
-  } else if (state.rangeMode === 'optimal' && marker.optimalMin != null) {
-    rangeInfo = refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
-  } else if (marker.refMin != null && marker.refMax != null) {
+    if (hasRef) rangeInfo += refEditable('Reference', marker.refMin, marker.refMax, 'ref');
+    else if (isCustom) rangeInfo += refEditable('Reference', '–', '–', 'ref');
+    if (hasOpt) rangeInfo += refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
+    else if (isCustom) rangeInfo += refEditable('Optimal', '–', '–', 'optimal');
+  } else if (state.rangeMode === 'optimal') {
+    if (hasOpt) rangeInfo = refEditable('Optimal', marker.optimalMin, marker.optimalMax, 'optimal');
+    else if (isCustom) rangeInfo = refEditable('Optimal', '–', '–', 'optimal');
+  } else if (hasRef) {
     rangeInfo = refEditable('Reference', marker.refMin, marker.refMax, 'ref');
+  } else if (isCustom) {
+    rangeInfo = refEditable('Reference', '–', '–', 'ref');
   }
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>${escapeHTML(marker.name)}</h3>
@@ -810,8 +824,8 @@ export function openManualEntryForm(id) {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
   const today = new Date().toISOString().slice(0, 10);
-  const refText = marker.refMin != null && marker.refMax != null
-    ? `Reference: ${marker.refMin} \u2013 ${marker.refMax} ${escapeHTML(marker.unit)}`
+  const refText = marker.refMin != null || marker.refMax != null
+    ? `Reference: ${marker.refMin != null ? marker.refMin : '–'} \u2013 ${marker.refMax != null ? marker.refMax : '–'} ${escapeHTML(marker.unit)}`
     : '';
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Add Value \u2014 ${escapeHTML(marker.name)}</h3>
@@ -1362,6 +1376,7 @@ export function renderCorrelationChart() {
     if (!marker) return;
     const normalizedValues = marker.values.map(v => {
       if (v === null) return null;
+      if (marker.refMin == null || marker.refMax == null) return 50;
       const range = marker.refMax - marker.refMin;
       return range !== 0 ? ((v - marker.refMin) / range) * 100 : 50;
     });
@@ -1429,7 +1444,7 @@ export function editRefRange(id, type, evt) {
   // Replace span with inline inputs
   const form = document.createElement('span');
   form.className = 'ref-edit-form';
-  form.innerHTML = `${label}: <input type="number" step="any" value="${curMin ?? ''}" class="ref-edit-input" id="ref-edit-min"> \u2013 <input type="number" step="any" value="${curMax ?? ''}" class="ref-edit-input" id="ref-edit-max"> <button class="ref-edit-save" onclick="saveRefRange('${id}','${type}')">Save</button>`;
+  form.innerHTML = `${label}: <span class="ref-edit-field"><input type="text" inputmode="decimal" value="${curMin ?? ''}" placeholder="none" class="ref-edit-input" id="ref-edit-min"><button type="button" class="ref-edit-clear" onclick="document.getElementById('ref-edit-min').value='';document.getElementById('ref-edit-min').focus()" title="Clear (open-ended)">\u00d7</button></span> \u2013 <span class="ref-edit-field"><input type="text" inputmode="decimal" value="${curMax ?? ''}" placeholder="none" class="ref-edit-input" id="ref-edit-max"><button type="button" class="ref-edit-clear" onclick="document.getElementById('ref-edit-max').value='';document.getElementById('ref-edit-max').focus()" title="Clear (open-ended)">\u00d7</button></span> <button class="ref-edit-save" onclick="saveRefRange('${id}','${type}')">Save</button>`;
   span.replaceWith(form);
   form.querySelector('#ref-edit-min').focus();
 
@@ -1444,8 +1459,11 @@ export function saveRefRange(id, type) {
   const minEl = document.getElementById('ref-edit-min');
   const maxEl = document.getElementById('ref-edit-max');
   if (!minEl || !maxEl) return;
-  let newMin = minEl.value !== '' ? parseFloat(minEl.value) : null;
-  let newMax = maxEl.value !== '' ? parseFloat(maxEl.value) : null;
+  let newMin = minEl.value.trim() !== '' ? parseFloat(minEl.value) : null;
+  let newMax = maxEl.value.trim() !== '' ? parseFloat(maxEl.value) : null;
+  // Treat NaN as null (open-ended)
+  if (newMin != null && isNaN(newMin)) newMin = null;
+  if (newMax != null && isNaN(newMax)) newMax = null;
 
   // If user is in US mode, convert back to SI for storage (overrides are applied before unit conversion)
   if (newMin != null) newMin = convertDisplayToSI(dotKey, newMin);
@@ -1457,9 +1475,11 @@ export function saveRefRange(id, type) {
   if (type === 'optimal') {
     state.importedData.refOverrides[dotKey].optimalMin = newMin;
     state.importedData.refOverrides[dotKey].optimalMax = newMax;
+    state.importedData.refOverrides[dotKey].optimalSource = 'manual';
   } else {
     state.importedData.refOverrides[dotKey].refMin = newMin;
     state.importedData.refOverrides[dotKey].refMax = newMax;
+    state.importedData.refOverrides[dotKey].refSource = 'manual';
   }
 
   saveImportedData();
@@ -1474,8 +1494,8 @@ export function revertRefRange(id, type) {
   const dotKey = id.replace('_', '.');
   const ovr = state.importedData?.refOverrides?.[dotKey];
   if (!ovr) return;
-  if (type === 'optimal') { delete ovr.optimalMin; delete ovr.optimalMax; }
-  else { delete ovr.refMin; delete ovr.refMax; }
+  if (type === 'optimal') { delete ovr.optimalMin; delete ovr.optimalMax; delete ovr.optimalSource; }
+  else { delete ovr.refMin; delete ovr.refMax; delete ovr.refSource; }
   // Clean up empty override objects
   if (Object.keys(ovr).length === 0) delete state.importedData.refOverrides[dotKey];
   saveImportedData();

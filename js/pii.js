@@ -559,15 +559,18 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
           lineIdx = Array.from(diffView.children).indexOf(el);
         }
       }
+      // Preserve scroll position across view switch
+      const scrollTop = diffView.parentNode?.scrollTop ?? 0;
       diffView.style.display = 'none';
       textarea.style.display = '';
-      textarea.focus();
       if (lineIdx >= 0) {
         const textLines = textarea.value.split('\n');
         let offset = 0;
         for (let i = 0; i < lineIdx && i < textLines.length; i++) offset += textLines[i].length + 1;
         textarea.setSelectionRange(offset, offset);
       }
+      textarea.focus({ preventScroll: true });
+      textarea.parentNode.scrollTop = scrollTop;
     }
 
     // Show highlighted diff preview, hiding the textarea
@@ -579,9 +582,6 @@ export function reviewPIIBeforeSend(originalText, { obfuscatedText, streamFn }) 
       if (!diffView) { diffView = document.createElement('div'); diffView.className = 'pii-diff-preview'; textarea.parentNode.insertBefore(diffView, textarea); }
       diffView.innerHTML = rightHtml;
       diffView.style.display = '';
-      diffView.onclick = switchToEditMode;
-      diffView.title = 'Click to edit';
-      diffView.style.cursor = 'pointer';
     }
 
     // Edit button

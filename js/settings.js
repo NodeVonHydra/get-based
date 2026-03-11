@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
-import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
+import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
 
@@ -234,9 +234,8 @@ export function renderAIProviderPanel(provider) {
       const isCustom = !cachedORModels.some(m => m.id === orModel);
       orModelHtml = `<div style="margin-top:12px" id="openrouter-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="onOpenRouterDropdownChange(this.value)">${opts}</select>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:8px"><input type="text" class="api-key-input" id="openrouter-custom-model" placeholder="Or enter model ID (e.g. arcee-ai/trinity-large-preview:free)" style="font-size:12px;flex:1${isCustom ? ';border-color:var(--accent)' : ''}" value="${isCustom ? escapeHTML(orModel) : ''}" onkeydown="if(event.key==='Enter'){applyCustomOpenRouterModel(this.value)}"><span id="openrouter-model-health" style="font-size:16px;min-width:20px;text-align:center"></span></div>
-        <span style="font-size:11px;color:var(--text-muted);margin-top:2px;display:block">Press Enter to apply — checks model connectivity</span>
+        <select class="api-key-input" id="openrouter-model-select" style="margin-top:4px" onchange="onOpenRouterDropdownChange(this.value)">${isCustom ? '<option value="__custom" disabled selected>Using custom model</option>' : ''}${opts}</select>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px"><input type="text" id="openrouter-custom-model" placeholder="Or type any model ID and press Enter" style="font-size:11px;flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-family:monospace${isCustom ? ';border-color:var(--accent)' : ''}" value="${isCustom ? escapeHTML(orModel) : ''}" onkeydown="if(event.key==='Enter'){applyCustomOpenRouterModel(this.value)}"><span id="openrouter-model-health" style="font-size:14px;min-width:18px;text-align:center"></span></div>
         <div id="openrouter-model-pricing" style="margin-top:4px">${renderModelPricingHint('openrouter', orModel)}</div>
       </div>`;
     } else {
@@ -797,7 +796,9 @@ export async function applyCustomOpenRouterModel(modelId) {
   const id = modelId.trim();
   if (!id) return;
   setOpenRouterModel(id);
-  updateOpenRouterModelPricing(id);
+  // Show "checking..." while we verify the model
+  const pricingEl = document.getElementById('openrouter-model-pricing');
+  if (pricingEl) pricingEl.innerHTML = '<span style="font-size:11px;color:var(--text-muted)">Checking pricing\u2026</span>';
   const select = document.getElementById('openrouter-model-select');
   const input = document.getElementById('openrouter-custom-model');
   const inDropdown = select && [...select.options].some(o => o.value === id);
@@ -806,7 +807,16 @@ export async function applyCustomOpenRouterModel(modelId) {
       select.value = id;
       if (input) { input.value = ''; input.style.borderColor = ''; }
     } else {
-      select.selectedIndex = -1;
+      // Show "Custom model" placeholder in dropdown
+      let customOpt = select.querySelector('option[value="__custom"]');
+      if (!customOpt) {
+        customOpt = document.createElement('option');
+        customOpt.value = '__custom';
+        customOpt.disabled = true;
+        customOpt.textContent = 'Using custom model';
+        select.insertBefore(customOpt, select.firstChild);
+      }
+      customOpt.selected = true;
     }
   }
   // Health check — verify model responds
@@ -817,9 +827,13 @@ export async function applyCustomOpenRouterModel(modelId) {
     if (indicator) { indicator.textContent = '✓'; indicator.title = 'Model responding'; indicator.style.color = 'var(--green)'; }
     if (input && !inDropdown) input.style.borderColor = 'var(--green)';
     showNotification('Model set: ' + id, 'info');
+    // Fetch actual pricing and update display
+    await fetchOpenRouterModelPricing(id);
+    updateOpenRouterModelPricing(id);
   } catch (e) {
     if (indicator) { indicator.textContent = '✗'; indicator.title = e.message || 'Connection failed'; indicator.style.color = 'var(--red)'; }
     if (input) input.style.borderColor = 'var(--red)';
+    updateOpenRouterModelPricing(id);
     showNotification('Model check failed: ' + (e.message || 'unknown error'), 'error');
   }
 }
@@ -831,6 +845,10 @@ export function onOpenRouterDropdownChange(value) {
   if (input) { input.value = ''; input.style.borderColor = ''; }
   const health = document.getElementById('openrouter-model-health');
   if (health) { health.textContent = ''; health.title = ''; }
+  // Remove "Using custom model" placeholder if present
+  const select = document.getElementById('openrouter-model-select');
+  const customOpt = select?.querySelector('option[value="__custom"]');
+  if (customOpt) customOpt.remove();
 }
 
 /* ROUTSTR DISABLED — waiting for CORS fix (github.com/Routstr/routstr-core/issues/375)
@@ -859,8 +877,9 @@ export function renderDataEntriesSection() {
     const entryMarkerKeys = Object.keys(entry.markers);
     const manualCount = entryMarkerKeys.filter(k => manualValues[k + ':' + entry.date]).length;
     const isFullyManual = !entry.importedWith && manualCount === cnt;
-    const fileLabel = entry.sourceFile
-      ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px" title="${escapeAttr(entry.sourceFile)}">${escapeHTML(entry.sourceFile.length > 30 ? entry.sourceFile.slice(0, 27) + '...' : entry.sourceFile)}</span>`
+    const files = entry.sourceFiles || (entry.sourceFile ? [entry.sourceFile] : []);
+    const fileLabel = files.length > 0
+      ? `<span style="color:var(--text-muted);margin-left:8px;font-size:11px;border-bottom:1px dashed var(--text-muted);cursor:help" title="${escapeAttr(files.join('\n'))}">${files.length === 1 ? escapeHTML(files[0].length > 30 ? files[0].slice(0, 27) + '...' : files[0]) : files.length + ' files'}</span>`
       : '';
     const sourceLabel = isFullyManual
       ? '<span style="color:var(--accent);margin-left:8px;font-size:11px">manual entry</span>'

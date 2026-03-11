@@ -116,6 +116,7 @@ export const LATITUDE_BANDS = ['<25° latitude (tropical)', '25-40° (subtropica
 // ── Import steps ──
 export const IMPORT_STEPS = [
   "Extracting text from PDF",
+  "Checking report type",
   "Protecting personal information",
   "AI analyzing lab report",
   "Preparing preview"

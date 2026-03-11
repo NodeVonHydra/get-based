@@ -232,6 +232,35 @@ export function getOpenRouterPricing(modelId) {
   let cached = {}; try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}'); } catch(e) {}
   return cached[modelId] || null;
 }
+/** Fetch and cache pricing for a custom OpenRouter model not in the curated list */
+export async function fetchOpenRouterModelPricing(modelId) {
+  if (!modelId) return null;
+  const existing = getOpenRouterPricing(modelId);
+  if (existing) return existing;
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + getOpenRouterKey() }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    // Exact match first, then fuzzy (dots vs dashes, date suffixes)
+    const norm = s => s.replace(/\./g, '-').replace(/-\d{8}$/, '');
+    const model = (json.data || []).find(m => m.id === modelId)
+      || (json.data || []).find(m => norm(m.id) === norm(modelId));
+    if (!model?.pricing) return null;
+    const pricing = {
+      input: parseFloat(model.pricing.prompt || '0') * 1_000_000,
+      output: parseFloat(model.pricing.completion || '0') * 1_000_000
+    };
+    const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
+    // Cache under both the API ID and the user-typed ID
+    cached[model.id] = pricing;
+    cached[modelId] = pricing;
+    localStorage.setItem('labcharts-openrouter-pricing', JSON.stringify(cached));
+    return pricing;
+  } catch (e) { /* fail silently */ }
+  return null;
+}
 
 /* ROUTSTR DISABLED — waiting for CORS fix (github.com/Routstr/routstr-core/issues/375)
 // ═══════════════════════════════════════════════
@@ -273,7 +302,7 @@ export async function validateOpenRouterKey(key) {
 export function renderModelPricingHint(provider, modelId) {
   if (provider === 'ollama') return '<span style="font-size:11px;color:var(--green)">Free (local)</span>';
   const p = getModelPricing(provider, modelId);
-  if (p.input === 0 && p.output === 0) return '';
+  if (p.input === 0 && p.output === 0) return '<span style="font-size:11px;color:var(--green)">Free</span>';
   const pre = p.approx ? '~' : '';
   return `<span style="font-size:11px;color:var(--text-muted)">${pre}$${p.input.toFixed(2)}/M in \u00b7 ${pre}$${p.output.toFixed(2)}/M out</span>`;
 }
@@ -387,6 +416,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
 
   if (!res.ok) {
     if (res.status === 401) throw new Error('Invalid API key. Check your settings.');
+    if (res.status === 402) throw new Error('Insufficient Anthropic credits. Check your billing at console.anthropic.com');
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
     let errMsg = `API error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
@@ -556,6 +586,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
 
   if (!res.ok) {
     if (res.status === 401) throw new Error(`Invalid ${providerName} API key. Check your settings.`);
+    if (res.status === 402) throw new Error(`Insufficient ${providerName} credits. Add credits at openrouter.ai/settings/credits`);
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
     let errMsg = `${providerName} API error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}

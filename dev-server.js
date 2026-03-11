@@ -7,6 +7,7 @@
 //        SITE_DIR=/path/to/get-based-site node dev-server.js
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
@@ -91,6 +92,28 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(siteFile + '.html') && !(fs.existsSync(appFile + '.html'))) {
       return serveFile(res, siteFile + '.html');
     }
+  }
+
+  // Proxy: /proxy?url=... — fetches external URLs (dev only, for test tools)
+  if (pathname === '/proxy') {
+    const targetUrl = url.searchParams.get('url');
+    if (!targetUrl) { res.writeHead(400); res.end('Missing url param'); return; }
+    const fetcher = targetUrl.startsWith('https') ? https : http;
+    fetcher.get(targetUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (proxyRes) => {
+      // Follow redirects
+      if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+        const redirect = new URL(proxyRes.headers.location, targetUrl).href;
+        const rFetcher = redirect.startsWith('https') ? https : http;
+        rFetcher.get(redirect, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (rRes) => {
+          res.writeHead(rRes.statusCode, { 'Content-Type': rRes.headers['content-type'] || 'application/octet-stream', 'Access-Control-Allow-Origin': '*' });
+          rRes.pipe(res);
+        }).on('error', e => { res.writeHead(502); res.end(e.message); });
+        return;
+      }
+      res.writeHead(proxyRes.statusCode, { 'Content-Type': proxyRes.headers['content-type'] || 'application/octet-stream', 'Access-Control-Allow-Origin': '*' });
+      proxyRes.pipe(res);
+    }).on('error', e => { res.writeHead(502); res.end(e.message); });
+    return;
   }
 
   // Static files from root
