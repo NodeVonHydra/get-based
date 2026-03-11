@@ -138,7 +138,7 @@ Here's what real usage costs with the recommended models:
 \*\* _Ongoing month: 2–3 lab imports, 20–30 chat messages, dashboard AI features (focus card, health dots). Heavy users who chat daily may spend 2–3x more._
 
 ::: tip No surprises
-Every AI response in getbased shows its cost right below the message. You can see exactly what each import and chat message costs as you use the app. Most users spend **well under $1/month**.
+Every AI response in getbased shows its cost right below the message. You can see exactly what each import and chat message costs as you use the app. Most users spend **well under $1/month**. If your credits run out, getbased shows a clear message with a link to add more.
 :::
 
 ::: tip Free option

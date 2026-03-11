@@ -10,9 +10,9 @@ Markers with no data are hidden in category views — only charts with at least 
 
 Each line chart shows one marker's values plotted across your lab dates. The horizontal axis is time; the vertical axis is the marker's value in your chosen unit (SI or US conventional).
 
-**Reference range band** — A gray shaded region marks the standard reference range. Values inside the band are normal; values outside are colored accordingly.
+**Reference range band** — A gray shaded region marks the standard reference range. Values inside the band are normal; values outside are colored accordingly. For open-ended ranges (only a lower or upper bound, like eGFR >59), a solid line marks the threshold instead of a shaded band.
 
-**Optimal range band** — A green dashed outline shows a tighter optimal range when one is defined. Optimal ranges represent values associated with better long-term outcomes, not just "not abnormal."
+**Optimal range band** — A green dashed outline shows a tighter optimal range when one is defined. Optimal ranges represent values associated with better long-term outcomes, not just "not abnormal." Optimal ranges also support open-ended bounds.
 
 **Data points** — Each dot represents a single lab result. Point color reflects status: green for normal, red for high, blue for low.
 

@@ -39,7 +39,7 @@ Review the preview carefully. You can dismiss the import if something looks wron
 
 ### Reference Range Adoption
 
-When the PDF's reference ranges differ from getbased's stored ranges, a toggle appears below the import preview table: **"Use this lab's reference ranges (updates N markers)"**. This is ON by default for your first import and OFF for subsequent imports. Accepting saves the lab's ranges as per-marker overrides (`refOverrides`) that apply going forward.
+When the PDF's reference ranges differ from getbased's stored ranges, a toggle appears below the import preview table: **"Update reference ranges from this report (N markers)"**. This is checked by default. Accepting saves the lab's ranges as per-marker overrides that apply going forward — including open-ended ranges (e.g., eGFR >59 where only a lower bound is stated).
 
 ### Unit Normalization
 
@@ -73,7 +73,7 @@ Your PDF is processed locally first. Personal information (name, address, date o
 ## Common Questions
 
 **Can I import the same PDF twice?**
-If you import a report for a date that already has data, the new values are merged with existing ones for that date. Existing values are not overwritten.
+If you import a report for a date that already has data, the new values are merged with existing ones for that date. Existing values are not overwritten. The Settings Data tab shows how many files contributed to each date — hover over "2 files" to see the filenames.
 
 **What if results are missing from the preview?**
 Some PDFs use image-based scans rather than text. getbased automatically detects scanned PDFs and switches to **image mode**, rendering each page as a screenshot for the AI to read visually. You can also force image mode by clicking the **"Force image mode"** link in the drop zone. If results are still missing, try a PDF exported directly from your lab's portal.

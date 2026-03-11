@@ -104,6 +104,10 @@ View and restore IndexedDB auto-backup snapshots (up to 5 rolling copies). See [
 
 Pick a local folder (Proton Drive, Dropbox, NAS) to auto-save backups using the File System Access API. See [Folder Backup](./folder-backup.md) for details.
 
+### Import History
+
+Lists all imported data entries by date, showing marker count, source filename(s), and the AI model used. When multiple PDFs are imported on the same date, it shows "2 files" — hover to see all filenames. Each entry can be removed individually.
+
 ### Export & Import
 
 Quick access to JSON export (current profile) and data clearing. For full export options including per-client and database bundles, see [JSON Export & Import](./json-export-import.md).

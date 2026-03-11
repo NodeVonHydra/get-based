@@ -48,7 +48,9 @@ This means an OAT import creates categories like "Nutritional Markers" and "Micr
 
 ## Editing Custom Markers
 
-Custom marker definitions (name, unit, reference range) are set when first created and won't be overwritten by future imports of the same marker. Reference and optimal ranges can be edited by clicking the range values in the marker's detail modal.
+Custom marker definitions (name, unit, reference range) are set when first created and won't be overwritten by future imports of the same marker. Reference and optimal ranges can be edited by clicking the range values in the marker's detail modal. If a custom marker has no ranges set, a clickable "Reference: – – –" placeholder appears — click it to add ranges.
+
+You can create open-ended ranges by clearing one side using the × button next to the input field. For example, setting only a lower bound of 59 creates a ">59" range.
 
 ## Deleting Custom Markers
 
