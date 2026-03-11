@@ -4,7 +4,7 @@
 
 **[Live app](https://app.getbased.health)** · **[Documentation](https://getbased.health/docs)** · **[Discord](https://discord.gg/zJdVB9zgQB)**
 
-![getbased Dashboard](screenshot.png)
+![getbased Dashboard](dashboard.png)
 
 ---
 

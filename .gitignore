@@ -4,6 +4,7 @@ test-data.json
 *.png
 !icon-192.png
 !icon-512.png
+!dashboard.png
 labcharts-*.json
 test-*.json
 node_modules/
