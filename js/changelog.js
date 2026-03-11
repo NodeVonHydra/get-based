@@ -5,7 +5,7 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.7.1', date: '2026-03-11', title: 'Jonseed Followups & Open-Ended Ranges',
+    version: '1.7.1', date: '2026-03-11', title: 'Open-Ended Ranges & Bug Fixes',
     items: [
       'Open-ended reference ranges — clear min or max to set one-sided ranges (e.g. eGFR >59), charts show solid threshold line',
       'Fixed "Ask AI about this marker" sending wrong reference range when optimal/both mode was active',
