@@ -329,6 +329,8 @@ export async function exportClientJSON(profileId, includeChat = false) {
     interpretiveLens: data.interpretiveLens || '', contextNotes: data.contextNotes || '',
     healthGoals: data.healthGoals || [], customMarkers: data.customMarkers || {},
     refOverrides: data.refOverrides || {},
+    categoryLabels: data.categoryLabels || null,
+    categoryIcons: data.categoryIcons || null,
     menstrualCycle: data.menstrualCycle || null,
     emfAssessment: data.emfAssessment || null
   };
@@ -497,6 +499,15 @@ export function importDataJSON(file) {
         for (const [key, ovr] of Object.entries(json.refOverrides)) {
           if (!state.importedData.refOverrides[key]) state.importedData.refOverrides[key] = ovr;
         }
+      }
+      // Import category label/icon overrides
+      if (json.categoryLabels && typeof json.categoryLabels === 'object') {
+        if (!state.importedData.categoryLabels) state.importedData.categoryLabels = {};
+        Object.assign(state.importedData.categoryLabels, json.categoryLabels);
+      }
+      if (json.categoryIcons && typeof json.categoryIcons === 'object') {
+        if (!state.importedData.categoryIcons) state.importedData.categoryIcons = {};
+        Object.assign(state.importedData.categoryIcons, json.categoryIcons);
       }
       // Import menstrual cycle
       if (json.menstrualCycle && typeof json.menstrualCycle === 'object') {

@@ -52,6 +52,10 @@ Choose between **24-hour** and **12-hour** (AM/PM) time display. This affects ho
 
 Click **Take a Tour** to replay the 7-step spotlight walkthrough. The tour highlights the drop zone, sidebar navigation, lifestyle context cards, settings, feedback button, and AI chat panel. The tour auto-triggers after your first data import.
 
+### AI Features Toggle
+
+At the top of the AI Provider tab, a toggle slider lets you **pause all AI features** globally. When paused, PDF import hints show "AI features are paused," the chat panel displays a message with an "Enable AI" button, and no automatic AI calls (health dots, focus card) are made. Your API keys and settings are preserved — flip the toggle back to resume.
+
 ## AI Provider
 
 Choose and configure one of four AI backends:
@@ -79,6 +83,8 @@ Expand the **Configure Local AI** panel to:
 - Set the server URL for PII stripping (can be different from the main AI server)
 - Select a dedicated model for PII stripping
 - Enable debug mode to view a before/after diff of what was replaced in your PDF text
+
+All options in the Privacy section use toggle sliders for quick on/off switching.
 
 See [PII Obfuscation](./pii-obfuscation.md) for a full explanation of how this works.
 

@@ -96,10 +96,34 @@ export function getActiveData() {
     const [catKey, markerKey] = fullKey.split('.');
     if (!markerKey) continue;
     if (!data.categories[catKey]) {
-      // Create new category
+      // Create new category — infer icon from label/key
+      const _label = (def.categoryLabel || catKey).toLowerCase();
+      const _inferIcon = (l) => {
+        if (/urine|urinal/.test(l)) return '\uD83E\uDDEA';
+        if (/environ|toxic|heavy.?metal|pollut/.test(l)) return '\uD83C\uDF0D';
+        if (/amino/.test(l)) return '\uD83E\uDDEC';
+        if (/antioxid/.test(l)) return '\uD83D\uDEE1\uFE0F';
+        if (/fatty.?acid|omega|lipid/.test(l)) return '\uD83D\uDC1F';
+        if (/vitamin/.test(l)) return '\u2600\uFE0F';
+        if (/mineral|element/.test(l)) return '\u2696\uFE0F';
+        if (/hormone|endocrin/.test(l)) return '\uD83E\uDDEC';
+        if (/liver|hepat/.test(l)) return '\uD83E\uDDEA';
+        if (/kidney|renal/.test(l)) return '\uD83E\uDDEB';
+        if (/thyroid/.test(l)) return '\uD83E\uDD8B';
+        if (/bone|osteo/.test(l)) return '\uD83E\uDDB4';
+        if (/immune|inflam/.test(l)) return '\uD83D\uDEE1\uFE0F';
+        if (/cardio|heart/.test(l)) return '\uD83E\uDEC0';
+        if (/neuro|brain/.test(l)) return '\uD83E\uDDE0';
+        if (/digest|gut|gi|gastro|microb/.test(l)) return '\uD83E\uDDA0';
+        if (/blood|hemat/.test(l)) return '\uD83E\uDE78';
+        if (/metabol|energy|mitochond/.test(l)) return '\u26A1';
+        if (/oxalate|organic.?acid/.test(l)) return '\u2697\uFE0F';
+        if (/nutri|diet/.test(l)) return '\uD83C\uDF4E';
+        return null;
+      };
       data.categories[catKey] = {
         label: def.categoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1),
-        icon: def.icon || '\uD83D\uDD16',
+        icon: def.icon || _inferIcon(_label) || '\uD83D\uDD16',
         singlePoint: !!def.singlePoint,
         group: def.group || null,
         markers: {}
@@ -154,6 +178,16 @@ export function getActiveData() {
       if ('optimalMin' in ovr) m.optimalMin = ovr.optimalMin;
       if ('optimalMax' in ovr) m.optimalMax = ovr.optimalMax;
     }
+  }
+
+  // Apply user category label + icon overrides
+  const catLabels = state.importedData?.categoryLabels || {};
+  for (const [catKey, label] of Object.entries(catLabels)) {
+    if (data.categories[catKey]) data.categories[catKey].label = label;
+  }
+  const catIcons = state.importedData?.categoryIcons || {};
+  for (const [catKey, icon] of Object.entries(catIcons)) {
+    if (data.categories[catKey]) data.categories[catKey].icon = icon;
   }
 
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
@@ -312,7 +346,7 @@ export function getActiveData() {
       const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/l
       const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/l
       const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/l
-      const crp          = getVals('proteins', 'hsCRP')?.[i];          // mg/l (same)
+      const crp          = getVals('proteins', 'hsCRP')?.[i] ?? getVals('proteins', 'crp')?.[i]; // mg/l (same)
       const lymphPct_si  = getVals('differential', 'lymphocytesPct')?.[i]; // fraction 0–1
       const mcv          = getVals('hematology', 'mcv')?.[i];          // fL (same)
       const rdw          = getVals('hematology', 'rdwcv')?.[i];        // % (same)

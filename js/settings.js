@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
-import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
+import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, isAIPaused, setAIPaused /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
 
@@ -111,6 +111,13 @@ export function openSettingsModal(tab) {
       <div class="settings-group-title">Provider</div>
 
       <div class="settings-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-size:13px;color:var(--text-secondary)">AI features</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ai-pause-toggle" ${isAIPaused() ? '' : 'checked'} onchange="toggleAIPause(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
         <div class="ai-model-tip">Use a state-of-the-art model (Claude, GPT, Gemini) for medical data.<br>Stick with the same model across imports to keep marker keys consistent.</div>
         <div class="ai-provider-toggle">
           <button class="ai-provider-btn${provider === 'openrouter' ? ' active' : ''}" data-provider="openrouter" onclick="switchAIProvider('openrouter')"><svg class="ai-provider-logo" viewBox="0 0 512 512" fill="currentColor" stroke="currentColor"><path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90" fill="none"/><path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z" stroke="none"/><path d="M0 249C15 249 73 261.945 103 278.945C133 295.945 133 295.945 195 339.945C273.497 395.652 329 377 420 377" stroke-width="90" fill="none"/><path d="M508 376.445L354.25 287.678L354.25 465.213L508 376.445Z" stroke="none"/></svg> OpenRouter</button>
@@ -330,22 +337,25 @@ export function renderPrivacySection() {
         <div class="privacy-status-detail" id="privacy-status-detail"></div>
       </div>
     </div>
-    <div style="margin:12px 0">
-      <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
-        <input type="checkbox" id="pii-local-toggle" style="margin-top:2px" ${piiEnabled ? 'checked' : ''} onchange="toggleOllamaPII(this.checked)">
-        <span>Use local AI for privacy protection<br><span style="font-size:11px;color:var(--text-muted)">Requires a local AI server. When disabled, regex pattern matching is used instead</span></span>
+    <div style="display:flex;align-items:start;justify-content:space-between;gap:12px;margin:12px 0">
+      <span style="font-size:13px">Use local AI for privacy protection<br><span style="font-size:11px;color:var(--text-muted)">Requires a local AI server. When disabled, regex pattern matching is used instead</span></span>
+      <label class="toggle-switch" style="margin-top:2px">
+        <input type="checkbox" id="pii-local-toggle" ${piiEnabled ? 'checked' : ''} onchange="toggleOllamaPII(this.checked)">
+        <span class="toggle-slider"></span>
       </label>
     </div>
-    <div style="margin-top:4px">
-      <label style="font-size:13px;cursor:pointer;display:flex;align-items:start;gap:6px">
-        <input type="checkbox" id="pii-review-toggle" style="margin-top:2px" ${isPIIReviewEnabled() ? 'checked' : ''} onchange="setPIIReviewEnabled(this.checked)">
-        <span>Review obfuscated text before sending to AI<br><span style="font-size:11px;color:var(--text-muted)">Pause after privacy protection to inspect what AI will receive</span></span>
+    <div style="display:flex;align-items:start;justify-content:space-between;gap:12px;margin-top:4px">
+      <span style="font-size:13px">Review obfuscated text before sending to AI<br><span style="font-size:11px;color:var(--text-muted)">Pause after privacy protection to inspect what AI will receive</span></span>
+      <label class="toggle-switch" style="margin-top:2px">
+        <input type="checkbox" id="pii-review-toggle" ${isPIIReviewEnabled() ? 'checked' : ''} onchange="setPIIReviewEnabled(this.checked)">
+        <span class="toggle-slider"></span>
       </label>
     </div>
-    <div style="margin-top:8px">
-      <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px">
+      <span style="font-size:13px">Show privacy details in import preview</span>
+      <label class="toggle-switch">
         <input type="checkbox" id="debug-mode-toggle" ${isDebugMode() ? 'checked' : ''} onchange="setDebugMode(this.checked)">
-        Show privacy details in import preview
+        <span class="toggle-slider"></span>
       </label>
     </div>
     <div class="privacy-configure-toggle" onclick="togglePrivacyConfigure()" style="margin-top:12px">
@@ -424,6 +434,11 @@ export async function updatePrivacyStatusCard(enhanced) {
     title.textContent = 'Basic protection';
     detail.innerHTML = 'Regex pattern matching catches common formats (names on labeled lines, IDs, emails, phone numbers). May miss unusual layouts or non-English personal data.<br><span style="margin-top:4px;display:inline-block">Set up Local AI for enhanced protection — a local server that reliably catches all personal info.</span>';
   }
+}
+
+export function toggleAIPause(enabled) {
+  setAIPaused(!enabled);
+  showNotification(enabled ? 'AI features enabled' : 'AI features paused', 'info');
 }
 
 export function switchAIProvider(provider) {
@@ -938,6 +953,7 @@ Object.assign(window, {
   openSettingsModal,
   closeSettingsModal,
   switchSettingsTab,
+  toggleAIPause,
   renderAIProviderPanel,
   renderPrivacySection,
   togglePrivacyConfigure,

@@ -38,7 +38,15 @@ Once created, custom markers are treated the same as built-in markers throughout
 
 ## Category Assignment
 
-If a custom marker belongs to a category that doesn't exist yet in the built-in schema, a new category is created automatically with a bookmark icon. It appears in the sidebar alongside the standard categories.
+If a custom marker belongs to a category that doesn't exist yet in the built-in schema, a new category is created automatically with an auto-inferred icon (or a bookmark icon as fallback). It appears in the sidebar alongside the standard categories.
+
+### Renaming Categories
+
+Click the category name in the category view header to rename it. The new label is saved as a display override — the underlying key is unchanged, so existing data and exports are unaffected.
+
+### Changing Category Icons
+
+Click the icon next to any category name to open the **emoji picker**. The picker has categorized emoji tabs (Science, Health, Nature, Food, Objects), a search field, and a **Reset** button to revert to the default icon. You can also pick an icon when creating a new category via the "+" sidebar button.
 
 ## Specialty Lab Pipeline
 

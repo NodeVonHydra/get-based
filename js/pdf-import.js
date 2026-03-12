@@ -853,6 +853,8 @@ export function confirmImport() {
       ovr.refMin = siMin;
       ovr.refMax = siMax;
       ovr.refSource = 'import';
+      // Stash lab range so manual edits can revert to it (don't clobber existing stash)
+      if (!('labRefMin' in ovr)) { ovr.labRefMin = siMin; ovr.labRefMax = siMax; }
       state.importedData.refOverrides[m.mappedKey] = ovr;
     }
   }

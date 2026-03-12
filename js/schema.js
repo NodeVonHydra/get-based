@@ -8,7 +8,7 @@ export const MARKER_SCHEMA = {
     label: "Biochemistry", icon: "\u{1F9EA}",
     markers: {
       glucose: { name: "Glucose", unit: "mmol/l", refMin: 4.11, refMax: 5.60, desc: "Measures blood sugar level; the primary marker for diagnosing and monitoring diabetes and metabolic health." },
-      urea: { name: "Urea", unit: "mmol/l", refMin: 2.8, refMax: 8.3, desc: "A waste product of protein metabolism filtered by the kidneys; elevated levels suggest impaired kidney function or dehydration." },
+      urea: { name: "Urea (BUN)", unit: "mmol/l", refMin: 2.8, refMax: 8.3, desc: "A waste product of protein metabolism filtered by the kidneys; elevated levels suggest impaired kidney function or dehydration." },
       creatinine: { name: "Creatinine", unit: "\u00b5mol/l", refMin: 62, refMax: 106, refMin_f: 44, refMax_f: 80, desc: "A muscle metabolism byproduct cleared by the kidneys; used to estimate kidney filtration rate and detect renal dysfunction." },
       egfr: { name: "eGFR (CKD-EPI)", unit: "ml/s/1.73m\u00b2", refMin: 1.00, refMax: 2.30, desc: "Estimates how well the kidneys filter waste from blood; the standard measure for staging chronic kidney disease." },
       uricAcid: { name: "Uric Acid", unit: "\u00b5mol/l", refMin: 202, refMax: 417, refMin_f: 143, refMax_f: 339, desc: "End product of purine metabolism; high levels cause gout and are linked to kidney stones and cardiovascular risk." },
@@ -24,7 +24,7 @@ export const MARKER_SCHEMA = {
     }
   },
   hormones: {
-    label: "Hormones", icon: "\u26A1",
+    label: "Hormones", icon: "\uD83E\uDDEC",
     markers: {
       testosterone: { name: "Testosterone", unit: "nmol/l", refMin: 8.64, refMax: 29.00, refMin_f: 0.29, refMax_f: 1.67, desc: "The primary male sex hormone; critical for muscle mass, bone density, libido, and mood in both sexes." },
       freeTestosterone: { name: "Free Testosterone", unit: "pmol/l", refMin: 30.70, refMax: 161.70, refMin_f: 0.30, refMax_f: 10.40, desc: "The unbound, biologically active fraction of testosterone; a better indicator of androgen status than total testosterone." },
@@ -43,7 +43,7 @@ export const MARKER_SCHEMA = {
     }
   },
   electrolytes: {
-    label: "Electrolytes & Minerals", icon: "\u2699\uFE0F",
+    label: "Electrolytes & Minerals", icon: "\u2696\uFE0F",
     markers: {
       sodium: { name: "Sodium", unit: "mmol/l", refMin: 136, refMax: 145, desc: "The main extracellular electrolyte controlling fluid balance and blood pressure; abnormal levels affect nerve and muscle function." },
       potassium: { name: "Potassium", unit: "mmol/l", refMin: 3.5, refMax: 5.1, desc: "A critical intracellular electrolyte regulating heart rhythm and muscle contraction; abnormal levels can be life-threatening." },
@@ -57,7 +57,7 @@ export const MARKER_SCHEMA = {
     }
   },
   lipids: {
-    label: "Lipid Panel", icon: "\uD83D\uDCA7",
+    label: "Lipid Panel", icon: "\uD83E\uDEC0",
     markers: {
       cholesterol: { name: "Total Cholesterol", unit: "mmol/l", refMin: 2.90, refMax: 5.00, desc: "The sum of all cholesterol fractions in blood; a basic cardiovascular risk indicator, though HDL/LDL ratio matters more." },
       triglycerides: { name: "Triglycerides", unit: "mmol/l", refMin: 0.45, refMax: 1.70, desc: "Blood fats from dietary intake and liver production; elevated levels increase cardiovascular and pancreatitis risk." },
@@ -108,7 +108,7 @@ export const MARKER_SCHEMA = {
     }
   },
   diabetes: {
-    label: "Diabetes / Glucose", icon: "\uD83D\uDCCA",
+    label: "Diabetes / Glucose", icon: "\uD83C\uDF6C",
     markers: {
       hba1c: { name: "HbA1c", unit: "mmol/mol", refMin: 20.0, refMax: 42.0, desc: "Glycated hemoglobin reflecting average blood sugar over 2\u20133 months; the gold standard for long-term glucose control." },
       insulin_d: { name: "Insulin", unit: "mU/l", refMin: 2.6, refMax: 24.9, desc: "Fasting insulin level used in the diabetes context; elevated levels are an early sign of insulin resistance." },
@@ -128,7 +128,7 @@ export const MARKER_SCHEMA = {
     }
   },
   hematology: {
-    label: "Hematology (CBC)", icon: "\uD83E\uDDE0",
+    label: "Hematology (CBC)", icon: "\uD83E\uDDEB",
     markers: {
       wbc: { name: "WBC", unit: "10^9/l", refMin: 4.00, refMax: 10.00, desc: "White blood cell count; the primary measure of immune system activity, elevated in infection and inflammation." },
       rbc: { name: "RBC", unit: "10^12/l", refMin: 4.00, refMax: 5.80, refMin_f: 3.80, refMax_f: 5.20, desc: "Red blood cell count; reflects oxygen-carrying capacity, with low values indicating anemia and high values polycythemia." },
@@ -145,7 +145,7 @@ export const MARKER_SCHEMA = {
     }
   },
   differential: {
-    label: "WBC Differential", icon: "\uD83E\uDDEB",
+    label: "WBC Differential", icon: "\uD83E\uDDA0",
     markers: {
       neutrophils: { name: "Neutrophils #", unit: "10^9/l", refMin: 2.0, refMax: 7.0, desc: "The most abundant white blood cells; the first responders to bacterial infection, elevated in acute inflammation." },
       lymphocytes: { name: "Lymphocytes #", unit: "10^9/l", refMin: 0.8, refMax: 4.0, desc: "Immune cells (T-cells, B-cells, NK cells) driving adaptive immunity; elevated in viral infections, low in immunodeficiency." },

@@ -5,6 +5,19 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.2', date: '2026-03-12', title: 'Issue Fixes & Category Customization',
+    items: [
+      'Rename categories and change icons with a built-in emoji picker',
+      'Pause AI features globally — toggle in Settings → AI tab',
+      'Fatty acid cards and table/heatmap rows now open the detail modal',
+      'Two-step range revert: manual edit → lab range → schema default',
+      'PhenoAge uses plain CRP as fallback when hsCRP is absent',
+      'Urea renamed to "Urea (BUN)" for clarity',
+      'Updated default category icons (Hormones, Electrolytes, Lipids, Diabetes, Hematology, WBC)',
+      'Toggle sliders replace checkboxes in Settings Privacy section',
+    ]
+  },
+  {
     version: '1.7.1', date: '2026-03-11', title: 'Open-Ended Ranges & Bug Fixes',
     items: [
       'Open-ended reference ranges — clear min or max to set one-sided ranges (e.g. eGFR >59), charts show solid threshold line',

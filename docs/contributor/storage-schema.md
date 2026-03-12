@@ -218,9 +218,22 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
       refMin: 3.9,
       refMax: 5.6,
       optimalMin: 4.0,
-      optimalMax: 5.0
+      optimalMax: 5.0,
+      labRefMin: 3.9,   // stashed lab-stated range from PDF import (for two-step revert)
+      labRefMax: 5.6,    // preserved when user manually edits — revert goes lab → schema default
+      refSource: "import" // "import" | "manual" — tracks who set the current refMin/refMax
     }
     // ... user-customized ranges from detail modal editing or import-time range adoption
+  },
+
+  // Display overrides for category labels (from rename)
+  categoryLabels: {
+    "mylab": "My Laboratory"  // categoryKey → display name
+  },
+
+  // Display overrides for category icons (from emoji picker)
+  categoryIcons: {
+    "mylab": "🧪"             // categoryKey → emoji
   },
 
   // Custom markers from PDF import — keyed by "category.markerKey"

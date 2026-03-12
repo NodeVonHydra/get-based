@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
@@ -1643,6 +1643,20 @@ export function renderChatMessages() {
       return;
     }
 
+    // AI paused — show re-enable prompt instead of setup guide
+    if (isAIPaused()) {
+      const name = currentP?.name || 'there';
+      container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
+        <div class="chat-msg chat-ai">
+          <p>${escapeHTML(name)}, AI features are currently paused. Turn them back on to chat, get insights, and import PDFs with AI.</p>
+          <div style="margin-top:12px">
+            <button class="import-btn import-btn-primary" onclick="window._resumeAI()">Enable AI</button>
+          </div>
+        </div>`;
+      updateDiscussButton();
+      return;
+    }
+
     // Stage 2: Profile set, no AI — connect provider (full list)
     const providerSkipped = localStorage.getItem(`labcharts-onboard-provider-skipped-${state.currentProfile}`);
     if (!hasAIProvider() && !providerSkipped) {
@@ -2055,7 +2069,7 @@ function _updateChatInputState() {
   const noAI = !hasAIProvider();
   if (input) {
     input.disabled = noAI;
-    input.placeholder = noAI ? 'Connect an AI provider in Settings to chat' : 'Ask about your lab results...';
+    input.placeholder = noAI ? (isAIPaused() ? 'AI features are paused' : 'Connect an AI provider in Settings to chat') : 'Ask about your lab results...';
   }
   if (sendBtn) sendBtn.disabled = noAI;
 }
@@ -3135,7 +3149,14 @@ async function _runDiscussion(personas) {
 // ═══════════════════════════════════════════════
 // WINDOW EXPORTS (for onclick handlers)
 // ═══════════════════════════════════════════════
+function _resumeAI() {
+  setAIPaused(false);
+  renderChatMessages();
+  _updateChatInputState();
+}
+
 Object.assign(window, {
+  _resumeAI,
   buildLabContext,
   getChatStorageKey,
   getChatThreadsKey,

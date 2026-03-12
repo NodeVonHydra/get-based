@@ -24,6 +24,8 @@ PhenoAge is calculated from:
 
 ::: warning
 PhenoAge requires **all nine markers** to be present for a given date. If any one of them is missing, no value is calculated for that draw. It also requires your **date of birth** to be set in Settings → Profile.
+
+**CRP fallback**: If your lab reports plain CRP instead of high-sensitivity CRP (hsCRP), getbased will use the CRP value as a fallback. Either marker satisfies the inflammation input.
 :::
 
 ## Where to Find It

@@ -10,7 +10,7 @@ import { createLineChart, getMarkerDescription, getNotesForChart, getSupplements
 import { renderSupplementsSection } from './supplements.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, getAIProvider, getActiveModelId } from './api.js';
 import { setupDropZone } from './pdf-import.js';
 import { buildLabContext } from './chat.js';
 
@@ -55,7 +55,7 @@ export function showDashboard(data) {
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
         <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
         <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div>
-        ${!hasAIProvider() ? '<div class="drop-zone-api-hint">Requires an AI connection — <a href="#" onclick="event.preventDefault();event.stopPropagation();closeChatPanel();window.openSettingsModal(\'ai\')">set up in 30 seconds</a></div>' : ''}</div>
+        ${!hasAIProvider() ? `<div class="drop-zone-api-hint">${isAIPaused() ? 'AI features are paused — <a href="#" onclick="event.preventDefault();event.stopPropagation();window.openSettingsModal(\'ai\')">re-enable in Settings</a>' : 'Requires an AI connection — <a href="#" onclick="event.preventDefault();event.stopPropagation();closeChatPanel();window.openSettingsModal(\'ai\')">set up in 30 seconds</a>'}</div>` : ''}</div>
       <div class="onboarding-divider">
         <span class="onboarding-divider-line"></span>
         <span class="onboarding-divider-text">or explore with demo data</span>
@@ -452,7 +452,9 @@ export function showCategory(categoryKey, preData) {
   const allEntries = Object.entries(cat.markers);
   const withData = allEntries.filter(([, m]) => markerHasData(m));
   const countLabel = withData.length < allEntries.length ? `${withData.length} of ${allEntries.length} biomarkers with data` : `${allEntries.length} biomarkers tracked`;
-  let html = `<div class="category-header"><h2>${cat.icon} ${escapeHTML(cat.label)}</h2>
+  const renameBtn = ` <span class="ref-edited-badge" title="Rename category" onclick="event.stopPropagation();renameCategory('${categoryKey}')" style="cursor:pointer;font-size:12px">rename</span>`;
+  const iconDisplay = cat.icon || '\uD83D\uDD16';
+  let html = `<div class="category-header"><h2><span title="Click to change icon" style="cursor:pointer;min-width:24px;display:inline-block" onclick="event.stopPropagation();changeCategoryIcon('${categoryKey}')">${iconDisplay}</span> ${escapeHTML(cat.label)}${renameBtn}</h2>
     <p>${countLabel}</p></div>`;
 
   html += `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">`;
@@ -469,13 +471,25 @@ export function showCategory(categoryKey, preData) {
     html += `<div class="empty-state"><div class="empty-state-icon">${cat.icon}</div>
       <h3>No Data Available</h3><p>Import lab results containing ${escapeHTML(cat.label.toLowerCase())} markers to see data here.</p></div>`;
   } else if (cat.singleDate) {
-    html += renderFattyAcidsView(cat);
+    html += renderFattyAcidsView(cat, categoryKey);
   } else {
     html += `<div class="charts-grid">`;
     for (const [key, marker] of withData) {
       html += renderChartCard(categoryKey + "_" + key, marker, data.dateLabels);
     }
     html += `</div>`;
+    // Show empty markers (no data yet) as clickable cards
+    const noData = allEntries.filter(([, m]) => !markerHasData(m));
+    if (noData.length > 0) {
+      html += `<div style="margin-top:16px"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px">No data yet</p><div style="display:flex;flex-wrap:wrap;gap:8px">`;
+      for (const [key, marker] of noData) {
+        const id = categoryKey + '_' + key;
+        html += `<div class="chart-card" onclick="showDetailModal('${id}')" style="cursor:pointer;padding:12px 16px;min-height:auto;flex:0 0 auto">
+          <span style="color:var(--text-secondary)">${escapeHTML(marker.name)}</span>
+          <span style="color:var(--text-muted);font-size:11px;margin-left:6px">+ add value</span></div>`;
+      }
+      html += `</div></div>`;
+    }
   }
   html += `</div>`;
   main.innerHTML = html;
@@ -489,6 +503,127 @@ export function showCategory(categoryKey, preData) {
   }
 }
 
+export function renameCategory(categoryKey) {
+  const data = getActiveData();
+  const cat = data.categories[categoryKey];
+  if (!cat) return;
+  const currentLabel = cat.label;
+  const newLabel = prompt('Rename category:', currentLabel);
+  if (!newLabel || newLabel.trim() === '' || newLabel.trim() === currentLabel) return;
+  const trimmed = newLabel.trim();
+  // Store label override
+  if (!state.importedData.categoryLabels) state.importedData.categoryLabels = {};
+  state.importedData.categoryLabels[categoryKey] = trimmed;
+  // Also update custom marker defs so sidebar picks it up
+  const cms = state.importedData.customMarkers || {};
+  for (const [k, def] of Object.entries(cms)) {
+    if (k.startsWith(categoryKey + '.')) def.categoryLabel = trimmed;
+  }
+  saveImportedData();
+  window.buildSidebar();
+  navigate(categoryKey);
+  showNotification(`Category renamed to "${trimmed}"`, 'info');
+}
+
+const EMOJI_CATEGORIES = [
+  { id: 'science', icon: '\uD83E\uDDEA', label: 'Science & Medical', emojis: ['\uD83E\uDDEA','\uD83E\uDDEC','\uD83E\uDD2C','\uD83D\uDD2C','\u2697\uFE0F','\uD83D\uDC89','\uD83D\uDC8A','\u2695\uFE0F','\uD83E\uDE7A','\uD83E\uDDB7','\uD83E\uDDB4','\uD83E\uDDE0','\uD83E\uDEC0','\uD83E\uDEC1','\uD83D\uDD2D','\uD83E\uDDA0','\uD83E\uDE78','\uD83E\uDDEB'] },
+  { id: 'body', icon: '\uD83D\uDCAA', label: 'Body & Lifestyle', emojis: ['\uD83D\uDCAA','\uD83D\uDC41\uFE0F','\uD83D\uDC42','\uD83D\uDC45','\u2764\uFE0F','\uD83E\uDDE1','\uD83E\uDD71','\uD83D\uDE34','\uD83C\uDFC3','\uD83E\uDDD8','\uD83C\uDFCB\uFE0F','\uD83D\uDEB4','\uD83C\uDFCA','\uD83D\uDE4F','\uD83E\uDDCD','\uD83E\uDEC2'] },
+  { id: 'food', icon: '\uD83C\uDF4E', label: 'Food & Nutrition', emojis: ['\uD83C\uDF4E','\uD83C\uDF4A','\uD83C\uDF4B','\uD83C\uDF47','\uD83E\uDD51','\uD83E\uDD66','\uD83C\uDF45','\uD83E\uDD55','\uD83E\uDD6C','\uD83C\uDF57','\uD83E\uDD5A','\uD83D\uDC1F','\uD83E\uDD5B','\uD83E\uDD57','\u2615','\uD83C\uDF75','\uD83E\uDD64','\uD83D\uDCA7'] },
+  { id: 'nature', icon: '\uD83C\uDF3F', label: 'Nature & Environment', emojis: ['\uD83C\uDF3F','\uD83C\uDF31','\uD83C\uDF3B','\uD83C\uDF3E','\uD83C\uDF43','\uD83C\uDF40','\u2600\uFE0F','\uD83C\uDF19','\u2B50','\uD83D\uDD25','\uD83C\uDF0A','\u26A1','\uD83C\uDF08','\u2744\uFE0F','\uD83C\uDF0D','\uD83D\uDCA8','\uD83C\uDF32','\uD83E\uDEB5'] },
+  { id: 'symbols', icon: '\uD83D\uDD36', label: 'Symbols & Colors', emojis: ['\uD83D\uDD36','\uD83D\uDD35','\uD83D\uDFE2','\uD83D\uDFE1','\uD83D\uDFE3','\uD83D\uDD34','\u26AA','\u26AB','\uD83D\uDFE0','\uD83D\uDFE4','\u2728','\uD83D\uDCAB','\u267B\uFE0F','\u269B\uFE0F','\u2699\uFE0F','\u267E\uFE0F','\u2B55','\uD83D\uDD16'] },
+];
+
+function showEmojiPicker(anchorEl, callback, opts = {}) {
+  // Remove existing picker
+  document.querySelector('.emoji-picker')?.remove();
+  const picker = document.createElement('div');
+  picker.className = 'emoji-picker';
+
+  // Position near anchor
+  const rect = anchorEl.getBoundingClientRect();
+  picker.style.left = Math.min(rect.left, window.innerWidth - 340) + 'px';
+  picker.style.top = Math.min(rect.bottom + 4, window.innerHeight - 420) + 'px';
+
+  let activeCat = null;
+  let searchTerm = '';
+
+  function render() {
+    let html = `<div class="emoji-picker-search"><input type="text" placeholder="Search emoji..." value="${escapeHTML(searchTerm)}"></div>`;
+    html += `<div class="emoji-picker-cats">`;
+    if (opts.showReset) {
+      html += `<button data-cat="__reset" title="Reset to default" style="font-size:12px;font-family:inherit">\u00d7</button>`;
+    }
+    for (const cat of EMOJI_CATEGORIES) {
+      html += `<button data-cat="${cat.id}" title="${cat.label}" class="${activeCat === cat.id ? 'active' : ''}">${cat.icon}</button>`;
+    }
+    html += `</div><div class="emoji-picker-grid">`;
+
+    const items = [];
+    for (const cat of EMOJI_CATEGORIES) {
+      if (activeCat && activeCat !== cat.id) continue;
+      if (searchTerm && !cat.label.toLowerCase().includes(searchTerm.toLowerCase())) continue;
+      items.push(`<div class="emoji-picker-label">${cat.label}</div>`);
+      for (const e of cat.emojis) {
+        items.push(`<span data-emoji="${e}">${e}</span>`);
+      }
+    }
+    if (items.length === 0) items.push(`<div class="emoji-picker-label">No results</div>`);
+    html += items.join('') + `</div>`;
+    picker.innerHTML = html;
+
+    // Bind events
+    const input = picker.querySelector('input');
+    input.addEventListener('input', e => { searchTerm = e.target.value; activeCat = null; render(); const el = picker.querySelector('input'); el.focus(); el.setSelectionRange(searchTerm.length, searchTerm.length); });
+    picker.querySelectorAll('.emoji-picker-cats button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.cat === '__reset') { callback(null); picker.remove(); cleanup(); return; }
+        activeCat = activeCat === btn.dataset.cat ? null : btn.dataset.cat; searchTerm = ''; render();
+      });
+    });
+    picker.querySelectorAll('.emoji-picker-grid span[data-emoji]').forEach(span => {
+      span.addEventListener('click', () => { callback(span.dataset.emoji); picker.remove(); cleanup(); });
+    });
+  }
+
+  render();
+  document.body.appendChild(picker);
+  setTimeout(() => picker.querySelector('input')?.focus(), 50);
+
+  // Close on outside click
+  function onClickOutside(e) { if (!picker.contains(e.target) && e.target !== anchorEl) { picker.remove(); cleanup(); } }
+  function onEsc(e) { if (e.key === 'Escape') { picker.remove(); cleanup(); } }
+  function cleanup() { document.removeEventListener('mousedown', onClickOutside); document.removeEventListener('keydown', onEsc); }
+  setTimeout(() => { document.addEventListener('mousedown', onClickOutside); document.addEventListener('keydown', onEsc); }, 10);
+}
+
+export function changeCategoryIcon(categoryKey) {
+  const data = getActiveData();
+  const cat = data.categories[categoryKey];
+  if (!cat) return;
+  const anchor = event?.target || document.querySelector('.category-header h2 span');
+  const hasOverride = categoryKey in (state.importedData?.categoryIcons || {});
+  showEmojiPicker(anchor, (emoji) => {
+    if (emoji === null) {
+      // Reset to default
+      if (state.importedData.categoryIcons) delete state.importedData.categoryIcons[categoryKey];
+    } else {
+      if (!state.importedData.categoryIcons) state.importedData.categoryIcons = {};
+      state.importedData.categoryIcons[categoryKey] = emoji;
+    }
+    const cms = state.importedData.customMarkers || {};
+    for (const [k, def] of Object.entries(cms)) {
+      if (k.startsWith(categoryKey + '.')) {
+        if (emoji === null) delete def.icon;
+        else def.icon = emoji;
+      }
+    }
+    saveImportedData();
+    window.buildSidebar();
+    navigate(categoryKey);
+    showNotification(emoji === null ? 'Icon reset to default' : 'Icon updated', 'info');
+  }, { showReset: !!hasOverride });
+}
+
 export function switchView(view, categoryKey, btn) {
   document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -498,12 +633,12 @@ export function switchView(view, categoryKey, btn) {
   const cat = data.categories[categoryKey];
   const container = document.getElementById("view-content");
   if (view === "table") {
-    container.innerHTML = renderTableView(cat, data.dateLabels);
+    container.innerHTML = renderTableView(cat, data.dateLabels, categoryKey);
   } else if (view === "heatmap") {
     container.innerHTML = renderHeatmapView(cat, data.dateLabels, data.dates, categoryKey);
   } else {
     if (cat.singleDate) {
-      container.innerHTML = renderFattyAcidsView(cat);
+      container.innerHTML = renderFattyAcidsView(cat, categoryKey);
       renderFattyAcidsCharts(cat);
     } else {
       const withData = Object.entries(cat.markers).filter(([, m]) => markerHasData(m));
@@ -567,19 +702,21 @@ export function renderChartCard(id, marker, dateLabels) {
   return html;
 }
 
-export function renderTableView(cat, dateLabels) {
+export function renderTableView(cat, dateLabels, categoryKey) {
   const labels = cat.singleDate ? [cat.singleDateLabel || "N/A"] : dateLabels;
   let html = `<div class="data-table-wrapper"><table class="data-table"><thead><tr>
     <th>Biomarker</th><th>Unit</th><th>Reference</th>`;
   for (const d of labels) html += `<th>${d}</th>`;
   html += `<th>Trend</th><th>Range</th></tr></thead><tbody>`;
   for (const [key, marker] of Object.entries(cat.markers)) {
+    const id = categoryKey ? categoryKey + '_' + key : '';
     const r = getEffectiveRange(marker);
     let refCell = r.min != null && r.max != null ? `${formatValue(r.min)} \u2013 ${formatValue(r.max)}` : '\u2014';
     if (state.rangeMode === 'both') {
       if (marker.optimalMin != null) refCell = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span style="color:var(--green);font-size:11px">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
     }
-    html += `<tr><td class="marker-name">${escapeHTML(marker.name)}</td>
+    const rowClick = id ? ` onclick="showDetailModal('${id}')" style="cursor:pointer"` : '';
+    html += `<tr${rowClick}><td class="marker-name">${escapeHTML(marker.name)}</td>
       <td class="unit-col">${escapeHTML(marker.unit)}</td>
       <td class="ref-col">${refCell}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
@@ -612,7 +749,7 @@ export function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
   for (const [key, marker] of Object.entries(cat.markers)) {
     const id = categoryKey + "_" + key;
     state.markerRegistry[id] = marker;
-    html += `<tr><td>${escapeHTML(marker.name)}</td>`;
+    html += `<tr><td style="cursor:pointer" onclick="showDetailModal('${id}')">${escapeHTML(marker.name)}</td>`;
     for (let i = 0; i < marker.values.length; i++) {
       const v = marker.values[i];
       const ri = getEffectiveRangeForDate(marker, i);
@@ -625,7 +762,7 @@ export function renderHeatmapView(cat, dateLabels, dates, categoryKey) {
   return html;
 }
 
-export function renderFattyAcidsView(cat) {
+export function renderFattyAcidsView(cat, categoryKey) {
   let html = `<div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;border:1px solid var(--border)">
     <h3 style="margin-bottom:16px;font-size:16px">Fatty Acid Profile${cat.singleDate ? ' \u2014 ' + new Date(cat.singleDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}</h3>
     <div class="fa-bar-chart-container"><canvas id="chart-fa-bar"></canvas></div></div>`;
@@ -641,7 +778,7 @@ export function renderFattyAcidsView(cat) {
       const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
       faRangeText = `${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}`;
     }
-    html += `<div class="fa-card"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
+    html += `<div class="fa-card" onclick="showDetailModal('${categoryKey}_${key}')" style="cursor:pointer"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
       <div class="fa-card-value val-${s}">${formatValue(v)}${marker.unit ? " " + escapeHTML(marker.unit) : ""}</div>
       <div class="fa-card-ref">${faRangeText}</div>
       <div class="range-bar" style="margin-top:8px;width:100%"><div class="range-bar-fill" style="left:0;width:100%"></div>
@@ -708,7 +845,8 @@ export async function fetchCustomMarkerDescription(markerId, markerName, unit) {
 
 export function showDetailModal(id) {
   const data = getActiveData();
-  const [catKey, mKey] = id.split('_');
+  const idx = id.indexOf('_');
+  const catKey = id.slice(0, idx), mKey = id.slice(idx + 1);
   let marker = data.categories[catKey]?.markers[mKey];
   if (marker) state.markerRegistry[id] = marker;
   if (!marker) return;
@@ -723,7 +861,8 @@ export function showDetailModal(id) {
     const isEdited = type === 'optimal' ? ('optimalMin' in overrides || 'optimalMax' in overrides) : ('refMin' in overrides || 'refMax' in overrides);
     const source = type === 'optimal' ? overrides.optimalSource : overrides.refSource;
     const badgeLabel = source === 'manual' ? 'edited' : 'lab';
-    const badgeTitle = source === 'manual' ? 'Manually edited — click to revert to default' : 'Custom range from your lab — click to revert to default';
+    const hasLabStash = type === 'optimal' ? 'labOptimalMin' in overrides : 'labRefMin' in overrides;
+    const badgeTitle = source === 'manual' ? (hasLabStash ? 'Manually edited — click to revert to lab range' : 'Manually edited — click to revert to default') : 'Custom range from your lab — click to revert to default';
     const editedBadge = isEdited ? ` <span class="ref-edited-badge" title="${badgeTitle}" onclick="event.stopPropagation();revertRefRange('${id}','${type}')">${badgeLabel} \u00d7</span>` : '';
     const displayMin = min != null ? min : '–';
     const displayMax = max != null ? max : '–';
@@ -889,7 +1028,6 @@ export function openCreateMarkerModal() {
   // Build category options from schema + existing custom categories
   const data = getActiveData();
   const catOptions = Object.entries(data.categories)
-    .filter(([, c]) => !c.calculated)
     .map(([key, c]) => `<option value="${key}">${escapeHTML(c.label)}</option>`)
     .join('');
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
@@ -898,11 +1036,14 @@ export function openCreateMarkerModal() {
       <div class="me-field">
         <label>Category</label>
         <div class="cm-cat-row">
-          <select id="cm-category" onchange="document.getElementById('cm-new-cat').style.display=this.value==='__new__'?'block':'none'">
+          <select id="cm-category" onchange="document.getElementById('cm-new-cat-row').style.display=this.value==='__new__'?'flex':'none'">
             ${catOptions}
             <option value="__new__">+ New category...</option>
           </select>
-          <input type="text" id="cm-new-cat" placeholder="Category name" style="display:none;margin-top:6px">
+          <div id="cm-new-cat-row" style="display:none;margin-top:6px;gap:8px;align-items:center">
+            <span id="cm-new-cat-icon" title="Pick icon" style="cursor:pointer;font-size:20px;min-width:28px;text-align:center" data-custom="" onclick="pickNewCatIcon(this)">\uD83D\uDD16</span>
+            <input type="text" id="cm-new-cat" placeholder="Category name" style="flex:1">
+          </div>
         </div>
       </div>
       <div class="me-field">
@@ -938,6 +1079,12 @@ export function openCreateMarkerModal() {
   setTimeout(() => { const el = document.getElementById('cm-name'); if (el) el.focus(); }, 50);
 }
 
+export function pickNewCatIcon(el) {
+  showEmojiPicker(el, (emoji) => {
+    if (emoji) { el.textContent = emoji; el.dataset.custom = '1'; }
+  });
+}
+
 export function saveCustomMarker() {
   const catSelect = document.getElementById('cm-category');
   const newCatInput = document.getElementById('cm-new-cat');
@@ -952,6 +1099,8 @@ export function saveCustomMarker() {
   if (catSelect.value === '__new__') {
     catLabel = (newCatInput?.value || '').trim();
     if (!catLabel) { showNotification('Please enter a category name', 'error'); return; }
+    const iconEl = document.getElementById('cm-new-cat-icon');
+    var newCatIcon = iconEl?.dataset.custom === '1' ? iconEl.textContent.trim() : null;
     catKey = catLabel.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/)
       .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join('');
@@ -989,7 +1138,8 @@ export function saveCustomMarker() {
     unit: (unitInput?.value || '').trim(),
     refMin: isNaN(refMin) ? null : refMin,
     refMax: isNaN(refMax) ? null : refMax,
-    categoryLabel: catLabel
+    categoryLabel: catLabel,
+    ...(typeof newCatIcon !== 'undefined' && newCatIcon ? { icon: newCatIcon } : {})
   };
   state.importedData.customMarkers[fullKey] = cmDef;
   // Save optimal range as refOverride if provided
@@ -1472,14 +1622,24 @@ export function saveRefRange(id, type) {
   if (!state.importedData.refOverrides) state.importedData.refOverrides = {};
   if (!state.importedData.refOverrides[dotKey]) state.importedData.refOverrides[dotKey] = {};
 
+  const ovr = state.importedData.refOverrides[dotKey];
   if (type === 'optimal') {
-    state.importedData.refOverrides[dotKey].optimalMin = newMin;
-    state.importedData.refOverrides[dotKey].optimalMax = newMax;
-    state.importedData.refOverrides[dotKey].optimalSource = 'manual';
+    // Stash lab values before first manual edit
+    if (ovr.optimalSource !== 'manual' && ('optimalMin' in ovr) && !('labOptimalMin' in ovr)) {
+      ovr.labOptimalMin = ovr.optimalMin;
+      ovr.labOptimalMax = ovr.optimalMax;
+    }
+    ovr.optimalMin = newMin;
+    ovr.optimalMax = newMax;
+    ovr.optimalSource = 'manual';
   } else {
-    state.importedData.refOverrides[dotKey].refMin = newMin;
-    state.importedData.refOverrides[dotKey].refMax = newMax;
-    state.importedData.refOverrides[dotKey].refSource = 'manual';
+    if (ovr.refSource !== 'manual' && ('refMin' in ovr) && !('labRefMin' in ovr)) {
+      ovr.labRefMin = ovr.refMin;
+      ovr.labRefMax = ovr.refMax;
+    }
+    ovr.refMin = newMin;
+    ovr.refMax = newMax;
+    ovr.refSource = 'manual';
   }
 
   saveImportedData();
@@ -1494,15 +1654,36 @@ export function revertRefRange(id, type) {
   const dotKey = id.replace('_', '.');
   const ovr = state.importedData?.refOverrides?.[dotKey];
   if (!ovr) return;
-  if (type === 'optimal') { delete ovr.optimalMin; delete ovr.optimalMax; delete ovr.optimalSource; }
-  else { delete ovr.refMin; delete ovr.refMax; delete ovr.refSource; }
+  let msg = 'Range reverted to default';
+  if (type === 'optimal') {
+    if ('labOptimalMin' in ovr) {
+      // Revert to imported lab range
+      ovr.optimalMin = ovr.labOptimalMin;
+      ovr.optimalMax = ovr.labOptimalMax;
+      ovr.optimalSource = 'import';
+      delete ovr.labOptimalMin; delete ovr.labOptimalMax;
+      msg = 'Range reverted to lab range';
+    } else {
+      delete ovr.optimalMin; delete ovr.optimalMax; delete ovr.optimalSource;
+    }
+  } else {
+    if ('labRefMin' in ovr) {
+      ovr.refMin = ovr.labRefMin;
+      ovr.refMax = ovr.labRefMax;
+      ovr.refSource = 'import';
+      delete ovr.labRefMin; delete ovr.labRefMax;
+      msg = 'Range reverted to lab range';
+    } else {
+      delete ovr.refMin; delete ovr.refMax; delete ovr.refSource;
+    }
+  }
   // Clean up empty override objects
   if (Object.keys(ovr).length === 0) delete state.importedData.refOverrides[dotKey];
   saveImportedData();
   const activeNav = document.querySelector('.nav-item.active');
   navigate(activeNav ? activeNav.dataset.category : 'dashboard');
   showDetailModal(id);
-  showNotification('Range reverted to default', 'info');
+  showNotification(msg, 'info');
 }
 
 // ═══════════════════════════════════════════════
@@ -1526,6 +1707,8 @@ Object.assign(window, {
   completeOnboardingProfile,
   dismissOnboarding,
   showCategory,
+  renameCategory,
+  changeCategoryIcon,
   switchView,
   renderChartCard,
   renderTableView,
@@ -1540,6 +1723,7 @@ Object.assign(window, {
   openManualEntryForm,
   saveManualEntry,
   openCreateMarkerModal,
+  pickNewCatIcon,
   saveCustomMarker,
   deleteMarkerValue,
   deleteCustomMarker,

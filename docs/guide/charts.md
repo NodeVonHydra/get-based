@@ -30,7 +30,7 @@ Each layer is toggled independently and your choice is saved per profile. The La
 
 ## Detail Modal
 
-Click any chart card to open the detail modal for that marker. The modal shows:
+Click any chart card, data table row, or heatmap cell to open the detail modal for that marker. The modal shows:
 
 - Full history table with values, reference ranges, and status for each date
 - The trend direction and any alerts
@@ -39,7 +39,7 @@ Click any chart card to open the detail modal for that marker. The modal shows:
 
 ## Single-Point Categories
 
-Some categories — Fatty Acids is the main example — contain measurements that are typically taken once rather than tracked over time. These display as a grid of value cards rather than a trend line chart. Each card shows the measured value alongside its reference range.
+Some categories — Fatty Acids is the main example — contain measurements that are typically taken once rather than tracked over time. These display as a grid of value cards rather than a trend line chart. Each card shows the measured value alongside its reference range. Click any card to open its detail modal.
 
 ::: tip
 Use the date range filter in the header to zoom into a specific period. All charts update immediately when you change the range.

@@ -141,7 +141,7 @@
   // ═══════════════════════════════════════
   console.log('%c 5. Custom Marker Icon Support ', 'font-weight:bold;color:#f59e0b');
 
-  assert('data.js uses def.icon for custom category icon', dataSrc.includes("def.icon || '\\uD83D\\uDD16'"));
+  assert('data.js uses def.icon for custom category icon', dataSrc.includes("def.icon || _inferIcon(_label) || '\\uD83D\\uDD16'"));
 
   // ═══════════════════════════════════════
   // 6. PDF Import: specialty reference + auto-create custom markers

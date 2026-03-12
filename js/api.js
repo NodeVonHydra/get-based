@@ -51,7 +51,11 @@ export async function fetchAnthropicModels(key) {
 
 export function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
 export function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
+export function isAIPaused() { return localStorage.getItem('labcharts-ai-paused') === 'true'; }
+export function setAIPaused(v) { localStorage.setItem('labcharts-ai-paused', v ? 'true' : 'false'); }
+
 export function hasAIProvider() {
+  if (isAIPaused()) return false;
   const provider = getAIProvider();
   if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();

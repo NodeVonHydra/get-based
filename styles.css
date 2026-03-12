@@ -371,6 +371,23 @@ body {
 .ref-edit-save { padding: 2px 8px; font-size: 12px; background: var(--accent-gradient); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; margin-left: 4px; }
 .ref-edited-badge { font-size: 10px; color: var(--yellow); cursor: pointer; margin-left: 4px; opacity: 0.8; }
 .ref-edited-badge:hover { opacity: 1; text-decoration: underline; }
+.toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--border); border-radius: 20px; transition: background 0.2s; }
+.toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: var(--text-secondary); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); background: #fff; }
+.emoji-picker { position: fixed; z-index: 10001; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); width: 320px; max-height: 400px; display: flex; flex-direction: column; }
+.emoji-picker-search { padding: 8px; border-bottom: 1px solid var(--border); }
+.emoji-picker-search input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font-size: 14px; outline: none; box-sizing: border-box; }
+.emoji-picker-search input:focus { border-color: var(--accent); }
+.emoji-picker-cats { display: flex; gap: 2px; padding: 4px 8px; border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; }
+.emoji-picker-cats button { background: none; border: none; font-size: 16px; padding: 4px 6px; cursor: pointer; border-radius: 4px; opacity: 0.6; }
+.emoji-picker-cats button.active, .emoji-picker-cats button:hover { opacity: 1; background: var(--bg-secondary); }
+.emoji-picker-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding: 8px; overflow-y: auto; flex: 1; }
+.emoji-picker-grid span { font-size: 22px; text-align: center; cursor: pointer; padding: 4px; border-radius: 4px; line-height: 1.2; }
+.emoji-picker-grid span:hover { background: var(--bg-secondary); }
+.emoji-picker-label { grid-column: 1 / -1; font-size: 11px; color: var(--text-secondary); padding: 6px 2px 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 .marker-description {
   font-size: 13px; color: var(--text-secondary); line-height: 1.4;
   margin-bottom: 16px; display: none;
