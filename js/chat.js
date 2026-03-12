@@ -1305,6 +1305,7 @@ export function updatePersonalityBar() {
     </div>
     <textarea class="chat-personality-custom-textarea" placeholder="Describe how you want the AI to communicate, or type a name above and click Generate..." oninput="autoResizePersonaTextarea(); markPersonalityDirty()"></textarea>
     <div class="chat-personality-custom-footer">
+      <span class="chat-personality-disclaimer">Custom personas are for personal use. Don't impersonate real individuals without their consent.</span>
       <button class="chat-personality-custom-save" onclick="saveCustomPersonality()" disabled>Save</button>
     </div>
   </div>`;
