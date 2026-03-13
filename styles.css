@@ -1682,6 +1682,22 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 .import-fab:hover { transform: scale(1.08); color: var(--accent); border-color: var(--accent); box-shadow: 0 4px 20px rgba(79,140,255,0.2); }
 .import-fab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .import-fab.hidden { display: none; }
+.import-status-fab {
+  position: fixed; bottom: 160px; right: 24px; z-index: 1001;
+  height: 36px; border-radius: 18px; padding: 0 12px 0 10px;
+  background: var(--bg-card); color: var(--text-muted);
+  cursor: pointer; box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s, color 0.2s;
+}
+.import-status-fab.hidden { display: none; }
+.import-status-fab svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.import-status-fab .import-status-label { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.import-status-fab:hover { transform: scale(1.05); box-shadow: var(--shadow-glow); }
+.import-status-fab.is-running { border-color: var(--accent); color: var(--accent); }
+.import-status-fab.is-running svg { animation: progressSpin 0.8s linear infinite; }
+.import-status-fab.is-done { border-color: var(--green); color: var(--green); }
+.import-status-fab.is-failed { border-color: #ef4444; color: #ef4444; }
 .chat-fab {
   position: fixed; bottom: 24px; right: 24px; z-index: 240;
   width: 56px; height: 56px; border-radius: 50%; border: none;
@@ -3187,6 +3203,8 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
   .confirm-dialog { padding: 22px 18px; }
   .import-fab { width: 40px; height: 40px; bottom: 72px; right: 16px; }
   .import-fab svg { width: 18px; height: 18px; }
+  .import-status-fab { bottom: 128px; right: 16px; height: 32px; padding: 0 10px 0 8px; }
+  .import-status-fab svg { width: 12px; height: 12px; }
   .chat-fab { width: 48px; height: 48px; bottom: 16px; right: 16px; }
   .chat-fab svg { width: 22px; height: 22px; }
 }

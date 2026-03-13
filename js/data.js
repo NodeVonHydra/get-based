@@ -352,7 +352,7 @@ export function getActiveData() {
       const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/l
       const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/l
       const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/l
-      const crp          = getVals('proteins', 'hsCRP')?.[i] ?? getVals('proteins', 'crp')?.[i]; // mg/l (same)
+      const crp          = getVals('proteins', 'hsCRP')?.[i];          // mg/l — must be hs-CRP (standard CRP lacks precision)
       const lymphPct_si  = getVals('differential', 'lymphocytesPct')?.[i]; // fraction 0–1
       const mcv          = getVals('hematology', 'mcv')?.[i];          // fL (same)
       const rdw          = getVals('hematology', 'rdwcv')?.[i];        // % (same)

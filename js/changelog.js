@@ -5,6 +5,21 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.5', date: '2026-03-13', title: 'Smarter Imports',
+    items: [
+      'Import now captures every numeric result — urine sediment, tumor markers, and other unknowns become custom markers automatically',
+      'European lab prefixes (S-, U-, USED-, F-, FW) stripped automatically during import',
+      'CRP and hs-CRP recognized as separate markers — PhenoAge uses hs-CRP only',
+      'Below-detection-limit results (e.g. <0.5) imported as the detection limit value',
+      'Urinalysis category added (pH, specific gravity) for direct mapping',
+      'Import status pill — shows live progress when you scroll away or navigate, disappears when the progress bar is visible',
+      'Import blocked while another import is already running',
+      'Rename any marker from the detail modal',
+      'Calculated markers (PhenoAge, ratios) show which inputs are missing',
+      'Removed API timeout — slow local models no longer get false "aborted" errors',
+    ]
+  },
+  {
     version: '1.7.3', date: '2026-03-13', title: 'Privacy & Self-Hosting',
     items: [
       'Bundled Chart.js, pdf.js, and fonts locally — no more external CDN calls',
@@ -19,7 +34,7 @@ const CHANGELOG = [
       'Pause AI features globally — toggle in Settings → AI tab',
       'Fatty acid cards and table/heatmap rows now open the detail modal',
       'Two-step range revert: manual edit → lab range → schema default',
-      'PhenoAge uses plain CRP as fallback when hsCRP is absent',
+      'PhenoAge biological age calculation',
       'Urea renamed to "Urea (BUN)" for clarity',
       'Updated default category icons (Hormones, Electrolytes, Lipids, Diabetes, Hematology, WBC)',
       'Toggle sliders replace checkboxes in Settings Privacy section',

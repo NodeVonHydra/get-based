@@ -13,7 +13,7 @@ Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or Local AI) for AI-powered 
 No build system, no bundler, no package manager. Native ES modules (`<script type="module">`).
 
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
-- **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes with SRI hashes)
+- **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
 - **`js/`** — 30 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
@@ -43,10 +43,11 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
   - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete)
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
-  - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing
+  - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing, marker rename/revert, calculated marker input diagnostics
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
+- **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 20 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 22 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -54,7 +55,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
 2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides, emfAssessment }`. Legacy fields auto-migrated via `migrateProfileData()`
-3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax, labRefMin, labRefMax, refSource } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle. Two-step revert: manual edit → lab range → schema default. `categoryLabels` and `categoryIcons` override display names/icons per category
+3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax, labRefMin, labRefMax, refSource } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle. Two-step revert: manual edit → lab range → schema default. `categoryLabels` and `categoryIcons` override display names/icons per category. `markerLabels` overrides individual marker display names (same dot-key format)
 4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 5. `singlePoint` categories have `singlePoint: true` — grid cards instead of trend charts. Fatty acids flow through the custom marker pipeline with per-product prefixes (spadiaFA, zinzinoFA, omegaquantFA) under a "Fatty Acids" sidebar group
 6. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -63,11 +64,12 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 1. **Text extraction** (`extractPDFText`): pdf.js extracts text items with x, y coordinates, grouped by page
 2. **PII obfuscation**: When review enabled + Local AI available, modal opens immediately and streams AI obfuscation in real-time (`sanitizeWithOllamaStreaming`). "Use regex instead" button as explicit fallback. Without review, non-streaming `sanitizeWithOllama` with silent regex fallback. Without Local AI, regex-only
-3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs
+3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs. Strips specimen-type prefixes (S-, U-, USED-, F-, FW). Every numeric result must be included — unknowns become custom markers. CRP/hs-CRP distinguished by name. Below-detection-limit values (`<X`) imported as X
 4. **Import preview**: matched/unmatched/new markers shown; user confirms before saving
 5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Users can also create custom markers manually via sidebar "+" button (`openCreateMarkerModal`). Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
 6. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
 7. **Sidebar grouping**: categories with `group` field (e.g., "OAT") render under collapsible sidebar headers. `toggleNavGroup()`, collapse state persisted in localStorage
+8. **Import status FAB**: pill-shaped indicator appears when progress bar scrolls out of view or user navigates away. IntersectionObserver on dashboard progress bar. Hidden when import preview modal is open. Import blocked while another is running
 
 ### Profile Context Cards
 
@@ -80,17 +82,17 @@ Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn
 
 ### Menstrual Cycle Tracking
 
-Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. `cycleStatus` field: `regular`, `perimenopause`, `postmenopause`, `pregnant`, `breastfeeding`, `absent`. Features: phase-aware reference ranges (`PHASE_RANGES` for estradiol, progesterone, LH, FSH — gated on active cycle + no hormonal BC), cycle phase bands on charts (`phaseBandPlugin`), auto-calculated stats (cycle/period length, regularity, flow) from period log, structured contraceptive dropdown, perimenopause detection (6 indicators), heavy flow + iron alerts. Non-cycling statuses hide stats/period log in editor and skip phase features. All included in AI context. See `cycle.js` and `data.js` for algorithms.
+Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. `cycleStatus`: regular/perimenopause/postmenopause/pregnant/breastfeeding/absent. Phase-aware reference ranges (`PHASE_RANGES`), cycle phase bands on charts, auto-calculated stats, perimenopause detection, heavy flow + iron alerts. See `cycle.js`.
 
 ### EMF Assessment
 
-Baubiologie sub-module under Environment context card. Storage: `importedData.emfAssessment` (`{ assessments: [...] }`). Each assessment has date, consultant, notes, rooms array with sleeping flag, sources/mitigations tags, room photos (base64, max 6). Room measurements use `SBM_2015_THRESHOLDS` with separate `sleeping`/`daytime` tier arrays — `getEMFSeverity(type, value, sleeping)`. Meter presets via `EMF_METER_PRESETS` in constants.js with `<datalist>` autocomplete. AI interpretation modal streams analysis per assessment or before/after comparison, saved to `assessment.interpretation`/`emf.comparisonInterpretation`. Separate PDF import pipeline in `emf.js` for consultant reports. Printable template at `data/emf-assessment-template.html`.
+Baubiologie sub-module under Environment card. Storage: `importedData.emfAssessment`. Room-by-room measurements with SBM-2015 severity (`getEMFSeverity`), sleeping/daytime thresholds, source/mitigation tags, room photos, AI interpretation, PDF import for consultant reports. See `emf.js`.
 
 ### Calculated Markers
 
 - **Free Water Deficit**: `FWD = TBW × (Na / 140 − 1)`, requires sodium
 - **BUN/Creatinine Ratio**: `(urea × 2.801) / (creatinine × 0.01131)`, computed in US units from SI-stored values. Ref range 10–20
-- **PhenoAge**: Levine et al. 2018 — 9 biomarkers + chronological age. `refMin/refMax: null` — meaningful relative to chronological age
+- **PhenoAge**: Levine et al. 2018 — 9 biomarkers + chronological age. Requires hs-CRP specifically (standard CRP lacks precision, no fallback). `refMin/refMax: null` — meaningful relative to chronological age. Detail modal shows missing inputs
 
 ### AI Chat Panel
 
@@ -100,17 +102,7 @@ Context: `buildLabContext()` serializes all user data in priority order (goals�
 
 ### AI Provider System
 
-Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features.
-
-- **OpenRouter** (recommended, first tab): OpenAI-compatible marketplace, 200+ models. `callOpenAICompatibleAPI` with attribution headers. Curated model whitelist (`OPENROUTER_CURATED`) + exclusion list + `OPENROUTER_RECOMMENDED` tier (sorted first, shown in optgroup). Custom model input field below dropdown — type any model ID and press Enter, health check verifies connectivity. Dynamic pricing cached from API. **OAuth PKCE**: `generatePKCE()` + `startOpenRouterOAuth()` + `exchangeOpenRouterCode()` for one-click connect. `main.js` handles `?code=` callback. Button in Settings + chat setup guide. Constraint: callback must be HTTPS or `http://localhost:3000`
-- **Anthropic**: Messages API + SSE streaming. Key: `labcharts-api-key`
-- **Venice**: OpenAI-compatible via shared helper. Key: `labcharts-venice-key`
-- **Local** (UI label; internal provider key remains `'ollama'`): Always uses OpenAI-compatible API (`/v1/chat/completions`, `/v1/models`). Works with Ollama, LM Studio, Jan, llama.cpp, LocalAI. PII obfuscation also uses this path. Config stored in `labcharts-ollama` JSON blob: `{ url, model, apiKey }`. Legacy `mode` field ignored
-- **Routstr**: Disabled — all code commented with `ROUTSTR DISABLED` markers
-
-### Header
-
-Left: hamburger (mobile only) + gradient wordmark `getbased` (Outfit 800, `--accent-gradient`). Right: profile button → divider → dates + range toggle → divider → Settings (gear) + Feedback (bug) + ₿ Donate (orange text, BTCPay). Groups separated by `.header-divider` vertical lines. Mobile (≤768px): hides data group, dividers, feedback, donate. Glossary and Docs accessible from Settings > Display tab. All icon buttons use `.glossary-btn` base class. See `BRAND.md` for full guidelines.
+Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. OpenRouter (recommended, OAuth PKCE), Anthropic, Venice, Local (Ollama/LM Studio/Jan — internal key `'ollama'`). Routstr disabled (`ROUTSTR DISABLED` markers). See `api.js` for details.
 
 ### Dashboard Section Order
 
@@ -135,7 +127,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-20 browser-based test files run headlessly:
+22 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

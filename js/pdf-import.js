@@ -368,7 +368,7 @@ Your task:
 1. Find the sample collection date in the text. Return it as YYYY-MM-DD. Look for dates near keywords like "collection", "collected", "date", "odběr", "datum", or similar in any language.
 2. For each biomarker result found in the text, extract:
    - rawName: the test name exactly as it appears in the PDF
-   - value: the numeric result (parse comma as decimal point, strip < > prefixes)
+   - value: the numeric result (parse comma as decimal point). For "< X" or "> X" results, use X as the value (the detection limit) — these are still clinically meaningful for trend tracking
    - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
    - unit: the unit as shown in the PDF
    - refMin: the lower reference range bound EXACTLY as printed on the PDF (number or null). Do NOT copy from the known markers list above — extract from the actual PDF text
@@ -378,10 +378,12 @@ Your task:
    - "BUN" or "Blood Urea Nitrogen" → "biochemistry.urea"
    - "Triacylglyceroly" → "lipids.triglycerides"
    - "Trombokrit" / "Plateletcrit" / "PCT" (hematology) → "hematology.pct"
+   - CRP: "hs-CRP" / "hsCRP" / "high-sensitivity CRP" / "vysoce senzitivní CRP" → "proteins.hsCRP". Plain "CRP" / "S-CRP" / "C-reaktívny proteín" → "proteins.crp". These are different assays — do not merge them
    - Use the units and reference ranges to help disambiguate
+   - IMPORTANT: Many labs prefix marker names with specimen type codes: S- (serum), P- (plasma), B- (blood), U- (urine), fS- (fasting serum), USED- (urine sediment), F- (fecal), FW (sedimentation). Strip these prefixes when matching to known markers. Keep them in rawName for reference
 4. Only map to a marker if you're confident it's the correct match
 5. For differential WBC: only map absolute count values (marked with # or abs.) to the # markers; percentage values go to the Pct markers
-6. Skip non-numeric results (text-only findings, interpretive notes)
+6. Skip non-numeric results (text-only findings, interpretive notes). But EVERY numeric result MUST be included — if it doesn't match a known key, set mappedKey to null and provide suggestedKey/suggestedName/suggestedCategoryLabel. Never silently drop a numeric marker
 7. Identify the type of lab test this PDF represents. Return as "testType" field:
    - "blood" for standard blood panels (CBC, metabolic, lipids, hormones, etc.)
    - "OAT" for Organic Acids Tests (Mosaic, Genova, Great Plains)
@@ -901,11 +903,12 @@ export function removeImportedEntry(date) {
 export function setupDropZone() {
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
-  dropZone.addEventListener("click", () => { document.getElementById('pdf-input').click(); });
-  dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  dropZone.addEventListener("click", () => { if (_importStatus.running) return; document.getElementById('pdf-input').click(); });
+  dropZone.addEventListener("dragover", e => { e.preventDefault(); if (!_importStatus.running) dropZone.classList.add("drag-over"); });
   dropZone.addEventListener("dragleave", e => { e.preventDefault(); dropZone.classList.remove("drag-over"); });
   dropZone.addEventListener("drop", async e => {
     e.preventDefault(); dropZone.classList.remove("drag-over");
+    if (_importStatus.running) { showNotification("Import already in progress", "info"); return; }
     const files = Array.from(e.dataTransfer.files);
     if (files.length === 0) return;
     const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
@@ -929,6 +932,7 @@ function _updateProgressPct(pct) {
   const label = document.querySelector('.import-progress-pct');
   if (fill) fill.style.width = pct + '%';
   if (label) label.textContent = pct + '%';
+  if (_importStatus.running) _setImportStatus({ pct });
 }
 
 function _buildProgressHTML(step, fileName) {
@@ -964,13 +968,43 @@ function _ensureDropZone() {
 }
 
 export async function showImportProgress(step, fileName) {
+  if (_statusDismissTimer) { clearTimeout(_statusDismissTimer); _statusDismissTimer = null; }
+  _setImportStatus({ running: true, done: false, failed: false, fileName, pct: STEP_START_PCT[step] || 0, batch: null });
   const dropZone = _ensureDropZone();
   dropZone.innerHTML = _buildProgressHTML(step, fileName);
+  _observeProgressBar();
   // Yield to browser so it actually paints the progress before heavy work continues
   await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 }
 
-export function hideImportProgress() {
+function _observeProgressBar() {
+  if (_progressObserver) _progressObserver.disconnect();
+  const bar = document.querySelector('.import-progress-bar');
+  if (!bar) { _progressBarVisible = false; _syncStatusFab(); return; }
+  // Floating overlay is position:fixed — always "visible" to IntersectionObserver.
+  // Only observe the in-page (dashboard) progress bar.
+  if (bar.closest('.drop-zone-hidden')) { _progressBarVisible = false; _syncStatusFab(); return; }
+  _progressObserver = new IntersectionObserver(([entry]) => {
+    _progressBarVisible = entry.isIntersecting;
+    _syncStatusFab();
+  }, { threshold: 0.1 });
+  _progressObserver.observe(bar);
+}
+
+export function hideImportProgress(reason = 'success') {
+  // Stop observing progress bar
+  if (_progressObserver) { _progressObserver.disconnect(); _progressObserver = null; }
+  _progressBarVisible = false;
+  // Update status FAB state
+  if (reason === 'error') {
+    _setImportStatus({ running: false, done: false, failed: true });
+    _statusDismissTimer = setTimeout(() => { _setImportStatus({ failed: false }); _statusDismissTimer = null; }, 5000);
+  } else if (reason === 'cancel') {
+    _setImportStatus({ running: false, done: false, failed: false });
+  } else {
+    _setImportStatus({ running: false, done: true, failed: false });
+    _statusDismissTimer = setTimeout(() => { _setImportStatus({ done: false }); _statusDismissTimer = null; }, 5000);
+  }
   const dropZone = document.getElementById("drop-zone");
   if (!dropZone) return;
   // Remove dynamically created drop zone (from FAB import on non-dashboard views)
@@ -1032,16 +1066,16 @@ Your task:
 1. Read the lab report page images carefully. Find the sample collection date. Return it as YYYY-MM-DD.
 2. For each biomarker result found, extract:
    - rawName: the test name exactly as it appears
-   - value: the numeric result (parse comma as decimal point, strip < > prefixes)
+   - value: the numeric result (parse comma as decimal point). For "< X" or "> X" results, use X as the value (the detection limit) — these are still clinically meaningful for trend tracking
    - mappedKey: the matching key from the known markers list (e.g. "biochemistry.glucose"), or null if no match
    - unit: the unit as shown
    - refMin: the lower reference range bound EXACTLY as printed on the report (number or null). Do NOT copy from the known markers list above
    - refMax: the upper reference range bound EXACTLY as printed on the report (number or null). Do NOT copy from the known markers list above
-3. Match based on medical/biochemical equivalence, not just string similarity
+3. Match based on medical/biochemical equivalence, not just string similarity. "hs-CRP"/"hsCRP" → "proteins.hsCRP", plain "CRP" → "proteins.crp" (different assays). Strip specimen-type prefixes (S-, P-, B-, U-, fS-, USED-, F-, FW) when matching — keep in rawName
 4. Only map to a marker if you're confident it's the correct match
 5. Identify the type of lab test. Return as "testType" field: "blood", "OAT", "fattyAcids", "DUTCH", "HTMA", "GI", or a descriptive name. For fatty acid tests: put ALL markers into ONE product-specific category — spadiaFA (Spadia), zinzinoFA (ZinZino), omegaquantFA (OmegaQuant), or labNameFA. Use suggestedCategoryLabel = product name, suggestedGroup = "Fatty Acids". Do NOT split by fatty acid type (omega-3/omega-6/saturated/trans)
 6. CRITICAL for specialty tests (testType ≠ "blood"): Do NOT use standard blood work category keys. Use test-type-prefixed keys or set mappedKey to null
-7. For unmatched markers, also return: suggestedKey, suggestedName, suggestedCategoryLabel, suggestedGroup
+7. EVERY numeric result MUST be included — never silently drop a marker. If it doesn't match a known key, set mappedKey to null and provide suggestedKey, suggestedName, suggestedCategoryLabel, suggestedGroup
 
 Return ONLY valid JSON in this exact format:
 {
@@ -1227,12 +1261,12 @@ export async function handlePDFFile(file, forceImageMode = false) {
     let useImageMode = forceImageMode;
     if (!forceImageMode && (textQuality === 'empty' || textQuality === 'poor')) {
       if (!hasAIProvider()) {
-        hideImportProgress();
+        hideImportProgress('error');
         showNotification("AI provider not configured. Opening settings...", "info");
         setTimeout(() => window.openSettingsModal(), 500);
         return;
       }
-      hideImportProgress();
+      hideImportProgress('cancel');
       const choice = await _showImageModeDialog();
       if (choice === 'cancel') { showNotification('Import cancelled.', 'info'); return; }
       useImageMode = choice === 'image';
@@ -1246,14 +1280,14 @@ export async function handlePDFFile(file, forceImageMode = false) {
     if (useImageMode) {
       // Image mode path — skip PII, render pages as images
       if (!hasAIProvider()) {
-        hideImportProgress();
+        hideImportProgress('error');
         showNotification("AI provider not configured. Opening settings...", "info");
         setTimeout(() => window.openSettingsModal(), 500);
         return;
       }
       await showImportProgress(3, file.name);
       const images = await extractPDFImages(file);
-      if (images.length === 0) { hideImportProgress(); showNotification("Could not render PDF pages", "error"); return; }
+      if (images.length === 0) { hideImportProgress('error'); showNotification("Could not render PDF pages", "error"); return; }
       await showImportProgress(3, file.name);
       const analysisStart = performance.now();
       const result = await parseLabPDFWithAIImages(images, file.name, _updateProgressPct);
@@ -1273,7 +1307,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
       result.importHash = hashString(file.name + file.size);
       result._importProfileId = _startProfileId;
       if (!result.date) showNotification("Could not find collection date in PDF", "error");
-      if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF images", "error"); return; }
+      if (result.markers.length === 0) { hideImportProgress('error'); showNotification("No biomarkers found in PDF images", "error"); return; }
       await showImportProgress(4, file.name);
       showImportPreview(result);
       hideImportProgress();
@@ -1281,10 +1315,10 @@ export async function handlePDFFile(file, forceImageMode = false) {
     }
 
     // Text mode path (original flow)
-    if (!pdfText.trim()) { hideImportProgress(); showNotification("PDF appears empty — no text extracted", "error"); return; }
+    if (!pdfText.trim()) { hideImportProgress('error'); showNotification("PDF appears empty — no text extracted", "error"); return; }
 
     if (!hasAIProvider()) {
-      hideImportProgress();
+      hideImportProgress('error');
       showNotification("AI provider not configured. Opening settings...", "info");
       setTimeout(() => window.openSettingsModal(), 500);
       return;
@@ -1293,7 +1327,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
     // Pre-flight checks — before spending tokens
     await showImportProgress(1, file.name);
     const preflight = await runPreflightChecks(pdfText, file.name);
-    if (!preflight) { hideImportProgress(); return; }
+    if (!preflight) { hideImportProgress('cancel'); return; }
 
     // PII obfuscation step
     await showImportProgress(2, file.name);
@@ -1311,7 +1345,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
         streamFn: (onChunk, signal, onThinking) => sanitizeWithOllamaStreaming(pdfText, onChunk, signal, onThinking)
       });
       piiTime = Math.round((performance.now() - piiStart) / 1000);
-      if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+      if (reviewResult === 'cancel') { hideImportProgress('cancel'); showNotification('Import cancelled.', 'info'); return; }
       textForAI = reviewResult;
       privacyMethod = 'ollama+review';
       privacyOriginal = pdfText;
@@ -1333,7 +1367,7 @@ export async function handlePDFFile(file, forceImageMode = false) {
           privacyOriginal = result.original;
           privacyMethod = 'regex';
         } catch (e2) {
-          hideImportProgress();
+          hideImportProgress('error');
           showNotification('Privacy protection failed \u2014 PDF not sent to AI. Try again or check Settings.', 'error');
           return;
         }
@@ -1347,13 +1381,13 @@ export async function handlePDFFile(file, forceImageMode = false) {
         privacyOriginal = result.original;
         privacyMethod = 'regex';
       } catch (e) {
-        hideImportProgress();
+        hideImportProgress('error');
         showNotification('Privacy protection failed \u2014 PDF not sent to AI. Try again or check Settings.', 'error');
         return;
       }
       if (isPIIReviewEnabled()) {
         const reviewResult = await reviewPIIBeforeSend(pdfText, { obfuscatedText: textForAI });
-        if (reviewResult === 'cancel') { hideImportProgress(); showNotification('Import cancelled.', 'info'); return; }
+        if (reviewResult === 'cancel') { hideImportProgress('cancel'); showNotification('Import cancelled.', 'info'); return; }
         textForAI = reviewResult;
       }
     }
@@ -1380,12 +1414,12 @@ export async function handlePDFFile(file, forceImageMode = false) {
     result._importProfileId = _startProfileId;
     if (isDebugMode()) { result.privacyOriginal = privacyOriginal; result.privacyObfuscated = textForAI; }
     if (!result.date) { showNotification("Could not find collection date in PDF", "error"); }
-    if (result.markers.length === 0) { hideImportProgress(); showNotification("No biomarkers found in PDF", "error"); return; }
+    if (result.markers.length === 0) { hideImportProgress('error'); showNotification("No biomarkers found in PDF", "error"); return; }
     await showImportProgress(4, file.name);
     showImportPreview(result);
     hideImportProgress();
   } catch (err) {
-    hideImportProgress();
+    hideImportProgress('error');
     if (isDebugMode()) console.error("PDF parse error:", err);
     showNotification("Error parsing PDF: " + err.message, "error", 10000);
   }
@@ -1395,6 +1429,65 @@ export async function handlePDFFile(file, forceImageMode = false) {
 // BATCH PDF IMPORT
 // ═══════════════════════════════════════════════
 let _batchMode = false;
+
+// Import status — tracked for the status FAB when progress bar is not visible
+const _importStatus = { running: false, pct: 0, failed: false, done: false, fileName: '', batch: null };
+let _statusDismissTimer = null;
+let _progressBarVisible = false;
+let _progressObserver = null;
+
+function _setImportStatus(patch) {
+  Object.assign(_importStatus, patch);
+  _syncStatusFab();
+}
+
+function _handleStatusFabClick() {
+  // Import preview modal open — bring it to focus
+  const overlay = document.getElementById('import-modal-overlay');
+  if (overlay && overlay.classList.contains('show')) {
+    overlay.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  // Running — scroll to progress bar if visible, otherwise navigate to dashboard
+  if (_importStatus.running) {
+    const progressBar = document.querySelector('.import-progress-bar');
+    if (progressBar) {
+      progressBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      window.navigate('dashboard');
+    }
+    return;
+  }
+  // Done/failed — dismiss
+  _setImportStatus({ done: false, failed: false });
+}
+
+function _syncStatusFab() {
+  const fab = document.getElementById('import-status-fab');
+  if (!fab) return;
+  const { running, done, failed, pct, batch } = _importStatus;
+  // Hide when: import preview modal is open, or progress bar is visible on screen
+  const previewOpen = document.getElementById('import-modal-overlay')?.classList.contains('show');
+  const visible = (running || done || failed) && !previewOpen && !_progressBarVisible;
+  fab.classList.toggle('hidden', !visible);
+  // Hide the floating progress overlay whenever the FAB or preview modal takes over
+  const floatingDz = document.querySelector('.drop-zone-hidden');
+  if (floatingDz && (visible || previewOpen)) floatingDz.style.display = 'none';
+  else if (floatingDz && _importStatus.running && _progressBarVisible) floatingDz.style.display = '';
+  if (!visible) return;
+  let label = '';
+  if (running) {
+    label = batch ? `${batch.current}/${batch.total} \u00b7 ${pct}%` : `${pct}%`;
+  } else if (done) {
+    label = '\u2713';
+  } else if (failed) {
+    label = '\u2717';
+  }
+  fab.querySelector('.import-status-label').textContent = label;
+  fab.classList.toggle('is-running', running);
+  fab.classList.toggle('is-done', done);
+  fab.classList.toggle('is-failed', failed);
+}
 
 async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   await showBatchImportProgress(0, file.name, fileNum, totalFiles);
@@ -1545,10 +1638,13 @@ export async function handleBatchPDFs(pdfFiles) {
 }
 
 export async function showBatchImportProgress(step, fileName, current, total) {
+  if (_statusDismissTimer) { clearTimeout(_statusDismissTimer); _statusDismissTimer = null; }
+  _setImportStatus({ running: true, done: false, failed: false, fileName, pct: STEP_START_PCT[step] || 0, batch: { current, total } });
   const dropZone = _ensureDropZone();
   let html = `<div class="batch-progress-counter">Processing file ${current} of ${total}</div>`;
   html += _buildProgressHTML(step, fileName);
   dropZone.innerHTML = html;
+  _observeProgressBar();
   await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 }
 
@@ -1588,4 +1684,7 @@ Object.assign(window, {
   handleBatchPDFs,
   showBatchImportProgress,
   showImportPreviewAsync,
+  syncImportStatusFab: _syncStatusFab,
+  handleImportStatusClick: _handleStatusFabClick,
+  isImportRunning: () => _importStatus.running,
 });

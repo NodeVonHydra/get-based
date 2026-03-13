@@ -83,6 +83,7 @@ export const MARKER_SCHEMA = {
     label: "Proteins & Inflammation", icon: "\uD83D\uDEE1\uFE0F",
     markers: {
       hsCRP: { name: "hs-CRP", unit: "mg/l", refMin: 0.00, refMax: 3.00, desc: "High-sensitivity C-reactive protein; a key marker of systemic inflammation and independent predictor of cardiovascular events." },
+      crp: { name: "CRP", unit: "mg/l", refMin: 0.00, refMax: 5.00, desc: "C-reactive protein; produced by the liver in response to inflammation. Standard assay with lower sensitivity than hs-CRP. Elevated in infections, autoimmune conditions, and tissue injury." },
       totalProtein: { name: "Total Protein", unit: "g/l", refMin: 64.0, refMax: 83.0, desc: "Sum of albumin and globulins in blood; reflects nutritional status, liver function, and immune system activity." },
       albumin: { name: "Albumin", unit: "g/l", refMin: 35.0, refMax: 52.0, desc: "The most abundant blood protein made by the liver; low levels indicate malnutrition, liver disease, or chronic inflammation." },
       ceruloplasmin: { name: "Ceruloplasmin", unit: "g/l", refMin: 0.15, refMax: 0.30, desc: "A copper-carrying protein produced by the liver; low levels suggest Wilson disease, high levels indicate inflammation." }
@@ -161,6 +162,13 @@ export const MARKER_SCHEMA = {
     label: "Bone Metabolism", icon: "\uD83E\uDDB4",
     markers: {
       osteocalcin: { name: "Osteocalcin", unit: "\u00b5g/l", refMin: 14.0, refMax: 42.0, desc: "A protein secreted by bone-forming cells; reflects bone turnover rate and also influences glucose metabolism." }
+    }
+  },
+  urinalysis: {
+    label: "Urinalysis", icon: "\uD83E\uDDEA",
+    markers: {
+      ph: { name: "Urine pH", unit: "", refMin: 5.0, refMax: 7.5, desc: "Acidity of urine; low pH seen in high-protein diets, metabolic acidosis, and uric acid stones; high pH in UTIs and renal tubular acidosis." },
+      specificGravity: { name: "Specific Gravity", unit: "", refMin: 1.005, refMax: 1.030, desc: "Concentration of dissolved solutes in urine; reflects hydration status and kidney concentrating ability." }
     }
   },
   calculatedRatios: {
@@ -423,7 +431,7 @@ export const OPTIMAL_RANGES = {
   'lipids.apoB': { optimalMin: 0.40, optimalMax: 0.70 },
   'lipids.apoAI': { optimalMin: 1.40, optimalMax: 1.70 },
   // Proteins & Inflammation
-  'proteins.hsCRP': { optimalMin: 0.00, optimalMax: 1.00 },
+  'proteins.hsCRP': { optimalMin: 0.00, optimalMax: 0.50 },
   'proteins.totalProtein': { optimalMin: 69.0, optimalMax: 74.0 },
   'proteins.albumin': { optimalMin: 42.0, optimalMax: 50.0 },
   'proteins.ceruloplasmin': { optimalMin: 0.20, optimalMax: 0.30 },

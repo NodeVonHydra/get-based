@@ -132,6 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.updateAttachButtonVisibility();
   window.updateChatNudge();
   document.getElementById("pdf-input").addEventListener("change", async e => {
+    if (window.isImportRunning && window.isImportRunning()) { e.target.value = ''; return; }
     if (e.target.files.length > 0) {
       const files = Array.from(e.target.files);
       const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');

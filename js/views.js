@@ -26,6 +26,7 @@ export function navigate(category, data) {
   });
   // Close mobile sidebar on navigation
   if (window.closeMobileSidebar) window.closeMobileSidebar();
+  if (window.syncImportStatusFab) window.syncImportStatusFab();
   destroyAllCharts();
   if (category === "dashboard") showDashboard(data);
   else if (category === "correlations") showCorrelations(data);
@@ -977,13 +978,7 @@ export function showDetailModal(id) {
   if (inputs) {
     const missing = inputs.filter(([cat, key, label]) => {
       const vals = data.categories[cat]?.markers[key]?.values;
-      const hasData = vals && vals.some(v => v != null);
-      // PhenoAge accepts CRP as fallback for hs-CRP
-      if (!hasData && cat === 'proteins' && key === 'hsCRP') {
-        const crpVals = data.categories.proteins?.markers.crp?.values;
-        return !crpVals || crpVals.every(v => v == null);
-      }
-      return !hasData;
+      return !vals || vals.every(v => v == null);
     });
     const needsDob = id === 'calculatedRatios_phenoAge' && !state.profileDob;
     if (missing.length > 0 || needsDob) {
