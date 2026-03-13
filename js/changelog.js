@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.3', date: '2026-03-13', title: 'Privacy & Self-Hosting',
+    items: [
+      'Bundled Chart.js, pdf.js, and fonts locally — no more external CDN calls',
+      'Self-hosted analytics — replaced third-party Umami Cloud with own instance',
+      'Updated landing page privacy copy to accurately reflect what the app does',
+    ]
+  },
+  {
     version: '1.7.2', date: '2026-03-12', title: 'Issue Fixes & Category Customization',
     items: [
       'Rename categories and change icons with a built-in emoji picker',

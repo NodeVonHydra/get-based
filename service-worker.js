@@ -39,12 +39,13 @@ const APP_SHELL = [
   '/icon-192.png',
   '/icon-512.png',
   '/manifest.json',
+  '/vendor/chart.min.js',
+  '/vendor/pdf.min.js',
+  '/vendor/pdf.worker.min.js',
+  '/vendor/fonts/fonts.css',
 ];
 
-// CDN libraries — NOT pre-cached (CSP blocks SW fetch for cross-origin).
-// Cached on first page load via the fetch handler's cache-first strategy.
-
-// Install: pre-cache local app shell only
+// Install: pre-cache app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
@@ -73,36 +74,7 @@ self.addEventListener('fetch', (event) => {
   // intercept so streaming ReadableStream goes directly to the page without SW IPC buffering
   // Also skip private/LAN IPs (Local AI on another machine)
   const h = url.hostname;
-  if (h === 'api.anthropic.com' || h === 'openrouter.ai' || /* ROUTSTR DISABLED: h === 'api.routstr.com' || */ h === 'api.venice.ai' || h === 'api.openalex.org' || h === 'api.github.com' || h === 'cloud.umami.is' || h === 'api-gateway.umami.dev' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
-    return;
-  }
-
-  // Cache-first: versioned CDN libraries (immutable)
-  if (url.hostname === 'cdn.jsdelivr.net') {
-    event.respondWith(
-      caches.match(event.request).then((cached) =>
-        cached || fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-      )
-    );
-    return;
-  }
-
-  // Stale-while-revalidate: Google Fonts
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        const fetched = fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        });
-        return cached || fetched;
-      })
-    );
+  if (h === 'api.anthropic.com' || h === 'openrouter.ai' || /* ROUTSTR DISABLED: h === 'api.routstr.com' || */ h === 'api.venice.ai' || h === 'api.openalex.org' || h === 'api.github.com' || h === 'umami-iota-olive.vercel.app' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
     return;
   }
 

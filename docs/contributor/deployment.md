@@ -60,30 +60,32 @@ The Content-Security-Policy allows exactly what the app needs:
 
 ```
 default-src 'self'
-script-src  'self' 'unsafe-inline' https://cdn.jsdelivr.net
-style-src   'self' 'unsafe-inline' https://fonts.googleapis.com
-font-src    'self' https://fonts.gstatic.com
+script-src  'self' 'unsafe-inline' https://cloud.umami.is
+style-src   'self' 'unsafe-inline'
+font-src    'self'
 connect-src 'self'
-            https://cdn.jsdelivr.net
             https://api.anthropic.com
             https://openrouter.ai
             https://api.venice.ai
             https://api.openalex.org
+            https://api.github.com
+            https://cloud.umami.is
+            https://api-gateway.umami.dev
             http://localhost:*
             http://127.0.0.1:*
 img-src     'self' data: blob:
-worker-src  'self' https://cdn.jsdelivr.net blob:
+worker-src  'self' blob:
 manifest-src 'self'
 frame-src   'none'
 object-src  'none'
 base-uri    'self'
 ```
 
-`'unsafe-inline'` is required for scripts because `index.html` has inline `onclick` attributes (by design — the architecture relies on window-exported functions called from HTML). The CDN SRI hashes in `index.html` provide integrity verification as a compensating control.
+`'unsafe-inline'` is required for scripts because `index.html` has inline `onclick` attributes (by design — the architecture relies on window-exported functions called from HTML).
+
+All JS libraries (Chart.js, pdf.js) and fonts are bundled locally in `vendor/`. No external CDN calls. Run `./update-vendor.sh` to re-download when bumping versions.
 
 `localhost:*` and `127.0.0.1:*` in `connect-src` allow local AI servers (Ollama, LM Studio, Jan, etc.) running on the same machine. LAN IPs (e.g. `192.168.x.x`) are not supported from the hosted HTTPS app due to browser mixed-content blocking — this is a browser security fundamental, not a CSP limitation.
-
-`cdn.jsdelivr.net` appears in both `script-src` (loading Chart.js/pdf.js) and `connect-src` (service worker caches these scripts via `fetch()`).
 
 If a new AI provider is added, its hostname must be added to `connect-src` in `vercel.json`.
 
@@ -102,9 +104,7 @@ The service worker uses three caching strategies:
 | Resource type | Strategy |
 |---|---|
 | AI API calls (Anthropic, OpenRouter, Venice, Local AI, OpenAlex) | **Bypass** — `return` without `event.respondWith`. Streaming ReadableStreams must go directly to the page without SW IPC buffering |
-| CDN libraries (Chart.js, pdf.js from cdn.jsdelivr.net) | **Cache-first** — serve from cache, fetch and cache if missing |
-| Google Fonts | **Stale-while-revalidate** — serve cached, update in background |
-| App shell (HTML, CSS, JS modules, images) | **Stale-while-revalidate** — serve cached, update in background |
+| App shell (HTML, CSS, JS, vendor libs, fonts, images) | **Stale-while-revalidate** — serve cached, update in background |
 
 The API bypass is critical for streaming. If the service worker intercepts a streaming SSE response, the IPC pipe between the SW and the page buffers the chunks, breaking the streaming experience. The bypass (returning without calling `event.respondWith`) routes requests directly to the network.
 
@@ -140,13 +140,11 @@ grep -r "ROUTSTR DISABLED" .
 
 To re-enable when the CORS issue is fixed: uncomment all marked blocks, add Routstr back to the provider button row in `settings.js`, update the grid to `repeat(5, 1fr)`, bump the service worker cache version, and add `api.routstr.com` to `connect-src` in `vercel.json`.
 
-## SRI hashes
+## Vendor dependencies
 
-CDN dependencies in `index.html` include `integrity` and `crossorigin` attributes. If you update a CDN library version, regenerate the hash:
+Chart.js, pdf.js, and Google Fonts are bundled locally in `vendor/`. To update:
 
-```bash
-curl -s https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js \
-  | openssl dgst -sha384 -binary | openssl base64 -A
-```
-
-Prefix the output with `sha384-` and update the `integrity` attribute.
+1. Edit the version pins at the top of `update-vendor.sh`
+2. Run `./update-vendor.sh`
+3. Bump `version.js` to bust the SW cache
+4. Commit the updated `vendor/` directory

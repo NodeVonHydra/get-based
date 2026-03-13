@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   state.profileSex = getProfileSex(state.currentProfile);
   state.profileDob = getProfileDob(state.currentProfile);
   if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/vendor/pdf.worker.min.js';
   }
   document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.unit === state.unitSystem);

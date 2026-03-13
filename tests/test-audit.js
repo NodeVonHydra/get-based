@@ -174,7 +174,7 @@
 
   const vercelSrc = await fetch('/vercel.json').then(r => r.text());
   assert('CSP header in vercel.json', vercelSrc.includes('Content-Security-Policy'));
-  assert('CSP allows cdn.jsdelivr.net scripts', vercelSrc.includes('cdn.jsdelivr.net'));
+  assert('CSP has no external CDN (vendor bundled)', !vercelSrc.includes('cdn.jsdelivr.net') && !vercelSrc.includes('fonts.googleapis.com'));
   assert('CSP allows Anthropic API', vercelSrc.includes('api.anthropic.com'));
   assert('CSP allows OpenRouter API', vercelSrc.includes('openrouter.ai'));
   assert('CSP allows Venice API', vercelSrc.includes('api.venice.ai'));
