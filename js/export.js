@@ -331,6 +331,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
     refOverrides: data.refOverrides || {},
     categoryLabels: data.categoryLabels || null,
     categoryIcons: data.categoryIcons || null,
+    markerLabels: data.markerLabels || null,
     menstrualCycle: data.menstrualCycle || null,
     emfAssessment: data.emfAssessment || null
   };
@@ -508,6 +509,10 @@ export function importDataJSON(file) {
       if (json.categoryIcons && typeof json.categoryIcons === 'object') {
         if (!state.importedData.categoryIcons) state.importedData.categoryIcons = {};
         Object.assign(state.importedData.categoryIcons, json.categoryIcons);
+      }
+      if (json.markerLabels && typeof json.markerLabels === 'object') {
+        if (!state.importedData.markerLabels) state.importedData.markerLabels = {};
+        Object.assign(state.importedData.markerLabels, json.markerLabels);
       }
       // Import menstrual cycle
       if (json.menstrualCycle && typeof json.menstrualCycle === 'object') {

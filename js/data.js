@@ -189,6 +189,12 @@ export function getActiveData() {
   for (const [catKey, icon] of Object.entries(catIcons)) {
     if (data.categories[catKey]) data.categories[catKey].icon = icon;
   }
+  // Apply user marker label overrides (category.markerKey → display name)
+  const markerLabels = state.importedData?.markerLabels || {};
+  for (const [dotKey, label] of Object.entries(markerLabels)) {
+    const [catKey, mKey] = dotKey.split('.');
+    if (data.categories[catKey]?.markers[mKey]) data.categories[catKey].markers[mKey].name = label;
+  }
 
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
   const hasEntries = entries.length > 0;

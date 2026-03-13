@@ -525,6 +525,34 @@ export function renameCategory(categoryKey) {
   showNotification(`Category renamed to "${trimmed}"`, 'info');
 }
 
+export function renameMarker(id) {
+  const data = getActiveData();
+  const idx = id.indexOf('_');
+  const catKey = id.slice(0, idx), mKey = id.slice(idx + 1);
+  const marker = data.categories[catKey]?.markers[mKey];
+  if (!marker) return;
+  const newName = prompt('Rename marker:', marker.name);
+  if (!newName || newName.trim() === '' || newName.trim() === marker.name) return;
+  const trimmed = newName.trim();
+  const dotKey = catKey + '.' + mKey;
+  if (!state.importedData.markerLabels) state.importedData.markerLabels = {};
+  state.importedData.markerLabels[dotKey] = trimmed;
+  saveImportedData();
+  showDetailModal(id);
+  showNotification(`Marker renamed to "${trimmed}"`, 'info');
+}
+
+export function revertMarkerName(id) {
+  const idx = id.indexOf('_');
+  const dotKey = id.slice(0, idx) + '.' + id.slice(idx + 1);
+  if (!state.importedData.markerLabels?.[dotKey]) return;
+  delete state.importedData.markerLabels[dotKey];
+  if (Object.keys(state.importedData.markerLabels).length === 0) delete state.importedData.markerLabels;
+  saveImportedData();
+  showDetailModal(id);
+  showNotification('Marker name reverted', 'info');
+}
+
 const EMOJI_CATEGORIES = [
   { id: 'science', icon: '\uD83E\uDDEA', label: 'Science & Medical', emojis: ['\uD83E\uDDEA','\uD83E\uDDEC','\uD83E\uDD2C','\uD83D\uDD2C','\u2697\uFE0F','\uD83D\uDC89','\uD83D\uDC8A','\u2695\uFE0F','\uD83E\uDE7A','\uD83E\uDDB7','\uD83E\uDDB4','\uD83E\uDDE0','\uD83E\uDEC0','\uD83E\uDEC1','\uD83D\uDD2D','\uD83E\uDDA0','\uD83E\uDE78','\uD83E\uDDEB'] },
   { id: 'body', icon: '\uD83D\uDCAA', label: 'Body & Lifestyle', emojis: ['\uD83D\uDCAA','\uD83D\uDC41\uFE0F','\uD83D\uDC42','\uD83D\uDC45','\u2764\uFE0F','\uD83E\uDDE1','\uD83E\uDD71','\uD83D\uDE34','\uD83C\uDFC3','\uD83E\uDDD8','\uD83C\uDFCB\uFE0F','\uD83D\uDEB4','\uD83C\uDFCA','\uD83D\uDE4F','\uD83E\uDDCD','\uD83E\uDEC2'] },
@@ -884,8 +912,12 @@ export function showDetailModal(id) {
   } else if (isCustom) {
     rangeInfo = refEditable('Reference', '–', '–', 'ref');
   }
+  const isRenamed = !!state.importedData?.markerLabels?.[dotKey];
+  const renameLink = isRenamed
+    ? ` <span class="ref-edited-badge" title="Renamed — click to revert to original" onclick="event.stopPropagation();revertMarkerName('${id}')" style="cursor:pointer">renamed ×</span> <span class="ref-edited-badge" title="Rename marker" onclick="event.stopPropagation();renameMarker('${id}')" style="cursor:pointer;font-size:12px">rename</span>`
+    : ` <span class="ref-edited-badge" title="Rename marker" onclick="event.stopPropagation();renameMarker('${id}')" style="cursor:pointer;font-size:12px">rename</span>`;
   let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
-    <h3>${escapeHTML(marker.name)}</h3>
+    <h3>${escapeHTML(marker.name)}${renameLink}</h3>
     <div class="modal-unit">${escapeHTML(marker.unit)}${rangeInfo}</div>
     <div class="marker-description" id="marker-desc"></div>
     <div class="modal-chart"><canvas id="chart-modal"></canvas></div>
@@ -1748,6 +1780,8 @@ Object.assign(window, {
   dismissOnboarding,
   showCategory,
   renameCategory,
+  renameMarker,
+  revertMarkerName,
   changeCategoryIcon,
   switchView,
   renderChartCard,
