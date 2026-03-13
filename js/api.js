@@ -429,9 +429,6 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
   if (system) body.system = system;
   if (onStream) body.stream = true;
 
-  const timeoutSignal = AbortSignal.timeout(300000);
-  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-
   const headers = {
     'Content-Type': 'application/json',
     'x-api-key': key,
@@ -444,7 +441,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
     method: 'POST',
     headers,
     body: JSON.stringify(body),
-    signal: fetchSignal
+    signal
   });
 
   if (!res.ok) {
@@ -523,23 +520,15 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
   const body = { model, messages: ollamaMessages, stream: !!onStream };
   if (maxTokens) body.options = { num_predict: maxTokens };
 
-  const timeoutSignal = AbortSignal.timeout(300000);
-  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-
   let res;
   try {
     res = await fetch(`${config.url}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      signal: fetchSignal
+      signal
     });
   } catch (e) {
-    if (e.name === 'TimeoutError' || e.message.includes('timed out')) {
-      const modelName = model;
-      showNotification(`Model "${modelName}" timed out after 5 min. Try a smaller model in Settings → AI Provider.`, 'error', 8000);
-      throw new Error(`Local server timed out with "${modelName}". A smaller model (e.g. qwen3:32b or llama3.2) will be faster.`);
-    }
     if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
       throw new Error('Cannot reach local server. This is usually a CORS issue — try starting Ollama with: OLLAMA_ORIGINS=* ollama serve');
     }
@@ -597,9 +586,6 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
   const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096 };
   if (onStream) { body.stream = true; body.stream_options = { include_usage: true }; }
 
-  const timeoutSignal = AbortSignal.timeout(300000);
-  const fetchSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-
   let res;
   try {
     res = await _fetchWithRetry(endpoint, {
@@ -610,10 +596,9 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
         ...extraHeaders
       },
       body: JSON.stringify(body),
-      signal: fetchSignal
+      signal
     }, 2, useProxy);
   } catch (e) {
-    if (e.name === 'TimeoutError' || e.message.includes('timed out')) throw new Error(`${providerName} API timed out after 5 min.`);
     throw new Error(`Cannot reach ${providerName} API: ${e.message}`);
   }
 
