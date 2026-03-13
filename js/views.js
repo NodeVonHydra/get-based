@@ -921,6 +921,46 @@ export function showDetailModal(id) {
     const dir = ch > 0 ? "increased" : ch < 0 ? "decreased" : "unchanged";
     html += `<div class="modal-ref-info"><strong>Trend:</strong> ${dir} by ${Math.abs(ch).toFixed(2)} ${escapeHTML(marker.unit)} (${ch>0?"+":""}${pct}%) from ${dates[f.i]} to ${dates[l.i]}</div>`;
   }
+  // Calculated marker input diagnostic — show missing inputs
+  const calcInputs = {
+    'calculatedRatios_phenoAge': [
+      ['proteins', 'albumin', 'Albumin'], ['biochemistry', 'creatinine', 'Creatinine'],
+      ['biochemistry', 'glucose', 'Glucose'], ['proteins', 'hsCRP', 'hs-CRP'],
+      ['differential', 'lymphocytesPct', 'Lymphocytes %'], ['hematology', 'mcv', 'MCV'],
+      ['hematology', 'rdwcv', 'RDW-CV'], ['biochemistry', 'alp', 'ALP'], ['hematology', 'wbc', 'WBC']
+    ],
+    'calculatedRatios_bunCreatRatio': [
+      ['biochemistry', 'urea', 'Urea (BUN)'], ['biochemistry', 'creatinine', 'Creatinine']
+    ],
+    'calculatedRatios_freeWaterDeficit': [['electrolytes', 'sodium', 'Sodium']],
+    'calculatedRatios_tgHdlRatio': [['lipids', 'triglycerides', 'Triglycerides'], ['lipids', 'hdl', 'HDL']],
+    'calculatedRatios_ldlHdlRatio': [['lipids', 'ldl', 'LDL'], ['lipids', 'hdl', 'HDL']],
+    'calculatedRatios_nlr': [['differential', 'neutrophils', 'Neutrophils'], ['differential', 'lymphocytes', 'Lymphocytes']],
+    'calculatedRatios_plr': [['hematology', 'platelets', 'Platelets'], ['differential', 'lymphocytes', 'Lymphocytes']],
+    'calculatedRatios_deRitisRatio': [['biochemistry', 'ast', 'AST'], ['biochemistry', 'alt', 'ALT']],
+    'calculatedRatios_copperZincRatio': [['electrolytes', 'copper', 'Copper'], ['electrolytes', 'zinc', 'Zinc']],
+    'calculatedRatios_apoBapoAIRatio': [['lipids', 'apoB', 'ApoB'], ['lipids', 'apoAI', 'ApoA-I']],
+  };
+  const inputs = calcInputs[id];
+  if (inputs) {
+    const missing = inputs.filter(([cat, key, label]) => {
+      const vals = data.categories[cat]?.markers[key]?.values;
+      const hasData = vals && vals.some(v => v != null);
+      // PhenoAge accepts CRP as fallback for hs-CRP
+      if (!hasData && cat === 'proteins' && key === 'hsCRP') {
+        const crpVals = data.categories.proteins?.markers.crp?.values;
+        return !crpVals || crpVals.every(v => v == null);
+      }
+      return !hasData;
+    });
+    const needsDob = id === 'calculatedRatios_phenoAge' && !state.profileDob;
+    if (missing.length > 0 || needsDob) {
+      const parts = [];
+      if (missing.length > 0) parts.push(missing.map(m => m[2]).join(', '));
+      if (needsDob) parts.push('date of birth (set in profile)');
+      html += `<div class="calc-missing-inputs">Not calculated — missing: ${parts.join('; ')}</div>`;
+    }
+  }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   // Show delete link for custom markers only

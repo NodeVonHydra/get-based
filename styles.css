@@ -2173,6 +2173,12 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   .chat-attach-btn, .chat-hd-btn { width: 44px; height: 44px; }
   .chat-attach-remove { opacity: 1; width: 24px; height: 24px; }
 }
+/* Calculated marker missing inputs */
+.calc-missing-inputs {
+  color: var(--text-muted); font-size: 0.8rem; text-align: center;
+  margin-top: 12px; padding: 8px 12px; border-radius: 6px;
+  background: var(--bg-secondary); border: 1px dashed var(--border);
+}
 /* Ask AI Button in Marker Detail Modal */
 .ask-ai-btn {
   width: 100%; padding: 10px; border-radius: 6px;

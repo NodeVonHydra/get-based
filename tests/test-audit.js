@@ -33,7 +33,7 @@
   const swAuditSrc = await fetch('service-worker.js').then(r => r.text());
   assert('SW uses importScripts for version', swAuditSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swAuditSrc.includes('`labcharts-v${self.APP_VERSION}`'));
-  assert('Umami analytics script present', indexSrc.includes('cloud.umami.is/script.js'));
+  assert('Umami analytics script present (self-hosted)', indexSrc.includes('umami-iota-olive.vercel.app/script.js'));
   assert('Umami blocked on file:// protocol', indexSrc.includes("location.protocol!=='file:'"));
 
   // ═══════════════════════════════════════
