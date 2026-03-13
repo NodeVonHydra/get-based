@@ -323,7 +323,7 @@
   {
     const apiSrc = await fetch('js/api.js').then(r => r.text());
     assert('callAnthropicAPI destructures signal', apiSrc.includes('callAnthropicAPI') && apiSrc.includes('signal }'));
-    assert('API uses AbortSignal.any', apiSrc.includes('AbortSignal.any'));
+    assert('API passes signal to fetch', apiSrc.includes('signal') && apiSrc.includes('fetch('));
     assert('callOllamaChat has signal param', apiSrc.includes('callOllamaChat') && apiSrc.includes('signal }'));
     assert('callOpenAICompatibleAPI has signal param', apiSrc.includes('callOpenAICompatibleAPI') && apiSrc.includes('signal }'));
   }

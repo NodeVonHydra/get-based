@@ -292,7 +292,7 @@ Uses the lightweight `buildFocusContext()` (~200-400 tokens) instead of full `bu
 │    • Notable changes >20% from previous              │
 │    ~200-400 tokens total                             │
 ├──────────────────────────────────────────────────────┤
-│  maxTokens: 100  │  streaming: no  │  timeout: 15s   │
+│  maxTokens: 100  │  streaming: no                     │
 ├──────────────────────────────────────────────────────┤
 │  CACHE: fingerprint = hash(entries + sex + DOB +      │
 │         all 9 cards + lens + notes + cycle + supps)   │
@@ -317,7 +317,7 @@ Requests structured JSON for only the stale (changed) cards. JSON.parse is wrapp
 ├──────────────────────────────────────────────────────┤
 │  USER: buildLabContext()                              │
 ├──────────────────────────────────────────────────────┤
-│  maxTokens: 500  │  streaming: no  │  timeout: 20s   │
+│  maxTokens: 500  │  streaming: no                     │
 ├──────────────────────────────────────────────────────┤
 │  CACHE: per-card fingerprint via getCardFingerprint() │
 │         only stale cards re-fetched                   │

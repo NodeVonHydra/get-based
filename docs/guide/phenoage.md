@@ -23,9 +23,9 @@ PhenoAge is calculated from:
 | WBC (white blood cells) | Immune |
 
 ::: warning
-PhenoAge requires **all nine markers** to be present for a given date. If any one of them is missing, no value is calculated for that draw. It also requires your **date of birth** to be set in Settings → Profile.
+PhenoAge requires **all nine markers** to be present for a given date. If any one of them is missing, no value is calculated for that draw — the detail view shows exactly which inputs are missing. It also requires your **date of birth** to be set in Settings → Profile.
 
-**CRP fallback**: If your lab reports plain CRP instead of high-sensitivity CRP (hsCRP), getbased will use the CRP value as a fallback. Either marker satisfies the inflammation input.
+**hs-CRP required**: PhenoAge specifically needs high-sensitivity CRP (hs-CRP), not standard CRP. These are different assays — standard CRP lacks the precision needed for the calculation. Make sure your lab report includes hs-CRP.
 :::
 
 ## Where to Find It
@@ -47,7 +47,7 @@ There is no fixed reference range for PhenoAge the way there is for, say, LDL ch
 The trend over time matters more than any single reading. Consistent improvements across multiple draws — even small ones — are meaningful.
 
 ::: tip
-The markers that most strongly influence PhenoAge are CRP (inflammation) and albumin (nutrition/liver health). If your PhenoAge is higher than expected, those are often the first places to investigate.
+The markers that most strongly influence PhenoAge are hs-CRP (inflammation) and albumin (nutrition/liver health). If your PhenoAge is higher than expected, those are often the first places to investigate.
 :::
 
 ## In AI Chat

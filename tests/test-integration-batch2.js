@@ -278,6 +278,10 @@
     'biochemistry.egfr',
     // Diabetes (insulin_d mirrors hormones.insulin, homaIR is unitless)
     'diabetes.insulin_d', 'diabetes.homaIR',
+    // CRP (mg/l same unit US/SI)
+    'proteins.crp',
+    // Urinalysis (unitless)
+    'urinalysis.ph', 'urinalysis.specificGravity',
   ]);
 
   let unconverted = [];

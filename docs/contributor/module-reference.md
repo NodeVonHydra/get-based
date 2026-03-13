@@ -342,11 +342,11 @@ Full PDF-to-lab-data import pipeline.
 - `extractPDFText(file)` — pdf.js text extraction with x/y coordinates, returns page-aware formatted text
 - `parseLabPDFWithAI(pdfText)` — sends text + `buildMarkerReference()` to AI; maps lab results to marker keys
 - `handleBatchPDFs(files)` — sequential multi-file import with per-file confirm/skip
-- `showImportPreview(parsed)` — modal with matched (green), new custom (blue), unmatched (yellow) markers
+- `showImportPreview(parsed)` — modal with matched (green), new custom (blue), unmatched (yellow) markers. All numeric results are captured — unknowns become custom markers rather than being silently dropped
 - `confirmImport(parsed)` — merges parsed data into `importedData.entries`
 - `initDropZone()` — wires the drag-and-drop zone for PDF and JSON files
 
-**Window exports:** `confirmImport`, `skipImport`, `importNextPDF`
+**Window exports:** `confirmImport`, `skipImport`, `importNextPDF`, `syncImportStatusFab`, `handleImportStatusClick`, `isImportRunning`
 
 ---
 

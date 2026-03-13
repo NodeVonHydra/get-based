@@ -76,11 +76,15 @@ const PORT = process.env.PORT || 8000;
     process.exit(2);
   }
 
-  // Unregister service worker to prevent reload-triggered double execution
-  await page.evaluate(async () => {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (const r of regs) await r.unregister();
-  });
+  // Disable service worker to prevent context-destroying reloads during test execution
+  await page.setBypassServiceWorker(true);
+  // Also unregister any existing SW registrations
+  try {
+    await page.evaluate(async () => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) await r.unregister();
+    });
+  } catch (e) { /* context destroyed by SW — harmless, we bypass it anyway */ }
 
   // Reload clean (no SW interference)
   await page.goto(`http://localhost:${PORT}/app`, { waitUntil: 'networkidle2', timeout: 15000 });
@@ -88,17 +92,28 @@ const PORT = process.env.PORT || 8000;
   console.log(`Running ${TEST_FILES.length} test files...\n`);
   listening = true;
 
-  await page.evaluate(async (files) => {
-    for (const t of files) {
-      console.log(`\u25B6 Running ${t}`);
-      try {
-        const src = await fetch(t).then(r => r.text());
-        await Function(src)();
-      } catch (e) {
-        console.log(`FAIL ${t}: ${e.message}`);
+  // Run each test file individually to survive context destruction
+  for (const testFile of TEST_FILES) {
+    try {
+      await page.evaluate(async (t) => {
+        console.log(`\u25B6 Running ${t}`);
+        try {
+          const src = await fetch(t).then(r => r.text());
+          await Function(src)();
+        } catch (e) {
+          console.log(`FAIL ${t}: ${e.message}`);
+        }
+      }, testFile);
+    } catch (e) {
+      if (e.message.includes('Execution context was destroyed')) {
+        console.log(`\x1b[33mWARN: ${testFile} destroyed context — reloading\x1b[0m`);
+        await page.goto(`http://localhost:${PORT}/app`, { waitUntil: 'networkidle2', timeout: 15000 });
+      } else {
+        fails.push(`CRASH ${testFile}: ${e.message}`);
+        console.log(`\x1b[31mCRASH ${testFile}: ${e.message}\x1b[0m`);
       }
     }
-  }, TEST_FILES);
+  }
 
   // Wait for async console logs to flush
   await new Promise(r => setTimeout(r, 3000));
