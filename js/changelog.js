@@ -7,16 +7,13 @@ const CHANGELOG = [
   {
     version: '1.7.5', date: '2026-03-13', title: 'Smarter Imports',
     items: [
-      'Import now captures every numeric result — urine sediment, tumor markers, and other unknowns become custom markers automatically',
-      'European lab prefixes (S-, U-, USED-, F-, FW) stripped automatically during import',
-      'CRP and hs-CRP recognized as separate markers — PhenoAge uses hs-CRP only',
-      'Below-detection-limit results (e.g. <0.5) imported as the detection limit value',
-      'Urinalysis category added (pH, specific gravity) for direct mapping',
-      'Import status pill — shows live progress when you scroll away or navigate, disappears when the progress bar is visible',
-      'Import blocked while another import is already running',
-      'Rename any marker from the detail modal',
-      'Calculated markers (PhenoAge, ratios) show which inputs are missing',
-      'Removed API timeout — slow local models no longer get false "aborted" errors',
+      'PDF import now captures every numeric result — no more silently dropped markers',
+      'Better handling of European lab reports — specimen prefixes and local naming conventions recognized',
+      'CRP and hs-CRP tracked as separate markers — PhenoAge correctly requires hs-CRP',
+      'Import progress pill shows live status when you scroll away or switch views',
+      'Rename any marker from its detail view',
+      'PhenoAge and other calculated markers tell you exactly which inputs are missing',
+      'Slow AI models no longer get false timeout errors',
     ]
   },
   {
