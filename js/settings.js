@@ -317,7 +317,7 @@ export function renderAIProviderPanel(provider) {
     </div>
     <div id="local-ai-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
-      <select class="api-key-input" id="local-ai-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
+      <select class="api-key-input" id="local-ai-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value); refreshModelAdvisor()"></select>
       <div style="margin-top:4px">${renderModelPricingHint('ollama', '')}</div>
     </div>
     <div id="local-ai-advisor"></div>
@@ -1122,9 +1122,15 @@ Object.assign(window, {
   refreshDataEntriesSection,
   resetCurrentProfileUsage,
   copyOllamaPullCmd,
+  refreshModelAdvisor,
   applyHardwareOverride: applyHardwareOverrideFn,
   clearHardwareOverride: clearHardwareOverrideFn,
 });
+
+function refreshModelAdvisor() {
+  const details = window._lastOllamaModelDetails || [];
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+}
 
 function copyOllamaPullCmd(cmd) {
   navigator.clipboard.writeText(cmd).then(() => showNotification('Copied: ' + cmd, 'info'));
