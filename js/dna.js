@@ -470,9 +470,16 @@ function confirmDNAImport() {
   const overlay = document.getElementById('dna-modal-overlay');
   if (overlay) overlay.classList.remove('show');
   showNotification(`Imported ${result.coverage.found} SNPs from ${result.source}`, 'success');
-  // Refresh dashboard + chat onboarding (hides the DNA upload section)
+  // Refresh dashboard
   if (window.navigate) window.navigate('dashboard');
-  if (window.updateChatNudge) window.updateChatNudge();
+  // Update chat onboarding — replace DNA upload with confirmation
+  const dnaEl = document.querySelector('.chat-onboard-dna');
+  if (dnaEl) {
+    const apoe = state.importedData.genetics?.apoe;
+    dnaEl.innerHTML = `<p>🧬 Imported ${result.coverage.found} SNPs from ${escapeHTML(result.source)}${apoe ? ' — APOE: <strong>' + escapeHTML(apoe) + '</strong>' : ''}. I'll factor this into all your lab interpretations.</p>`;
+  } else if (window.updateChatNudge) {
+    window.updateChatNudge();
+  }
 }
 
 // ═══════════════════════════════════════════════
