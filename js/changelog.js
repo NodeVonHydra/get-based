@@ -7,11 +7,11 @@ const CHANGELOG = [
   {
     version: '1.7.7', date: '2026-03-14', title: 'Local AI Model Advisor',
     items: [
-      'Settings → Local AI now detects your GPU and shows which installed models fit your hardware',
-      'Each model gets a can-run badge (fits / tight / too large) based on VRAM',
+      'Settings → Local AI now rates each installed model for lab analysis: ★ Recommended, Capable, Underpowered, or Inadequate',
+      'GPU auto-detected — shows which models fit your VRAM (fits / tight / too large)',
+      'Suggests a better model to pull when none of your installed models are recommended',
       'Model dropdown shows file size and quantization at a glance',
-      'Suggests optimal models to pull if none of your installed models fit well',
-      'Manual VRAM override for when auto-detection can\'t identify your GPU',
+      'Remote Ollama servers detected — enter server VRAM manually for accurate recommendations',
     ]
   },
   {
