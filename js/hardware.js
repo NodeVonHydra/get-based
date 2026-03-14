@@ -276,13 +276,13 @@ export function getBestModel(modelDetails, hardware) {
 
 // Best model to pull per VRAM tier — always the strongest "recommended" model that fits
 const VRAM_RECOMMENDATIONS = [
-  { minVram: 0,  maxVram: 6,  model: 'qwen2.5:3b',  note: 'Best available for low VRAM, but expect frequent errors. Consider a cloud provider for reliable results.' },
-  { minVram: 6,  maxVram: 8,  model: 'llama3.1:8b',  note: 'Handles basic reports. For complex labs or specialty tests, a cloud provider will be more reliable.' },
-  { minVram: 8,  maxVram: 12, model: 'qwen2.5:14b',  note: 'Recommended — reliable lab parsing and medical chat. Closest local experience to cloud AI.' },
-  { minVram: 12, maxVram: 16, model: 'qwen2.5:14b',  note: 'Recommended — runs comfortably with room for long reports.' },
-  { minVram: 16, maxVram: 24, model: 'qwen2.5:32b',  note: 'Near-cloud quality. Handles all report types including specialty labs.' },
-  { minVram: 24, maxVram: 48, model: 'qwen2.5:72b',  note: 'Cloud-grade lab analysis, fully private.' },
-  { minVram: 48, maxVram: Infinity, model: 'llama3.3:70b', note: 'Top-tier. Also try qwen2.5:72b.' },
+  { minVram: 0,  maxVram: 6,  model: 'qwen3.5:4b',   note: 'Best available for low VRAM, but expect frequent errors. Consider a cloud provider for reliable results.' },
+  { minVram: 6,  maxVram: 8,  model: 'qwen3.5:9b',   note: 'Handles most reports. For complex specialty labs, a cloud provider will be more reliable.' },
+  { minVram: 8,  maxVram: 12, model: 'qwen3.5:14b',  note: 'Recommended — reliable lab parsing and medical chat. Closest local experience to cloud AI.' },
+  { minVram: 12, maxVram: 16, model: 'qwen3.5:14b',  note: 'Recommended — runs comfortably with room for long reports.' },
+  { minVram: 16, maxVram: 24, model: 'qwen3.5:32b',  note: 'Near-cloud quality. Handles all report types including specialty labs.' },
+  { minVram: 24, maxVram: 48, model: 'qwen3.5:72b',  note: 'Cloud-grade lab analysis, fully private.' },
+  { minVram: 48, maxVram: Infinity, model: 'qwen3.5:72b', note: 'Top-tier — cloud-grade quality, fully local.' },
 ];
 
 // Returns a suggestion to pull a better model, or null if the user already has a recommended one
