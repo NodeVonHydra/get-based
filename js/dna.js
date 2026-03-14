@@ -220,10 +220,21 @@ function resolveAPOE(matches) {
 // ═══════════════════════════════════════════════
 
 export function saveGeneticsData(profileData, parseResult) {
+  // Count effects for quick display (avoids needing SNP table at render time)
+  const apoe = resolveAPOE(parseResult.matches);
+  const apoeRsids = apoe ? new Set(['rs429358', 'rs7412']) : new Set();
+  let significant = 0, moderate = 0, normal = 0;
+  for (const [rsid, data] of Object.entries(parseResult.matches)) {
+    if (apoeRsids.has(rsid)) continue;
+    if (data.effect === 'significant') significant++;
+    else if (data.effect === 'moderate') moderate++;
+    else if (data.effect === 'none') normal++;
+  }
   profileData.genetics = {
     source: parseResult.source,
     importDate: new Date().toISOString().slice(0, 10),
     coverage: parseResult.coverage,
+    effects: { significant, moderate, normal },
     snps: {},
   };
   for (const [rsid, data] of Object.entries(parseResult.matches)) {
@@ -233,8 +244,6 @@ export function saveGeneticsData(profileData, parseResult) {
       variant: data.variant,
     };
   }
-  // Resolve APOE haplotype
-  const apoe = resolveAPOE(parseResult.matches);
   if (apoe) {
     profileData.genetics.apoe = apoe;
   }
