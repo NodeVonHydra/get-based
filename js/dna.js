@@ -470,16 +470,35 @@ function confirmDNAImport() {
   const overlay = document.getElementById('dna-modal-overlay');
   if (overlay) overlay.classList.remove('show');
   showNotification(`Imported ${result.coverage.found} SNPs from ${result.source}`, 'success');
-  // Refresh dashboard
-  if (window.navigate) window.navigate('dashboard');
+
+  // Build summary for chat confirmation
+  const apoe = state.importedData.genetics?.apoe;
+  const apoeRsids = apoe ? new Set(['rs429358', 'rs7412']) : new Set();
+  let sigCount = 0, modCount = 0, normCount = 0;
+  for (const [rsid, m] of Object.entries(result.matches)) {
+    if (apoeRsids.has(rsid)) continue;
+    if (m.effect === 'significant') sigCount++;
+    else if (m.effect === 'moderate') modCount++;
+    else if (m.effect === 'none') normCount++;
+  }
+  const parts = [];
+  if (apoe) parts.push(`APOE: <strong>${escapeHTML(apoe)}</strong>`);
+  if (sigCount > 0) parts.push(`\uD83D\uDD34 ${sigCount} significant`);
+  if (modCount > 0) parts.push(`\uD83D\uDFE1 ${modCount} moderate`);
+  if (normCount > 0) parts.push(`\uD83D\uDFE2 ${normCount} normal`);
+
   // Update chat onboarding — replace DNA upload with confirmation
   const dnaEl = document.querySelector('.chat-onboard-dna');
   if (dnaEl) {
-    const apoe = state.importedData.genetics?.apoe;
-    dnaEl.innerHTML = `<p>🧬 Imported ${result.coverage.found} SNPs from ${escapeHTML(result.source)}${apoe ? ' — APOE: <strong>' + escapeHTML(apoe) + '</strong>' : ''}. I'll factor this into all your lab interpretations.</p>`;
+    dnaEl.innerHTML = `<p>\uD83E\uDDEC <strong>${result.coverage.found} SNPs imported</strong> from ${escapeHTML(result.source)}</p>
+      <div style="font-size:13px;line-height:1.8">${parts.join(' &nbsp;\u00B7&nbsp; ')}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>`;
   } else if (window.updateChatNudge) {
     window.updateChatNudge();
   }
+
+  // Refresh dashboard
+  if (window.navigate) window.navigate('dashboard');
 }
 
 // ═══════════════════════════════════════════════
