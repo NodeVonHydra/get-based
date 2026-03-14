@@ -277,38 +277,41 @@ export function getBestModel(modelDetails, hardware) {
 // Known model catalog — approximate file sizes (Q4_K_M) for VRAM estimation.
 // Used to suggest the best pullable model for a given VRAM budget.
 // sizeGb = approximate file size at default quantization. VRAM ≈ sizeGb * 1.15
+// quality = getbased-specific quality rank (higher = better for lab analysis).
+//   Within the same fitness tier, quality determines which model to suggest.
+//   Latest gen + best at structured JSON + medical knowledge = highest quality.
 const MODEL_CATALOG = [
-  // Qwen 3.5
-  { model: 'qwen3.5:72b',  sizeGb: 43,  tier: 'recommended' },
-  { model: 'qwen3.5:32b',  sizeGb: 20,  tier: 'recommended' },
-  { model: 'qwen3.5:14b',  sizeGb: 9,   tier: 'recommended' },
-  { model: 'qwen3.5:9b',   sizeGb: 6.6, tier: 'capable' },
-  { model: 'qwen3.5:4b',   sizeGb: 2.8, tier: 'underpowered' },
-  // Qwen 2.5
-  { model: 'qwen2.5:72b',  sizeGb: 43,  tier: 'recommended' },
-  { model: 'qwen2.5:32b',  sizeGb: 20,  tier: 'recommended' },
-  { model: 'qwen2.5:14b',  sizeGb: 9,   tier: 'recommended' },
-  { model: 'qwen2.5:7b',   sizeGb: 4.7, tier: 'capable' },
+  // Qwen 3.5 — latest gen, best structured extraction
+  { model: 'qwen3.5:72b',  sizeGb: 43,  tier: 'recommended', quality: 100 },
+  { model: 'qwen3.5:32b',  sizeGb: 20,  tier: 'recommended', quality: 95 },
+  { model: 'qwen3.5:14b',  sizeGb: 9,   tier: 'recommended', quality: 90 },
+  { model: 'qwen3.5:9b',   sizeGb: 6.6, tier: 'capable',     quality: 70 },
+  { model: 'qwen3.5:4b',   sizeGb: 2.8, tier: 'underpowered', quality: 30 },
+  // Qwen 2.5 — proven, slightly older
+  { model: 'qwen2.5:72b',  sizeGb: 43,  tier: 'recommended', quality: 92 },
+  { model: 'qwen2.5:32b',  sizeGb: 20,  tier: 'recommended', quality: 88 },
+  { model: 'qwen2.5:14b',  sizeGb: 9,   tier: 'recommended', quality: 85 },
+  { model: 'qwen2.5:7b',   sizeGb: 4.7, tier: 'capable',     quality: 60 },
   // Qwen 3
-  { model: 'qwen3:30b',    sizeGb: 18,  tier: 'recommended' },
-  { model: 'qwen3:14b',    sizeGb: 9,   tier: 'recommended' },
-  { model: 'qwen3:8b',     sizeGb: 5,   tier: 'capable' },
+  { model: 'qwen3:30b',    sizeGb: 18,  tier: 'recommended', quality: 86 },
+  { model: 'qwen3:14b',    sizeGb: 9,   tier: 'recommended', quality: 82 },
+  { model: 'qwen3:8b',     sizeGb: 5,   tier: 'capable',     quality: 58 },
   // Llama
-  { model: 'llama3.3:70b', sizeGb: 43,  tier: 'recommended' },
-  { model: 'llama3.1:70b', sizeGb: 43,  tier: 'recommended' },
-  { model: 'llama3.1:8b',  sizeGb: 4.7, tier: 'capable' },
+  { model: 'llama3.3:70b', sizeGb: 43,  tier: 'recommended', quality: 88 },
+  { model: 'llama3.1:70b', sizeGb: 43,  tier: 'recommended', quality: 84 },
+  { model: 'llama3.1:8b',  sizeGb: 4.7, tier: 'capable',     quality: 55 },
   // Gemma
-  { model: 'gemma3:27b',   sizeGb: 17,  tier: 'recommended' },
-  { model: 'gemma3:12b',   sizeGb: 8,   tier: 'recommended' },
-  { model: 'gemma2:27b',   sizeGb: 16,  tier: 'recommended' },
-  { model: 'gemma2:9b',    sizeGb: 5.4, tier: 'capable' },
+  { model: 'gemma3:27b',   sizeGb: 17,  tier: 'recommended', quality: 83 },
+  { model: 'gemma3:12b',   sizeGb: 8,   tier: 'recommended', quality: 78 },
+  { model: 'gemma2:27b',   sizeGb: 16,  tier: 'recommended', quality: 76 },
+  { model: 'gemma2:9b',    sizeGb: 5.4, tier: 'capable',     quality: 52 },
   // DeepSeek
-  { model: 'deepseek-r1:70b', sizeGb: 43, tier: 'recommended' },
-  { model: 'deepseek-r1:32b', sizeGb: 20, tier: 'recommended' },
+  { model: 'deepseek-r1:70b', sizeGb: 43, tier: 'recommended', quality: 80 },
+  { model: 'deepseek-r1:32b', sizeGb: 20, tier: 'recommended', quality: 75 },
   // Command R
-  { model: 'command-r-plus',  sizeGb: 60, tier: 'recommended' },
+  { model: 'command-r-plus',  sizeGb: 60, tier: 'recommended', quality: 72 },
   // Mistral
-  { model: 'mistral-small',   sizeGb: 13, tier: 'capable' },
+  { model: 'mistral-small',   sizeGb: 13, tier: 'capable',     quality: 50 },
 ];
 
 // Returns a suggestion to pull a better model, or null if the user already has a recommended one
@@ -330,9 +333,9 @@ export function getUpgradeSuggestion(modelDetails, hardware) {
       return fits && betterTier;
     })
     .sort((a, b) => {
-      // Prefer higher tier, then larger model within same tier
+      // Prefer higher tier, then higher quality within same tier
       const tierDiff = TIER_RANK[b.tier] - TIER_RANK[a.tier];
-      return tierDiff !== 0 ? tierDiff : b.sizeGb - a.sizeGb;
+      return tierDiff !== 0 ? tierDiff : b.quality - a.quality;
     });
   if (candidates.length === 0) return null;
   const pick = candidates[0];
