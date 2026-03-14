@@ -913,13 +913,15 @@ export function setupDropZone() {
     if (files.length === 0) return;
     const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
     const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
-    const unsupported = files.length - jsonFiles.length - pdfFiles.length;
-    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0) {
-      showNotification("Unsupported file type. Use PDF or JSON.", "error");
+    const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
+    const unsupported = files.length - jsonFiles.length - pdfFiles.length - dnaFiles.length;
+    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && dnaFiles.length === 0) {
+      showNotification("Unsupported file type. Use PDF, JSON, or DNA raw data (.txt/.csv).", "error");
       return;
     }
     for (const f of jsonFiles) window.importDataJSON(f);
-    if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
+    if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+    else if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
 }

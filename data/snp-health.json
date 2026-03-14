@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "1.0.0",
-    "description": "Curated health-relevant SNP lookup table for DNA raw data import. Forward (+) strand alleles.",
+    "description": "Curated health-relevant SNP lookup table for DNA raw data import. Forward (+) strand alleles. UPDATE when new research warrants adding/revising SNPs — each entry needs gene, genotypes, effect notes, and at least one citation.",
     "snpCount": 41,
     "categories": ["methylation", "iron", "lipids", "vitaminD", "vitaminB12", "bilirubin", "thyroid", "fattyAcids", "bloodSugar", "sexHormones"],
     "sources": ["SNPedia", "ClinVar", "GWAS Catalog", "PharmGKB"]

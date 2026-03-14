@@ -665,7 +665,20 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
-  // ── 8. Menstrual Cycle (female only) ──
+  // ── 8. Genetics ──
+  const genetics = state.importedData.genetics;
+  if (genetics && genetics.snps && Object.keys(genetics.snps).length > 0) {
+    // Collect active marker keys to filter relevant SNPs
+    const activeMarkerKeys = hasLabData ? Object.entries(data.categories).flatMap(([catKey, cat]) =>
+      Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null)).map(([key]) => `${catKey}.${key}`)
+    ) : [];
+    const geneticsCtx = window._buildGeneticsContext ? window._buildGeneticsContext(genetics, activeMarkerKeys) : '';
+    if (geneticsCtx) {
+      ctx += `## ${geneticsCtx}\n\n`;
+    }
+  }
+
+  // ── 9. Menstrual Cycle (female only) ──
   const mc = state.importedData.menstrualCycle;
   if (mc && state.profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';

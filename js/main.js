@@ -21,6 +21,7 @@ for (const fn of _emfFns) {
   window[fn] = async function(...args) { const mod = await import('./emf.js'); for (const f of _emfFns) window[f] = mod[f]; return mod[fn](...args); };
 }
 import './pdf-import.js';
+import './dna.js';
 import './export.js';
 import './chat.js';
 import './image-utils.js';
@@ -137,11 +138,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const files = Array.from(e.target.files);
       const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
       const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+      const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
       for (const f of jsonFiles) window.importDataJSON(f);
-      const forceImage = !!window._forceImageMode;
-      delete window._forceImageMode;
-      if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
-      else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
+      if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+      else {
+        const forceImage = !!window._forceImageMode;
+        delete window._forceImageMode;
+        if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
+        else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
+      }
       e.target.value = '';
     }
   });
