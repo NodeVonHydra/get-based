@@ -463,6 +463,11 @@ function confirmDNAImport() {
 // DETAIL MODAL HELPER
 // ═══════════════════════════════════════════════
 
+// Eagerly load SNP table if genetics data exists (so detail modal lookups work immediately)
+if (state.importedData.genetics && state.importedData.genetics.snps) {
+  loadSNPTable();
+}
+
 // Get SNPs relevant to a specific marker dotKey (e.g. "coagulation.homocysteine")
 function getRelevantSNPs(dotKey) {
   const genetics = state.importedData.genetics;
