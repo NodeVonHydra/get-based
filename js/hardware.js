@@ -169,6 +169,8 @@ export function assessModel(modelObj, hardware) {
 //         capable     — handles most reports, occasional JSON issues on complex ones
 //         underpowered — will frequently miss markers or break JSON structure
 //         inadequate   — don't use for lab analysis
+// ── UPDATE when new model generations launch (same cadence as OPENROUTER_RECOMMENDED in api.js)
+//    Also update MODEL_CATALOG below.
 const MODEL_FITNESS = [
   // Qwen 2.5 — best family for structured extraction
   { match: 'qwen2.5:72b',     tier: 'recommended', note: 'Cloud-grade quality' },
@@ -280,6 +282,8 @@ export function getBestModel(modelDetails, hardware) {
 // quality = getbased-specific quality rank (higher = better for lab analysis).
 //   Within the same fitness tier, quality determines which model to suggest.
 //   Latest gen + best at structured JSON + medical knowledge = highest quality.
+// ── UPDATE when new model generations launch (same cadence as OPENROUTER_RECOMMENDED in api.js)
+//    Also update MODEL_FITNESS above.
 const MODEL_CATALOG = [
   // Qwen 3.5 — latest gen, best structured extraction
   { model: 'qwen3.5:72b',  sizeGb: 43,  tier: 'recommended', quality: 100 },
