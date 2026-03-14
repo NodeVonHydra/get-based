@@ -1766,14 +1766,13 @@ export function renderChatMessages() {
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Press + or Enter to add. You can always edit these later on the dashboard.</div>
           </div>`;
       const hasGenetics = state.importedData.genetics && Object.keys(state.importedData.genetics.snps || {}).length > 0;
-      const dnaSection = !hasGenetics ? `<div class="chat-onboard-dna">
-            <p>🧬 Have you ever done a DNA test? (Ancestry, 23andMe, etc.) If you have the raw data file, it helps me understand <em>why</em> your labs look the way they do.</p>
-            <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+      const dnaSection = !hasGenetics ? `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <p style="margin:0 0 8px">\uD83E\uDDEC Have you ever done a DNA test? If you have the raw data file, it helps me understand <em>why</em> your labs look the way they do — even when your lifestyle is dialed in.</p>
+            <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
               <button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>
-              <span style="font-size:11px;color:var(--text-muted)">Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA</span>
             </div>
             <input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">
-            <div style="font-size:11px;color:var(--text-muted)">Processed locally — your DNA file never leaves your device.</div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Supports Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA.<br>Processed locally \u2014 your DNA file never leaves your device.</div>
           </div>` : '';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai" style="width:88%">

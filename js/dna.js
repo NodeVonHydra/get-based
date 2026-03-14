@@ -490,9 +490,12 @@ function confirmDNAImport() {
   // Update chat onboarding — replace DNA upload with confirmation
   const dnaEl = document.querySelector('.chat-onboard-dna');
   if (dnaEl) {
-    dnaEl.innerHTML = `<p>\uD83E\uDDEC <strong>${result.coverage.found} SNPs imported</strong> from ${escapeHTML(result.source)}</p>
+    dnaEl.style.borderTop = '1px solid var(--border)';
+    dnaEl.style.paddingTop = '12px';
+    dnaEl.style.marginTop = '12px';
+    dnaEl.innerHTML = `<p style="margin:0 0 6px">\uD83E\uDDEC <strong>${result.coverage.found} SNPs imported</strong> from ${escapeHTML(result.source)}</p>
       <div style="font-size:13px;line-height:1.8">${parts.join(' &nbsp;\u00B7&nbsp; ')}</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>`;
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">I'll factor these into all your lab interpretations.</div>`;
   } else if (window.updateChatNudge) {
     window.updateChatNudge();
   }
