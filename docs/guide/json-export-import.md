@@ -17,6 +17,7 @@ The exported file includes everything for the current profile:
 - Interpretive lens
 - Supplements
 - Menstrual cycle data (if entered)
+- Genetics data (SNP results from DNA raw data import, if imported)
 - Custom marker definitions
 - Chat history and conversation threads
 

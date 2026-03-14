@@ -249,6 +249,24 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
 }
 ```
 
+### `genetics` — DNA raw data (null if not imported)
+
+```js
+genetics: {
+  source: "AncestryDNA",       // provider name
+  importDate: "2026-03-14",    // ISO date
+  coverage: { found: 35, total: 41 },  // matched vs total curated SNPs
+  apoe: "ε3/ε4",              // resolved haplotype (null if incomplete)
+  snps: {
+    "rs1801133": { genotype: "GA", gene: "MTHFR", variant: "C677T" },
+    "rs1800562": { genotype: "GG", gene: "HFE", variant: "C282Y" },
+    // ... only matched SNPs stored, not the full 600k+ raw file
+  }
+}
+```
+
+Re-import replaces entirely (no merge). Raw file is never stored — only matched SNPs.
+
 ## IndexedDB — auto-backup
 
 Database: `labcharts-backups`
