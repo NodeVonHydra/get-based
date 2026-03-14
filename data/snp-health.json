@@ -9,7 +9,7 @@
 
   "rs1801133": {
     "gene": "MTHFR", "variant": "C677T", "category": "methylation",
-    "markers": ["coagulation.homocysteine", "vitamins.folate", "vitamins.vitB12"],
+    "markers": ["coagulation.homocysteine", "vitamins.folate", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
     "strandNote": "Minus strand gene. Forward: G(ref)/A(alt). G=C complement, A=T complement.",
     "genotypes": {
@@ -32,7 +32,7 @@
   },
   "rs1805087": {
     "gene": "MTR", "variant": "A2756G", "category": "methylation",
-    "markers": ["coagulation.homocysteine", "vitamins.vitB12"],
+    "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal methionine synthase activity" },
@@ -42,7 +42,7 @@
   },
   "rs1801394": {
     "gene": "MTRR", "variant": "A66G", "category": "methylation",
-    "markers": ["coagulation.homocysteine", "vitamins.vitB12"],
+    "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal B12 recycling via MTRR" },
@@ -74,7 +74,7 @@
 
   "rs1800562": {
     "gene": "HFE", "variant": "C282Y", "category": "iron",
-    "markers": ["iron.ferritin", "iron.transferrinSaturation", "iron.serum", "iron.transferrin"],
+    "markers": ["iron.ferritin", "iron.transferrin", "iron.iron", "iron.transferrin"],
     "contextCards": ["diet"],
     "genotypes": {
       "GG": { "effect": "none", "note": "No hemochromatosis risk from C282Y" },
@@ -84,7 +84,7 @@
   },
   "rs1799945": {
     "gene": "HFE", "variant": "H63D", "category": "iron",
-    "markers": ["iron.ferritin", "iron.transferrinSaturation", "iron.serum"],
+    "markers": ["iron.ferritin", "iron.transferrin", "iron.iron"],
     "contextCards": ["diet"],
     "genotypes": {
       "CC": { "effect": "none", "note": "No H63D variant" },
@@ -95,7 +95,7 @@
   },
   "rs855791": {
     "gene": "TMPRSS6", "variant": "V736A", "category": "iron",
-    "markers": ["iron.ferritin", "iron.transferrinSaturation", "hematology.hemoglobin"],
+    "markers": ["iron.ferritin", "iron.transferrin", "hematology.hemoglobin"],
     "contextCards": ["diet", "supplements"],
     "strandNote": "Forward strand: G(ref=Ala736)/A(alt=Val736). Literature often cites T/C (complement).",
     "genotypes": {
@@ -106,7 +106,7 @@
   },
   "rs2235321": {
     "gene": "TMPRSS6", "variant": "synonymous", "category": "iron",
-    "markers": ["iron.ferritin", "hematology.hemoglobin", "iron.transferrinSaturation"],
+    "markers": ["iron.ferritin", "hematology.hemoglobin", "iron.transferrin"],
     "contextCards": ["diet"],
     "strandNote": "Forward strand: G(ref)/A(alt). Literature often cites C/T (complement).",
     "genotypes": {
@@ -117,7 +117,7 @@
   },
   "rs3811647": {
     "gene": "TF", "variant": "intron 11", "category": "iron",
-    "markers": ["iron.transferrin", "iron.tibc", "iron.transferrinSaturation"],
+    "markers": ["iron.transferrin", "iron.tibc", "iron.transferrin"],
     "contextCards": ["diet"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal transferrin/TIBC levels" },
@@ -128,7 +128,7 @@
 
   "rs429358": {
     "gene": "APOE", "variant": "APOE-part1", "category": "lipids",
-    "markers": ["lipids.ldl", "lipids.totalCholesterol", "lipids.triglycerides", "lipids.hdl"],
+    "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.triglycerides", "lipids.hdl"],
     "contextCards": ["diet"],
     "composite": "apoe",
     "genotypes": {
@@ -139,7 +139,7 @@
   },
   "rs7412": {
     "gene": "APOE", "variant": "APOE-part2", "category": "lipids",
-    "markers": ["lipids.ldl", "lipids.totalCholesterol", "lipids.triglycerides", "lipids.hdl"],
+    "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.triglycerides", "lipids.hdl"],
     "contextCards": ["diet"],
     "composite": "apoe",
     "genotypes": {
@@ -150,7 +150,7 @@
   },
   "rs11591147": {
     "gene": "PCSK9", "variant": "R46L", "category": "lipids",
-    "markers": ["lipids.ldl", "lipids.totalCholesterol", "lipids.lpa"],
+    "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.lpA"],
     "contextCards": ["diet"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal PCSK9 function" },
@@ -181,7 +181,7 @@
 
   "rs2282679": {
     "gene": "GC", "variant": "VDBP", "category": "vitaminD",
-    "markers": ["vitamins.vitD"],
+    "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
     "strandNote": "Forward strand: G(ref)/T(alt). Literature often cites C/A (complement).",
     "genotypes": {
@@ -192,7 +192,7 @@
   },
   "rs10741657": {
     "gene": "CYP2R1", "variant": "25-hydroxylase", "category": "vitaminD",
-    "markers": ["vitamins.vitD"],
+    "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian", "supplements"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Highest CYP2R1 activity; efficient 25-hydroxylation" },
@@ -202,7 +202,7 @@
   },
   "rs2228570": {
     "gene": "VDR", "variant": "FokI", "category": "vitaminD",
-    "markers": ["vitamins.vitD"],
+    "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
     "genotypes": {
       "AA": { "effect": "moderate", "note": "Longer VDR isoform; slightly lower receptor efficiency" },
@@ -212,7 +212,7 @@
   },
   "rs10877012": {
     "gene": "CYP27B1", "variant": "1-alpha hydroxylase", "category": "vitaminD",
-    "markers": ["vitamins.vitD"],
+    "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Standard 1-alpha hydroxylase activity" },
@@ -223,7 +223,7 @@
 
   "rs601338": {
     "gene": "FUT2", "variant": "W154X", "category": "vitaminB12",
-    "markers": ["vitamins.vitB12"],
+    "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
     "genotypes": {
       "GG": { "effect": "moderate", "note": "Secretor; lower total B12 but cellular B12 likely normal" },
@@ -233,7 +233,7 @@
   },
   "rs526934": {
     "gene": "TCN1", "variant": "haptocorrin", "category": "vitaminB12",
-    "markers": ["vitamins.vitB12"],
+    "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal haptocorrin production" },
@@ -243,7 +243,7 @@
   },
   "rs1801198": {
     "gene": "TCN2", "variant": "P259R", "category": "vitaminB12",
-    "markers": ["vitamins.vitB12", "coagulation.homocysteine"],
+    "markers": ["vitamins.vitaminB12", "coagulation.homocysteine"],
     "contextCards": ["diet", "supplements"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal transcobalamin II; efficient cellular B12 delivery" },
@@ -253,7 +253,7 @@
   },
   "rs1801222": {
     "gene": "CUBN", "variant": "cubilin", "category": "vitaminB12",
-    "markers": ["vitamins.vitB12"],
+    "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal intestinal B12 absorption" },
@@ -264,7 +264,7 @@
 
   "rs8175347": {
     "gene": "UGT1A1", "variant": "TA repeat", "category": "bilirubin",
-    "markers": ["biochemistry.bilirubin"],
+    "markers": ["biochemistry.bilirubinTotal"],
     "contextCards": [],
     "repeatPolymorphism": true,
     "genotypes": {
@@ -275,7 +275,7 @@
   },
   "rs4148323": {
     "gene": "UGT1A1", "variant": "G71R", "category": "bilirubin",
-    "markers": ["biochemistry.bilirubin"],
+    "markers": ["biochemistry.bilirubinTotal"],
     "contextCards": [],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal UGT1A1 activity" },
@@ -286,7 +286,7 @@
 
   "rs11206244": {
     "gene": "DIO1", "variant": "3'-UTR", "category": "thyroid",
-    "markers": ["thyroid.t3", "thyroid.t4", "thyroid.ft3", "thyroid.ft4"],
+    "markers": ["thyroid.ft3", "thyroid.ft4", "thyroid.ft3", "thyroid.ft4"],
     "contextCards": [],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal DIO1; standard peripheral T4→T3 conversion" },
@@ -296,7 +296,7 @@
   },
   "rs225014": {
     "gene": "DIO2", "variant": "Thr92Ala", "category": "thyroid",
-    "markers": ["thyroid.t3", "thyroid.ft3", "thyroid.tsh"],
+    "markers": ["thyroid.ft3", "thyroid.ft3", "thyroid.tsh"],
     "contextCards": ["sleepRest"],
     "genotypes": {
       "TT": { "effect": "none", "note": "Normal DIO2; efficient intracellular T4→T3 conversion" },
@@ -362,7 +362,7 @@
 
   "rs7903146": {
     "gene": "TCF7L2", "variant": "intron 3", "category": "bloodSugar",
-    "markers": ["biochemistry.glucose", "diabetes.hba1c", "diabetes.insulin", "diabetes.homaIR"],
+    "markers": ["biochemistry.glucose", "diabetes.hba1c", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal beta cell incretin response" },
@@ -372,7 +372,7 @@
   },
   "rs1801282": {
     "gene": "PPARG", "variant": "Pro12Ala", "category": "bloodSugar",
-    "markers": ["biochemistry.glucose", "diabetes.hba1c", "diabetes.insulin", "diabetes.homaIR"],
+    "markers": ["biochemistry.glucose", "diabetes.hba1c", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Standard PPARγ2; highest insulin resistance risk" },
@@ -382,7 +382,7 @@
   },
   "rs2241766": {
     "gene": "ADIPOQ", "variant": "+45T/G", "category": "bloodSugar",
-    "markers": ["biochemistry.glucose", "diabetes.insulin", "diabetes.homaIR"],
+    "markers": ["biochemistry.glucose", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
     "genotypes": {
       "TT": { "effect": "none", "note": "Standard adiponectin levels" },
@@ -392,7 +392,7 @@
   },
   "rs1501299": {
     "gene": "ADIPOQ", "variant": "+276G/T", "category": "bloodSugar",
-    "markers": ["biochemistry.glucose", "diabetes.insulin", "diabetes.homaIR"],
+    "markers": ["biochemistry.glucose", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Higher adiponectin; better insulin sensitivity" },
@@ -403,7 +403,7 @@
 
   "rs6257": {
     "gene": "SHBG", "variant": "promoter", "category": "sexHormones",
-    "markers": ["hormones.shbg", "hormones.testosterone", "hormones.estradiol", "hormones.freeTesto"],
+    "markers": ["hormones.shbg", "hormones.testosterone", "hormones.estradiol", "hormones.freeTestosterone"],
     "contextCards": [],
     "genotypes": {
       "CC": { "effect": "none", "note": "Higher SHBG; more bound testosterone/estradiol" },
@@ -413,7 +413,7 @@
   },
   "rs1799941": {
     "gene": "SHBG", "variant": "5'-region", "category": "sexHormones",
-    "markers": ["hormones.shbg", "hormones.testosterone", "hormones.freeTesto"],
+    "markers": ["hormones.shbg", "hormones.testosterone", "hormones.freeTestosterone"],
     "contextCards": [],
     "genotypes": {
       "GG": { "effect": "none", "note": "Lower SHBG baseline" },
@@ -423,7 +423,7 @@
   },
   "rs743572": {
     "gene": "CYP17A1", "variant": "5'-UTR", "category": "sexHormones",
-    "markers": ["hormones.testosterone", "hormones.estradiol", "hormones.dheas"],
+    "markers": ["hormones.testosterone", "hormones.estradiol", "hormones.dheaS"],
     "contextCards": [],
     "strandNote": "Forward strand: A(ref)/G(alt). Literature often cites T/C (complement).",
     "genotypes": {
