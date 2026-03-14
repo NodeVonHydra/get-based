@@ -302,7 +302,11 @@ export function buildFullGeneticsContext(genetics) {
 export function renderGeneticsSection() {
   const genetics = state.importedData.genetics;
   if (!genetics || !genetics.snps || Object.keys(genetics.snps).length === 0) return '';
-  if (!_snpTable) { loadSNPTable(); return ''; } // async load; section renders on next nav
+  if (!_snpTable) {
+    // Load async, then re-render dashboard when ready
+    loadSNPTable().then(() => { if (window.navigate) window.navigate('dashboard'); });
+    return '';
+  }
   const snpTable = _snpTable;
 
   const snpCount = Object.keys(genetics.snps).length;
