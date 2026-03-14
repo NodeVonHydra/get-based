@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.7', date: '2026-03-14', title: 'Local AI Model Advisor',
+    items: [
+      'Settings → Local AI now rates each installed model for lab analysis: ★ Recommended, Capable, Underpowered, or Inadequate',
+      'GPU auto-detected — shows which models fit your VRAM (fits / tight / too large)',
+      'Suggests a better model to pull when none of your installed models are recommended',
+      'Model dropdown shows file size and quantization at a glance',
+      'Remote Ollama servers detected — enter server VRAM manually for accurate recommendations',
+    ]
+  },
+  {
     version: '1.7.6', date: '2026-03-14', title: 'Focus Card + Chat Polish',
     items: [
       'Focus card now considers your health goals, interpretive lens, medical conditions, and context notes',

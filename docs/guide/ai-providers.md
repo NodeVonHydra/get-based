@@ -98,8 +98,12 @@ LM Studio, Jan, and other servers typically allow all origins by default.
 The hosted app at `app.getbased.health` is served over HTTPS. Browsers block HTTPS pages from making requests to plain HTTP servers on your LAN (mixed content). This means **Local AI must run on the same machine** — only `localhost` / `127.0.0.1` will work. If you need to reach a server on another device, use the local dev server (`node dev-server.js`) which runs over HTTP.
 :::
 
+::: tip Model Advisor
+When connected to Ollama, the app detects your GPU and shows a **Model Advisor** panel below the model dropdown. Each installed model gets a fitness rating for lab analysis (★ Recommended, Capable, Underpowered, or Inadequate) and a VRAM fit check. If none of your models are recommended, it suggests the best one to pull for your hardware. For remote Ollama servers, enter the server's VRAM manually to get accurate recommendations.
+:::
+
 ::: warning Use a capable model
-Smaller models (under ~7B parameters) may struggle with accurate marker extraction from complex lab PDFs. A 13B+ model is recommended for best results.
+Models under 14B parameters struggle with accurate marker extraction from complex lab PDFs. The Model Advisor in Settings will tell you exactly which of your installed models are suitable — look for the ★ Recommended badge. When in doubt, `ollama pull qwen2.5:14b` is the best value for reliable local lab parsing.
 :::
 
 ## Recommended Models
@@ -142,7 +146,7 @@ Every AI response in getbased shows its cost right below the message. You can se
 :::
 
 ::: tip Free option
-Run a local model with [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Jan](https://jan.ai) and pay nothing. You'll need a decent GPU (8GB+ VRAM) or a modern Mac with 16GB+ RAM for good results.
+Run a local model with [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), or [Jan](https://jan.ai) and pay nothing. You'll need 8GB+ VRAM (or a Mac with 16GB+ unified memory) for capable models. The Model Advisor in Settings shows exactly what fits your hardware.
 :::
 
 ## Switching Providers

@@ -147,6 +147,22 @@ Theme management and Chart.js color helpers.
 
 ---
 
+### `hardware.js`
+
+GPU detection and model fitness advisor for Local AI settings. Pure functions, no DOM manipulation.
+
+**Key exports:**
+- `detectHardware()` — async, returns `{ gpu: { name, vram, unified, renderer, source }, ram: { gb, source }, cpuThreads }`. GPU detected via WebGL `WEBGL_debug_renderer_info` matched against 75-entry `GPU_DB` (Apple Silicon M1–M4, NVIDIA RTX 30/40/50, AMD RX 6000/7000, Intel Arc, Vega)
+- `assessModel(modelObj, hardware)` — returns `{ tier, badge, vramNeeded, label }` where tier is `'fits'` / `'tight'` / `'toobig'` / `'unknown'`
+- `assessFitness(modelName)` — rates a model for getbased lab analysis: `{ tier, note }` where tier is `'recommended'` / `'capable'` / `'underpowered'` / `'inadequate'`. Benchmarked against Sonnet 4.6
+- `getBestModel(modelDetails, hardware)` — picks the highest-fitness installed model that fits in VRAM
+- `getUpgradeSuggestion(modelDetails, hardware)` — returns a pull recommendation if no installed model is "recommended" tier
+- `saveHardwareOverride(vram)` / `getHardwareOverride()` — manual VRAM override in localStorage
+
+**Window exports:** none (imported by `settings.js`)
+
+---
+
 ### `api.js`
 
 AI provider routing and model management. All AI calls flow through `callClaudeAPI`.

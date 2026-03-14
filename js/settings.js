@@ -6,6 +6,7 @@ import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
 import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, isAIPaused, setAIPaused /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
+import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, getModelSuggestions, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
 
 
@@ -316,9 +317,10 @@ export function renderAIProviderPanel(provider) {
     </div>
     <div id="local-ai-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
-      <select class="api-key-input" id="local-ai-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value)"></select>
+      <select class="api-key-input" id="local-ai-model-select" style="margin-top:4px" onchange="setOllamaMainModel(this.value); refreshModelAdvisor()"></select>
       <div style="margin-top:4px">${renderModelPricingHint('ollama', '')}</div>
     </div>
+    <div id="local-ai-advisor"></div>
     <div class="api-key-notice" style="margin-top:12px">
       Connects via the OpenAI-compatible API (<code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/chat/completions</code>). All major local servers support this, including Ollama.
     </div>
@@ -482,7 +484,13 @@ export function initSettingsOllamaCheck() {
 
   // Check local server if the panel is visible (Local provider selected)
   if (document.getElementById('local-ai-dot')) {
-    checkOpenAICompatible(mainUrl, config.apiKey).then(result => {
+    // Call both endpoints in parallel — OpenAI-compatible for model list, Ollama-native for model details
+    Promise.allSettled([
+      checkOpenAICompatible(mainUrl, config.apiKey),
+      checkOllama(mainUrl),
+    ]).then(([openaiResult, ollamaResult]) => {
+      const result = openaiResult.value || { available: false, models: [] };
+      const ollama = ollamaResult.value || { available: false, models: [], modelDetails: [] };
       const dot = document.getElementById('local-ai-dot');
       const text = document.getElementById('local-ai-status-text');
       const modelSection = document.getElementById('local-ai-model-section');
@@ -499,6 +507,12 @@ export function initSettingsOllamaCheck() {
         if (modelSection && modelSelect) {
           modelSection.style.display = 'block';
           modelSelect.innerHTML = result.models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
+        }
+        // Render model advisor if Ollama details available
+        const modelDetails = ollama.available ? (ollama.modelDetails || []) : [];
+        if (modelDetails.length > 0) {
+          window._lastOllamaModelDetails = modelDetails;
+          renderModelAdvisor(modelDetails, modelSelect);
         }
       } else if (result.available) {
         dot.classList.add('disconnected');
@@ -518,6 +532,117 @@ export function initSettingsOllamaCheck() {
     // Main panel not visible — just update privacy card
     updatePrivacyStatusCard();
   }
+}
+
+function isLocalUrl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  } catch { return true; }
+}
+
+async function renderModelAdvisor(modelDetails, modelSelect) {
+  const advisorEl = document.getElementById('local-ai-advisor');
+  if (!advisorEl) return;
+  const serverUrl = getOllamaConfig().url;
+  const isLocal = isLocalUrl(serverUrl);
+  // Only auto-detect hardware for localhost — remote server GPU ≠ browser GPU
+  const hw = isLocal
+    ? await detectHardware()
+    : { gpu: { name: null, vram: getHardwareOverride(), unified: false, renderer: null, source: getHardwareOverride() ? 'manual' : 'remote' }, ram: { gb: null, source: 'unknown' }, cpuThreads: null };
+  const currentModel = getOllamaMainModel();
+
+  // Find the best model for auto-selection hint
+  const best = getBestModel(modelDetails, hw.gpu.vram ? hw : null);
+
+  // Enhance model dropdown with size/quant labels, can-run badges, and fitness stars
+  if (modelSelect) {
+    const opts = Array.from(modelSelect.options);
+    for (const opt of opts) {
+      const detail = modelDetails.find(d => d.name === opt.value);
+      if (!detail) continue;
+      const sizeGb = detail.size ? (detail.size / 1e9).toFixed(1) + ' GB' : '';
+      const quant = detail.quantLevel || '';
+      const assess = hw.gpu.vram ? assessModel(detail, hw) : null;
+      const dot = assess ? assess.badge + ' ' : '';
+      const fitness = assessFitness(opt.value);
+      const star = (fitness && fitness.tier === 'recommended') ? '\u2605 ' : '';
+      const parts = [opt.value, sizeGb, quant].filter(Boolean);
+      opt.textContent = dot + star + parts.join(' \u00B7 ');
+    }
+  }
+
+  // Build advisor panel HTML
+  const gpuLabel = !isLocal && !hw.gpu.vram
+    ? 'Remote server \u2014 enter VRAM below to check model fit'
+    : hw.gpu.vram
+      ? `${escapeHTML(hw.gpu.name || 'Server')} \u2014 ${hw.gpu.vram} GB ${hw.gpu.unified ? 'unified memory' : 'VRAM'}${hw.gpu.source === 'manual' ? ' (manual)' : ''}`
+      : hw.gpu.source === 'blocked' || hw.gpu.source === 'unavailable'
+        ? 'GPU not detected'
+        : hw.gpu.renderer
+          ? `${escapeHTML(hw.gpu.renderer)} (VRAM unknown)`
+          : 'GPU not detected';
+  const ramLabel = hw.ram.gb ? `${hw.ram.gb} GB` : 'Unknown';
+  const cpuLabel = hw.cpuThreads ? `${hw.cpuThreads} threads` : '';
+
+  // Model rows — with fitness rating
+  const fitnessLabel = { recommended: '\u2605 Recommended', capable: 'Capable', underpowered: 'Underpowered', inadequate: 'Inadequate' };
+  const fitnessCss = { recommended: 'fitness-great', capable: 'fitness-good', underpowered: 'fitness-fair', inadequate: 'fitness-poor' };
+  const rows = modelDetails.map(m => {
+    const assess = hw.gpu.vram ? assessModel(m, hw) : { tier: 'unknown', badge: '?', vramNeeded: (m.size / 1e9) * 1.15, label: !isLocal ? 'Enter VRAM' : 'Set VRAM to check' };
+    const fitness = assessFitness(m.name);
+    const sizeGb = (m.size / 1e9).toFixed(1);
+    const isActive = m.name === currentModel;
+    const isBest = best && m.name === best.name;
+    return `<div class="model-advisor-row${isActive ? ' active' : ''}">
+      <span class="model-advisor-badge model-advisor-verdict ${assess.tier}">${assess.badge}</span>
+      <span class="model-advisor-name">${escapeHTML(m.name)}${isActive ? ' <span style="font-size:10px;opacity:0.6">\u2190 active</span>' : ''}${isBest && !isActive ? ' <span style="font-size:10px;opacity:0.6">\u2190 best pick</span>' : ''}</span>
+      <span class="model-advisor-size">${sizeGb} GB${m.quantLevel ? ' \u00B7 ' + escapeHTML(m.quantLevel) : ''}${m.paramSize ? ' \u00B7 ' + escapeHTML(m.paramSize) : ''}</span>
+      ${fitness ? `<span class="model-advisor-fitness ${fitnessCss[fitness.tier]}" title="${escapeAttr(fitness.note)}">${fitnessLabel[fitness.tier]}</span>` : '<span class="model-advisor-fitness" style="opacity:0.4">Unknown</span>'}
+      <span class="model-advisor-verdict ${assess.tier}">${escapeHTML(assess.label)}</span>
+    </div>`;
+  }).join('');
+
+  // Upgrade suggestion — shown when no installed model is "recommended" tier
+  const upgrade = getUpgradeSuggestion(modelDetails, hw.gpu.vram ? hw : null);
+  const suggestHtml = upgrade ? `
+    <div class="model-advisor-suggest">
+      <div class="model-advisor-suggest-title">Upgrade recommendation</div>
+      <div class="model-advisor-pull-row">
+        <code class="model-advisor-pull-cmd">ollama pull ${escapeHTML(upgrade.model)}</code>
+        <button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 8px" onclick="copyOllamaPullCmd('ollama pull ${escapeAttr(upgrade.model)}')">Copy</button>
+      </div>
+      <div class="model-advisor-pull-why">${escapeHTML(upgrade.note)}</div>
+    </div>` : '';
+
+  // VRAM override section — open by default for remote servers without override
+  const overrideVal = getHardwareOverride();
+  const overrideOpen = (!isLocal && !overrideVal) ? 'flex' : 'none';
+  const overrideLabel = isLocal ? 'Override VRAM' : 'Server VRAM';
+  const overrideHtml = `
+    <div class="model-advisor-override">
+      <div class="model-advisor-override-toggle" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'flex' : 'none'">
+        \u25B8 ${overrideLabel}${overrideVal ? ` (${overrideVal} GB)` : ''}
+      </div>
+      <div class="model-advisor-override-body" style="display:${overrideOpen}">
+        <input type="number" id="hw-vram-override-input" placeholder="${hw.gpu.vram || 'GB'}" value="${overrideVal || ''}" min="1" max="256" step="1">
+        <span style="font-size:12px;color:var(--text-muted)">GB</span>
+        <button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 8px" onclick="applyHardwareOverride(document.getElementById('hw-vram-override-input').value)">Apply</button>
+        ${overrideVal ? '<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 8px" onclick="clearHardwareOverride()">Reset</button>' : ''}
+      </div>
+    </div>`;
+
+  advisorEl.innerHTML = `
+    <div class="model-advisor">
+      <div class="model-advisor-hw">
+        <span class="model-advisor-hw-chip">${isLocal ? '\uD83C\uDFAE' : '\uD83C\uDF10'} ${gpuLabel}</span>
+        ${isLocal && hw.ram.gb ? `<span class="model-advisor-hw-chip">\uD83D\uDDA5\uFE0F ${ramLabel} RAM</span>` : ''}
+        ${isLocal && cpuLabel ? `<span class="model-advisor-hw-chip">\u2699\uFE0F ${cpuLabel}</span>` : ''}
+      </div>
+      ${rows}
+      ${suggestHtml}
+      ${overrideHtml}
+    </div>`;
 }
 
 export function updateSettingsUI() {
@@ -577,7 +702,10 @@ export async function testOllamaConnection() {
     return;
   }
   try {
-    const result = await checkOpenAICompatible(url, apiKey);
+    const [result, ollamaResult] = await Promise.all([
+      checkOpenAICompatible(url, apiKey),
+      checkOllama(url).catch(() => ({ available: false, models: [], modelDetails: [] })),
+    ]);
     if (!result.available) throw new Error('Not reachable');
     const models = result.models;
     if (models.length === 0) {
@@ -593,9 +721,14 @@ export async function testOllamaConnection() {
         modelSection.style.display = 'block';
         modelSelect.innerHTML = models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
       }
+      // Render model advisor if Ollama details available
+      const modelDetails = ollamaResult.available ? (ollamaResult.modelDetails || []) : [];
+      if (modelDetails.length > 0 && modelSection && modelSelect) {
+        window._lastOllamaModelDetails = modelDetails;
+        renderModelAdvisor(modelDetails, modelSelect);
+      }
     }
     // Also refresh privacy section status
-    initSettingsOllamaCheck();
     updatePrivacyStatusCard();
     _returnToChatIfOnboarding();
   } catch (e) {
@@ -988,4 +1121,31 @@ Object.assign(window, {
   renderDataEntriesSection,
   refreshDataEntriesSection,
   resetCurrentProfileUsage,
+  copyOllamaPullCmd,
+  refreshModelAdvisor,
+  applyHardwareOverride: applyHardwareOverrideFn,
+  clearHardwareOverride: clearHardwareOverrideFn,
 });
+
+function refreshModelAdvisor() {
+  const details = window._lastOllamaModelDetails || [];
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+}
+
+function copyOllamaPullCmd(cmd) {
+  navigator.clipboard.writeText(cmd).then(() => showNotification('Copied: ' + cmd, 'info'));
+}
+
+function applyHardwareOverrideFn(vram) {
+  const v = parseFloat(vram);
+  if (isNaN(v) || v <= 0) { showNotification('Enter a valid VRAM amount in GB', 'error'); return; }
+  saveHardwareOverride(v);
+  const details = window._lastOllamaModelDetails || [];
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+}
+
+function clearHardwareOverrideFn() {
+  saveHardwareOverride(null);
+  const details = window._lastOllamaModelDetails || [];
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+}
