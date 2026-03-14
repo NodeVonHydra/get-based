@@ -274,15 +274,41 @@ export function getBestModel(modelDetails, hardware) {
   return fitting.length > 0 ? fitting[0] : null;
 }
 
-// Best model to pull per VRAM tier — always the strongest "recommended" model that fits
-const VRAM_RECOMMENDATIONS = [
-  { minVram: 0,  maxVram: 6,  model: 'qwen3.5:4b',   note: 'Best available for low VRAM, but expect frequent errors. Consider a cloud provider for reliable results.' },
-  { minVram: 6,  maxVram: 8,  model: 'qwen3.5:9b',   note: 'Handles most reports. For complex specialty labs, a cloud provider will be more reliable.' },
-  { minVram: 8,  maxVram: 12, model: 'qwen3.5:14b',  note: 'Recommended — reliable lab parsing and medical chat. Closest local experience to cloud AI.' },
-  { minVram: 12, maxVram: 16, model: 'qwen3.5:14b',  note: 'Recommended — runs comfortably with room for long reports.' },
-  { minVram: 16, maxVram: 24, model: 'qwen3.5:32b',  note: 'Near-cloud quality. Handles all report types including specialty labs.' },
-  { minVram: 24, maxVram: 48, model: 'qwen3.5:72b',  note: 'Cloud-grade lab analysis, fully private.' },
-  { minVram: 48, maxVram: Infinity, model: 'qwen3.5:72b', note: 'Top-tier — cloud-grade quality, fully local.' },
+// Known model catalog — approximate file sizes (Q4_K_M) for VRAM estimation.
+// Used to suggest the best pullable model for a given VRAM budget.
+// sizeGb = approximate file size at default quantization. VRAM ≈ sizeGb * 1.15
+const MODEL_CATALOG = [
+  // Qwen 3.5
+  { model: 'qwen3.5:72b',  sizeGb: 43,  tier: 'recommended' },
+  { model: 'qwen3.5:32b',  sizeGb: 20,  tier: 'recommended' },
+  { model: 'qwen3.5:14b',  sizeGb: 9,   tier: 'recommended' },
+  { model: 'qwen3.5:9b',   sizeGb: 6.6, tier: 'capable' },
+  { model: 'qwen3.5:4b',   sizeGb: 2.8, tier: 'underpowered' },
+  // Qwen 2.5
+  { model: 'qwen2.5:72b',  sizeGb: 43,  tier: 'recommended' },
+  { model: 'qwen2.5:32b',  sizeGb: 20,  tier: 'recommended' },
+  { model: 'qwen2.5:14b',  sizeGb: 9,   tier: 'recommended' },
+  { model: 'qwen2.5:7b',   sizeGb: 4.7, tier: 'capable' },
+  // Qwen 3
+  { model: 'qwen3:30b',    sizeGb: 18,  tier: 'recommended' },
+  { model: 'qwen3:14b',    sizeGb: 9,   tier: 'recommended' },
+  { model: 'qwen3:8b',     sizeGb: 5,   tier: 'capable' },
+  // Llama
+  { model: 'llama3.3:70b', sizeGb: 43,  tier: 'recommended' },
+  { model: 'llama3.1:70b', sizeGb: 43,  tier: 'recommended' },
+  { model: 'llama3.1:8b',  sizeGb: 4.7, tier: 'capable' },
+  // Gemma
+  { model: 'gemma3:27b',   sizeGb: 17,  tier: 'recommended' },
+  { model: 'gemma3:12b',   sizeGb: 8,   tier: 'recommended' },
+  { model: 'gemma2:27b',   sizeGb: 16,  tier: 'recommended' },
+  { model: 'gemma2:9b',    sizeGb: 5.4, tier: 'capable' },
+  // DeepSeek
+  { model: 'deepseek-r1:70b', sizeGb: 43, tier: 'recommended' },
+  { model: 'deepseek-r1:32b', sizeGb: 20, tier: 'recommended' },
+  // Command R
+  { model: 'command-r-plus',  sizeGb: 60, tier: 'recommended' },
+  // Mistral
+  { model: 'mistral-small',   sizeGb: 13, tier: 'capable' },
 ];
 
 // Returns a suggestion to pull a better model, or null if the user already has a recommended one
@@ -292,18 +318,50 @@ export function getUpgradeSuggestion(modelDetails, hardware) {
   if (best && best.fitness && best.fitness.tier === 'recommended') return null;
   const vram = hardware?.gpu?.vram;
   if (!vram) return null;
-  const rec = VRAM_RECOMMENDATIONS.find(r => vram >= r.minVram && vram < r.maxVram);
-  if (!rec) return null;
-  // Don't suggest a model the user already has
-  if (modelDetails.some(m => m.name.startsWith(rec.model.split(':')[0]) && m.name.includes(rec.model.split(':')[1] || ''))) return null;
-  return rec;
+  const isUnified = hardware?.gpu?.unified;
+  const usable = isUnified ? vram * 0.75 : vram;
+  // Find the best catalog model that fits and is better than what user has
+  const bestRank = best ? TIER_RANK[best.fitness?.tier] || 0 : 0;
+  const candidates = MODEL_CATALOG
+    .filter(c => {
+      const vramNeeded = c.sizeGb * 1.15;
+      const fits = vramNeeded <= usable;
+      const betterTier = TIER_RANK[c.tier] > bestRank;
+      return fits && betterTier;
+    })
+    .sort((a, b) => {
+      // Prefer higher tier, then larger model within same tier
+      const tierDiff = TIER_RANK[b.tier] - TIER_RANK[a.tier];
+      return tierDiff !== 0 ? tierDiff : b.sizeGb - a.sizeGb;
+    });
+  if (candidates.length === 0) return null;
+  const pick = candidates[0];
+  // Don't suggest a model the user already has installed
+  const pickFamily = pick.model.split(':')[0];
+  const pickSize = pick.model.split(':')[1] || '';
+  if (modelDetails.some(m => m.name.startsWith(pickFamily) && m.name.includes(pickSize))) return null;
+  // Build a helpful note
+  const tierLabel = pick.tier === 'recommended' ? 'Recommended' : 'Capable';
+  const note = vramNeededNote(pick, usable, tierLabel);
+  return { model: pick.model, note };
 }
 
-// Kept for backward compat with tests — delegates to getUpgradeSuggestion
+function vramNeededNote(pick, usableVram, tierLabel) {
+  const vramNeeded = (pick.sizeGb * 1.15).toFixed(0);
+  const headroom = Math.round(((usableVram - pick.sizeGb * 1.15) / usableVram) * 100);
+  if (pick.tier === 'recommended' && headroom > 30) {
+    return `${tierLabel} for lab analysis. Uses ~${vramNeeded} GB — runs comfortably on your hardware.`;
+  }
+  if (pick.tier === 'recommended') {
+    return `${tierLabel} for lab analysis. Uses ~${vramNeeded} GB — fits your VRAM with some headroom.`;
+  }
+  return `${tierLabel} — best option for your VRAM. Consider a cloud provider for complex reports.`;
+}
+
+// Kept for backward compat with tests
 export function getModelSuggestions(hardware) {
-  // Returns array for compat; new code should use getUpgradeSuggestion
   const vram = hardware?.gpu?.vram;
   if (!vram) return [];
-  const rec = VRAM_RECOMMENDATIONS.find(r => vram >= r.minVram && vram < r.maxVram);
-  return rec ? [{ model: rec.model, why: rec.note }] : [];
+  const suggestion = getUpgradeSuggestion([], hardware);
+  return suggestion ? [{ model: suggestion.model, why: suggestion.note }] : [];
 }
