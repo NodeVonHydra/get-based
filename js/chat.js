@@ -1765,11 +1765,17 @@ export function renderChatMessages() {
             </div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Press + or Enter to add. You can always edit these later on the dashboard.</div>
           </div>`;
+      const hasGenetics = state.importedData.genetics && Object.keys(state.importedData.genetics.snps || {}).length > 0;
+      const dnaSection = !hasGenetics ? `<div class="chat-onboard-dna">
+            <p>🧬 Have you ever done a DNA test? (Ancestry, 23andMe, etc.) If you have the raw data file, drop it on the dashboard — it helps me understand <em>why</em> your labs look the way they do, even when your lifestyle is dialed in.</p>
+            <div style="font-size:11px;color:var(--text-muted)">Processed locally — your DNA file never leaves your device.</div>
+          </div>` : '';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai" style="width:88%">
           <p>${hasAIProvider() ? 'Great, we\'re connected! 🎉' : 'Nice!'} A couple of quick things that help me give better advice:</p>
           ${cycleSection}
           ${suppSection}
+          ${dnaSection}
           <div class="chat-onboard-actions">
             <button class="chat-onboard-cta" onclick="window.skipOnboardingExtras()">Continue →</button>
           </div>
