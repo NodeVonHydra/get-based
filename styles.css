@@ -2997,6 +2997,11 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .genetics-finding-more { font-size: 11px; color: var(--text-muted); padding-top: 4px; }
 .genetics-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
 
+/* Detail Modal Genetics Inline */
+.detail-genetics { margin: 12px 0; padding: 10px 12px; background: var(--bg-hover); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.detail-genetics-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary); }
+.detail-genetics-row { font-size: 12px; padding: 2px 0; color: var(--text-muted); line-height: 1.5; }
+
 /* Privacy status card & collapsible configure */
 .privacy-status-card {
   display: flex; align-items: flex-start; gap: 10px;

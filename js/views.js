@@ -1073,6 +1073,19 @@ export function showDetailModal(id) {
       html += `<div class="calc-missing-inputs">Not calculated — ${issues.join('. ')}</div>`;
     }
   }
+  // Inline genetics — show SNPs mapped to this marker
+  const genetics = state.importedData.genetics;
+  if (genetics && genetics.snps) {
+    const snpEntries = window._getRelevantSNPs ? window._getRelevantSNPs(dotKey) : [];
+    if (snpEntries.length > 0) {
+      html += `<div class="detail-genetics"><div class="detail-genetics-title">\uD83E\uDDEC Genetic Factors</div>`;
+      for (const s of snpEntries) {
+        const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
+        html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}</div>`;
+      }
+      html += `</div>`;
+    }
+  }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   // Show delete link for custom markers only

@@ -460,6 +460,29 @@ function confirmDNAImport() {
 }
 
 // ═══════════════════════════════════════════════
+// DETAIL MODAL HELPER
+// ═══════════════════════════════════════════════
+
+// Get SNPs relevant to a specific marker dotKey (e.g. "coagulation.homocysteine")
+function getRelevantSNPs(dotKey) {
+  const genetics = state.importedData.genetics;
+  if (!genetics || !genetics.snps || !_snpTable) return [];
+  const results = [];
+  const apoeRsids = new Set(['rs429358', 'rs7412']);
+  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+    if (genetics.apoe && apoeRsids.has(rsid)) continue;
+    const entry = _snpTable[rsid];
+    if (!entry || !entry.markers) continue;
+    if (!entry.markers.includes(dotKey)) continue;
+    const reversed = stored.genotype.length === 2 ? stored.genotype[1] + stored.genotype[0] : stored.genotype;
+    const info = entry.genotypes[stored.genotype] || entry.genotypes[reversed] || entry.genotypes[sortAlleles(stored.genotype)];
+    if (!info) continue;
+    results.push({ gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note });
+  }
+  return results;
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -469,6 +492,7 @@ Object.assign(window, {
   confirmDNAImport,
   deleteGeneticsData,
   _buildGeneticsContext: buildGeneticsContext,
+  _getRelevantSNPs: getRelevantSNPs,
   _getState: () => state,
   _saveAndRefresh: () => { saveImportedData(); if (window.navigate) window.navigate('dashboard'); },
 });
