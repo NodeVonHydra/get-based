@@ -67,8 +67,16 @@ export async function checkOllama(url) {
     const resp = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
     if (!resp.ok) return { available: false, models: [] };
     const data = await resp.json();
-    const models = (data.models || []).map(m => m.name || m.model).filter(Boolean);
-    return { available: true, models };
+    const raw = data.models || [];
+    const models = raw.map(m => m.name || m.model).filter(Boolean);
+    const modelDetails = raw.map(m => ({
+      name: m.name || m.model,
+      size: m.size || 0,
+      paramSize: m.details?.parameter_size || '',
+      quantLevel: m.details?.quantization_level || '',
+      family: m.details?.family || '',
+    })).filter(m => m.name);
+    return { available: true, models, modelDetails };
   } catch {
     return { available: false, models: [] };
   }

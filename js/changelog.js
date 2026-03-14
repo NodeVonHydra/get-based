@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.7', date: '2026-03-14', title: 'Local AI Model Advisor',
+    items: [
+      'Settings → Local AI now detects your GPU and shows which installed models fit your hardware',
+      'Each model gets a can-run badge (fits / tight / too large) based on VRAM',
+      'Model dropdown shows file size and quantization at a glance',
+      'Suggests optimal models to pull if none of your installed models fit well',
+      'Manual VRAM override for when auto-detection can\'t identify your GPU',
+    ]
+  },
+  {
     version: '1.7.6', date: '2026-03-14', title: 'Focus Card + Chat Polish',
     items: [
       'Focus card now considers your health goals, interpretive lens, medical conditions, and context notes',
