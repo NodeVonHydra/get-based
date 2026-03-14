@@ -126,6 +126,7 @@ async function loadSNPTable() {
   if (_snpTable) return _snpTable;
   const resp = await fetch('data/snp-health.json');
   _snpTable = await resp.json();
+  window._snpTableCache = _snpTable; // expose for chat onboarding summary
   return _snpTable;
 }
 

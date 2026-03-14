@@ -1769,10 +1769,33 @@ export function renderChatMessages() {
       const hasGenetics = genetics && Object.keys(genetics.snps || {}).length > 0;
       let dnaSection;
       if (hasGenetics) {
-        const apoeStr = genetics.apoe ? `APOE: <strong>${escapeHTML(genetics.apoe)}</strong> \u00B7 ` : '';
+        // Compute effect counts from stored data + SNP table
+        const snpTable = window._snpTableCache;
+        const apoeRsids = genetics.apoe ? new Set(['rs429358', 'rs7412']) : new Set();
+        let sigC = 0, modC = 0, normC = 0;
+        if (snpTable) {
+          for (const [rsid, stored] of Object.entries(genetics.snps)) {
+            if (apoeRsids.has(rsid)) continue;
+            const entry = snpTable[rsid];
+            if (!entry) continue;
+            const gt = stored.genotype;
+            const rev = gt.length === 2 ? gt[1] + gt[0] : gt;
+            const info = entry.genotypes[gt] || entry.genotypes[rev] || entry.genotypes[gt.split('').sort().join('')];
+            if (!info || info.effect === 'none') normC++;
+            else if (info.effect === 'significant') sigC++;
+            else if (info.effect === 'moderate') modC++;
+          }
+        }
+        const dots = [];
+        if (genetics.apoe) dots.push(`APOE: <strong>${escapeHTML(genetics.apoe)}</strong>`);
+        if (sigC > 0) dots.push(`\uD83D\uDD34 ${sigC} significant`);
+        if (modC > 0) dots.push(`\uD83D\uDFE1 ${modC} moderate`);
+        if (normC > 0) dots.push(`\uD83D\uDFE2 ${normC} normal`);
+        const dotsHtml = dots.length > 0 ? `<div style="font-size:13px;line-height:1.8">${dots.join(' &nbsp;\u00B7&nbsp; ')}</div>` : '';
         dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-            <p style="margin:0 0 4px">\uD83E\uDDEC <strong>${Object.keys(genetics.snps).length} SNPs imported</strong> from ${escapeHTML(genetics.source)}</p>
-            <div style="font-size:12px;color:var(--text-muted)">${apoeStr}I'll factor these into all your lab interpretations.</div>
+            <p style="margin:0 0 6px">\uD83E\uDDEC <strong>${Object.keys(genetics.snps).length} SNPs imported</strong> from ${escapeHTML(genetics.source)}</p>
+            ${dotsHtml}
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>
           </div>`;
       } else {
         dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
