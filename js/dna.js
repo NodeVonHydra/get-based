@@ -293,6 +293,68 @@ export function buildFullGeneticsContext(genetics) {
 }
 
 // ═══════════════════════════════════════════════
+// DASHBOARD SECTION
+// ═══════════════════════════════════════════════
+
+export function renderGeneticsSection() {
+  const genetics = state.importedData.genetics;
+  if (!genetics || !genetics.snps || Object.keys(genetics.snps).length === 0) return '';
+  const snpTable = _snpTable;
+
+  const snpCount = Object.keys(genetics.snps).length;
+  const apoe = genetics.apoe;
+
+  // Group significant/moderate findings for summary
+  const findings = [];
+  const apoeRsids = new Set(['rs429358', 'rs7412']);
+  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+    if (apoe && apoeRsids.has(rsid)) continue;
+    const entry = snpTable?.[rsid];
+    if (!entry) continue;
+    const reversed = stored.genotype.length === 2 ? stored.genotype[1] + stored.genotype[0] : stored.genotype;
+    const info = entry.genotypes[stored.genotype] || entry.genotypes[reversed] || entry.genotypes[sortAlleles(stored.genotype)];
+    if (!info || info.effect === 'none') continue;
+    findings.push({ gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note });
+  }
+
+  const effectIcon = { significant: '\uD83D\uDD34', moderate: '\uD83D\uDFE1' };
+
+  let html = `<div class="dashboard-section genetics-section">
+    <div class="section-header">
+      <span>\uD83E\uDDEC Genetics</span>
+      <span class="section-meta">${escapeHTML(genetics.source)} · ${snpCount} SNPs · ${genetics.importDate}</span>
+    </div>`;
+
+  if (apoe) {
+    html += `<div class="genetics-apoe">APOE: <strong>${escapeHTML(apoe)}</strong></div>`;
+  }
+
+  if (findings.length > 0) {
+    html += `<div class="genetics-findings">`;
+    // Show significant first, then moderate
+    const sorted = findings.sort((a, b) => (a.effect === 'significant' ? 0 : 1) - (b.effect === 'significant' ? 0 : 1));
+    for (const f of sorted.slice(0, 8)) {
+      html += `<div class="genetics-finding-row">
+        <span>${effectIcon[f.effect] || ''}</span>
+        <span class="genetics-finding-gene">${escapeHTML(f.gene)} ${escapeHTML(f.variant)}</span>
+        <span class="genetics-finding-genotype">${escapeHTML(f.genotype)}</span>
+        <span class="genetics-finding-note">${escapeHTML(f.note)}</span>
+      </div>`;
+    }
+    if (sorted.length > 8) {
+      html += `<div class="genetics-finding-more">${sorted.length - 8} more findings</div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `<div class="genetics-actions">
+    <button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" onclick="if(confirm('Delete genetic data?')){deleteGeneticsData(window._getState().importedData);window._saveAndRefresh();}">\u00D7 Delete</button>
+  </div></div>`;
+
+  return html;
+}
+
+// ═══════════════════════════════════════════════
 // IMPORT FLOW
 // ═══════════════════════════════════════════════
 
@@ -407,4 +469,6 @@ Object.assign(window, {
   confirmDNAImport,
   deleteGeneticsData,
   _buildGeneticsContext: buildGeneticsContext,
+  _getState: () => state,
+  _saveAndRefresh: () => { saveImportedData(); if (window.navigate) window.navigate('dashboard'); },
 });

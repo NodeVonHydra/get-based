@@ -8,6 +8,7 @@ import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange,
 import { profileStorageKey } from './profile.js';
 import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin, phaseBandPlugin } from './charts.js';
 import { renderSupplementsSection } from './supplements.js';
+import { renderGeneticsSection } from './dna.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
 import { callClaudeAPI, hasAIProvider, isAIPaused, getAIProvider, getActiveModelId } from './api.js';
@@ -54,7 +55,7 @@ export function showDashboard(data) {
       <p class="welcome-hero-subtitle">Track your biomarkers, understand your health</p>
       <div class="drop-zone" id="drop-zone">
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
-        <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+        <div class="drop-zone-text">Drop PDF, JSON, or DNA raw data file here, or click to browse</div>
         <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div>
         ${!hasAIProvider() ? `<div class="drop-zone-api-hint">${isAIPaused() ? 'AI features are paused — <a href="#" onclick="event.preventDefault();event.stopPropagation();window.openSettingsModal(\'ai\')">re-enable in Settings</a>' : 'Requires an AI connection — <a href="#" onclick="event.preventDefault();event.stopPropagation();closeChatPanel();window.openSettingsModal(\'ai\')">set up in 30 seconds</a>'}</div>` : ''}</div>
       <div class="onboarding-divider">
@@ -110,6 +111,9 @@ export function showDashboard(data) {
 
   // ── 6. Supplements & Medications ──
   html += renderSupplementsSection();
+
+  // ── 6b. Genetics ──
+  html += renderGeneticsSection();
 
   // ── 7. Key Trends ──
   const filteredData = filterDatesByRange(data);

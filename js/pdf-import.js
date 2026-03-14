@@ -1015,7 +1015,7 @@ export function hideImportProgress(reason = 'success') {
     dropZone.innerHTML = '';
   } else {
     dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
-      <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+      <div class="drop-zone-text">Drop PDF, JSON, or DNA raw data file here, or click to browse</div>
       <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
       <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
   }

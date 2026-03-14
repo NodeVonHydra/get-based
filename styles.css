@@ -2983,6 +2983,20 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .dna-preview-disclaimer { padding: 10px 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); line-height: 1.4; }
 .dna-preview-actions { padding: 12px 20px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); }
 
+/* Genetics Dashboard Section */
+.genetics-section { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+.genetics-section .section-header { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 8px; }
+.genetics-section .section-header > span:first-child { font-size: 14px; font-weight: 600; }
+.genetics-section .section-meta { font-size: 11px; color: var(--text-muted); }
+.genetics-apoe { font-size: 13px; padding: 6px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.genetics-findings { margin-bottom: 8px; }
+.genetics-finding-row { display: grid; grid-template-columns: auto auto 36px 1fr; gap: 6px; align-items: baseline; padding: 3px 0; font-size: 12px; }
+.genetics-finding-gene { font-weight: 500; white-space: nowrap; }
+.genetics-finding-genotype { font-family: var(--font-mono); color: var(--accent); font-weight: 600; font-size: 11px; }
+.genetics-finding-note { color: var(--text-muted); }
+.genetics-finding-more { font-size: 11px; color: var(--text-muted); padding-top: 4px; }
+.genetics-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+
 /* Privacy status card & collapsible configure */
 .privacy-status-card {
   display: flex; align-items: flex-start; gap: 10px;
