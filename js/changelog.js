@@ -5,12 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.7.6', date: '2026-03-14', title: 'Smarter Focus Card',
+    version: '1.7.6', date: '2026-03-14', title: 'Focus Card + Chat Polish',
     items: [
       'Focus card now considers your health goals, interpretive lens, medical conditions, and context notes',
       'Expanded from one sentence to a brief 2-3 sentence insight with a concrete next step',
       'Typewriter streaming effect — text trickles in smoothly instead of popping in after a wait',
-      'Inline formatting support (bold, italic) for more readable insights',
+      'Chat now renders markdown tables, blockquotes, headings, and styled callouts',
+      'PhenoAge detail modal shows exactly why calculation failed — per-date gaps, CRP mismatch, unit issues',
+      'Open-ended optimal ranges now display correctly on charts and in all views',
     ]
   },
   {

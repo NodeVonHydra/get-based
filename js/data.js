@@ -738,8 +738,8 @@ export function switchUnitSystem(system) {
 
 export function getEffectiveRange(marker) {
   if (state.rangeMode === 'optimal' || state.rangeMode === 'both') {
-    if (marker.optimalMin != null && marker.optimalMax != null) {
-      return { min: marker.optimalMin, max: marker.optimalMax };
+    if (marker.optimalMin != null || marker.optimalMax != null) {
+      return { min: marker.optimalMin ?? null, max: marker.optimalMax ?? null };
     }
   }
   return { min: marker.refMin, max: marker.refMax };

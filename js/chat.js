@@ -1936,6 +1936,7 @@ export function renderMarkdown(text) {
 
     // Fenced code block
     if (line.trimStart().startsWith('```')) {
+      const lang = line.trimStart().slice(3).trim();
       const codeLines = [];
       i++;
       while (i < lines.length && !lines[i].trimStart().startsWith('```')) {
@@ -1943,8 +1944,14 @@ export function renderMarkdown(text) {
         i++;
       }
       i++; // skip closing ```
-      const escaped = codeLines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      blocks.push(`<pre class="chat-code-block"><code>${escaped}</code></pre>`);
+      if (lang) {
+        // Language-tagged: render as code
+        const escaped = codeLines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        blocks.push(`<pre class="chat-code-block"><code>${escaped}</code></pre>`);
+      } else {
+        // No language tag: render as styled callout (AI often uses ``` for non-code structured text)
+        blocks.push(`<div class="chat-callout">${codeLines.map(l => applyInlineMarkdown(l)).join('<br>')}</div>`);
+      }
       continue;
     }
 
@@ -1961,6 +1968,33 @@ export function renderMarkdown(text) {
       const level = headingMatch[1].length;
       blocks.push(`<div class="chat-h${level}">${applyInlineMarkdown(headingMatch[2])}</div>`);
       i++;
+      continue;
+    }
+
+    // Blockquote (> lines)
+    if (/^\s*>\s?/.test(line)) {
+      const quoteLines = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+        quoteLines.push(lines[i].replace(/^\s*>\s?/, ''));
+        i++;
+      }
+      blocks.push(`<blockquote class="chat-blockquote">${renderMarkdown(quoteLines.join('\n'))}</blockquote>`);
+      continue;
+    }
+
+    // Table (pipe-delimited: | header | ... then |---| separator then | data | rows)
+    if (/^\s*\|.+\|/.test(line) && i + 1 < lines.length && /^\s*\|[\s:]*-+/.test(lines[i + 1])) {
+      const headerCells = line.split('|').slice(1, -1).map(c => applyInlineMarkdown(c.trim()));
+      i += 2; // skip header + separator
+      const rows = [];
+      while (i < lines.length && /^\s*\|.+\|/.test(lines[i])) {
+        rows.push(lines[i].split('|').slice(1, -1).map(c => applyInlineMarkdown(c.trim())));
+        i++;
+      }
+      let tableHtml = '<div class="chat-table-wrap"><table class="chat-table"><thead><tr>' + headerCells.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+      for (const row of rows) tableHtml += '<tr>' + row.map(c => `<td>${c}</td>`).join('') + '</tr>';
+      tableHtml += '</tbody></table></div>';
+      blocks.push(tableHtml);
       continue;
     }
 
@@ -1997,9 +2031,11 @@ export function renderMarkdown(text) {
     while (i < lines.length && lines[i].trim() !== '' &&
       !lines[i].trimStart().startsWith('```') &&
       !/^(#{1,3})\s+/.test(lines[i]) &&
+      !/^\s*>\s?/.test(lines[i]) &&
       !/^\s*[-*+]\s+/.test(lines[i]) &&
       !/^\s*\d+[.)]\s+/.test(lines[i]) &&
-      !/^(\s*[-*_]\s*){3,}$/.test(lines[i])) {
+      !/^(\s*[-*_]\s*){3,}$/.test(lines[i]) &&
+      !(/^\s*\|.+\|/.test(lines[i]) && i + 1 < lines.length && /^\s*\|[\s:]*-+/.test(lines[i + 1]))) {
       paraLines.push(lines[i]);
       i++;
     }

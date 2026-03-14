@@ -758,11 +758,11 @@ export function renderChartCard(id, marker, dateLabels) {
   }
   let rangeHtml = '';
   const fmtRange = (min, max) => `${min != null ? formatValue(min) : '–'} \u2013 ${max != null ? formatValue(max) : '–'}`;
-  if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+  if (state.rangeMode === 'both' && (marker.optimalMin != null || marker.optimalMax != null) && (marker.refMin != null || marker.refMax != null)) {
     rangeHtml = `<div class="chart-ref-range">Ref: ${fmtRange(marker.refMin, marker.refMax)} · <span style="color:var(--green)">Optimal: ${fmtRange(marker.optimalMin, marker.optimalMax)}</span> ${escapeHTML(marker.unit)}</div>`;
   } else {
     const r = getEffectiveRange(marker);
-    const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Reference';
+    const rangeLabel = state.rangeMode === 'optimal' && (marker.optimalMin != null || marker.optimalMax != null) ? 'Optimal' : 'Reference';
     rangeHtml = r.min != null || r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${fmtRange(r.min, r.max)} ${escapeHTML(marker.unit)}</div>` : '';
   }
   html += `</div>${rangeHtml}</div>`;
@@ -780,7 +780,7 @@ export function renderTableView(cat, dateLabels, categoryKey) {
     const r = getEffectiveRange(marker);
     let refCell = r.min != null && r.max != null ? `${formatValue(r.min)} \u2013 ${formatValue(r.max)}` : '\u2014';
     if (state.rangeMode === 'both') {
-      if (marker.optimalMin != null) refCell = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span style="color:var(--green);font-size:11px">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
+      if (marker.optimalMin != null || marker.optimalMax != null) refCell = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span style="color:var(--green);font-size:11px">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
     }
     const rowClick = id ? ` onclick="showDetailModal('${id}')" style="cursor:pointer"` : '';
     html += `<tr${rowClick}><td class="marker-name">${escapeHTML(marker.name)}</td>
@@ -839,10 +839,10 @@ export function renderFattyAcidsView(cat, categoryKey) {
     const v = marker.values[0], s = getStatus(v, r.min, r.max);
     const pos = Math.max(0, Math.min(100, getRangePosition(v, r.min, r.max)));
     let faRangeText;
-    if (state.rangeMode === 'both' && marker.optimalMin != null && marker.refMin != null) {
+    if (state.rangeMode === 'both' && (marker.optimalMin != null || marker.optimalMax != null) && (marker.refMin != null || marker.refMax != null)) {
       faRangeText = `Ref: ${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)} · <span style="color:var(--green)">Opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;
     } else {
-      const rangeLabel = state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref';
+      const rangeLabel = state.rangeMode === 'optimal' && (marker.optimalMin != null || marker.optimalMax != null) ? 'Optimal' : 'Ref';
       faRangeText = `${rangeLabel}: ${formatValue(r.min)} \u2013 ${formatValue(r.max)}`;
     }
     html += `<div class="fa-card" onclick="showDetailModal('${categoryKey}_${key}')" style="cursor:pointer"><div class="fa-card-name">${escapeHTML(marker.name)}</div>
@@ -937,7 +937,7 @@ export function showDetailModal(id) {
   };
   const isCustom = !!state.importedData?.customMarkers?.[dotKey];
   const hasRef = marker.refMin != null || marker.refMax != null;
-  const hasOpt = marker.optimalMin != null;
+  const hasOpt = marker.optimalMin != null || marker.optimalMax != null;
   if (state.rangeMode === 'both') {
     if (hasRef) rangeInfo += refEditable('Reference', marker.refMin, marker.refMax, 'ref');
     else if (isCustom) rangeInfo += refEditable('Reference', '–', '–', 'ref');
@@ -1014,16 +1014,59 @@ export function showDetailModal(id) {
   };
   const inputs = calcInputs[id];
   if (inputs) {
-    const missing = inputs.filter(([cat, key, label]) => {
+    const issues = [];
+    // Check for completely missing markers
+    const missing = inputs.filter(([cat, key]) => {
       const vals = data.categories[cat]?.markers[key]?.values;
       return !vals || vals.every(v => v == null);
     });
-    const needsDob = id === 'calculatedRatios_phenoAge' && !state.profileDob;
-    if (missing.length > 0 || needsDob) {
-      const parts = [];
-      if (missing.length > 0) parts.push(missing.map(m => m[2]).join(', '));
-      if (needsDob) parts.push('date of birth (set in profile)');
-      html += `<div class="calc-missing-inputs">Not calculated — missing: ${parts.join('; ')}</div>`;
+    if (id === 'calculatedRatios_phenoAge' && !state.profileDob) {
+      issues.push('Date of birth not set (required for age at blood draw)');
+    }
+    if (missing.length > 0) {
+      issues.push(`Missing: ${missing.map(m => m[2]).join(', ')}`);
+    }
+    // PhenoAge-specific: check per-date gaps, CRP mismatch, unit sanity
+    if (id === 'calculatedRatios_phenoAge' && missing.length === 0 && state.profileDob) {
+      const latestIdx = data.dates.length - 1;
+      if (latestIdx >= 0) {
+        const nullAt = inputs.filter(([cat, key]) => {
+          const v = data.categories[cat]?.markers[key]?.values?.[latestIdx];
+          return v == null;
+        });
+        if (nullAt.length > 0) {
+          issues.push(`Missing on latest date (${data.dateLabels[latestIdx]}): ${nullAt.map(m => m[2]).join(', ')}`);
+        }
+        // CRP value sanity
+        const crpVal = data.categories.proteins?.markers.hsCRP?.values?.[latestIdx];
+        if (crpVal != null && crpVal <= 0) {
+          issues.push('hs-CRP is zero or negative — cannot calculate (log undefined)');
+        }
+        // Unit sanity warnings
+        const albVal = data.categories.proteins?.markers.albumin?.values?.[latestIdx];
+        if (albVal != null && albVal > 10) {
+          issues.push(`Albumin value ${albVal} looks like g/dL — expected g/L (typically 35–55)`);
+        }
+        const lymphVal = data.categories.differential?.markers.lymphocytesPct?.values?.[latestIdx];
+        if (lymphVal != null && lymphVal > 1) {
+          issues.push(`Lymphocytes % value ${lymphVal} looks like a percentage — expected fraction 0–1 (e.g. 0.28)`);
+        }
+        const alpVal = data.categories.biochemistry?.markers.alp?.values?.[latestIdx];
+        if (alpVal != null && alpVal > 10) {
+          issues.push(`ALP value ${alpVal} looks like U/L — expected µkat/L (typically 0.5–2.0)`);
+        }
+      }
+    }
+    // CRP vs hs-CRP mismatch
+    if (id === 'calculatedRatios_phenoAge') {
+      const hasCRP = data.categories.proteins?.markers.crp?.values?.some(v => v != null);
+      const hasHsCRP = data.categories.proteins?.markers.hsCRP?.values?.some(v => v != null);
+      if (hasCRP && !hasHsCRP) {
+        issues.push('CRP exists but mapped to standard CRP — PhenoAge needs hs-CRP. Check if your lab reported high-sensitivity CRP');
+      }
+    }
+    if (issues.length > 0) {
+      html += `<div class="calc-missing-inputs">Not calculated — ${issues.join('. ')}</div>`;
     }
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
