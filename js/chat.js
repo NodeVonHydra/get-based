@@ -1767,7 +1767,12 @@ export function renderChatMessages() {
           </div>`;
       const hasGenetics = state.importedData.genetics && Object.keys(state.importedData.genetics.snps || {}).length > 0;
       const dnaSection = !hasGenetics ? `<div class="chat-onboard-dna">
-            <p>🧬 Have you ever done a DNA test? (Ancestry, 23andMe, etc.) If you have the raw data file, drop it on the dashboard — it helps me understand <em>why</em> your labs look the way they do, even when your lifestyle is dialed in.</p>
+            <p>🧬 Have you ever done a DNA test? (Ancestry, 23andMe, etc.) If you have the raw data file, it helps me understand <em>why</em> your labs look the way they do.</p>
+            <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+              <button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>
+              <span style="font-size:11px;color:var(--text-muted)">Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA</span>
+            </div>
+            <input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">
             <div style="font-size:11px;color:var(--text-muted)">Processed locally — your DNA file never leaves your device.</div>
           </div>` : '';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
