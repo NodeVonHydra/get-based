@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { CORRELATION_PRESETS, CHIP_COLORS, trackUsage } from './schema.js';
-import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification, showConfirmDialog } from './utils.js';
+import { escapeHTML, getStatus, getRangePosition, formatValue, getTrend, showNotification, showConfirmDialog, hasCardContent } from './utils.js';
 import { getChartColors } from './theme.js';
 import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, getFocusCardFingerprint, saveImportedData, recalculateHOMAIR, updateHeaderDates, renderDateRangeFilter, renderChartLayersDropdown, convertDisplayToSI } from './data.js';
 import { profileStorageKey } from './profile.js';
@@ -12,7 +12,7 @@ import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
 import { callClaudeAPI, hasAIProvider, isAIPaused, getAIProvider, getActiveModelId } from './api.js';
 import { setupDropZone } from './pdf-import.js';
-import { buildLabContext } from './chat.js';
+import { buildLabContext, applyInlineMarkdown } from './chat.js';
 
 function markerHasData(m) { return m.values?.some(v => v !== null) ?? false; }
 
@@ -256,7 +256,7 @@ export function renderFocusCard() {
   return `<div class="focus-card" id="focus-card">
     <div class="focus-card-icon">\uD83D\uDD2C</div>
     <div class="focus-card-body" id="focus-card-body">${text
-      ? `<span class="focus-card-text">${escapeHTML(text)}</span>`
+      ? `<span class="focus-card-text">${applyInlineMarkdown(text)}</span>`
       : `<span class="focus-card-shimmer"></span>`}</div>
     <button class="focus-card-refresh" onclick="refreshFocusCard()" title="Regenerate insight">\u21BB</button>
   </div>`;
@@ -273,11 +273,36 @@ export function buildFocusContext() {
   const lastDate = data.dates[data.dates.length - 1];
   let ctx = `Profile: ${sexLabel}${age !== null ? ', age ' + age : ''}, today ${today}, last labs ${lastDate}\n`;
 
-  // Major health goals (if any)
+  // Health goals (all priorities)
   const healthGoals = state.importedData.healthGoals || [];
-  const majorGoals = healthGoals.filter(g => g.severity === 'major');
-  if (majorGoals.length > 0) {
-    ctx += `Goals: ${majorGoals.map(g => g.text).join('; ')}\n`;
+  if (healthGoals.length > 0) {
+    const byPriority = { major: [], mild: [], minor: [] };
+    for (const g of healthGoals) (byPriority[g.severity] || byPriority.minor).push(g.text);
+    const parts = [];
+    for (const [sev, items] of Object.entries(byPriority)) {
+      if (items.length > 0) parts.push(`${sev}: ${items.join('; ')}`);
+    }
+    ctx += `Goals: ${parts.join(' | ')}\n`;
+  }
+
+  // Interpretive lens
+  const interpretiveLens = state.importedData.interpretiveLens || '';
+  if (interpretiveLens.trim()) {
+    ctx += `Lens: ${interpretiveLens.trim()}\n`;
+  }
+
+  // Medical conditions
+  const diag = state.importedData.diagnoses;
+  if (hasCardContent(diag)) {
+    const conditions = (diag.conditions || []).map(c => `${c.name} (${c.severity})`);
+    if (conditions.length > 0) ctx += `Conditions: ${conditions.join(', ')}\n`;
+    if (diag.note) ctx += `Medical notes: ${diag.note}\n`;
+  }
+
+  // Additional context notes
+  const contextNotes = state.importedData.contextNotes || '';
+  if (contextNotes.trim()) {
+    ctx += `Notes for AI: ${contextNotes.trim()}\n`;
   }
 
   // Flagged/non-normal markers (latest values only)
@@ -319,36 +344,49 @@ export async function loadFocusCard() {
   const cached = (() => { try { return JSON.parse(localStorage.getItem(cacheKey)); } catch(e) { return null; } })();
   const fp = getFocusCardFingerprint();
   if (cached && cached.fingerprint === fp && cached.text) {
-    el.innerHTML = `<span class="focus-card-text">${escapeHTML(cached.text)}</span>`;
+    el.innerHTML = `<span class="focus-card-text">${applyInlineMarkdown(cached.text)}</span>`;
     return;
   }
-  el.innerHTML = `<span class="focus-card-shimmer"></span>`;
+  el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">🔍 Looking into your results\u2026</span>`;
   try {
     const ctx = buildFocusContext();
     if (!ctx) {
       el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
       return;
     }
-    const healthGoals = state.importedData.healthGoals || [];
-    const hasGoals = healthGoals.some(g => g.severity === 'major');
-    const focusSystem = hasGoals
-      ? 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with ONE sentence, max 40 words. If the patient has health goals listed, connect your finding to their most relevant goal. Name the single most actionable marker finding, its value, direction, and why it matters. No preamble, no disclaimer.'
-      : 'You are a blood work analyst. The user\'s real lab results are provided below. Respond with exactly ONE sentence, max 40 words. Name the single most important marker finding, its value, direction (rising/falling/high/low), and briefly why it matters clinically. No preamble, no disclaimer.';
-    const apiCall = callClaudeAPI({
+    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief, punchy insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. The next step should be clinical (retest, monitor, discuss with provider) — never recommend specific products or supplements. Be direct and specific. No preamble, no disclaimer.';
+
+    // Typewriter: trickle streamed text for smooth appearance
+    const textEl = document.createElement('span');
+    textEl.className = 'focus-card-text';
+    let target = '', displayed = 0, timer = null;
+    function tick() {
+      if (displayed >= target.length) { timer = null; return; }
+      const batch = Math.max(1, Math.ceil((target.length - displayed) * 0.3));
+      displayed = Math.min(displayed + batch, target.length);
+      textEl.textContent = target.slice(0, displayed);
+      timer = setTimeout(tick, 16);
+    }
+
+    const { text: fullText, usage } = await callClaudeAPI({
       system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
-      maxTokens: 100
+      maxTokens: 500,
+      onStream(text) {
+        target = text;
+        if (!textEl.parentNode) { el.innerHTML = ''; el.appendChild(textEl); }
+        if (!timer) tick();
+      }
     });
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000));
-    const result = await Promise.race([apiCall, timeout]);
-    if (result && typeof result === 'object' && result.usage) {
-      trackUsage(getAIProvider(), getActiveModelId(), result.usage.inputTokens || 0, result.usage.outputTokens || 0);
+    if (timer) { clearTimeout(timer); timer = null; }
+
+    if (usage) {
+      trackUsage(getAIProvider(), getActiveModelId(), usage.inputTokens || 0, usage.outputTokens || 0);
     }
-    const text = (result && typeof result === 'object') ? result.text : (result || '');
-    const trimmed = (text || '').trim();
+    const trimmed = (fullText || '').trim();
     if (trimmed) {
       localStorage.setItem(cacheKey, JSON.stringify({ fingerprint: fp, text: trimmed }));
-      el.innerHTML = `<span class="focus-card-text">${escapeHTML(trimmed)}</span>`;
+      el.innerHTML = `<span class="focus-card-text">${applyInlineMarkdown(trimmed)}</span>`;
     } else {
       el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
     }

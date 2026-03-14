@@ -64,18 +64,9 @@ export function getFocusCardFingerprint() {
     state.profileSex || '',
     state.profileDob || '',
     JSON.stringify(state.importedData.diagnoses || null),
-    (state.importedData.healthGoals || []).map(g => g.text).join(','),
-    JSON.stringify(state.importedData.diet || null),
-    JSON.stringify(state.importedData.exercise || null),
-    JSON.stringify(state.importedData.sleepRest || null),
-    JSON.stringify(state.importedData.lightCircadian || null),
-    JSON.stringify(state.importedData.stress || null),
-    JSON.stringify(state.importedData.loveLife || null),
-    JSON.stringify(state.importedData.environment || null),
+    (state.importedData.healthGoals || []).map(g => g.severity + ':' + g.text).join(','),
     state.importedData.interpretiveLens || '',
-    state.importedData.contextNotes || '',
-    JSON.stringify(state.importedData.menstrualCycle || null),
-    JSON.stringify((state.importedData.supplements || []).map(s => s.name + ':' + s.startDate))
+    state.importedData.contextNotes || ''
   ];
   return hashString(parts.join('|'));
 }

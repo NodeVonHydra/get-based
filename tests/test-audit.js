@@ -288,7 +288,7 @@
   // Focus card lightweight context
   assert('buildFocusContext exists in views.js', viewsSrc.includes('function buildFocusContext()'));
   assert('Focus card uses buildFocusContext', viewsSrc.includes('buildFocusContext()'));
-  assert('Focus card health-goals-aware system prompt', viewsSrc.includes('connect your finding to their most relevant goal'));
+  assert('Focus card context-aware system prompt', viewsSrc.includes('connecting to their goals/conditions/lens if provided'));
 
   // askAIAboutMarker uses actual reference range (not effective/optimal)
   assert('askAIAboutMarker uses marker.refMin/refMax', chatSrc.includes('${marker.refMin}') && chatSrc.includes('${marker.refMax}'));

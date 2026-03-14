@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.7.6', date: '2026-03-14', title: 'Smarter Focus Card',
+    items: [
+      'Focus card now considers your health goals, interpretive lens, medical conditions, and context notes',
+      'Expanded from one sentence to a brief 2-3 sentence insight with a concrete next step',
+      'Typewriter streaming effect — text trickles in smoothly instead of popping in after a wait',
+      'Inline formatting support (bold, italic) for more readable insights',
+    ]
+  },
+  {
     version: '1.7.5', date: '2026-03-13', title: 'Smarter Imports',
     items: [
       'PDF import now captures every numeric result — no more silently dropped markers',
