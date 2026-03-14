@@ -470,8 +470,9 @@ function confirmDNAImport() {
   const overlay = document.getElementById('dna-modal-overlay');
   if (overlay) overlay.classList.remove('show');
   showNotification(`Imported ${result.coverage.found} SNPs from ${result.source}`, 'success');
-  // Refresh dashboard
+  // Refresh dashboard + chat onboarding (hides the DNA upload section)
   if (window.navigate) window.navigate('dashboard');
+  if (window.updateChatNudge) window.updateChatNudge();
 }
 
 // ═══════════════════════════════════════════════
