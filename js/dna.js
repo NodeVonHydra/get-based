@@ -4,6 +4,7 @@
 
 import { state } from './state.js';
 import { escapeHTML, showNotification } from './utils.js';
+import { saveImportedData } from './data.js';
 
 // ═══════════════════════════════════════════════
 // FORMAT DETECTION
@@ -108,7 +109,9 @@ let _worker = null;
 function getWorker() {
   if (!_worker) {
     const blob = new Blob([WORKER_CODE], { type: 'application/javascript' });
-    _worker = new Worker(URL.createObjectURL(blob));
+    const url = URL.createObjectURL(blob);
+    _worker = new Worker(url);
+    URL.revokeObjectURL(url); // Worker keeps its own reference; safe to revoke immediately
   }
   return _worker;
 }
@@ -299,6 +302,7 @@ export function buildFullGeneticsContext(genetics) {
 export function renderGeneticsSection() {
   const genetics = state.importedData.genetics;
   if (!genetics || !genetics.snps || Object.keys(genetics.snps).length === 0) return '';
+  if (!_snpTable) { loadSNPTable(); return ''; } // async load; section renders on next nav
   const snpTable = _snpTable;
 
   const snpCount = Object.keys(genetics.snps).length;
@@ -358,20 +362,25 @@ export function renderGeneticsSection() {
 // IMPORT FLOW
 // ═══════════════════════════════════════════════
 
-import { saveImportedData } from './data.js';
+let _dnaImportRunning = false;
 
 export async function handleDNAFile(file) {
+  if (_dnaImportRunning) { showNotification('DNA import already in progress', 'info'); return; }
+  if (window.isImportRunning && window.isImportRunning()) { showNotification('Lab import in progress — wait for it to finish', 'info'); return; }
+  _dnaImportRunning = true;
   try {
     showNotification('Parsing DNA file...', 'info');
     const result = await parseDNAFile(file);
     if (Object.keys(result.matches).length === 0) {
       showNotification('No health-relevant SNPs found in this file. Is it a DNA raw data export?', 'error');
+      _dnaImportRunning = false;
       return;
     }
     showDNAImportPreview(result, file.name);
   } catch (e) {
     console.error('DNA import error:', e);
     showNotification(e.message || 'Failed to parse DNA file', 'error');
+    _dnaImportRunning = false;
   }
 }
 
@@ -428,11 +437,11 @@ function showDNAImportPreview(result, fileName) {
       <button class="import-btn import-btn-primary" onclick="confirmDNAImport()">Import ${result.coverage.found} SNPs</button>
     </div>`;
 
-  // Use the existing import modal overlay
-  let overlay = document.getElementById('import-modal-overlay');
+  // Use a dedicated overlay — don't clobber the PDF import modal
+  let overlay = document.getElementById('dna-modal-overlay');
   if (!overlay) {
     overlay = document.createElement('div');
-    overlay.id = 'import-modal-overlay';
+    overlay.id = 'dna-modal-overlay';
     overlay.className = 'modal-overlay';
     document.body.appendChild(overlay);
   }
@@ -442,7 +451,8 @@ function showDNAImportPreview(result, fileName) {
 
 function closeDNAImportPreview() {
   window._pendingDNAImport = null;
-  const overlay = document.getElementById('import-modal-overlay');
+  _dnaImportRunning = false;
+  const overlay = document.getElementById('dna-modal-overlay');
   if (overlay) overlay.classList.remove('show');
 }
 
@@ -452,7 +462,8 @@ function confirmDNAImport() {
   saveGeneticsData(state.importedData, result);
   saveImportedData();
   window._pendingDNAImport = null;
-  const overlay = document.getElementById('import-modal-overlay');
+  _dnaImportRunning = false;
+  const overlay = document.getElementById('dna-modal-overlay');
   if (overlay) overlay.classList.remove('show');
   showNotification(`Imported ${result.coverage.found} SNPs from ${result.source}`, 'success');
   // Refresh dashboard
@@ -462,13 +473,6 @@ function confirmDNAImport() {
 // ═══════════════════════════════════════════════
 // DETAIL MODAL HELPER
 // ═══════════════════════════════════════════════
-
-// Load SNP table after profile data is ready (modules load before DOMContentLoaded)
-setTimeout(() => {
-  if (!_snpTable && state.importedData.genetics && state.importedData.genetics.snps) {
-    loadSNPTable();
-  }
-}, 500);
 
 // Get SNPs relevant to a specific marker dotKey (e.g. "coagulation.homocysteine")
 function getRelevantSNPs(dotKey) {
