@@ -330,12 +330,14 @@ export function buildFocusContext() {
       const pct = Math.abs((last - prev) / prev * 100);
       if (pct > 20) {
         const dir = last > prev ? 'up' : 'down';
-        changes.push(`${m.name}: ${dir} ${pct.toFixed(0)}%`);
+        const ref = m.refMin != null && m.refMax != null ? `, ref ${m.refMin}–${m.refMax}` : '';
+        const status = getStatus(last, m.refMin, m.refMax);
+        changes.push(`${m.name}: ${prev} → ${last} ${m.unit || ''} (${dir} ${pct.toFixed(0)}%${ref}, ${status})`);
       }
     }
   }
   if (changes.length > 0) {
-    ctx += `Notable changes: ${changes.slice(0, 5).join(', ')}\n`;
+    ctx += `Notable changes:\n${changes.slice(0, 5).map(c => '- ' + c).join('\n')}\n`;
   }
 
   return ctx;
@@ -358,7 +360,7 @@ export async function loadFocusCard() {
       el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
       return;
     }
-    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief, punchy insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. The next step should be clinical (retest, monitor, discuss with provider) — never recommend specific products or supplements. Be direct and specific. No preamble, no disclaimer.';
+    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. Be direct, grounded, and proportionate. A value that changed but remains within its reference range is normal fluctuation — do not alarm the user about it. Only flag genuinely out-of-range or trending-out-of-range values. The next step should be practical (retest, monitor, adjust lifestyle, discuss with provider) — never recommend specific products or supplements. No preamble, no disclaimer.';
 
     // Typewriter: trickle streamed text for smooth appearance
     const textEl = document.createElement('span');
