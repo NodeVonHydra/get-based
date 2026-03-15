@@ -2,7 +2,7 @@
   "_meta": {
     "version": "1.0.0",
     "description": "Curated health-relevant SNP lookup table for DNA raw data import. Forward (+) strand alleles. UPDATE when new research warrants adding/revising SNPs — each entry needs gene, genotypes, effect notes, and at least one citation.",
-    "snpCount": 41,
+    "snpCount": 42,
     "categories": ["methylation", "iron", "lipids", "vitaminD", "vitaminB12", "bilirubin", "thyroid", "fattyAcids", "bloodSugar", "sexHormones"],
     "sources": ["SNPedia", "ClinVar", "GWAS Catalog", "PharmGKB"]
   },
@@ -12,6 +12,7 @@
     "markers": ["coagulation.homocysteine", "vitamins.folate", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
     "strandNote": "Minus strand gene. Forward: G(ref)/A(alt). G=C complement, A=T complement.",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/7647779/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal MTHFR activity (~100%)" },
       "GA": { "effect": "moderate", "note": "~65% enzyme activity; mild homocysteine elevation possible with low folate" },
@@ -23,17 +24,19 @@
     "markers": ["coagulation.homocysteine", "vitamins.folate"],
     "contextCards": ["diet"],
     "strandNote": "Minus strand gene. Forward: T(ref)/G(alt). T=A complement, G=C complement.",
+    "compoundNote": "Compound heterozygous with rs1801133 (GA + TG) produces significant methylation impairment",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/9545395/"],
     "genotypes": {
       "TT": { "effect": "none", "note": "Normal BH4 production" },
       "TG": { "effect": "moderate", "note": "Mildly reduced BH4 synthesis; homocysteine usually normal" },
       "GG": { "effect": "moderate", "note": "Reduced BH4; impacts dopamine/serotonin cofactor synthesis" }
-    },
-    "compoundNote": "Compound heterozygous with rs1801133 (GA + TG) produces significant methylation impairment"
+    }
   },
   "rs1805087": {
     "gene": "MTR", "variant": "A2756G", "category": "methylation",
     "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/9327029/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal methionine synthase activity" },
       "AG": { "effect": "moderate", "note": "Mildly reduced MTR activity" },
@@ -44,6 +47,7 @@
     "gene": "MTRR", "variant": "A66G", "category": "methylation",
     "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/11472746/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal B12 recycling via MTRR" },
       "AG": { "effect": "moderate", "note": "Modestly reduced B12 recycling" },
@@ -54,6 +58,7 @@
     "gene": "BHMT", "variant": "R239Q", "category": "methylation",
     "markers": ["coagulation.homocysteine"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/12749058/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal betaine-homocysteine remethylation" },
       "GA": { "effect": "moderate", "note": "Mildly reduced BHMT activity" },
@@ -65,6 +70,7 @@
     "markers": ["coagulation.homocysteine"],
     "contextCards": ["diet"],
     "strandNote": "Forward: G(ref)/A(alt).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/11149614/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal transsulfuration pathway activity" },
       "GA": { "effect": "moderate", "note": "Altered CBS activity; clinical significance debated" },
@@ -74,8 +80,9 @@
 
   "rs1800562": {
     "gene": "HFE", "variant": "C282Y", "category": "iron",
-    "markers": ["iron.ferritin", "iron.transferrin", "iron.iron", "iron.transferrin"],
+    "markers": ["iron.ferritin", "iron.transferrin", "iron.iron"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/8696333/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "No hemochromatosis risk from C282Y" },
       "GA": { "effect": "moderate", "note": "Carrier; usually asymptomatic, mildly elevated ferritin/transferrin sat possible" },
@@ -86,18 +93,20 @@
     "gene": "HFE", "variant": "H63D", "category": "iron",
     "markers": ["iron.ferritin", "iron.transferrin", "iron.iron"],
     "contextCards": ["diet"],
+    "compoundNote": "Compound heterozygous with rs1800562 (CG + GA) causes moderate iron overload risk",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/8696333/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "No H63D variant" },
       "CG": { "effect": "moderate", "note": "Mild iron parameter elevation possible" },
       "GG": { "effect": "moderate", "note": "Mild iron overload possible; significant risk if compound heterozygous with C282Y" }
-    },
-    "compoundNote": "Compound heterozygous with rs1800562 (CG + GA) causes moderate iron overload risk"
+    }
   },
   "rs855791": {
     "gene": "TMPRSS6", "variant": "V736A", "category": "iron",
     "markers": ["iron.ferritin", "iron.transferrin", "hematology.hemoglobin"],
     "contextCards": ["diet", "supplements"],
     "strandNote": "Forward strand: G(ref=Ala736)/A(alt=Val736). Literature often cites T/C (complement).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19820698/"],
     "genotypes": {
       "AA": { "effect": "moderate", "note": "Higher hepcidin → lower iron absorption; risk of iron-deficiency anemia" },
       "AG": { "effect": "moderate", "note": "Intermediate hepcidin regulation" },
@@ -109,6 +118,7 @@
     "markers": ["iron.ferritin", "hematology.hemoglobin", "iron.transferrin"],
     "contextCards": ["diet"],
     "strandNote": "Forward strand: G(ref)/A(alt). Literature often cites C/T (complement).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19820699/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal hepcidin regulation" },
       "GA": { "effect": "moderate", "note": "Modestly reduced hepcidin" },
@@ -117,8 +127,9 @@
   },
   "rs3811647": {
     "gene": "TF", "variant": "intron 11", "category": "iron",
-    "markers": ["iron.transferrin", "iron.tibc", "iron.transferrin"],
+    "markers": ["iron.transferrin", "iron.tibc"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19084217/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal transferrin/TIBC levels" },
       "GA": { "effect": "moderate", "note": "Modestly higher transferrin" },
@@ -131,6 +142,7 @@
     "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.triglycerides", "lipids.hdl"],
     "contextCards": ["diet"],
     "composite": "apoe",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/8346443/"],
     "genotypes": {
       "TT": { "effect": "none", "note": "APOE part 1 — combine with rs7412 for haplotype" },
       "TC": { "effect": "moderate", "note": "APOE part 1 — one ε4 allele possible" },
@@ -142,6 +154,7 @@
     "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.triglycerides", "lipids.hdl"],
     "contextCards": ["diet"],
     "composite": "apoe",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/8346443/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "APOE part 2 — combine with rs429358 for haplotype" },
       "CT": { "effect": "moderate", "note": "APOE part 2 — one ε2 allele possible" },
@@ -152,6 +165,7 @@
     "gene": "PCSK9", "variant": "R46L", "category": "lipids",
     "markers": ["lipids.ldl", "lipids.cholesterol", "lipids.lpA"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/20579540/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal PCSK9 function" },
       "GT": { "effect": "significant", "note": "PCSK9 loss-of-function; ~15% lower LDL, ~25% lower Lp(a); protective" },
@@ -162,6 +176,7 @@
     "gene": "CETP", "variant": "TaqIB", "category": "lipids",
     "markers": ["lipids.hdl", "lipids.ldl"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/11888533/"],
     "genotypes": {
       "GG": { "effect": "moderate", "note": "Highest CETP activity; lowest HDL" },
       "GT": { "effect": "moderate", "note": "Intermediate HDL" },
@@ -172,6 +187,7 @@
     "gene": "LIPC", "variant": "-514C/T", "category": "lipids",
     "markers": ["lipids.hdl", "lipids.ldl"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/9486964/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal hepatic lipase activity" },
       "CT": { "effect": "moderate", "note": "Mildly higher HDL; slightly larger LDL particles" },
@@ -184,6 +200,7 @@
     "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
     "strandNote": "Forward strand: G(ref)/T(alt). Literature often cites C/A (complement).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/20541252/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal vitamin D binding protein levels" },
       "GT": { "effect": "moderate", "note": "Modestly lower 25(OH)D (~2-4 nmol/L)" },
@@ -194,6 +211,7 @@
     "gene": "CYP2R1", "variant": "25-hydroxylase", "category": "vitaminD",
     "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian", "supplements"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/20541252/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Highest CYP2R1 activity; efficient 25-hydroxylation" },
       "AG": { "effect": "moderate", "note": "Mildly lower 25(OH)D" },
@@ -204,6 +222,7 @@
     "gene": "VDR", "variant": "FokI", "category": "vitaminD",
     "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/8970885/"],
     "genotypes": {
       "AA": { "effect": "moderate", "note": "Longer VDR isoform; slightly lower receptor efficiency" },
       "AG": { "effect": "moderate", "note": "Intermediate receptor activity" },
@@ -214,6 +233,7 @@
     "gene": "CYP27B1", "variant": "1-alpha hydroxylase", "category": "vitaminD",
     "markers": ["vitamins.vitaminD"],
     "contextCards": ["lightCircadian"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/20541252/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Standard 1-alpha hydroxylase activity" },
       "GT": { "effect": "moderate", "note": "Modestly higher CYP27B1 expression" },
@@ -225,6 +245,7 @@
     "gene": "FUT2", "variant": "W154X", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet", "supplements"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/18776911/"],
     "genotypes": {
       "GG": { "effect": "moderate", "note": "Secretor; lower total B12 but cellular B12 likely normal" },
       "GA": { "effect": "moderate", "note": "Heterozygous secretor; intermediate B12 levels" },
@@ -235,6 +256,7 @@
     "gene": "TCN1", "variant": "haptocorrin", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19744961/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal haptocorrin production" },
       "AG": { "effect": "moderate", "note": "Mildly lower total B12" },
@@ -245,6 +267,7 @@
     "gene": "TCN2", "variant": "P259R", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12", "coagulation.homocysteine"],
     "contextCards": ["diet", "supplements"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/12194912/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal transcobalamin II; efficient cellular B12 delivery" },
       "CG": { "effect": "moderate", "note": "Mildly reduced cellular B12 delivery" },
@@ -255,6 +278,7 @@
     "gene": "CUBN", "variant": "cubilin", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12"],
     "contextCards": ["diet"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19303062/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal intestinal B12 absorption" },
       "GA": { "effect": "moderate", "note": "Mildly reduced B12 absorption" },
@@ -267,6 +291,7 @@
     "markers": ["biochemistry.bilirubinTotal"],
     "contextCards": [],
     "repeatPolymorphism": true,
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/7565971/"],
     "genotypes": {
       "6/6": { "effect": "none", "note": "Normal UGT1A1 activity; normal bilirubin" },
       "6/7": { "effect": "moderate", "note": "~75% UGT1A1 activity; mildly elevated unconjugated bilirubin" },
@@ -277,6 +302,7 @@
     "gene": "UGT1A1", "variant": "G71R", "category": "bilirubin",
     "markers": ["biochemistry.bilirubinTotal"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/9929972/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Normal UGT1A1 activity" },
       "GA": { "effect": "moderate", "note": "Mildly reduced glucuronidation; slightly elevated bilirubin" },
@@ -286,8 +312,9 @@
 
   "rs11206244": {
     "gene": "DIO1", "variant": "3'-UTR", "category": "thyroid",
-    "markers": ["thyroid.ft3", "thyroid.ft4", "thyroid.ft3", "thyroid.ft4"],
+    "markers": ["thyroid.ft3", "thyroid.ft4"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/18492748/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal DIO1; standard peripheral T4→T3 conversion" },
       "CT": { "effect": "moderate", "note": "Mildly reduced DIO1; may lower T3/T4 ratio" },
@@ -296,8 +323,9 @@
   },
   "rs225014": {
     "gene": "DIO2", "variant": "Thr92Ala", "category": "thyroid",
-    "markers": ["thyroid.ft3", "thyroid.ft3", "thyroid.tsh"],
+    "markers": ["thyroid.ft3", "thyroid.tsh"],
     "contextCards": ["sleepRest"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/12788902/"],
     "genotypes": {
       "TT": { "effect": "none", "note": "Normal DIO2; efficient intracellular T4→T3 conversion" },
       "TC": { "effect": "moderate", "note": "Mildly reduced local T4→T3 conversion" },
@@ -308,6 +336,7 @@
     "gene": "TSHR", "variant": "intron 1", "category": "thyroid",
     "markers": ["thyroid.tsh", "thyroid.ft3", "thyroid.ft4"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19244275/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Low Graves' disease risk" },
       "GA": { "effect": "moderate", "note": "Modestly elevated Graves' disease risk (~1.4×)" },
@@ -320,6 +349,7 @@
     "markers": [],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (omega-3 index, AA, EPA, DHA)",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "High delta-5 desaturase activity; efficient n-3/n-6 PUFA conversion" },
       "TC": { "effect": "moderate", "note": "Intermediate desaturase activity" },
@@ -331,6 +361,7 @@
     "markers": [],
     "contextCards": ["diet", "supplements"],
     "markerNote": "In strong LD with rs174546; largely redundant",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "High delta-5 desaturase activity" },
       "TC": { "effect": "moderate", "note": "Intermediate activity" },
@@ -342,6 +373,7 @@
     "markers": [],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (GLA, AA, EPA, DHA)",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/17984066/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal D6D; standard LA→GLA and ALA→SDA conversion" },
       "CG": { "effect": "moderate", "note": "Mildly reduced D6D activity" },
@@ -353,6 +385,7 @@
     "markers": [],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (EPA, DHA, Omega-3 Index)",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19148276/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal ELOVL2; efficient EPA→DHA elongation" },
       "AG": { "effect": "moderate", "note": "Mildly reduced DHA synthesis" },
@@ -364,6 +397,7 @@
     "gene": "TCF7L2", "variant": "intron 3", "category": "bloodSugar",
     "markers": ["biochemistry.glucose", "diabetes.hba1c", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/16415884/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal beta cell incretin response" },
       "CT": { "effect": "significant", "note": "~39% increased T2D risk; impaired insulin secretion" },
@@ -374,6 +408,7 @@
     "gene": "PPARG", "variant": "Pro12Ala", "category": "bloodSugar",
     "markers": ["biochemistry.glucose", "diabetes.hba1c", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/10973253/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Standard PPARγ2; highest insulin resistance risk" },
       "CG": { "effect": "moderate", "note": "Improved insulin sensitivity; reduced T2D risk (protective)" },
@@ -384,6 +419,7 @@
     "gene": "ADIPOQ", "variant": "+45T/G", "category": "bloodSugar",
     "markers": ["biochemistry.glucose", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/11812766/"],
     "genotypes": {
       "TT": { "effect": "none", "note": "Standard adiponectin levels" },
       "TG": { "effect": "moderate", "note": "Modestly altered adiponectin; effects population-dependent" },
@@ -394,6 +430,7 @@
     "gene": "ADIPOQ", "variant": "+276G/T", "category": "bloodSugar",
     "markers": ["biochemistry.glucose", "hormones.insulin", "diabetes.homaIR"],
     "contextCards": ["diet", "exercise"],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/11812766/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Higher adiponectin; better insulin sensitivity" },
       "GT": { "effect": "moderate", "note": "Intermediate adiponectin levels" },
@@ -405,6 +442,7 @@
     "gene": "SHBG", "variant": "promoter", "category": "sexHormones",
     "markers": ["hormones.shbg", "hormones.testosterone", "hormones.estradiol", "hormones.freeTestosterone"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/19064566/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Higher SHBG; more bound testosterone/estradiol" },
       "CT": { "effect": "moderate", "note": "Intermediate SHBG levels" },
@@ -415,6 +453,7 @@
     "gene": "SHBG", "variant": "5'-region", "category": "sexHormones",
     "markers": ["hormones.shbg", "hormones.testosterone", "hormones.freeTestosterone"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/22829776/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Lower SHBG baseline" },
       "GA": { "effect": "moderate", "note": "Intermediate SHBG" },
@@ -426,6 +465,7 @@
     "markers": ["hormones.testosterone", "hormones.estradiol", "hormones.dheaS"],
     "contextCards": [],
     "strandNote": "Forward strand: A(ref)/G(alt). Literature often cites T/C (complement).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/9067272/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal CYP17A1; baseline sex steroid precursor synthesis" },
       "AG": { "effect": "moderate", "note": "Slightly increased steroid precursor synthesis" },
@@ -437,6 +477,7 @@
     "markers": ["hormones.estradiol", "hormones.testosterone"],
     "contextCards": [],
     "strandNote": "Forward strand: C(ref)/T(alt) — actual Ancestry alleles. Literature cites A/G (complement).",
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/23643682/"],
     "genotypes": {
       "CC": { "effect": "moderate", "note": "Altered testosterone→estradiol conversion; direction depends on sex and body composition" },
       "CT": { "effect": "moderate", "note": "Mildly altered aromatase activity" },
@@ -447,6 +488,7 @@
     "gene": "CYP1B1", "variant": "Leu432Val", "category": "sexHormones",
     "markers": ["hormones.estradiol"],
     "contextCards": [],
+    "references": ["https://pubmed.ncbi.nlm.nih.gov/10910054/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Lower CYP1B1 activity; less genotoxic 4-OH-estradiol production" },
       "CG": { "effect": "moderate", "note": "Intermediate estrogen 4-hydroxylation activity" },

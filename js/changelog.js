@@ -5,6 +5,19 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.0', date: '2026-03-15', title: 'DNA Import',
+    items: [
+      'Drop a raw DNA file (Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA) — parsed locally in a Web Worker, never transmitted',
+      '42 curated SNPs across 10 categories (methylation, iron, lipids, vitamin D, B12, blood sugar, sex hormones, thyroid, bilirubin, fatty acids) mapped to your tracked biomarkers',
+      'APOE haplotype auto-resolved to ε2/ε3/ε4 notation from the two component SNPs',
+      'Genetics dashboard section — collapsible, grouped by category, sorted by severity, expandable to show all findings',
+      'Inline SNPs in biomarker detail modals — open Vitamin D and see your VDR, GC, CYP2R1 variants right next to your lab values',
+      'AI chat automatically receives your genetic context when interpreting lab results',
+      'Each SNP links to its primary study (PubMed) and SNPedia for deeper reading',
+      'Sidebar entry and DNA upload step in chat onboarding',
+    ]
+  },
+  {
     version: '1.7.7', date: '2026-03-14', title: 'Local AI Model Advisor',
     items: [
       'Settings → Local AI now rates each installed model for lab analysis: ★ Recommended, Capable, Underpowered, or Inadequate',

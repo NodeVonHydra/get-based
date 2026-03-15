@@ -674,7 +674,7 @@ export function buildLabContext() {
     ) : [];
     const geneticsCtx = window._buildGeneticsContext ? window._buildGeneticsContext(genetics, activeMarkerKeys) : '';
     if (geneticsCtx) {
-      ctx += `## ${geneticsCtx}\n\n`;
+      ctx += `${geneticsCtx}\n\n`;
     }
   }
 

@@ -21,7 +21,7 @@ for (const fn of _emfFns) {
   window[fn] = async function(...args) { const mod = await import('./emf.js'); for (const f of _emfFns) window[f] = mod[f]; return mod[fn](...args); };
 }
 import './pdf-import.js';
-import './dna.js';
+import { ensureSNPTable } from './dna.js';
 import './export.js';
 import './chat.js';
 import './image-utils.js';
@@ -85,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   state.currentProfile = getActiveProfileId();
   const savedImported = await encryptedGetItem(profileStorageKey(state.currentProfile, 'imported'));
   if (savedImported) { try { state.importedData = JSON.parse(savedImported); if (!state.importedData.notes) state.importedData.notes = []; migrateProfileData(state.importedData); } catch(e) {} }
+  ensureSNPTable(); // Eagerly load SNP table if genetics data exists (e.g. after JSON import)
   const savedUnits = localStorage.getItem(profileStorageKey(state.currentProfile, 'units'));
   if (savedUnits === 'US') state.unitSystem = 'US';
   const savedRange = localStorage.getItem(profileStorageKey(state.currentProfile, 'rangeMode'));

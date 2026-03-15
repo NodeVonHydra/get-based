@@ -549,6 +549,10 @@ export function importDataJSON(file) {
           }
         }
       }
+      // Import genetics
+      if (json.genetics && json.genetics.snps) {
+        state.importedData.genetics = json.genetics;
+      }
       // Import supplements
       if (json.supplements && Array.isArray(json.supplements)) {
         if (!state.importedData.supplements) state.importedData.supplements = [];

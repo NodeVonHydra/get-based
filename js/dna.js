@@ -121,14 +121,21 @@ function getWorker() {
 // ═══════════════════════════════════════════════
 
 let _snpTable = null;
+let _snpTablePromise = null;
 
-async function loadSNPTable() {
-  if (_snpTable) return _snpTable;
-  const resp = await fetch('data/snp-health.json');
-  _snpTable = await resp.json();
-  window._snpTableCache = _snpTable; // expose for chat onboarding summary
-  return _snpTable;
+function loadSNPTable() {
+  if (_snpTable) return Promise.resolve(_snpTable);
+  if (!_snpTablePromise) {
+    _snpTablePromise = fetch('data/snp-health.json')
+      .then(r => r.json())
+      .then(data => { _snpTable = data; window._snpTableCache = data; return data; })
+      .catch(err => { _snpTablePromise = null; console.error('Failed to load SNP table:', err); throw err; });
+  }
+  return _snpTablePromise;
 }
+
+// Eagerly load SNP table when genetics data exists (e.g. after JSON import)
+export function ensureSNPTable() { if (state.importedData?.genetics) loadSNPTable(); }
 
 // Returns { matches: { rsid: { genotype, gene, variant, effect, note } }, source, totalLines, coverage }
 export async function parseDNAFile(file) {
@@ -193,26 +200,20 @@ function formatSourceName(format) {
 
 // APOE is determined by two SNPs: rs429358 and rs7412
 // rs429358 T→C = ε4 allele, rs7412 C→T = ε2 allele
+// APOE haplotype from unphased genotypes — genotype-combination lookup
+// Raw DNA files are UNPHASED (alleles aren't assigned to chromosomes),
+// so we use the diploid genotype pair, not per-allele pairing.
+// ε2: rs429358=T, rs7412=T | ε3: rs429358=T, rs7412=C | ε4: rs429358=C, rs7412=C
 function resolveAPOE(matches) {
-  const rs429358 = matches.rs429358?.genotype;
-  const rs7412 = matches.rs7412?.genotype;
-  if (!rs429358 || !rs7412) return null;
-
-  // Determine alleles from the two SNPs
-  function getAllele(rs429358_allele, rs7412_allele) {
-    if (rs429358_allele === 'T' && rs7412_allele === 'C') return 'ε2';
-    if (rs429358_allele === 'T' && rs7412_allele === 'T') return 'ε3';
-    if (rs429358_allele === 'C' && rs7412_allele === 'T') return 'ε4';
-    return null;
-  }
-
-  const a1 = getAllele(rs429358[0], rs7412[0]);
-  const a2 = getAllele(rs429358[1], rs7412[1]);
-  if (!a1 || !a2) return null;
-
-  // Sort for consistent display (ε2/ε3, not ε3/ε2)
-  const sorted = [a1, a2].sort();
-  return sorted.join('/');
+  const g429 = matches.rs429358?.genotype;
+  const g7412 = matches.rs7412?.genotype;
+  if (!g429 || !g7412 || g429.length !== 2 || g7412.length !== 2) return null;
+  const key = `${sortAlleles(g429)}|${sortAlleles(g7412)}`;
+  const table = {
+    'TT|CC': '\u03B53/\u03B53', 'CT|CC': '\u03B53/\u03B54', 'CC|CC': '\u03B54/\u03B54',
+    'TT|CT': '\u03B52/\u03B53', 'CT|CT': '\u03B52/\u03B54', 'TT|TT': '\u03B52/\u03B52',
+  };
+  return table[key] || null;
 }
 
 // ═══════════════════════════════════════════════
@@ -313,17 +314,16 @@ export function renderGeneticsSection() {
   const genetics = state.importedData.genetics;
   if (!genetics || !genetics.snps || Object.keys(genetics.snps).length === 0) return '';
   if (!_snpTable) {
-    // Load async, then re-render dashboard when ready
     loadSNPTable().then(() => { if (window.navigate) window.navigate('dashboard'); });
     return '';
   }
   const snpTable = _snpTable;
-
   const snpCount = Object.keys(genetics.snps).length;
   const apoe = genetics.apoe;
+  const collapsed = localStorage.getItem('labcharts-genetics-collapsed') === '1';
 
-  // Group significant/moderate findings for summary
-  const findings = [];
+  // Group findings by category, skip "none"
+  const byCat = {};
   const apoeRsids = new Set(['rs429358', 'rs7412']);
   for (const [rsid, stored] of Object.entries(genetics.snps)) {
     if (apoe && apoeRsids.has(rsid)) continue;
@@ -332,44 +332,102 @@ export function renderGeneticsSection() {
     const reversed = stored.genotype.length === 2 ? stored.genotype[1] + stored.genotype[0] : stored.genotype;
     const info = entry.genotypes[stored.genotype] || entry.genotypes[reversed] || entry.genotypes[sortAlleles(stored.genotype)];
     if (!info || info.effect === 'none') continue;
-    findings.push({ gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note });
+    const cat = entry.category || 'other';
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push({ rsid, gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note, references: entry.references || [] });
   }
 
-  const effectIcon = { significant: '\uD83D\uDD34', moderate: '\uD83D\uDFE1' };
+  // Sort categories: those with significant findings first
+  const catOrder = Object.entries(byCat).sort(([, a], [, b]) => {
+    const aS = a.some(f => f.effect === 'significant') ? 0 : 1;
+    const bS = b.some(f => f.effect === 'significant') ? 0 : 1;
+    return aS - bS;
+  });
+  const totalFindings = catOrder.reduce((n, [, fs]) => n + fs.length, 0);
 
-  let html = `<div class="dashboard-section genetics-section">
-    <div class="section-header">
+  const effectIcon = { significant: '\uD83D\uDD34', moderate: '\uD83D\uDFE1' };
+  const catLabels = { methylation: 'Methylation', iron: 'Iron', lipids: 'Lipids', vitaminD: 'Vitamin D', vitaminB12: 'Vitamin B12', bilirubin: 'Bilirubin', thyroid: 'Thyroid', fattyAcids: 'Fatty Acids', bloodSugar: 'Blood Sugar', sexHormones: 'Sex Hormones' };
+
+  let html = `<div class="dashboard-section genetics-section" id="genetics-section">
+    <div class="section-header" onclick="toggleGeneticsCollapse()" style="cursor:pointer">
       <span>\uD83E\uDDEC Genetics</span>
-      <span class="section-meta">${escapeHTML(genetics.source)} · ${snpCount} SNPs · ${genetics.importDate}</span>
+      <span class="section-meta">${escapeHTML(genetics.source)} \u00B7 ${snpCount} SNPs \u00B7 ${totalFindings} findings \u00B7 ${genetics.importDate}
+        <span class="genetics-collapse-arrow${collapsed ? ' collapsed' : ''}">\u25BE</span></span>
     </div>`;
+
+  html += `<div class="genetics-body${collapsed ? ' hidden' : ''}">`;
 
   if (apoe) {
     html += `<div class="genetics-apoe">APOE: <strong>${escapeHTML(apoe)}</strong></div>`;
   }
 
-  if (findings.length > 0) {
+  if (totalFindings > 0) {
+    // Initially show first 8 findings, rest hidden behind "show all"
+    let shown = 0;
+    const INITIAL_LIMIT = 8;
     html += `<div class="genetics-findings">`;
-    // Show significant first, then moderate
-    const sorted = findings.sort((a, b) => (a.effect === 'significant' ? 0 : 1) - (b.effect === 'significant' ? 0 : 1));
-    for (const f of sorted.slice(0, 8)) {
-      html += `<div class="genetics-finding-row">
-        <span>${effectIcon[f.effect] || ''}</span>
-        <span class="genetics-finding-gene">${escapeHTML(f.gene)} ${escapeHTML(f.variant)}</span>
-        <span class="genetics-finding-genotype">${escapeHTML(f.genotype)}</span>
-        <span class="genetics-finding-note">${escapeHTML(f.note)}</span>
-      </div>`;
+    for (const [cat, findings] of catOrder) {
+      // Sort significant first within category
+      findings.sort((a, b) => (a.effect === 'significant' ? 0 : 1) - (b.effect === 'significant' ? 0 : 1));
+      const catLabel = catLabels[cat] || cat;
+      const startHidden = shown >= INITIAL_LIMIT;
+      html += `<div class="genetics-cat-group${startHidden ? ' genetics-extra' : ''}">`;
+      html += `<div class="genetics-cat-label">${escapeHTML(catLabel)}</div>`;
+      for (const f of findings) {
+        const isExtra = shown >= INITIAL_LIMIT;
+        const refLink = f.references.length > 0 ? ` <a href="${f.references[0]}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
+        const snpediaLink = ` <a href="https://www.snpedia.com/index.php/${f.rsid.charAt(0).toUpperCase() + f.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>`;
+        html += `<div class="genetics-finding-row${isExtra && !startHidden ? ' genetics-extra' : ''}">
+          <span>${effectIcon[f.effect] || ''}</span>
+          <span class="genetics-finding-gene">${escapeHTML(f.gene)} ${escapeHTML(f.variant)}</span>
+          <span class="genetics-finding-genotype">${escapeHTML(f.genotype)}</span>
+          <span class="genetics-finding-note">${escapeHTML(f.note)}${refLink}${snpediaLink}</span>
+        </div>`;
+        shown++;
+      }
+      html += `</div>`;
     }
-    if (sorted.length > 8) {
-      html += `<div class="genetics-finding-more">${sorted.length - 8} more findings</div>`;
+    if (totalFindings > INITIAL_LIMIT) {
+      html += `<button class="genetics-show-all" onclick="toggleGeneticsExpand(this)">${totalFindings - INITIAL_LIMIT} more findings</button>`;
     }
     html += `</div>`;
   }
 
   html += `<div class="genetics-actions">
-    <button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" onclick="if(confirm('Delete genetic data?')){deleteGeneticsData(window._getState().importedData);window._saveAndRefresh();}">\u00D7 Delete</button>
-  </div></div>`;
+    <label class="genetics-action-link" onclick="reimportDNA()">Re-import</label>
+    <label class="genetics-action-link genetics-action-delete" onclick="if(confirm('Delete genetic data? This cannot be undone.')){deleteGeneticsData(window._getState().importedData);window._saveAndRefresh();}">Delete</label>
+  </div>`;
+  html += `</div></div>`;
 
   return html;
+}
+
+function toggleGeneticsCollapse() {
+  const body = document.querySelector('.genetics-body');
+  const arrow = document.querySelector('.genetics-collapse-arrow');
+  if (!body) return;
+  const isHidden = body.classList.toggle('hidden');
+  arrow?.classList.toggle('collapsed', isHidden);
+  localStorage.setItem('labcharts-genetics-collapsed', isHidden ? '1' : '0');
+}
+
+function toggleGeneticsExpand(btn) {
+  const container = document.querySelector('.genetics-findings');
+  if (!container) return;
+  const isExpanded = container.classList.toggle('expanded');
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
+  btn.textContent = isExpanded ? 'Show less' : btn.dataset.label;
+}
+
+function reimportDNA() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.txt,.csv';
+  input.onchange = (e) => {
+    const file = e.target.files?.[0];
+    if (file && window.handleDNAFile) window.handleDNAFile(file);
+  };
+  input.click();
 }
 
 // ═══════════════════════════════════════════════
@@ -423,28 +481,43 @@ function showDNAImportPreview(result, fileName) {
       <div class="dna-preview-group-title">${label} (${items.length})</div>
       ${items.map(m => `<div class="dna-preview-row">
         <span class="dna-preview-icon">${effectIcon[m.effect] || '\u2753'}</span>
-        <span class="dna-preview-gene">${escapeHTML(m.gene)} ${escapeHTML(m.variant)}</span>
+        <span class="dna-preview-gene">${escapeHTML(m.gene)} <span class="dna-preview-variant">${escapeHTML(m.variant)}</span></span>
         <span class="dna-preview-genotype">${escapeHTML(m.genotype)}</span>
-        <span class="dna-preview-note">${escapeHTML(m.note)}</span>
-      </div>`).join('')}
+      </div>
+      <div class="dna-preview-note">${escapeHTML(m.note)}</div>`).join('')}
+    </div>`;
+  }
+
+  function renderCollapsedGroup(items, label) {
+    if (items.length === 0) return '';
+    return `<div class="dna-preview-group">
+      <div class="dna-preview-group-title dna-preview-collapsible" onclick="this.parentElement.classList.toggle('expanded')">
+        ${label} (${items.length}) <span class="dna-preview-expand-hint">show</span>
+      </div>
+      <div class="dna-preview-collapsed-items">
+        ${items.map(m => `<div class="dna-preview-row">
+          <span class="dna-preview-icon">${effectIcon[m.effect] || '\u2753'}</span>
+          <span class="dna-preview-gene">${escapeHTML(m.gene)} <span class="dna-preview-variant">${escapeHTML(m.variant)}</span></span>
+          <span class="dna-preview-genotype">${escapeHTML(m.genotype)}</span>
+        </div>`).join('')}
+      </div>
     </div>`;
   }
 
   const html = `
     <div class="dna-preview-header">
-      <div class="dna-preview-title">DNA Import — ${escapeHTML(result.source)}</div>
-      <div class="dna-preview-stats">${result.totalLines.toLocaleString()} SNPs scanned · ${result.coverage.found} of ${result.coverage.total} health-relevant SNPs found</div>
+      <div class="dna-preview-title">DNA Import \u2014 ${escapeHTML(result.source)}</div>
+      <div class="dna-preview-stats">${result.totalLines.toLocaleString()} SNPs scanned \u00B7 ${result.coverage.found} of ${result.coverage.total} health-relevant SNPs found</div>
       ${apoe ? `<div class="dna-preview-apoe">APOE Haplotype: <strong>${escapeHTML(apoe)}</strong></div>` : ''}
     </div>
     <div class="dna-preview-body">
       ${renderGroup(significant, '\uD83D\uDD34 Significant findings')}
       ${renderGroup(moderate, '\uD83D\uDFE1 Moderate findings')}
-      ${renderGroup(none, '\uD83D\uDFE2 Normal')}
-      ${renderGroup(unknown, '\u2753 Genotype not in lookup')}
+      ${renderCollapsedGroup(none, '\uD83D\uDFE2 Normal')}
+      ${renderCollapsedGroup(unknown, '\u2753 Genotype not in lookup')}
     </div>
     <div class="dna-preview-disclaimer">
-      Your DNA file was processed locally and never transmitted. Only matched health-relevant SNPs are stored.
-      Genetic information is for educational context alongside your lab results — not a medical diagnosis.
+      Processed locally \u2014 your DNA file was never transmitted. Only matched SNPs are stored.
     </div>
     <div class="dna-preview-actions">
       <button class="import-btn import-btn-secondary" onclick="closeDNAImportPreview()">Cancel</button>
@@ -532,8 +605,10 @@ function getRelevantSNPs(dotKey) {
     const reversed = stored.genotype.length === 2 ? stored.genotype[1] + stored.genotype[0] : stored.genotype;
     const info = entry.genotypes[stored.genotype] || entry.genotypes[reversed] || entry.genotypes[sortAlleles(stored.genotype)];
     if (!info) continue;
-    results.push({ gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note });
+    results.push({ rsid, gene: stored.gene, variant: stored.variant, genotype: stored.genotype, effect: info.effect, note: info.note, references: entry.references || [] });
   }
+  const order = { significant: 0, moderate: 1, none: 2 };
+  results.sort((a, b) => (order[a.effect] ?? 3) - (order[b.effect] ?? 3));
   return results;
 }
 
@@ -546,6 +621,9 @@ Object.assign(window, {
   closeDNAImportPreview,
   confirmDNAImport,
   deleteGeneticsData,
+  toggleGeneticsCollapse,
+  toggleGeneticsExpand,
+  reimportDNA,
   _buildGeneticsContext: buildGeneticsContext,
   _getRelevantSNPs: getRelevantSNPs,
   _getState: () => state,

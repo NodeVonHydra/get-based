@@ -2967,20 +2967,26 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 }
 
 /* DNA Import Preview */
-.dna-preview-modal { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
+.dna-preview-modal { max-width: 560px; max-height: 80vh; display: flex; flex-direction: column; }
 .dna-preview-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
 .dna-preview-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
 .dna-preview-stats { font-size: 12px; color: var(--text-muted); }
 .dna-preview-apoe { margin-top: 8px; font-size: 13px; padding: 6px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); }
 .dna-preview-body { flex: 1; overflow-y: auto; padding: 12px 20px; }
-.dna-preview-group { margin-bottom: 12px; }
+.dna-preview-group { margin-bottom: 14px; }
 .dna-preview-group-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary); }
-.dna-preview-row { display: grid; grid-template-columns: auto auto 40px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; font-size: 12px; }
-.dna-preview-icon { font-size: 11px; }
+.dna-preview-row { display: flex; align-items: baseline; gap: 6px; padding: 3px 0 0; font-size: 12px; }
+.dna-preview-icon { font-size: 10px; flex-shrink: 0; }
 .dna-preview-gene { font-weight: 500; white-space: nowrap; }
-.dna-preview-genotype { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
-.dna-preview-note { color: var(--text-muted); }
-.dna-preview-disclaimer { padding: 10px 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); line-height: 1.4; }
+.dna-preview-variant { font-weight: 400; color: var(--text-muted); }
+.dna-preview-genotype { font-family: var(--font-mono); color: var(--accent); font-weight: 600; font-size: 11px; margin-left: auto; }
+.dna-preview-note { font-size: 11px; color: var(--text-muted); padding: 0 0 6px 18px; line-height: 1.4; border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.04)); margin-bottom: 2px; }
+.dna-preview-collapsible { cursor: pointer; }
+.dna-preview-expand-hint { font-size: 10px; font-weight: 400; color: var(--text-muted); opacity: 0.6; }
+.dna-preview-collapsed-items { display: none; }
+.dna-preview-group.expanded .dna-preview-collapsed-items { display: block; }
+.dna-preview-group.expanded .dna-preview-expand-hint { display: none; }
+.dna-preview-disclaimer { padding: 8px 20px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border); }
 .dna-preview-actions { padding: 12px 20px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); }
 
 /* Genetics Dashboard Section */
@@ -2988,19 +2994,41 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .genetics-section .section-header { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-bottom: 8px; }
 .genetics-section .section-header > span:first-child { font-size: 14px; font-weight: 600; }
 .genetics-section .section-meta { font-size: 11px; color: var(--text-muted); }
+.genetics-collapse-arrow { display: inline-block; transition: transform 0.2s; margin-left: 4px; }
+.genetics-collapse-arrow.collapsed { transform: rotate(-90deg); }
+.genetics-body.hidden { display: none; }
 .genetics-apoe { font-size: 13px; padding: 6px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); margin-bottom: 8px; }
 .genetics-findings { margin-bottom: 8px; }
+.genetics-cat-group { margin-bottom: 6px; }
+.genetics-cat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); opacity: 0.7; padding: 4px 0 2px; }
 .genetics-finding-row { display: grid; grid-template-columns: auto auto 36px 1fr; gap: 6px; align-items: baseline; padding: 3px 0; font-size: 12px; }
 .genetics-finding-gene { font-weight: 500; white-space: nowrap; }
 .genetics-finding-genotype { font-family: var(--font-mono); color: var(--accent); font-weight: 600; font-size: 11px; }
 .genetics-finding-note { color: var(--text-muted); }
-.genetics-finding-more { font-size: 11px; color: var(--text-muted); padding-top: 4px; }
-.genetics-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.genetics-extra { display: none; }
+.genetics-findings.expanded .genetics-extra { display: block; }
+.genetics-findings.expanded .genetics-finding-row.genetics-extra { display: grid; }
+.genetics-show-all { background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; padding: 6px 0 0; }
+.genetics-show-all:hover { color: var(--accent); }
+.genetics-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+.genetics-action-link { font-size: 11px; color: var(--text-muted); cursor: pointer; opacity: 0.6; }
+.genetics-action-link:hover { opacity: 1; color: var(--text-secondary); }
+.genetics-action-delete:hover { color: var(--status-high); }
+@media (max-width: 600px) {
+  .genetics-section { padding: 10px 12px; }
+  .genetics-finding-row { display: flex; flex-wrap: wrap; gap: 2px 6px; padding: 4px 0; font-size: 11px; align-items: baseline; }
+  .genetics-finding-note { width: 100%; padding-left: 18px; line-height: 1.4; }
+  .genetics-section .section-header { flex-wrap: wrap; }
+  .genetics-section .section-meta { width: 100%; }
+  .detail-genetics-ref { display: inline; }
+}
 
 /* Detail Modal Genetics Inline */
 .detail-genetics { margin: 12px 0; padding: 10px 12px; background: var(--bg-hover); border-radius: var(--radius-sm); border: 1px solid var(--border); }
 .detail-genetics-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary); }
 .detail-genetics-row { font-size: 12px; padding: 2px 0; color: var(--text-muted); line-height: 1.5; }
+.detail-genetics-ref { color: var(--text-secondary); opacity: 0.7; font-size: 10px; text-decoration: none; border-bottom: 1px dotted currentColor; margin-left: 4px; }
+.detail-genetics-ref:hover { opacity: 1; color: var(--accent); border-bottom-color: var(--accent); }
 
 /* Privacy status card & collapsible configure */
 .privacy-status-card {

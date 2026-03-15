@@ -112,9 +112,6 @@ export function showDashboard(data) {
   // ── 6. Supplements & Medications ──
   html += renderSupplementsSection();
 
-  // ── 6b. Genetics ──
-  html += renderGeneticsSection();
-
   // ── 7. Key Trends ──
   const filteredData = filterDatesByRange(data);
   html += `<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px">
@@ -133,6 +130,9 @@ export function showDashboard(data) {
     }
     html += `</div>`;
   }
+
+  // ── 7b. Genetics (static data, after dynamic trends) ──
+  html += renderGeneticsSection();
 
   // ── 8. Trends & Critical Flags ──
   const trendAlerts = detectTrendAlerts(filteredData);
@@ -1081,7 +1081,9 @@ export function showDetailModal(id) {
       html += `<div class="detail-genetics"><div class="detail-genetics-title">\uD83E\uDDEC Genetic Factors</div>`;
       for (const s of snpEntries) {
         const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
-        html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}</div>`;
+        const refLink = s.references && s.references.length > 0 ? ` <a href="${s.references[0]}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
+        const moreLink = s.rsid ? ` <a href="https://www.snpedia.com/index.php/${s.rsid.charAt(0).toUpperCase() + s.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>` : '';
+        html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}${refLink}${moreLink}</div>`;
       }
       html += `</div>`;
     }
