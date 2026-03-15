@@ -375,7 +375,7 @@ export function renderGeneticsSection() {
       html += `<div class="genetics-cat-label">${escapeHTML(catLabel)}</div>`;
       for (const f of findings) {
         const isExtra = shown >= INITIAL_LIMIT;
-        const refLink = f.references.length > 0 ? ` <a href="${f.references[0]}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
+        const refLink = f.references.length > 0 && /^https?:/.test(f.references[0]) ? ` <a href="${f.references[0].replace(/"/g, '&quot;')}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
         const snpediaLink = ` <a href="https://www.snpedia.com/index.php/${f.rsid.charAt(0).toUpperCase() + f.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>`;
         html += `<div class="genetics-finding-row${isExtra && !startHidden ? ' genetics-extra' : ''}">
           <span>${effectIcon[f.effect] || ''}</span>

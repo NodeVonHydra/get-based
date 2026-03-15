@@ -166,7 +166,7 @@ export function renderProfileButton() {
   const active = profiles.find(p => p.id === state.currentProfile) || profiles[0];
   if (!active) return;
   const dot = active.avatar
-    ? `<img class="profile-compact-dot profile-compact-img" src="${active.avatar}" alt="">`
+    ? `<img class="profile-compact-dot profile-compact-img" src="${escapeAttr(active.avatar)}" alt="">`
     : `<span class="profile-compact-dot" style="background:${getAvatarColor(active.id)}">${escapeHTML((active.name || '?')[0].toUpperCase())}</span>`;
   container.innerHTML = `<button class="profile-compact-btn" onclick="openClientList()" title="Manage clients">
     ${dot}

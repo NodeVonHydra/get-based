@@ -1137,7 +1137,7 @@ export function showDetailModal(id) {
       html += `<div class="detail-genetics"><div class="detail-genetics-title">\uD83E\uDDEC Genetic Factors</div>`;
       for (const s of snpEntries) {
         const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
-        const refLink = s.references && s.references.length > 0 ? ` <a href="${s.references[0]}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
+        const refLink = s.references && s.references.length > 0 && /^https?:/.test(s.references[0]) ? ` <a href="${s.references[0].replace(/"/g, '&quot;')}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
         const moreLink = s.rsid ? ` <a href="https://www.snpedia.com/index.php/${s.rsid.charAt(0).toUpperCase() + s.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>` : '';
         html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}${refLink}${moreLink}</div>`;
       }

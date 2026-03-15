@@ -911,14 +911,6 @@ body {
 }
 .ctx-note-input:focus { border-color: var(--accent); outline: none; }
 .ctx-note-input::placeholder { color: var(--text-muted); }
-/* Location inputs */
-.loc-inputs { display: flex; gap: 8px; }
-.loc-inputs .ctx-note-input { flex: 1; }
-.loc-zip-input { flex: 0 0 150px !important; }
-@media (max-width: 480px) {
-  .loc-inputs { flex-direction: column; }
-  .loc-zip-input { flex: 1 !important; }
-}
 /* Meal row: time + description side by side */
 .ctx-meal-row { display: flex; gap: 8px; align-items: center; }
 .ctx-meal-time {

@@ -411,7 +411,7 @@ export const OPTIMAL_RANGES = {
   // Hormones
   'hormones.insulin': { optimalMin: 2.6, optimalMax: 10.0 },
   'hormones.testosterone': { optimalMin: 15.0, optimalMax: 25.0, optimalMin_f: 0.5, optimalMax_f: 1.2 },
-  'hormones.freeTestosterone': { optimalMin: 70, optimalMax: 130 },
+  'hormones.freeTestosterone': { optimalMin: 70, optimalMax: 130, optimalMin_f: 2.0, optimalMax_f: 7.0 },
   'hormones.shbg': { optimalMin: 20.0, optimalMax: 40.0 },
   'hormones.dheaS': { optimalMin: 4.0, optimalMax: 9.0 },
   'hormones.estradiol': { optimalMin: 70, optimalMax: 130 },

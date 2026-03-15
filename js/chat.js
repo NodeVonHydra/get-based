@@ -149,7 +149,10 @@ export function renderAttachmentPreview() {
 export function openImageLightbox(src) {
   const overlay = document.createElement('div');
   overlay.className = 'chat-lightbox';
-  overlay.innerHTML = `<img src="${src}" alt="Full image">`;
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = 'Full image';
+  overlay.appendChild(img);
   overlay.addEventListener('click', () => overlay.remove());
   const close = (e) => { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', close); } };
   document.addEventListener('keydown', close);
@@ -2741,17 +2744,18 @@ export async function sendChatMessage() {
     // Always save immediately — sourcesPending is stripped from serialization by saveChatHistory
     saveChatHistory();
   } catch (err) {
-    if (typeof _streamRaf !== 'undefined' && _streamRaf) { cancelAnimationFrame(_streamRaf); _streamRaf = null; }
     if (typingEl.parentNode) typingEl.remove();
 
     // Abort: save partial streamed text as a normal message
     if (err.name === 'AbortError') {
-      if (_streamLatest) {
+      // Read partial text from the DOM (typewriter accumulates into textContent)
+      const partialText = aiMsgEl?.textContent?.trim() || '';
+      if (partialText) {
         if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
         aiMsgEl.style.whiteSpace = '';
-        aiMsgEl.innerHTML = renderMarkdown(_streamLatest) + '<div class="chat-stopped-note">[stopped]</div>';
+        aiMsgEl.innerHTML = renderMarkdown(partialText) + '<div class="chat-stopped-note">[stopped]</div>';
         const personality = getActivePersonality();
-        state.chatHistory.push({ role: 'assistant', content: _streamLatest, personalityName: personality.name, personalityIcon: personality.icon, stopped: true });
+        state.chatHistory.push({ role: 'assistant', content: partialText, personalityName: personality.name, personalityIcon: personality.icon, stopped: true });
         saveChatHistory();
       }
     } else {
