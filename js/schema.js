@@ -183,7 +183,10 @@ export const MARKER_SCHEMA = {
       copperZincRatio: { name: "Copper/Zinc Ratio", unit: "", refMin: 0.7, refMax: 1.0, desc: "Balance between copper and zinc; elevated ratios indicate oxidative stress, inflammation, or immune dysfunction." },
       bunCreatRatio: { name: "BUN/Creatinine Ratio", unit: "", refMin: 10, refMax: 20, desc: "Blood urea nitrogen divided by creatinine; helps differentiate pre-renal, renal, and post-renal causes of kidney dysfunction." },
       freeWaterDeficit: { name: "Free Water Deficit", unit: "L", refMin: -1.5, refMax: 1.5, desc: "Estimated water surplus or deficit based on sodium level; positive values indicate dehydration, negative values overhydration." },
-      phenoAge: { name: "PhenoAge (Biological Age)", unit: "years", refMin: null, refMax: null, desc: "Biological age estimated from 9 blood biomarkers using the Levine formula; lower than chronological age suggests healthier aging." }
+      crpHdlRatio: { name: "hs-CRP/HDL Ratio", unit: "", refMin: 0, refMax: 0.94, desc: "High-sensitivity CRP divided by HDL cholesterol; a composite inflammation-lipid marker that captures cardiovascular risk better than either marker alone. Requires hs-CRP specifically." },
+      phenoAge: { name: "PhenoAge", unit: "years", refMin: null, refMax: null, hidden: true, desc: "Biological age from 9 biomarkers using the Levine 2018 mortality-calibrated formula." },
+      bortzAge: { name: "Bortz Age", unit: "years", refMin: null, refMax: null, hidden: true, desc: "Biological age from 22 biomarkers using the Bortz 2023 aging-acceleration model." },
+      biologicalAge: { name: "Biological Age", unit: "years", refMin: null, refMax: null, desc: "Combined biological age from PhenoAge (Levine 2018, 9 markers) and Bortz Age (Bortz 2023, 22 markers). Lower than chronological age suggests healthier aging." }
     }
   }
 };
@@ -459,6 +462,8 @@ export const OPTIMAL_RANGES = {
   'differential.lymphocytes': { optimalMin: 1.5, optimalMax: 3.0 },
   // Coagulation
   'coagulation.homocysteine': { optimalMin: 5.0, optimalMax: 8.0 },
+  // Calculated Ratios
+  'calculatedRatios.crpHdlRatio': { optimalMin: 0, optimalMax: 0.24 },
 };
 
 // Phase-specific reference ranges for cycle-dependent hormones (premenopausal female, SI units)

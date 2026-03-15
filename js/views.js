@@ -492,7 +492,7 @@ export function showCategory(categoryKey, preData) {
   const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
   const main = document.getElementById("main-content");
-  const allEntries = Object.entries(cat.markers);
+  const allEntries = Object.entries(cat.markers).filter(([, m]) => !m.hidden);
   const withData = allEntries.filter(([, m]) => markerHasData(m));
   const countLabel = withData.length < allEntries.length ? `${withData.length} of ${allEntries.length} biomarkers with data` : `${allEntries.length} biomarkers tracked`;
   const renameBtn = ` <span class="ref-edited-badge" title="Rename category" onclick="event.stopPropagation();renameCategory('${categoryKey}')" style="cursor:pointer;font-size:12px">rename</span>`;
@@ -1000,10 +1000,24 @@ export function showDetailModal(id) {
   const calcInputs = {
     'calculatedRatios_phenoAge': [
       ['proteins', 'albumin', 'Albumin'], ['biochemistry', 'creatinine', 'Creatinine'],
-      ['biochemistry', 'glucose', 'Glucose'], ['proteins', 'hsCRP', 'hs-CRP'],
+      ['biochemistry', 'glucose', 'Glucose'], ['proteins', 'hsCRP', 'CRP'],
       ['differential', 'lymphocytesPct', 'Lymphocytes %'], ['hematology', 'mcv', 'MCV'],
       ['hematology', 'rdwcv', 'RDW-CV'], ['biochemistry', 'alp', 'ALP'], ['hematology', 'wbc', 'WBC']
     ],
+    'calculatedRatios_bortzAge': [
+      ['proteins', 'albumin', 'Albumin'], ['biochemistry', 'alp', 'ALP'],
+      ['biochemistry', 'urea', 'Urea'], ['lipids', 'cholesterol', 'Cholesterol'],
+      ['biochemistry', 'creatinine', 'Creatinine'], ['biochemistry', 'cystatinC', 'Cystatin C'],
+      ['diabetes', 'hba1c', 'HbA1c'], ['proteins', 'hsCRP', 'CRP'],
+      ['biochemistry', 'ggt', 'GGT'], ['hematology', 'rbc', 'RBC'],
+      ['hematology', 'mcv', 'MCV'], ['hematology', 'rdwcv', 'RDW-CV'],
+      ['differential', 'monocytes', 'Monocytes'], ['differential', 'neutrophils', 'Neutrophils'],
+      ['differential', 'lymphocytesPct', 'Lymphocytes %'], ['biochemistry', 'alt', 'ALT'],
+      ['hormones', 'shbg', 'SHBG'], ['vitamins', 'vitaminD', 'Vitamin D'],
+      ['biochemistry', 'glucose', 'Glucose'], ['hematology', 'mch', 'MCH'],
+      ['lipids', 'apoAI', 'ApoA-I']
+    ],
+    'calculatedRatios_biologicalAge': [],
     'calculatedRatios_bunCreatRatio': [
       ['biochemistry', 'urea', 'Urea (BUN)'], ['biochemistry', 'creatinine', 'Creatinine']
     ],
@@ -1015,6 +1029,7 @@ export function showDetailModal(id) {
     'calculatedRatios_deRitisRatio': [['biochemistry', 'ast', 'AST'], ['biochemistry', 'alt', 'ALT']],
     'calculatedRatios_copperZincRatio': [['electrolytes', 'copper', 'Copper'], ['electrolytes', 'zinc', 'Zinc']],
     'calculatedRatios_apoBapoAIRatio': [['lipids', 'apoB', 'ApoB'], ['lipids', 'apoAI', 'ApoA-I']],
+    'calculatedRatios_crpHdlRatio': [['proteins', 'hsCRP', 'CRP'], ['lipids', 'hdl', 'HDL']],
   };
   const inputs = calcInputs[id];
   if (inputs) {
@@ -1024,49 +1039,88 @@ export function showDetailModal(id) {
       const vals = data.categories[cat]?.markers[key]?.values;
       return !vals || vals.every(v => v == null);
     });
-    if (id === 'calculatedRatios_phenoAge' && !state.profileDob) {
+    if ((id === 'calculatedRatios_phenoAge' || id === 'calculatedRatios_bortzAge' || id === 'calculatedRatios_biologicalAge') && !state.profileDob) {
       issues.push('Date of birth not set (required for age at blood draw)');
     }
     if (missing.length > 0) {
       issues.push(`Missing: ${missing.map(m => m[2]).join(', ')}`);
     }
-    // PhenoAge-specific: check per-date gaps, CRP mismatch, unit sanity
-    if (id === 'calculatedRatios_phenoAge' && missing.length === 0 && state.profileDob) {
-      const latestIdx = data.dates.length - 1;
-      if (latestIdx >= 0) {
-        const nullAt = inputs.filter(([cat, key]) => {
-          const v = data.categories[cat]?.markers[key]?.values?.[latestIdx];
-          return v == null;
-        });
-        if (nullAt.length > 0) {
-          issues.push(`Missing on latest date (${data.dateLabels[latestIdx]}): ${nullAt.map(m => m[2]).join(', ')}`);
+    // Biological age clocks: per-date gap check, CRP fallback, unit sanity
+    const _isBioAgeClock = id === 'calculatedRatios_phenoAge' || id === 'calculatedRatios_bortzAge';
+    if (_isBioAgeClock && state.profileDob) {
+      // For CRP check: accept either hs-CRP or standard CRP
+      const _hasCRPonDate = (idx) => {
+        const hs = data.categories.proteins?.markers.hsCRP?.values?.[idx];
+        const std = data.categories.proteins?.markers.crp?.values?.[idx];
+        return hs != null || std != null;
+      };
+      // Override the missing check for CRP — it's satisfied by either marker
+      const crpInInputs = inputs.some(([, key]) => key === 'hsCRP');
+      if (crpInInputs && missing.some(([, key]) => key === 'hsCRP')) {
+        const hasAnyCRP = data.categories.proteins?.markers.hsCRP?.values?.some(v => v != null)
+          || data.categories.proteins?.markers.crp?.values?.some(v => v != null);
+        if (hasAnyCRP) {
+          // Remove CRP from missing list — it's covered by the fallback
+          const idx = missing.findIndex(([, key]) => key === 'hsCRP');
+          if (idx >= 0) missing.splice(idx, 1);
+          // Re-generate missing message
+          if (missing.length > 0) {
+            const mi = issues.findIndex(s => s.startsWith('Missing:'));
+            if (mi >= 0) issues[mi] = `Missing: ${missing.map(m => m[2]).join(', ')}`;
+          } else {
+            const mi = issues.findIndex(s => s.startsWith('Missing:'));
+            if (mi >= 0) issues.splice(mi, 1);
+          }
         }
-        // CRP value sanity
-        const crpVal = data.categories.proteins?.markers.hsCRP?.values?.[latestIdx];
-        if (crpVal != null && crpVal <= 0) {
-          issues.push('hs-CRP is zero or negative — cannot calculate (log undefined)');
-        }
-        // Unit sanity warnings
-        const albVal = data.categories.proteins?.markers.albumin?.values?.[latestIdx];
-        if (albVal != null && albVal > 10) {
-          issues.push(`Albumin value ${albVal} looks like g/dL — expected g/L (typically 35–55)`);
-        }
-        const lymphVal = data.categories.differential?.markers.lymphocytesPct?.values?.[latestIdx];
-        if (lymphVal != null && lymphVal > 1) {
-          issues.push(`Lymphocytes % value ${lymphVal} looks like a percentage — expected fraction 0–1 (e.g. 0.28)`);
-        }
-        const alpVal = data.categories.biochemistry?.markers.alp?.values?.[latestIdx];
-        if (alpVal != null && alpVal > 10) {
-          issues.push(`ALP value ${alpVal} looks like U/L — expected µkat/L (typically 0.5–2.0)`);
+      }
+      if (missing.length === 0) {
+        const latestIdx = data.dates.length - 1;
+        if (latestIdx >= 0) {
+          const nullAt = inputs.filter(([cat, key]) => {
+            if (key === 'hsCRP') return !_hasCRPonDate(latestIdx);
+            const v = data.categories[cat]?.markers[key]?.values?.[latestIdx];
+            return v == null;
+          });
+          if (nullAt.length > 0) {
+            issues.push(`Missing on latest date (${data.dateLabels[latestIdx]}): ${nullAt.map(m => m[2]).join(', ')}`);
+          }
+          // CRP value sanity
+          const crpVal = data.categories.proteins?.markers.hsCRP?.values?.[latestIdx]
+            ?? data.categories.proteins?.markers.crp?.values?.[latestIdx];
+          if (crpVal != null && crpVal <= 0) {
+            issues.push('CRP is zero or negative — cannot calculate (log undefined)');
+          }
+          // Unit sanity warnings
+          const albVal = data.categories.proteins?.markers.albumin?.values?.[latestIdx];
+          if (albVal != null && albVal > 10) {
+            issues.push(`Albumin value ${albVal} looks like g/dL — expected g/L (typically 35–55)`);
+          }
+          const lymphVal = data.categories.differential?.markers.lymphocytesPct?.values?.[latestIdx];
+          if (lymphVal != null && lymphVal > 1) {
+            issues.push(`Lymphocytes % value ${lymphVal} looks like a percentage — expected fraction 0–1 (e.g. 0.28)`);
+          }
+          const alpVal = data.categories.biochemistry?.markers.alp?.values?.[latestIdx];
+          if (alpVal != null && alpVal > 10) {
+            issues.push(`ALP value ${alpVal} looks like U/L — expected µkat/L (typically 0.5–2.0)`);
+          }
         }
       }
     }
-    // CRP vs hs-CRP mismatch
-    if (id === 'calculatedRatios_phenoAge') {
-      const hasCRP = data.categories.proteins?.markers.crp?.values?.some(v => v != null);
-      const hasHsCRP = data.categories.proteins?.markers.hsCRP?.values?.some(v => v != null);
-      if (hasCRP && !hasHsCRP) {
-        issues.push('CRP exists but mapped to standard CRP — PhenoAge needs hs-CRP. Check if your lab reported high-sensitivity CRP');
+    // Biological Age: show component status
+    if (id === 'calculatedRatios_biologicalAge') {
+      const latestIdx = data.dates.length - 1;
+      const pheno = data.categories.calculatedRatios?.markers?.phenoAge?.values?.[latestIdx];
+      const bortz = data.categories.calculatedRatios?.markers?.bortzAge?.values?.[latestIdx];
+      if (pheno == null && bortz == null) {
+        issues.push('Neither PhenoAge nor Bortz Age could be calculated — check their detail views for missing inputs');
+      } else {
+        const age = state.profileDob ? ((new Date(data.dates[latestIdx] + 'T00:00:00') - new Date(state.profileDob + 'T00:00:00')) / (365.25*24*60*60*1000)) : null;
+        const parts = [];
+        if (pheno != null) parts.push(`PhenoAge: ${pheno}${age ? ' (' + (pheno - age > 0 ? '+' : '') + (pheno - age).toFixed(1) + 'y)' : ''}`);
+        if (bortz != null) parts.push(`Bortz Age: ${bortz}${age ? ' (' + (bortz - age > 0 ? '+' : '') + (bortz - age).toFixed(1) + 'y)' : ''}`);
+        if (pheno == null) parts.push('PhenoAge: not calculated');
+        if (bortz == null) parts.push('Bortz Age: not calculated');
+        issues.push(parts.join(' · '));
       }
     }
     if (issues.length > 0) {
