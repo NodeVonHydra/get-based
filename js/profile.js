@@ -259,6 +259,7 @@ export function migrateProfileData(data) {
   if (data.menstrualCycle === undefined) data.menstrualCycle = null;
   if (data.emfAssessment === undefined) data.emfAssessment = null;
   if (data.emfAssessment && !Array.isArray(data.emfAssessment.assessments)) data.emfAssessment = null;
+  if (data.genetics === undefined) data.genetics = null;
   return data;
 }
 

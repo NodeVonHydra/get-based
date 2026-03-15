@@ -13,8 +13,7 @@ let _tagFilter = '';
 let _editingId = null;
 let _pendingAvatar = undefined; // undefined = no change, null = remove, string = new dataURL
 
-// escapeHTML doesn't escape single quotes — needed for onclick="fn('${val}')" contexts
-function _escAttr(str) { return escapeHTML(str).replace(/'/g, '&#39;'); }
+// Use imported escapeAttr for onclick="fn('${val}')" contexts
 
 // ═══════════════════════════════════════════════
 // AVATAR HELPERS
@@ -152,7 +151,7 @@ function renderClientList() {
     html += `<div class="cl-tag-filters">`;
     for (const tag of allTags) {
       const active = _tagFilter === tag;
-      html += `<button class="cl-tag-chip${active ? ' active' : ''}" onclick="window._clTagFilter('${_escAttr(tag)}')">${escapeHTML(tag)}</button>`;
+      html += `<button class="cl-tag-chip${active ? ' active' : ''}" onclick="window._clTagFilter('${escapeAttr(tag)}')">${escapeHTML(tag)}</button>`;
     }
     if (_tagFilter) {
       html += `<button class="cl-tag-chip cl-tag-clear" onclick="window._clTagFilter('')">Clear</button>`;

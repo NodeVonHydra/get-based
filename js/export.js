@@ -667,6 +667,15 @@ async function _importDatabaseBundle(json) {
       }
       if (importData.interpretiveLens) current.interpretiveLens = importData.interpretiveLens;
       if (importData.contextNotes) current.contextNotes = importData.contextNotes;
+      // Display overrides: merge labels/icons (don't overwrite existing)
+      for (const field of ['categoryLabels', 'categoryIcons', 'markerLabels']) {
+        if (importData[field] && typeof importData[field] === 'object') {
+          if (!current[field]) current[field] = {};
+          for (const [k, v] of Object.entries(importData[field])) {
+            if (!current[field][k]) current[field][k] = v;
+          }
+        }
+      }
       // Save
       const value = JSON.stringify(current);
       if (getEncryptionEnabled()) { await encryptedSetItem(storageKey, value); }
