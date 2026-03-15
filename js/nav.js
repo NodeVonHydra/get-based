@@ -6,7 +6,7 @@ import { getActiveData, countFlagged, filterDatesByRange } from './data.js';
 import { getProfiles } from './profile.js';
 
 function _buildNavItem(key, cat) {
-  const markers = Object.values(cat.markers);
+  const markers = Object.values(cat.markers).filter(m => !m.hidden);
   const withData = markers.filter(m => m.values && m.values.some(v => v !== null)).length;
   if (withData === 0) return null;
   const flagged = countFlagged(markers);

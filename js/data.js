@@ -337,30 +337,48 @@ export function getActiveData() {
       return Math.round(fwd * 100) / 100;
     });
 
+    // hs-CRP/HDL Ratio — inflammation-lipid composite (hs-CRP only, no standard CRP fallback)
+    ratios.markers.crpHdlRatio.values = sortedDates.map((_, i) => {
+      const crp = getVals('proteins', 'hsCRP')?.[i] ?? null; // mg/L — requires hs-CRP
+      const hdl = getVals('lipids', 'hdl')?.[i]; // mmol/L
+      if (crp == null || hdl == null || hdl <= 0) return null;
+      // CRP mg/L ÷ HDL mg/dL — matches NHANES convention used in published cutoffs
+      return Math.round((crp / (hdl * 38.67)) * 10000) / 10000;
+    });
+
+    // Helper: chronological age at blood draw date
+    const _ageAt = (dateStr) => {
+      if (!state.profileDob) return null;
+      const dob = new Date(state.profileDob + 'T00:00:00');
+      const draw = new Date(dateStr + 'T00:00:00');
+      const age = (draw - dob) / (365.25 * 24 * 60 * 60 * 1000);
+      return age > 0 ? age : null;
+    };
+
+    // Helper: get CRP value — prefer hs-CRP, fall back to standard CRP
+    const _getCRP = (i) => {
+      const hsCrp = getVals('proteins', 'hsCRP')?.[i];
+      if (hsCrp != null) return hsCrp;
+      return getVals('proteins', 'crp')?.[i] ?? null;
+    };
+
     // PhenoAge (Levine 2018) — biological age from 9 biomarkers + chronological age
     ratios.markers.phenoAge.values = sortedDates.map((dateStr, i) => {
-      if (!state.profileDob) return null;
-      const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/l
-      const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/l
-      const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/l
-      const crp          = getVals('proteins', 'hsCRP')?.[i];          // mg/l — must be hs-CRP (standard CRP lacks precision)
+      const age = _ageAt(dateStr);
+      if (age == null) return null;
+      const albumin_si   = getVals('proteins', 'albumin')?.[i];        // g/L
+      const creatinine_si = getVals('biochemistry', 'creatinine')?.[i]; // µmol/L
+      const glucose_si   = getVals('biochemistry', 'glucose')?.[i];    // mmol/L
+      const crp          = _getCRP(i);                                  // mg/L
       const lymphPct_si  = getVals('differential', 'lymphocytesPct')?.[i]; // fraction 0–1
-      const mcv          = getVals('hematology', 'mcv')?.[i];          // fL (same)
-      const rdw          = getVals('hematology', 'rdwcv')?.[i];        // % (same)
-      const alp_si       = getVals('biochemistry', 'alp')?.[i];        // µkat/l
-      const wbc          = getVals('hematology', 'wbc')?.[i];          // 10^9/l (same)
+      const mcv          = getVals('hematology', 'mcv')?.[i];          // fL
+      const rdw          = getVals('hematology', 'rdwcv')?.[i];        // %
+      const alp_si       = getVals('biochemistry', 'alp')?.[i];        // µkat/L
+      const wbc          = getVals('hematology', 'wbc')?.[i];          // 10^9/L
       if ([albumin_si, creatinine_si, glucose_si, crp, lymphPct_si, mcv, rdw, alp_si, wbc].some(v => v == null)) return null;
       if (crp <= 0) return null; // ln(CRP) undefined for non-positive
 
-      // Chronological age at blood draw date
-      const dob = new Date(state.profileDob + 'T00:00:00');
-      const drawDate = new Date(dateStr + 'T00:00:00');
-      let age = (drawDate - dob) / (365.25 * 24 * 60 * 60 * 1000);
-      if (age <= 0) return null;
-
-      // Levine 2018 coefficients — calibrated for SI units as stored in the schema:
-      // albumin g/L, creatinine µmol/L, glucose mmol/L, CRP mg/L (ln),
-      // lymphocytes fraction 0–1, MCV fL, RDW %, ALP µkat/L, WBC 10^9/L
+      // Levine 2018 coefficients — calibrated for SI units as stored in the schema
       const xb = -19.907
         - 0.0336  * albumin_si
         + 0.0095  * creatinine_si
@@ -377,6 +395,75 @@ export function getActiveData() {
       if (mortalityScore <= 0 || mortalityScore >= 1) return null;
       const phenoAge = 141.50225 + Math.log(-0.00553 * Math.log(1 - mortalityScore)) / 0.090165;
       return Math.round(phenoAge * 10) / 10;
+    });
+
+    // Bortz Age (Bortz et al. 2023, Nature Communications)
+    // BAA = 10 × sum((centered - mean) × coeff), biological age = chronological age + BAA
+    // Coefficients and means from longevityworldcup.com (inspired by their open implementation)
+    // Units: all SI as stored in schema, except ALP/GGT/ALT which need µkat/L→U/L (×60)
+    // and lymphocytesPct which needs fraction→% (×100)
+    const _bortzFeatures = [
+      // [getValue fn,                                    mean,     coeff,   log, capVal, capMode]
+      ['age',                                             56.049,  -0.026,  false, null,  null],
+      [() => getVals('proteins', 'albumin'),              45.124,  -0.011,  false, 54,    'ceil'],
+      [() => getVals('biochemistry', 'alp'),              82.685,   0.0016, false, null,  null,  60],  // µkat/L→U/L
+      [() => getVals('biochemistry', 'urea'),              5.355,  -0.030,  false, 9.3,   'ceil'],
+      [() => getVals('lipids', 'cholesterol'),              5.618, -0.0806, false, 7.58,  'ceil'],
+      [() => getVals('biochemistry', 'creatinine'),        71.566, -0.0110, false, null,  null],
+      [() => getVals('biochemistry', 'cystatinC'),          0.901,  1.860,  false, 0.38,  'floor'],
+      [() => getVals('diabetes', 'hba1c'),                 35.479,  0.0181, false, 26,    'floor'],
+      ['crp',                                               0.300,  0.0791, true,  null,  null],       // log-transformed
+      [() => getVals('biochemistry', 'ggt'),                3.380,  0.2656, true,  null,  null,  60],  // µkat/L→U/L, log
+      [() => getVals('hematology', 'rbc'),                  4.499, -0.2044, false, 5.77,  'ceil'],
+      [() => getVals('hematology', 'mcv'),                 91.925,  0.0172, false, null,  null],
+      [() => getVals('hematology', 'rdwcv'),               13.434,  0.2020, false, 11.4,  'floor'],
+      [() => getVals('differential', 'monocytes'),          0.475,  0.369,  false, 0.3,   'floor'],
+      [() => getVals('differential', 'neutrophils'),        4.185,  0.0668, false, 2,     'floor'],
+      [() => getVals('differential', 'lymphocytesPct'),    28.582, -0.0108, false, 60,    'ceil', 100], // fraction→%
+      [() => getVals('biochemistry', 'alt'),                3.078, -0.312,  true,  29,    'ceil', 60],  // µkat/L→U/L, log
+      [() => getVals('hormones', 'shbg'),                   3.820,  0.292,  true,  null,  null],        // log
+      [() => getVals('vitamins', 'vitaminD'),               3.605, -0.265,  true,  112.6, 'ceil', 0.4006], // nmol/L→ng/mL, log
+      [() => getVals('biochemistry', 'glucose'),            4.956,  0.0322, false, 4.44,  'floor'],
+      [() => getVals('hematology', 'mch'),                 31.840,  0.0275, false, 25.7,  'floor'],
+      [() => getVals('lipids', 'apoAI'),                    1.524, -0.185,  false, 1.82,  'ceil'],
+    ];
+
+    ratios.markers.bortzAge.values = sortedDates.map((dateStr, i) => {
+      const age = _ageAt(dateStr);
+      if (age == null) return null;
+      const crp = _getCRP(i);
+
+      let baa = 0;
+      for (const feat of _bortzFeatures) {
+        const [src, mean, coeff, useLog, capVal, capMode, scaleFactor] = feat;
+        let val;
+        if (src === 'age') val = age;
+        else if (src === 'crp') val = crp;
+        else val = src()?.[i] ?? null;
+        if (val == null) return null; // all inputs required
+        if (scaleFactor) val *= scaleFactor; // unit conversion (µkat/L→U/L, fraction→%)
+        if (capVal != null) {
+          if (capMode === 'ceil') val = Math.min(val, capVal);
+          else if (capMode === 'floor') val = Math.max(val, capVal);
+        }
+        if (useLog) {
+          if (val <= 0) return null;
+          val = Math.log(val);
+        }
+        baa += (val - mean) * coeff;
+      }
+      const bortzAge = age + 10 * baa;
+      return Math.round(bortzAge * 10) / 10;
+    });
+
+    // Biological Age — combined estimate from PhenoAge and Bortz Age
+    ratios.markers.biologicalAge.values = sortedDates.map((_, i) => {
+      const pheno = ratios.markers.phenoAge.values[i];
+      const bortz = ratios.markers.bortzAge.values[i];
+      if (pheno != null && bortz != null) return Math.round(((pheno + bortz) / 2) * 10) / 10;
+      if (pheno != null) return pheno;
+      if (bortz != null) return bortz;
+      return null;
     });
   }
 

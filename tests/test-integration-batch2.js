@@ -268,7 +268,8 @@
     'calculatedRatios.apoBapoAIRatio', 'calculatedRatios.nlr',
     'calculatedRatios.plr', 'calculatedRatios.deRitisRatio',
     'calculatedRatios.copperZincRatio', 'calculatedRatios.bunCreatRatio',
-    'calculatedRatios.freeWaterDeficit', 'calculatedRatios.phenoAge',
+    'calculatedRatios.freeWaterDeficit', 'calculatedRatios.crpHdlRatio',
+    'calculatedRatios.phenoAge', 'calculatedRatios.bortzAge', 'calculatedRatios.biologicalAge',
     // Standard units same in US (fl, pg, 10^9/l, 10^12/l, %)
     'hematology.wbc', 'hematology.rbc', 'hematology.mcv', 'hematology.mch',
     'hematology.platelets', 'hematology.mpv', 'hematology.pdw', 'hematology.pct',

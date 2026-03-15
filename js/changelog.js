@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.1', date: '2026-03-15', title: 'Biological Age + hs-CRP/HDL',
+    items: [
+      'Biological Age — combines PhenoAge (Levine 2018, 9 markers) and Bortz Age (Bortz 2023, 22 markers) into a single estimate with chronological age reference line',
+      'hs-CRP/HDL Ratio — composite inflammation-lipid cardiovascular risk marker (optimal < 0.24, ref < 0.94)',
+      'PhenoAge now accepts standard CRP as fallback when hs-CRP is unavailable',
+    ]
+  },
+  {
     version: '1.8.0', date: '2026-03-15', title: 'DNA Import',
     items: [
       'Drop a raw DNA file (Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA) — parsed locally in a Web Worker, never transmitted',

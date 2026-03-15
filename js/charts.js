@@ -427,8 +427,8 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
     }
   }
 
-  // PhenoAge: add chronological age line for comparison
-  const isPhenoAge = marker.name && marker.name.startsWith('PhenoAge');
+  // Biological Age: add chronological age line for comparison
+  const isPhenoAge = marker.name && (marker.name === 'Biological Age' || marker.name.startsWith('PhenoAge'));
   let chronoAgeValues = null;
   if (isPhenoAge && state.profileDob && chartDates && chartDates.length) {
     const dobDate = new Date(state.profileDob + 'T00:00:00');

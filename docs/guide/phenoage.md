@@ -1,55 +1,89 @@
-# PhenoAge (Biological Age)
+# Biological Age
 
-PhenoAge is a calculated estimate of your biological age — how old your body appears to be based on blood markers — as opposed to your chronological age. getbased computes it automatically using the formula published by Morgan Levine et al. in 2018.
+Biological age estimates how old your body appears based on blood markers — as opposed to your chronological age. getbased computes it automatically from two published models and presents a single combined result.
 
-## What It Measures
+## Two Clocks, One Number
 
-PhenoAge does not replace any single biomarker. Instead, it combines nine routine blood markers into a single number that correlates with disease risk, functional decline, and mortality better than chronological age alone. In practical terms: a PhenoAge lower than your actual age suggests your biology is aging more slowly than average; a higher PhenoAge suggests the opposite.
+getbased calculates biological age using two independently validated models:
 
-## The Nine Biomarkers
+**PhenoAge** (Levine et al. 2018) — a mortality-calibrated model using 9 biomarkers. Trained on NHANES III data, it estimates biological age through a mortality risk score. Widely used in longevity research.
 
-PhenoAge is calculated from:
+**Bortz Age** (Bortz et al. 2023, Nature Communications) — an aging-acceleration model using 22 biomarkers. Trained on UK Biobank data, it estimates how fast your body is aging through a weighted linear combination.
+
+When both can be calculated, getbased averages them for a more robust estimate. When only one has sufficient inputs, it uses that one. The detail modal shows which components contributed.
+
+## Biomarkers
+
+### PhenoAge (9 markers)
 
 | Marker | Category |
 |--------|----------|
-| Albumin | Liver / Protein |
+| Albumin | Protein |
 | Creatinine | Kidney |
-| Glucose (fasting) | Metabolic |
-| hsCRP (C-reactive protein) | Inflammation |
+| Glucose | Metabolic |
+| CRP | Inflammation |
 | Lymphocytes % | Immune |
-| MCV (mean corpuscular volume) | Hematology |
-| RDW-CV (red cell distribution width) | Hematology |
-| ALP (alkaline phosphatase) | Liver |
-| WBC (white blood cells) | Immune |
+| MCV | Hematology |
+| RDW-CV | Hematology |
+| ALP | Liver |
+| WBC | Immune |
+
+### Bortz Age (22 markers, including age)
+
+| Marker | Category |
+|--------|----------|
+| Albumin, ALT, ALP, GGT | Liver |
+| Creatinine, Cystatin C, Urea | Kidney |
+| Glucose, HbA1c, Total Cholesterol, ApoA-I | Metabolism |
+| CRP | Inflammation |
+| WBC, RBC, MCV, MCH, RDW | Hematology |
+| Neutrophils, Monocytes, Lymphocytes % | Immune |
+| SHBG, Vitamin D | Hormones |
+
+Bortz Age uses more inputs but is more forgiving — a standard CBC + metabolic panel covers most of them. PhenoAge requires all 9 on the same date. Both accept either hs-CRP or standard CRP.
 
 ::: warning
-PhenoAge requires **all nine markers** to be present for a given date. If any one of them is missing, no value is calculated for that draw — the detail view shows exactly which inputs are missing. It also requires your **date of birth** to be set in Settings → Profile.
-
-**hs-CRP required**: PhenoAge specifically needs high-sensitivity CRP (hs-CRP), not standard CRP. These are different assays — standard CRP lacks the precision needed for the calculation. Make sure your lab report includes hs-CRP.
+Both models require **all their inputs on the same blood draw date**. If any marker is missing for a given date, no value is calculated. The detail view shows exactly which inputs are missing. Both also require your **date of birth** in Settings → Profile.
 :::
 
 ## Where to Find It
 
-PhenoAge appears as a marker in the **Aging** or **Calculated** category in the sidebar. Click it to open the detail view, which shows:
+Biological Age appears in the **Calculated Ratios** category in the sidebar. The chart shows:
 
-- Your PhenoAge at each draw date
-- A **gray dashed line** representing your chronological age at the time of each draw
-- The gap between the two lines — the key number to watch
+- A **solid line** for your Biological Age at each draw date
+- A **dashed line** for your chronological age at the time of each draw
+- The gap between the two — the key number to watch
 
 ## Interpreting Your Score
 
-There is no fixed reference range for PhenoAge the way there is for, say, LDL cholesterol. What matters is the relationship between your PhenoAge and your actual age:
+There is no fixed reference range. What matters is the relationship between your Biological Age and your actual age:
 
-- **PhenoAge < chronological age** — biological age is tracking younger than calendar age
-- **PhenoAge = chronological age** — biological age is roughly average
-- **PhenoAge > chronological age** — biological age is tracking older than calendar age
+- **Biological Age < chronological age** — your body is aging slower than average
+- **Biological Age = chronological age** — average
+- **Biological Age > chronological age** — your body is aging faster than average
 
-The trend over time matters more than any single reading. Consistent improvements across multiple draws — even small ones — are meaningful.
+The trend over time matters more than any single reading.
 
 ::: tip
-The markers that most strongly influence PhenoAge are hs-CRP (inflammation) and albumin (nutrition/liver health). If your PhenoAge is higher than expected, those are often the first places to investigate.
+The detail modal shows the breakdown — PhenoAge and Bortz Age components, with their individual deltas from chronological age. If only one clock could calculate, it tells you which inputs the other is missing.
 :::
+
+## hs-CRP/HDL Ratio
+
+Also in Calculated Ratios, this composite marker divides hs-CRP (inflammation) by HDL cholesterol (protection). It captures cardiovascular risk better than either marker alone — a patient can have mildly elevated CRP and borderline-low HDL, each unremarkable alone, but the ratio reveals a pro-atherogenic state.
+
+| Risk | Ratio |
+|---|---|
+| Optimal | < 0.24 |
+| Normal | < 0.94 |
+| Elevated | > 0.94 |
+
+This ratio requires hs-CRP specifically (standard CRP lacks precision at low values).
 
 ## In AI Chat
 
-When you discuss PhenoAge in the AI chat, the AI receives your chronological age alongside the PhenoAge values and can interpret the gap, note the trend direction, and suggest which contributing markers to focus on.
+When you discuss Biological Age in the AI chat, the AI receives both component scores alongside your chronological age and can interpret the gap, note the trend, and suggest which contributing markers to focus on.
+
+## Attribution
+
+The Biological Age implementation was inspired by the [Longevity World Cup](https://longevityworldcup.com) project. Bortz Age coefficients sourced from their open implementation of the Bortz et al. 2023 model.
