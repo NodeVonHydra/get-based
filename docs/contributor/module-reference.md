@@ -1,6 +1,6 @@
 # Module Reference
 
-All 29 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 30 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -349,6 +349,26 @@ All 9 lifestyle context card editors plus AI health dots.
 ---
 
 ## Layer 5 — Feature Modules
+
+### `dna.js`
+
+DNA raw data import: client-side parser, storage, dashboard section, AI context assembly.
+
+**Key exports:**
+- `detectDNAFile(text)` — detects format from file header: `'ancestry'` | `'23andme'` | `'livingdna'` | `'csv'` | `null`
+- `isDNAFile(file)` — checks filename patterns for known DNA providers
+- `parseDNAFile(file)` — async, runs Web Worker parser, matches against `data/snp-health.json` (41 SNPs), resolves APOE haplotype, returns enriched matches with effect/note per genotype
+- `saveGeneticsData(profileData, result)` — stores matched SNPs + APOE in `importedData.genetics`
+- `deleteGeneticsData(profileData)` — removes genetics data
+- `buildGeneticsContext(genetics, activeMarkerKeys)` — serializes genetics for AI context, filtered to SNPs relevant to active markers
+- `renderGeneticsSection()` — dashboard card with APOE + significant/moderate findings
+- `handleDNAFile(file)` — full import flow: parse → preview modal → confirm → save
+
+Supports: AncestryDNA (2-column alleles), 23andMe, MyHeritage, FTDNA, Living DNA. Genotype reversal handles strand ambiguity (CT ↔ TC).
+
+**Window exports:** `isDNAFile`, `handleDNAFile`, `confirmDNAImport`, `closeDNAImportPreview`, `deleteGeneticsData`, `_buildGeneticsContext`, `_getRelevantSNPs`
+
+---
 
 ### `pdf-import.js`
 

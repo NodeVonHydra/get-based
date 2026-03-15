@@ -913,13 +913,15 @@ export function setupDropZone() {
     if (files.length === 0) return;
     const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
     const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
-    const unsupported = files.length - jsonFiles.length - pdfFiles.length;
-    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0) {
-      showNotification("Unsupported file type. Use PDF or JSON.", "error");
+    const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
+    const unsupported = files.length - jsonFiles.length - pdfFiles.length - dnaFiles.length;
+    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && dnaFiles.length === 0) {
+      showNotification("Unsupported file type. Use PDF, JSON, or DNA raw data (.txt/.csv).", "error");
       return;
     }
     for (const f of jsonFiles) window.importDataJSON(f);
-    if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
+    if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+    else if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
 }
@@ -1013,7 +1015,7 @@ export function hideImportProgress(reason = 'success') {
     dropZone.innerHTML = '';
   } else {
     dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
-      <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+      <div class="drop-zone-text">Drop PDF, JSON, or DNA raw data file here, or click to browse</div>
       <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
       <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
   }

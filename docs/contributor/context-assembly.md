@@ -54,7 +54,8 @@ Everything the AI can know about the user comes from these sources:
 │                             ├─ Context Notes                        │
 │  MARKER SCHEMA              ├─ Menstrual Cycle                      │
 │  ├─ MARKER_SCHEMA           ├─ Supplements                          │
-│  └─ customMarkers           └─ User Notes                           │
+│  └─ customMarkers           ├─ User Notes                           │
+│                             └─ Genetics (SNPs, if imported)         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```

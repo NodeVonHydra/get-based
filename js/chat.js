@@ -665,7 +665,20 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
-  // ── 8. Menstrual Cycle (female only) ──
+  // ── 8. Genetics ──
+  const genetics = state.importedData.genetics;
+  if (genetics && genetics.snps && Object.keys(genetics.snps).length > 0) {
+    // Collect active marker keys to filter relevant SNPs
+    const activeMarkerKeys = hasLabData ? Object.entries(data.categories).flatMap(([catKey, cat]) =>
+      Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null)).map(([key]) => `${catKey}.${key}`)
+    ) : [];
+    const geneticsCtx = window._buildGeneticsContext ? window._buildGeneticsContext(genetics, activeMarkerKeys) : '';
+    if (geneticsCtx) {
+      ctx += `${geneticsCtx}\n\n`;
+    }
+  }
+
+  // ── 9. Menstrual Cycle (female only) ──
   const mc = state.importedData.menstrualCycle;
   if (mc && state.profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
@@ -1752,11 +1765,38 @@ export function renderChatMessages() {
             </div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Press + or Enter to add. You can always edit these later on the dashboard.</div>
           </div>`;
+      const genetics = state.importedData.genetics;
+      const hasGenetics = genetics && Object.keys(genetics.snps || {}).length > 0;
+      let dnaSection;
+      if (hasGenetics) {
+        const fx = genetics.effects || {};
+        const dots = [];
+        if (genetics.apoe) dots.push(`APOE: <strong>${escapeHTML(genetics.apoe)}</strong>`);
+        if (fx.significant > 0) dots.push(`\uD83D\uDD34 ${fx.significant} significant`);
+        if (fx.moderate > 0) dots.push(`\uD83D\uDFE1 ${fx.moderate} moderate`);
+        if (fx.normal > 0) dots.push(`\uD83D\uDFE2 ${fx.normal} normal`);
+        const dotsHtml = dots.length > 0 ? `<div style="font-size:13px;line-height:1.8">${dots.join(' &nbsp;\u00B7&nbsp; ')}</div>` : '';
+        dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <p style="margin:0 0 6px">\uD83E\uDDEC <strong>${Object.keys(genetics.snps).length} SNPs imported</strong> from ${escapeHTML(genetics.source)}</p>
+            ${dotsHtml}
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>
+          </div>`;
+      } else {
+        dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <p style="margin:0 0 8px">\uD83E\uDDEC Have you ever done a DNA test? If you have the raw data file, it helps me understand <em>why</em> your labs look the way they do \u2014 even when your lifestyle is dialed in.</p>
+            <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
+              <button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>
+            </div>
+            <input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Supports Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA.<br>Processed locally \u2014 your DNA file never leaves your device.</div>
+          </div>`;
+      }
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai" style="width:88%">
           <p>${hasAIProvider() ? 'Great, we\'re connected! 🎉' : 'Nice!'} A couple of quick things that help me give better advice:</p>
           ${cycleSection}
           ${suppSection}
+          ${dnaSection}
           <div class="chat-onboard-actions">
             <button class="chat-onboard-cta" onclick="window.skipOnboardingExtras()">Continue →</button>
           </div>

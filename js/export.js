@@ -333,7 +333,8 @@ export async function exportClientJSON(profileId, includeChat = false) {
     categoryIcons: data.categoryIcons || null,
     markerLabels: data.markerLabels || null,
     menstrualCycle: data.menstrualCycle || null,
-    emfAssessment: data.emfAssessment || null
+    emfAssessment: data.emfAssessment || null,
+    genetics: data.genetics || null
   };
   if (includeChat) {
     const chat = await _exportChatData(profileId);
@@ -548,6 +549,10 @@ export function importDataJSON(file) {
           }
         }
       }
+      // Import genetics
+      if (json.genetics && json.genetics.snps) {
+        state.importedData.genetics = json.genetics;
+      }
       // Import supplements
       if (json.supplements && Array.isArray(json.supplements)) {
         if (!state.importedData.supplements) state.importedData.supplements = [];
@@ -657,7 +662,7 @@ async function _importDatabaseBundle(json) {
         }
       }
       // Context fields: replace if present in bundle
-      for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle', 'emfAssessment']) {
+      for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle', 'emfAssessment', 'genetics']) {
         if (importData[field] != null) current[field] = importData[field];
       }
       if (importData.interpretiveLens) current.interpretiveLens = importData.interpretiveLens;
@@ -728,7 +733,7 @@ export function clearAllData() {
     const defaultId = profiles[0]?.id || 'default';
     const defaultName = profiles[0]?.name || 'Profile 1';
     saveProfiles([{ id: defaultId, name: defaultName, sex: null, dob: null, location: { country: '', zip: '' }, tags: [], notes: '', status: 'active', avatar: null, createdAt: Date.now(), lastUpdated: Date.now(), pinned: false }]);
-    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, refOverrides: {}, menstrualCycle: null, emfAssessment: null };
+    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, refOverrides: {}, menstrualCycle: null, emfAssessment: null, genetics: null };
     state.currentProfile = defaultId;
     localStorage.setItem('labcharts-active-profile', defaultId);
     window.buildSidebar();

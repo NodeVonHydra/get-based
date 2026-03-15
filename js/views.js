@@ -8,6 +8,7 @@ import { getActiveData, filterDatesByRange, destroyAllCharts, getEffectiveRange,
 import { profileStorageKey } from './profile.js';
 import { createLineChart, getMarkerDescription, getNotesForChart, getSupplementsForChart, refBandPlugin, noteAnnotationPlugin, supplementBarPlugin, phaseBandPlugin } from './charts.js';
 import { renderSupplementsSection } from './supplements.js';
+import { renderGeneticsSection } from './dna.js';
 import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
 import { callClaudeAPI, hasAIProvider, isAIPaused, getAIProvider, getActiveModelId } from './api.js';
@@ -54,7 +55,7 @@ export function showDashboard(data) {
       <p class="welcome-hero-subtitle">Track your biomarkers, understand your health</p>
       <div class="drop-zone" id="drop-zone">
         <div class="drop-zone-icon">\uD83D\uDCC4</div>
-        <div class="drop-zone-text">Drop PDF or JSON file here, or click to browse</div>
+        <div class="drop-zone-text">Drop PDF, JSON, or DNA raw data file here, or click to browse</div>
         <div class="drop-zone-hint">AI-powered — works with any lab PDF report or getbased JSON export</div>
         ${!hasAIProvider() ? `<div class="drop-zone-api-hint">${isAIPaused() ? 'AI features are paused — <a href="#" onclick="event.preventDefault();event.stopPropagation();window.openSettingsModal(\'ai\')">re-enable in Settings</a>' : 'Requires an AI connection — <a href="#" onclick="event.preventDefault();event.stopPropagation();closeChatPanel();window.openSettingsModal(\'ai\')">set up in 30 seconds</a>'}</div>` : ''}</div>
       <div class="onboarding-divider">
@@ -129,6 +130,9 @@ export function showDashboard(data) {
     }
     html += `</div>`;
   }
+
+  // ── 7b. Genetics (static data, after dynamic trends) ──
+  html += renderGeneticsSection();
 
   // ── 8. Trends & Critical Flags ──
   const trendAlerts = detectTrendAlerts(filteredData);
@@ -1067,6 +1071,21 @@ export function showDetailModal(id) {
     }
     if (issues.length > 0) {
       html += `<div class="calc-missing-inputs">Not calculated — ${issues.join('. ')}</div>`;
+    }
+  }
+  // Inline genetics — show SNPs mapped to this marker
+  const genetics = state.importedData.genetics;
+  if (genetics && genetics.snps) {
+    const snpEntries = window._getRelevantSNPs ? window._getRelevantSNPs(dotKey) : [];
+    if (snpEntries.length > 0) {
+      html += `<div class="detail-genetics"><div class="detail-genetics-title">\uD83E\uDDEC Genetic Factors</div>`;
+      for (const s of snpEntries) {
+        const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
+        const refLink = s.references && s.references.length > 0 ? ` <a href="${s.references[0]}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
+        const moreLink = s.rsid ? ` <a href="https://www.snpedia.com/index.php/${s.rsid.charAt(0).toUpperCase() + s.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>` : '';
+        html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}${refLink}${moreLink}</div>`;
+      }
+      html += `</div>`;
     }
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;

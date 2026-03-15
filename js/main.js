@@ -21,6 +21,7 @@ for (const fn of _emfFns) {
   window[fn] = async function(...args) { const mod = await import('./emf.js'); for (const f of _emfFns) window[f] = mod[f]; return mod[fn](...args); };
 }
 import './pdf-import.js';
+import { ensureSNPTable } from './dna.js';
 import './export.js';
 import './chat.js';
 import './image-utils.js';
@@ -84,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   state.currentProfile = getActiveProfileId();
   const savedImported = await encryptedGetItem(profileStorageKey(state.currentProfile, 'imported'));
   if (savedImported) { try { state.importedData = JSON.parse(savedImported); if (!state.importedData.notes) state.importedData.notes = []; migrateProfileData(state.importedData); } catch(e) {} }
+  ensureSNPTable(); // Eagerly load SNP table if genetics data exists (e.g. after JSON import)
   const savedUnits = localStorage.getItem(profileStorageKey(state.currentProfile, 'units'));
   if (savedUnits === 'US') state.unitSystem = 'US';
   const savedRange = localStorage.getItem(profileStorageKey(state.currentProfile, 'rangeMode'));
@@ -137,11 +139,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const files = Array.from(e.target.files);
       const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
       const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+      const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
       for (const f of jsonFiles) window.importDataJSON(f);
-      const forceImage = !!window._forceImageMode;
-      delete window._forceImageMode;
-      if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
-      else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
+      if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+      else {
+        const forceImage = !!window._forceImageMode;
+        delete window._forceImageMode;
+        if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
+        else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
+      }
       e.target.value = '';
     }
   });
@@ -158,7 +164,7 @@ document.addEventListener("wheel", e => {
   const overlay = e.target.closest(".modal-overlay.show, .chat-backdrop.open");
   if (!overlay) return;
   // Allow scroll inside scrollable children (modal content, chat messages)
-  const scrollable = e.target.closest(".modal, .glossary-modal, .chat-messages, .chat-thread-list, .cl-list, .cl-form, .pii-diff-left, .pii-diff-right");
+  const scrollable = e.target.closest(".modal, .glossary-modal, .chat-messages, .chat-thread-list, .cl-list, .cl-form, .pii-diff-left, .pii-diff-right, .dna-preview-body");
   if (scrollable) {
     const atTop = scrollable.scrollTop <= 0 && e.deltaY < 0;
     const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight && e.deltaY > 0;

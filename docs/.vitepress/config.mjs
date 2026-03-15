@@ -40,6 +40,7 @@ export default defineConfig({
             { text: 'JSON Export & Import', link: '/guide/json-export-import' },
             { text: 'Custom Markers', link: '/guide/custom-markers' },
             { text: 'Specialty Labs', link: '/guide/specialty-labs' },
+            { text: 'DNA Import', link: '/guide/dna-import' },
             { text: 'PII Obfuscation', link: '/guide/pii-obfuscation' }
           ]
         },
