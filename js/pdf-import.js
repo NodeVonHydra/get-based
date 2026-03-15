@@ -18,14 +18,33 @@ function normalizeUnitStr(s) {
 }
 
 function normalizeToSI(key, value, unit) {
-  if (value == null || !unit) return value;
+  if (value == null) return value;
   const conv = UNIT_CONVERSIONS[key];
   if (!conv) return value;
-  const aiUnit = normalizeUnitStr(unit);
-  if (conv.type === 'multiply') {
-    if (aiUnit === normalizeUnitStr(conv.usUnit)) return parseFloat((value / conv.factor).toPrecision(6));
-  } else if (conv.type === 'hba1c' && aiUnit === '%') {
-    return parseFloat(((value - 2.15) * 10.929).toFixed(1));
+
+  // When the AI returned a unit string, match it against the expected US unit
+  if (unit) {
+    const aiUnit = normalizeUnitStr(unit);
+    if (conv.type === 'multiply') {
+      if (aiUnit === normalizeUnitStr(conv.usUnit)) return parseFloat((value / conv.factor).toPrecision(6));
+    } else if (conv.type === 'hba1c' && aiUnit === '%') {
+      return parseFloat(((value - 2.15) * 10.929).toFixed(1));
+    }
+    return value;
+  }
+
+  // Unit is empty/null — check if value looks like it's in the US/display range
+  // and needs conversion. Use the schema's SI ref range as sanity check.
+  if (conv.type === 'multiply' && conv.factor > 1) {
+    const [catKey, markerKey] = key.split('.');
+    const marker = MARKER_SCHEMA[catKey]?.markers?.[markerKey];
+    if (marker && marker.refMax != null) {
+      // If value is much larger than the SI ref max, it's likely in US units
+      // Threshold: value > refMax × factor × 0.3 (well above SI range, plausible in US range)
+      if (value > marker.refMax * conv.factor * 0.3) {
+        return parseFloat((value / conv.factor).toPrecision(6));
+      }
+    }
   }
   return value;
 }
