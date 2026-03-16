@@ -170,7 +170,7 @@
   assert('main.js imports recommendations.js', mainSrc.includes("import './recommendations.js'"));
   assert('views.js has rec-modal placeholder', viewsSrc.includes('rec-modal-'));
   assert('views.js calls renderRecommendationSection', viewsSrc.includes('renderRecommendationSection'));
-  assert('views.js gates on marker status', viewsSrc.includes("_markerStatus === 'high' || _markerStatus === 'low'"));
+  assert('views.js shows recs for any marker with catalog slot', viewsSrc.includes('isProductRecsEnabled'));
   assert('chat.js calls detectSupplementSlots', chatSrc.includes('detectSupplementSlots'));
   assert('chat.js stores recSlots on message', chatSrc.includes('assistantMsg.recSlots'));
   assert('chat.js has rec-chat-wrapper class', chatSrc.includes('rec-chat-wrapper'));

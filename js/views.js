@@ -830,7 +830,8 @@ export function renderChartCard(id, marker, dateLabels) {
     rangeHtml = r.min != null || r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${fmtRange(r.min, r.max)} ${escapeHTML(marker.unit)}</div>` : '';
   }
   // "What can help" link for out-of-range markers with catalog slots
-  const recPlaceholder = (status === 'high' || status === 'low') ? `<div class="chart-card-rec" id="chart-rec-${id}"></div>` : '';
+  // Placeholder for "What can help" — filled async when catalog has a slot for this marker
+  const recPlaceholder = `<div class="chart-card-rec" id="chart-rec-${id}"></div>`;
   html += `</div>${rangeHtml}${recPlaceholder}</div>`;
   return html;
 }
@@ -1219,12 +1220,8 @@ export function showDetailModal(id, opts = {}) {
       </div>
     </div>
   </div>`;
-  // Recommendation placeholder — only for flagged markers
-  const _lastVal = nonNull.length ? nonNull[nonNull.length-1].v : null;
-  const _lastIdx = nonNull.length ? nonNull[nonNull.length-1].i : null;
-  const _lastRange = _lastIdx !== null ? getEffectiveRangeForDate(marker, _lastIdx) : null;
-  const _markerStatus = _lastRange ? getStatus(_lastVal, _lastRange.min, _lastRange.max) : 'missing';
-  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.isProductRecsEnabled && window.isProductRecsEnabled()) {
+  // Recommendation placeholder — shown for any marker with a catalog slot
+  if (window.isProductRecsEnabled && window.isProductRecsEnabled()) {
     html += `<div id="rec-modal-${id}"></div>`;
   }
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
@@ -1236,7 +1233,7 @@ export function showDetailModal(id, opts = {}) {
   modal.innerHTML = html;
   overlay.classList.add("show");
   // Async-fill recommendation section
-  if ((_markerStatus === 'high' || _markerStatus === 'low') && window.renderRecommendationSection) {
+  if (window.renderRecommendationSection) {
     window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3 })
       .then(h => {
         const el = document.getElementById('rec-modal-' + id);
