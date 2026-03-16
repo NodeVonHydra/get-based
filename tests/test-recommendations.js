@@ -172,7 +172,7 @@
   assert('views.js calls renderRecommendationSection', viewsSrc.includes('renderRecommendationSection'));
   assert('views.js shows recs for any marker with catalog slot', viewsSrc.includes('isProductRecsEnabled'));
   assert('chat.js calls detectSupplementSlots', chatSrc.includes('detectSupplementSlots'));
-  assert('chat.js stores recSlots on message', chatSrc.includes('assistantMsg.recSlots'));
+  assert('chat.js detects recSlots for live rendering', chatSrc.includes('_recSlots'));
   assert('chat.js has rec-chat-wrapper class', chatSrc.includes('rec-chat-wrapper'));
   assert('views.js has chart-card-rec placeholder', viewsSrc.includes('chart-card-rec'));
   assert('views.js has loadChartCardRecs function', viewsSrc.includes('function loadChartCardRecs'));
