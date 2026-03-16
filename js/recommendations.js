@@ -263,41 +263,6 @@ export function detectSupplementSlots(text) {
 }
 
 // ═══════════════════════════════════════════════
-// POPOVER (for context cards)
-// ═══════════════════════════════════════════════
-let _activePopover = null;
-
-function closeRecPopover() {
-  if (_activePopover) { _activePopover.remove(); _activePopover = null; }
-  document.removeEventListener('click', _popoverOutsideClick, true);
-}
-
-function _popoverOutsideClick(e) {
-  if (_activePopover && !_activePopover.contains(e.target)) closeRecPopover();
-}
-
-export async function openRecPopover(cardKey, slotKey, anchorEl) {
-  closeRecPopover();
-  const html = await renderRecommendationSection(slotKey, { label: 'What can help', maxProducts: 2 });
-  if (!html || !anchorEl.isConnected) return;
-  const pop = document.createElement('div');
-  pop.className = 'rec-popover';
-  pop.innerHTML = `<button class="rec-popover-close" onclick="event.stopPropagation();this.parentElement.remove()">&times;</button>${html}`;
-  pop.onclick = e => e.stopPropagation();
-  // Open the inner details by default in popover
-  const details = pop.querySelector('.rec-details');
-  if (details) details.open = true;
-  // Position near anchor
-  const rect = anchorEl.getBoundingClientRect();
-  pop.style.position = 'fixed';
-  pop.style.top = (rect.bottom + 6) + 'px';
-  pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 320)) + 'px';
-  document.body.appendChild(pop);
-  _activePopover = pop;
-  setTimeout(() => document.addEventListener('click', _popoverOutsideClick, true), 0);
-}
-
-// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -309,5 +274,4 @@ Object.assign(window, {
   getSlotsForCard,
   detectSupplementSlots,
   loadCatalog,
-  openRecPopover,
 });

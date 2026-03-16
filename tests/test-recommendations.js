@@ -177,7 +177,7 @@
   assert('views.js has chart-card-rec placeholder', viewsSrc.includes('chart-card-rec'));
   assert('views.js has loadChartCardRecs function', viewsSrc.includes('function loadChartCardRecs'));
   assert('views.js scrollToRec auto-opens details', viewsSrc.includes('scrollToRec'));
-  assert('openRecPopover on window', typeof window.openRecPopover === 'function');
+  assert('loadCatalog on window', typeof window.loadCatalog === 'function');
 
   // ═══════════════════════════════════════
   // 10. Settings toggle
