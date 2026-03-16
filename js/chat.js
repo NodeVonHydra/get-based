@@ -21,20 +21,42 @@ let _chatAbortController = null;
 // TYPEWRITER — smooth character trickle for streaming
 // ═══════════════════════════════════════════════
 function createTypewriter(el, typingEl, container) {
-  let target = '';     // full text received so far
-  let displayed = 0;   // chars already rendered
+  let target = '';
+  let displayed = 0;
   let timer = null;
+  let shouldAutoScroll = true;
+
+  function isNearBottom() {
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distanceFromBottom < 80;
+  }
+
+  function handleScroll() {
+    shouldAutoScroll = isNearBottom();
+  }
+
+  container.addEventListener('scroll', handleScroll);
 
   function tick() {
-    if (displayed >= target.length) { timer = null; return; }
-    // Trickle: render a batch proportional to how far behind we are
+    if (displayed >= target.length) {
+      timer = null;
+      return;
+    }
+
     const behind = target.length - displayed;
     const batch = Math.max(1, Math.ceil(behind * 0.3));
     displayed = Math.min(displayed + batch, target.length);
+
     if (typingEl.parentNode) typingEl.remove();
     if (!el.parentNode) container.appendChild(el);
+
     el.textContent = target.slice(0, displayed);
-    container.scrollTop = container.scrollHeight;
+
+    if (shouldAutoScroll) {
+      container.scrollTop = container.scrollHeight;
+    }
+
     timer = setTimeout(tick, 16);
   }
 
@@ -44,8 +66,12 @@ function createTypewriter(el, typingEl, container) {
       if (!timer) tick();
     },
     stop() {
-      if (timer) { clearTimeout(timer); timer = null; }
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
       displayed = target.length;
+      container.removeEventListener('scroll', handleScroll);
     }
   };
 }
