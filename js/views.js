@@ -544,6 +544,8 @@ export function dismissOnboarding() {
 // ═══════════════════════════════════════════════
 
 export function showCategory(categoryKey, preData) {
+  // Ensure catalog is preloaded for sorting and rec links
+  if (window.loadCatalog && !window._cachedCatalog) window.loadCatalog().then(c => { window._cachedCatalog = c; });
   const rawData = preData || getActiveData();
   const data = filterDatesByRange(rawData);
   const cat = data.categories[categoryKey];
@@ -1252,7 +1254,8 @@ export function showDetailModal(id, opts = {}) {
           el.innerHTML = h;
           if (opts.scrollToRec) {
             const details = el.querySelector('.rec-details');
-            if (details) { details.open = true; details.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+            if (details && !details.classList.contains('rec-gated')) details.open = true;
+            (details || el).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }
         }
       });

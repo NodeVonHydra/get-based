@@ -42,20 +42,6 @@
       ],
       "label": "Vitamin A"
     },
-    "vitamins.vitaminB12": {
-      "foodForms": [
-        "Beef liver",
-        "Sardines",
-        "Clams/mussels",
-        "Pasture-raised eggs"
-      ],
-      "forms": [
-        "Methylcobalamin",
-        "Hydroxocobalamin",
-        "Adenosylcobalamin"
-      ],
-      "label": "Vitamin B12"
-    },
     "electrolytes.magnesium": {
       "freeActions": [
         "Epsom salt baths (transdermal magnesium absorption)"
@@ -765,7 +751,7 @@
       "id": "easylight",
       "name": "Easylight",
       "url": {
-        "CZ": "",
+        "CZ": "https://www.easylight.sk/cs/",
         "SK": "https://easylight.sk"
       },
       "affiliateType": "coupon_code",
@@ -820,30 +806,6 @@
           "sk": "https://www.easylight.sk/sk/infrapanel-mitochondriak-maxi-uvb/"
         },
         "lastChecked": "2026-03-02T05:15:18.298Z"
-      }
-    ],
-    "biochemistry.ast": [
-      {
-        "type": "drug",
-        "form": "USP-grade pharmaceutical compound",
-        "brand": "Meraki Medicinal",
-        "name": "Meraki Blu USP Grade Methylene Blue 150mg",
-        "shop": "merakimedicinal",
-        "url": "https://www.merakimedicinal.com/products/meraki-blu-usp-grade-methylene-blue-150mg",
-        "affiliateUrl": null,
-        "priceCZK": null,
-        "priceEUR": null,
-        "dosage": "150mg per serving",
-        "servings": null,
-        "certifications": "USP Grade",
-        "notes": "Methylene blue is a USP-grade pharmaceutical compound used as a mitochondrial electron carrier and redox agent; supports cellular energy production, neuroprotection, and has antioxidant properties. Closest slot match is liver/mitochondrial support (biochemistry.ast) but primarily a mitochondrial/cognitive drug.",
-        "regions": [
-          "EU",
-          "US",
-          "INTL"
-        ],
-        "langUrls": null,
-        "lastChecked": "2026-03-02T09:54:19.457Z"
       }
     ]
   },

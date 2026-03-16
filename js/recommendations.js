@@ -110,7 +110,7 @@ function buildProductRow(product) {
 }
 
 function buildDisclosureFooter() {
-  return `<div class="rec-disclosure">Affiliate disclosure: We earn a small commission from links below. Brands cannot pay for placement.</div>`;
+  return `<div class="rec-disclosure">Some links may be affiliate links. Brands cannot pay for placement.</div>`;
 }
 
 function _buildDisclosureBanner() {

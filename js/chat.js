@@ -3454,7 +3454,7 @@ export async function sendChatMessage() {
 
     // Async-render supplement recommendations before action bar
     if (_recSlots.length && window.renderRecommendationSection) {
-      Promise.all(_recSlots.slice(0, 1).map(slot =>
+      Promise.all(_recSlots.map(slot =>
         window.renderRecommendationSection(slot, { label: 'What can help', maxProducts: 2 })
       )).then(htmlArr => {
         const combined = htmlArr.filter(Boolean).join('');

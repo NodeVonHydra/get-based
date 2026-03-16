@@ -3610,7 +3610,6 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-product-link { color: var(--accent); text-decoration: none; font-size: 12px; white-space: nowrap; }
 .rec-product-link:hover { text-decoration: underline; }
 .rec-disclosure { font-size: 10px; color: var(--text-muted); margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
-.rec-disclosure-help { cursor: help; color: var(--text-muted); text-decoration: underline; }
 .rec-chat-wrapper { margin-top: 8px; }
 .chart-card-rec { margin-top: 4px; }
 .chart-card-rec-link {
