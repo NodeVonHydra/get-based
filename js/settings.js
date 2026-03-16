@@ -510,12 +510,13 @@ export function initSettingsOllamaCheck() {
         }
         // Render model advisor — prefer Ollama-native details (/api/tags has sizes),
         // fall back to OpenAI-compatible details (LM Studio, Jan, etc.)
-        const modelDetails = (ollama.available && ollama.modelDetails?.length > 0)
+        const isOllamaServer = ollama.available && ollama.modelDetails?.length > 0;
+        const modelDetails = isOllamaServer
           ? ollama.modelDetails
           : (result.modelDetails || []);
         if (modelDetails.length > 0) {
           window._lastOllamaModelDetails = modelDetails;
-          renderModelAdvisor(modelDetails, modelSelect);
+          renderModelAdvisor(modelDetails, modelSelect, isOllamaServer);
         }
       } else if (result.available) {
         dot.classList.add('disconnected');
@@ -544,7 +545,7 @@ function isLocalUrl(url) {
   } catch { return true; }
 }
 
-async function renderModelAdvisor(modelDetails, modelSelect) {
+async function renderModelAdvisor(modelDetails, modelSelect, isOllama = false) {
   const advisorEl = document.getElementById('local-ai-advisor');
   if (!advisorEl) return;
   const serverUrl = getOllamaConfig().url;
@@ -608,15 +609,17 @@ async function renderModelAdvisor(modelDetails, modelSelect) {
     </div>`;
   }).join('');
 
-  // Upgrade suggestion — shown when no installed model is "recommended" tier
+  // Upgrade suggestion — only show ollama pull command for Ollama servers
   const upgrade = getUpgradeSuggestion(modelDetails, hw.gpu.vram ? hw : null);
   const suggestHtml = upgrade ? `
     <div class="model-advisor-suggest">
       <div class="model-advisor-suggest-title">Upgrade recommendation</div>
-      <div class="model-advisor-pull-row">
+      ${isOllama ? `<div class="model-advisor-pull-row">
         <code class="model-advisor-pull-cmd">ollama pull ${escapeHTML(upgrade.model)}</code>
         <button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 8px" onclick="copyOllamaPullCmd('ollama pull ${escapeAttr(upgrade.model)}')">Copy</button>
-      </div>
+      </div>` : `<div class="model-advisor-pull-row">
+        <code class="model-advisor-pull-cmd">${escapeHTML(upgrade.model)}</code>
+      </div>`}
       <div class="model-advisor-pull-why">${escapeHTML(upgrade.note)}</div>
     </div>` : '';
 
@@ -727,12 +730,13 @@ export async function testOllamaConnection() {
         modelSelect.innerHTML = models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
       }
       // Render model advisor — prefer Ollama-native, fall back to OpenAI-compatible
-      const modelDetails = (ollamaResult.available && ollamaResult.modelDetails?.length > 0)
+      const isOllamaServer = ollamaResult.available && ollamaResult.modelDetails?.length > 0;
+      const modelDetails = isOllamaServer
         ? ollamaResult.modelDetails
         : (result.modelDetails || []);
       if (modelDetails.length > 0 && modelSection && modelSelect) {
         window._lastOllamaModelDetails = modelDetails;
-        renderModelAdvisor(modelDetails, modelSelect);
+        renderModelAdvisor(modelDetails, modelSelect, isOllamaServer);
       }
     }
     // Also refresh privacy section status
