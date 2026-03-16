@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 31 ES modules loaded via `js/main.js`:
+- **`js/`** — 32 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
   - `adapters.js` — parser adapter registry for specialty labs. `ADAPTER_MARKERS` (194 entries), `detectProduct`, `normalizeWithAdapter`, `getAdapterByTestType`. Adapters: fattyAcids (29 markers, product detection), metabolomix (FA routing), oat (165 markers)
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
@@ -48,7 +48,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 23 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 24 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -128,7 +128,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-23 browser-based test files run headlessly:
+24 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
