@@ -1691,7 +1691,7 @@ export async function handleImageFile(file) {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
-    const mediaType = file.type || (file.name.match(/\.png$/i) ? 'image/png' : 'image/jpeg');
+    const mediaType = file.type || (file.name.match(/\.png$/i) ? 'image/png' : file.name.match(/\.webp$/i) ? 'image/webp' : 'image/jpeg');
     const images = [{ base64, mediaType, page: 1 }];
     const analysisStart = performance.now();
     const result = await parseLabPDFWithAIImages(images, file.name, _updateProgressPct);

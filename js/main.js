@@ -150,9 +150,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
       else if (imageFiles.length > 0) { for (const f of imageFiles) await window.handleImageFile(f); }
       else {
-        const forceImage = !!window._forceImageMode;
-        delete window._forceImageMode;
-        if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0], forceImage);
+        if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0]);
         else if (pdfFiles.length > 1) await window.handleBatchPDFs(pdfFiles);
       }
       e.target.value = '';
