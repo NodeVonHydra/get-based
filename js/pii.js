@@ -94,14 +94,20 @@ export async function checkOpenAICompatible(url, apiKey) {
     const models = raw.map(m => m.id).filter(Boolean);
     // Extract model details when available (LM Studio, Ollama /v1/models, Jan)
     // Parse param size and quant from model name when API doesn't provide them
+    // Estimate file size from params + quant when not reported by API
+    const QUANT_BPW = { q2: 0.3, q3: 0.4, q4: 0.55, q5: 0.65, q6: 0.8, q8: 1.0, fp16: 2.0, fp32: 4.0, int4: 0.55, int8: 1.0 };
     const modelDetails = raw.map(m => {
       const id = m.id || '';
-      const paramMatch = id.match(/[\-:](\d+\.?\d*[bB])/);
+      const paramMatch = id.match(/[\-:](\d+\.?\d*)[bB]/);
       const quantMatch = id.match(/(Q\d+_K(?:_[A-Z]+)?|Q\d+|fp16|fp32|int[48])/i);
+      const params = paramMatch ? parseFloat(paramMatch[1]) : 0;
+      const quantKey = quantMatch ? quantMatch[1].toLowerCase().replace(/_.*/, '') : '';
+      const bpw = QUANT_BPW[quantKey] || 0.55; // default to Q4 estimate
+      const estimatedSize = params > 0 ? Math.round(params * bpw * 1e9) : 0;
       return {
         name: id,
-        size: m.size || m.vram_required || 0,
-        paramSize: m.parameter_size || (paramMatch ? paramMatch[1].toUpperCase() : ''),
+        size: m.size || m.vram_required || estimatedSize,
+        paramSize: m.parameter_size || (params > 0 ? params + 'B' : ''),
         quantLevel: m.quantization || (quantMatch ? quantMatch[1] : ''),
         family: m.owned_by || '',
       };
