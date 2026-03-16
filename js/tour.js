@@ -8,6 +8,7 @@ const TOUR_STEPS = [
   { target: '#import-fab', title: 'Import More Labs', text: 'Click here to import another PDF lab report or JSON file. You can also drag and drop files anywhere on the page.', position: 'left' },
   { target: '.profile-compact-btn', title: 'Your Profile', text: 'Switch between profiles, manage clients, or load demo data. Click your name to open the client list.', position: 'bottom' },
   { target: '#sidebar-nav', title: 'Category Navigation', text: 'Browse marker categories \u2014 biochemistry, hormones, lipids, and more. On mobile use the hamburger menu.', position: 'right' },
+  { target: '.chart-card-rec-link', title: 'What Can Help', text: 'Out-of-range markers show actionable suggestions \u2014 free lifestyle changes, food sources, and supplements. Nature first, supplements last.', position: 'top' },
   { target: '.profile-context-cards', title: 'Lifestyle Context', text: 'Tell the AI about your diet, sleep, exercise, and more. The more you fill in, the better your insights.', position: 'bottom' },
   { target: '.settings-btn', title: 'Settings', text: 'Configure your profile, display preferences, and connect an AI provider.', position: 'bottom' },
   { target: '.feedback-btn', title: 'Send Feedback', text: 'Found a bug or have a feature idea? Report it here.', position: 'bottom' },

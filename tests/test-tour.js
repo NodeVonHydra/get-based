@@ -64,7 +64,7 @@
     ? tourSrc.slice(tourStepsStart, cycleStepsStart)
     : tourSrc.slice(tourStepsStart, tourStepsStart + 2000);
   const stepMatches = tourStepsSection.match(/\{ target:/g);
-  assert('Exactly 8 steps in TOUR_STEPS', stepMatches && stepMatches.length === 8, `found ${stepMatches ? stepMatches.length : 0}`);
+  assert('Exactly 9 steps in TOUR_STEPS', stepMatches && stepMatches.length === 9, `found ${stepMatches ? stepMatches.length : 0}`);
 
   // ═══════════════════════════════════════
   // 3. Window exports callable

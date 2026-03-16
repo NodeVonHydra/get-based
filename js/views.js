@@ -459,6 +459,12 @@ async function loadChartCardRecs() {
     const without = cards.filter(c => !c.querySelector('.chart-card-rec-link'));
     for (const c of [...withRec, ...without]) grid.appendChild(c);
   }
+  // One-time nudge
+  const recLinks = document.querySelectorAll('.chart-card-rec-link');
+  if (recLinks.length > 0 && !localStorage.getItem('labcharts-rec-nudge-seen')) {
+    localStorage.setItem('labcharts-rec-nudge-seen', '1');
+    showNotification(`${recLinks.length} marker${recLinks.length > 1 ? 's have' : ' has'} actionable suggestions \u2014 look for "What can help" on your charts`, 'info');
+  }
 }
 
 // ── Onboarding ──

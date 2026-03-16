@@ -3611,12 +3611,13 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-product-link:hover { text-decoration: underline; }
 .rec-disclosure { font-size: 10px; color: var(--text-muted); margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
 .rec-chat-wrapper { margin-top: 8px; }
-.chart-card-rec { margin-top: 4px; }
+.chart-card-rec { margin-top: 6px; }
 .chart-card-rec-link {
-  font-size: 11px; color: var(--accent); text-decoration: none;
-  opacity: 0.7; transition: opacity 0.15s;
+  display: inline-block; font-size: 11px; color: var(--accent); text-decoration: none;
+  padding: 2px 8px; border: 1px solid var(--accent); border-radius: 10px;
+  opacity: 0.6; transition: opacity 0.15s, background 0.15s;
 }
-.chart-card-rec-link:hover { opacity: 1; }
+.chart-card-rec-link:hover { opacity: 1; background: rgba(79,140,255,0.1); }
 /* Rec disclosure & warnings */
 .rec-disclosure-banner {
   background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);
