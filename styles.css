@@ -3599,7 +3599,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-details[open] > .rec-summary::before { transform: rotate(90deg); }
 .rec-summary:hover { border-color: var(--accent); color: var(--text-primary); }
 .rec-content { padding: 10px 14px 6px; }
-.rec-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 10px 0 4px; font-weight: 600; }
+.rec-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin: 10px 0 4px; font-weight: 600; }
 .rec-section-label:first-child { margin-top: 0; }
 .rec-tier-hint { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.7; font-style: italic; }
 .rec-item-free { color: var(--green); font-size: 13px; padding: 2px 0; }

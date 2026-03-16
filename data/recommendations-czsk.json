@@ -158,7 +158,7 @@
         "Regular exercise"
       ],
       "foodForms": [
-        "Fatty fish (same as HDL)"
+        "Fatty fish (salmon, sardines, mackerel)"
       ],
       "forms": [
         "High-EPA fish oil (2-4g EPA)",
@@ -306,7 +306,10 @@
         "Resistance training"
       ],
       "foodForms": [
-        "Same as insulin"
+        "Apple cider vinegar",
+        "Berries",
+        "Ceylon cinnamon",
+        "Fiber-rich meals"
       ],
       "forms": [
         "Berberine HCl",
@@ -476,10 +479,15 @@
     },
     "calculatedRatios.nlr": {
       "freeActions": [
-        "Sleep, stress management, moderate exercise (same as hs-CRP)"
+        "Sleep 7-9h (sleep deprivation raises CRP)",
+        "Reduce seed oils and ultra-processed food",
+        "Regular moderate exercise (intense overtraining raises CRP)"
       ],
       "foodForms": [
-        "Anti-inflammatory diet (same as hs-CRP)"
+        "Fatty fish",
+        "Turmeric + black pepper",
+        "Ginger",
+        "Dark leafy greens"
       ],
       "forms": [
         "Omega-3 (high-EPA)",
