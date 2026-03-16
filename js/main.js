@@ -139,9 +139,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const files = Array.from(e.target.files);
       const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
       const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+      const imageFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type?.startsWith('image/'));
       const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
       for (const f of jsonFiles) window.importDataJSON(f);
       if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+      else if (imageFiles.length > 0) { for (const f of imageFiles) await window.handleImageFile(f); }
       else {
         const forceImage = !!window._forceImageMode;
         delete window._forceImageMode;

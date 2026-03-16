@@ -148,7 +148,7 @@
     'parseLabPDFWithAI','showImportPreview','applyManualImportDate',
     'closeImportModal','confirmImport','removeImportedEntry',
     'setupDropZone','showImportProgress','hideImportProgress',
-    'handlePDFFile','handleBatchPDFs',
+    'handlePDFFile','handleImageFile','handleBatchPDFs',
     'showBatchImportProgress','showImportPreviewAsync'
   ];
 

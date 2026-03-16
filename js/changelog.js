@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.2', date: '2026-03-16', title: 'Image import + scanned PDF auto-detect',
+    items: [
+      'Import lab reports from photos/screenshots (JPG, PNG, WebP) — drop or browse, same AI pipeline as PDF image mode',
+      'Scanned PDFs auto-switch to image mode — no manual step needed (#67)',
+    ]
+  },
+  {
     version: '1.8.1', date: '2026-03-15', title: 'Biological Age + hs-CRP/HDL',
     items: [
       'Biological Age — combines PhenoAge (Levine 2018, 9 markers) and Bortz Age (Bortz 2023, 22 markers) into a single estimate with chronological age reference line',

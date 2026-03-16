@@ -13,3 +13,4 @@ docs/.vitepress/cache/
 BingSiteAuth.xml
 docs/plans/
 tools/
+dev-chrome.sh

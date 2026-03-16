@@ -932,14 +932,16 @@ export function setupDropZone() {
     if (files.length === 0) return;
     const jsonFiles = files.filter(f => f.name.endsWith('.json') || f.type === 'application/json');
     const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
+    const imageFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type?.startsWith('image/'));
     const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
-    const unsupported = files.length - jsonFiles.length - pdfFiles.length - dnaFiles.length;
-    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && dnaFiles.length === 0) {
-      showNotification("Unsupported file type. Use PDF, JSON, or DNA raw data (.txt/.csv).", "error");
+    const unsupported = files.length - jsonFiles.length - pdfFiles.length - imageFiles.length - dnaFiles.length;
+    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && imageFiles.length === 0 && dnaFiles.length === 0) {
+      showNotification("Unsupported file type. Use PDF, image, JSON, or DNA raw data (.txt/.csv).", "error");
       return;
     }
     for (const f of jsonFiles) window.importDataJSON(f);
     if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+    else if (imageFiles.length > 0) { for (const f of imageFiles) await handleImageFile(f); }
     else if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
   });
@@ -1034,9 +1036,8 @@ export function hideImportProgress(reason = 'success') {
     dropZone.innerHTML = '';
   } else {
     dropZone.innerHTML = `<div class="drop-zone-icon">\uD83D\uDCC4</div>
-      <div class="drop-zone-text">Drop PDF, JSON, or DNA raw data file here, or click to browse</div>
-      <div class="drop-zone-hint">AI-powered \u2014 works with any lab PDF report or getbased JSON export</div>
-      <div class="drop-zone-hint" style="margin-top:4px"><a href="#" onclick="event.preventDefault();event.stopPropagation();document.getElementById('pdf-input').click();window._forceImageMode=true" style="color:var(--text-muted);font-size:11px;text-decoration:underline">Scanned PDF? Force image mode</a></div>`;
+      <div class="drop-zone-text">Drop PDF, image, JSON, or DNA raw data file here, or click to browse</div>
+      <div class="drop-zone-hint">AI-powered \u2014 works with any lab report (PDF, photo, screenshot) or getbased JSON export</div>`;
   }
 }
 
@@ -1278,24 +1279,11 @@ export async function handlePDFFile(file, forceImageMode = false) {
     const pdfText = await extractPDFText(file);
     const textQuality = assessTextQuality(pdfText);
 
-    // Determine import mode
+    // Determine import mode — auto-switch to image mode for scanned/empty PDFs
     let useImageMode = forceImageMode;
     if (!forceImageMode && (textQuality === 'empty' || textQuality === 'poor')) {
-      if (!hasAIProvider()) {
-        hideImportProgress('error');
-        showNotification("AI provider not configured. Opening settings...", "info");
-        setTimeout(() => window.openSettingsModal(), 500);
-        return;
-      }
-      hideImportProgress('cancel');
-      const choice = await _showImageModeDialog();
-      if (choice === 'cancel') { showNotification('Import cancelled.', 'info'); return; }
-      useImageMode = choice === 'image';
-      if (!useImageMode && textQuality === 'empty') {
-        showNotification("PDF appears empty — no text extracted", "error");
-        return;
-      }
-      await showImportProgress(0, file.name);
+      useImageMode = true;
+      if (isDebugMode()) console.log(`[Import] Auto-switching to image mode (text quality: ${textQuality})`);
     }
 
     if (useImageMode) {
@@ -1681,6 +1669,55 @@ export function showImportPreviewAsync(result, fileName, current, total) {
 }
 
 // ═══════════════════════════════════════════════
+// IMAGE FILE IMPORT (JPG/PNG lab reports)
+// ═══════════════════════════════════════════════
+export async function handleImageFile(file) {
+  if (!hasAIProvider()) {
+    showNotification("AI provider not configured. Opening settings...", "info");
+    setTimeout(() => window.openSettingsModal(), 500);
+    return;
+  }
+  const _startProfileId = state.currentProfile;
+  try {
+    await showImportProgress(3, file.name);
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const mediaType = file.type || (file.name.match(/\.png$/i) ? 'image/png' : 'image/jpeg');
+    const images = [{ base64, mediaType, page: 1 }];
+    const analysisStart = performance.now();
+    const result = await parseLabPDFWithAIImages(images, file.name, _updateProgressPct);
+    const analysisTime = Math.round((performance.now() - analysisStart) / 1000);
+    if (isDebugMode()) console.log(`[Analysis] Image file parsed in ${analysisTime}s`);
+    result.privacyMethod = 'none (image mode)';
+    result.timings = { pii: 0, analysis: analysisTime };
+    const prov = result.provider || getAIProvider();
+    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+    result.costInfo = {
+      provider: prov, modelId: mid,
+      inputTokens: result.usage?.inputTokens || 0,
+      outputTokens: result.usage?.outputTokens || 0,
+      cost: calculateCost(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0)
+    };
+    trackUsage(prov, mid, result.usage?.inputTokens || 0, result.usage?.outputTokens || 0);
+    result.importHash = hashString(file.name + file.size);
+    result._importProfileId = _startProfileId;
+    if (!result.date) showNotification("Could not find collection date in image", "error");
+    if (result.markers.length === 0) { hideImportProgress('error'); showNotification("No biomarkers found in image", "error"); return; }
+    await showImportProgress(4, file.name);
+    showImportPreview(result);
+    hideImportProgress();
+  } catch (err) {
+    if (isDebugMode()) console.error('Image import error:', err);
+    hideImportProgress('error');
+    showNotification(`Import failed: ${err.message}`, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -1702,6 +1739,7 @@ Object.assign(window, {
   extractPDFImages,
   parseLabPDFWithAIImages,
   handlePDFFile,
+  handleImageFile,
   handleBatchPDFs,
   showBatchImportProgress,
   showImportPreviewAsync,
