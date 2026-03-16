@@ -225,8 +225,8 @@ export function showDashboard(data) {
   if (hasData) loadChartCardRecs();
   loadContextHealthDots();
   loadCommitHash();
-  // Preload catalog so rec sections render instantly when detail modal opens
-  if (window.loadCatalog) window.loadCatalog();
+  // Preload catalog so rec sections and sorting use it immediately
+  if (window.loadCatalog) window.loadCatalog().then(c => { window._cachedCatalog = c; });
 
   // Auto-trigger guided tour on first visit — but skip if no data (chat onboarding handles new users)
   const _p = window.getProfiles?.()?.find(p => p.id === state.currentProfile);
@@ -452,6 +452,13 @@ async function loadChartCardRecs() {
     };
     el.appendChild(link);
   }
+  // Reorder chart cards: those with rec links first (within each grid)
+  for (const grid of document.querySelectorAll('.charts-grid')) {
+    const cards = Array.from(grid.querySelectorAll('.chart-card'));
+    const withRec = cards.filter(c => c.querySelector('.chart-card-rec-link'));
+    const without = cards.filter(c => !c.querySelector('.chart-card-rec-link'));
+    for (const c of [...withRec, ...without]) grid.appendChild(c);
+  }
 }
 
 // ── Onboarding ──
@@ -565,9 +572,13 @@ export function showCategory(categoryKey, preData) {
   } else if (cat.singleDate) {
     html += renderFattyAcidsView(cat, categoryKey);
   } else {
-    // Sort: out-of-range markers first, then normal
+    // Sort: markers with catalog slots first, then by status (out-of-range before normal)
+    const catalog = window._cachedCatalog;
+    const hasSlot = (k) => catalog?.slots?.[categoryKey + '.' + k] ? 0 : 1;
     const statusOrder = { high: 0, low: 0, normal: 1, missing: 2 };
-    withData.sort(([, a], [, b]) => {
+    withData.sort(([ka, a], [kb, b]) => {
+      const slotDiff = hasSlot(ka) - hasSlot(kb);
+      if (slotDiff !== 0) return slotDiff;
       const ai = getLatestValueIndex(a.values), bi = getLatestValueIndex(b.values);
       const ar = ai !== -1 ? getEffectiveRangeForDate(a, ai) : { min: null, max: null };
       const br = bi !== -1 ? getEffectiveRangeForDate(b, bi) : { min: null, max: null };
