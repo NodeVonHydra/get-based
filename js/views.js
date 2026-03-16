@@ -565,6 +565,16 @@ export function showCategory(categoryKey, preData) {
   } else if (cat.singleDate) {
     html += renderFattyAcidsView(cat, categoryKey);
   } else {
+    // Sort: out-of-range markers first, then normal
+    const statusOrder = { high: 0, low: 0, normal: 1, missing: 2 };
+    withData.sort(([, a], [, b]) => {
+      const ai = getLatestValueIndex(a.values), bi = getLatestValueIndex(b.values);
+      const ar = ai !== -1 ? getEffectiveRangeForDate(a, ai) : { min: null, max: null };
+      const br = bi !== -1 ? getEffectiveRangeForDate(b, bi) : { min: null, max: null };
+      const as = ai !== -1 ? getStatus(a.values[ai], ar.min, ar.max) : 'missing';
+      const bs = bi !== -1 ? getStatus(b.values[bi], br.min, br.max) : 'missing';
+      return (statusOrder[as] ?? 2) - (statusOrder[bs] ?? 2);
+    });
     html += `<div class="charts-grid">`;
     for (const [key, marker] of withData) {
       html += renderChartCard(categoryKey + "_" + key, marker, data.dateLabels);
