@@ -225,6 +225,8 @@ export function showDashboard(data) {
   if (hasData) loadChartCardRecs();
   loadContextHealthDots();
   loadCommitHash();
+  // Preload catalog so rec sections render instantly when detail modal opens
+  if (window.loadCatalog) window.loadCatalog();
 
   // Auto-trigger guided tour on first visit — but skip if no data (chat onboarding handles new users)
   const _p = window.getProfiles?.()?.find(p => p.id === state.currentProfile);
