@@ -20,10 +20,15 @@ export function detectDNAFile(text) {
   const firstLine = first.split(/\r?\n/)[0].trim();
   if (/^RSID,CHROMOSOME,POSITION,RESULT$/i.test(firstLine)) return 'csv'; // MyHeritage or FTDNA
   if (/^"?RSID"?,/i.test(firstLine)) return 'csv'; // quoted variant
+  // Tab-separated: rsid\tchromosome\tposition\tgenotype (23andMe without header, or stripped)
+  if (/^rsid\tchromosome\tposition\tgenotype/i.test(firstLine)) return '23andme';
+  // Headerless: lines starting with rs followed by tab-separated fields (rsid\tchr\tpos\tAA)
+  const dataLines = first.split(/\r?\n/).filter(l => l.trim() && !l.startsWith('#'));
+  if (dataLines.length > 0 && /^rs\d+\t\d+\t\d+\t[ACGT\-]{1,2}$/i.test(dataLines[0].trim())) return '23andme';
   return null;
 }
 
-// Check if a dropped/selected file looks like a DNA raw data file
+// Check if a dropped/selected file looks like a DNA raw data file (by name only — sync check)
 export function isDNAFile(file) {
   if (!file) return false;
   const name = file.name.toLowerCase();
@@ -33,7 +38,16 @@ export function isDNAFile(file) {
   if (name.includes('myheritage') && name.includes('dna')) return true;
   if (name.includes('family_finder')) return true;
   if (name.includes('livingdna') || name.includes('living_dna')) return true;
+  if (name.includes('genome') || name.includes('genotype') || name.includes('raw_dna') || name.includes('rawdna')) return true;
   return false;
+}
+
+// Content-based DNA detection — reads first 500 bytes (async)
+export async function isDNAFileByContent(file) {
+  try {
+    const header = await file.slice(0, 500).text();
+    return detectDNAFile(header) !== null;
+  } catch { return false; }
 }
 
 // ═══════════════════════════════════════════════
@@ -617,6 +631,7 @@ function getRelevantSNPs(dotKey) {
 // ═══════════════════════════════════════════════
 Object.assign(window, {
   isDNAFile,
+  isDNAFileByContent,
   handleDNAFile,
   closeDNAImportPreview,
   confirmDNAImport,

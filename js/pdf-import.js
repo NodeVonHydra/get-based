@@ -934,6 +934,11 @@ export function setupDropZone() {
     const pdfFiles = files.filter(f => f.name.endsWith('.pdf') || f.type === 'application/pdf');
     const imageFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type?.startsWith('image/'));
     const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
+    // Unmatched .txt/.csv — check content for DNA format
+    const unmatched = files.filter(f => !jsonFiles.includes(f) && !pdfFiles.includes(f) && !imageFiles.includes(f) && !dnaFiles.includes(f) && /\.(txt|csv)$/i.test(f.name));
+    for (const f of unmatched) {
+      if (window.isDNAFileByContent && await window.isDNAFileByContent(f)) dnaFiles.push(f);
+    }
     const unsupported = files.length - jsonFiles.length - pdfFiles.length - imageFiles.length - dnaFiles.length;
     if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && imageFiles.length === 0 && dnaFiles.length === 0) {
       showNotification("Unsupported file type. Use PDF, image, JSON, or DNA raw data (.txt/.csv).", "error");
