@@ -10,8 +10,10 @@
   "slots": {
     "vitamins.vitaminD": {
       "freeActions": [
-        "15-30 min midday sunlight with skin exposed",
-        "Spend time outdoors — even overcast sky provides some UVB"
+        "Midday sun with maximum skin exposed (UVB peaks 10am-2pm)",
+        "Ground barefoot while sunbathing (electrons + photons together)",
+        "No sunscreen for the first 15-30 min — build solar callus gradually",
+        "Cold exposure after sun (CT upregulates vitamin D receptors)"
       ],
       "productForms": [
         "UVB light panel",
@@ -40,11 +42,16 @@
         "Cod liver oil (supplement)",
         "Beta-carotene"
       ],
-      "label": "Vitamin A"
+      "label": "Vitamin A",
+      "freeActions": [
+        "Morning sunlight (vitamin A and D work synergistically with light)"
+      ]
     },
     "electrolytes.magnesium": {
       "freeActions": [
-        "Epsom salt baths (transdermal magnesium absorption)"
+        "Ground barefoot on earth (electrons + mineral exchange)",
+        "Epsom salt baths (transdermal magnesium absorption)",
+        "Drink spring water (natural mineral content)"
       ],
       "foodForms": [
         "Pumpkin seeds",
@@ -73,7 +80,11 @@
         "Potassium bicarbonate",
         "Potassium chloride"
       ],
-      "label": "Potassium"
+      "label": "Potassium",
+      "freeActions": [
+        "Drink spring water (natural electrolyte balance)",
+        "Ground barefoot (earth connection supports mineral homeostasis)"
+      ]
     },
     "electrolytes.zinc": {
       "foodForms": [
@@ -87,7 +98,11 @@
         "Zinc carnosine",
         "Zinc bisglycinate"
       ],
-      "label": "Zinc"
+      "label": "Zinc",
+      "freeActions": [
+        "Morning sunlight (supports zinc-dependent enzyme activation)",
+        "Reduce nnEMF (zinc is depleted by oxidative stress from EMF)"
+      ]
     },
     "electrolytes.copper": {
       "foodForms": [
@@ -100,11 +115,15 @@
         "Copper bisglycinate",
         "Copper sebacate"
       ],
-      "label": "Copper"
+      "label": "Copper",
+      "freeActions": [
+        "Morning sunlight (copper-dependent enzymes like ceruloplasmin are light-activated)"
+      ]
     },
     "iron.ferritin": {
       "freeActions": [
-        "Cook in cast iron (leaches bioavailable iron into food)"
+        "Cook in cast iron (leaches bioavailable iron into food)",
+        "Morning sunlight (light supports iron recycling via hepcidin)"
       ],
       "foodForms": [
         "Beef liver",
@@ -121,7 +140,8 @@
     },
     "lipids.hdl": {
       "freeActions": [
-        "Regular aerobic exercise (raises HDL naturally)",
+        "Cold exposure — CT raises HDL naturally",
+        "Regular movement in sunlight (outdoor exercise > gym)",
         "Reduce refined carbs and seed oils"
       ],
       "foodForms": [
@@ -141,7 +161,8 @@
     "lipids.triglycerides": {
       "freeActions": [
         "Cut sugar and refined carbs (biggest dietary driver of high TG)",
-        "Regular exercise"
+        "Cold exposure (activates fat burning pathways)",
+        "Eat within daylight hours — no late-night eating"
       ],
       "foodForms": [
         "Fatty fish (salmon, sardines, mackerel)"
@@ -154,8 +175,9 @@
     },
     "lipids.ldl": {
       "freeActions": [
-        "Daily movement — even walking lowers LDL",
-        "Reduce processed food and seed oils"
+        "Morning sunlight + daily outdoor movement",
+        "Reduce oxidative stress — seed oils, nnEMF, blue light at night all oxidize LDL",
+        "Cold exposure (improves lipid metabolism)"
       ],
       "foodForms": [
         "Oats/soluble fiber",
@@ -179,12 +201,19 @@
         "Selenomethionine",
         "Selenium + Zinc combo"
       ],
-      "label": "Selenium (Thyroid)"
+      "label": "Selenium (Thyroid)",
+      "freeActions": [
+        "Morning sunlight within 30 min of waking",
+        "Cold exposure (stimulates thyroid activity)",
+        "Reduce nnEMF — WiFi off at night, phone away from thyroid"
+      ]
     },
     "thyroid.ft3": {
       "freeActions": [
-        "Manage stress (cortisol blocks T4→T3 conversion)",
-        "Sleep 7-9h (thyroid hormone conversion peaks during sleep)"
+        "Morning sunlight (light drives thyroid hormone conversion)",
+        "Cold exposure (CT activates thyroid, increases T3)",
+        "Reduce nnEMF (non-native EMF disrupts thyroid)",
+        "Sleep 7-9h (T4→T3 conversion peaks during sleep)"
       ],
       "foodForms": [
         "Brazil nuts + pumpkin seeds",
@@ -198,10 +227,11 @@
     },
     "hormones.testosterone": {
       "freeActions": [
+        "Morning sunlight on skin within 30 min of waking (sets circadian T production)",
+        "Cold exposure — cold shower, ice bath, or cold water immersion",
         "Heavy compound lifts (squat, deadlift, press)",
-        "Sleep 7-9h in a dark cold room",
-        "Reduce alcohol",
-        "Morning sunlight on skin (supports circadian-linked T production)"
+        "Sleep 7-9h in a pitch-dark, cold room (below 19°C)",
+        "Reduce nnEMF — phone out of bedroom, WiFi off at night"
       ],
       "foodForms": [
         "Oysters",
@@ -222,11 +252,17 @@
         "Boron (calcium fructoborate)",
         "Stinging nettle root"
       ],
-      "label": "SHBG (Boron)"
+      "label": "SHBG (Boron)",
+      "freeActions": [
+        "Morning sunlight (circadian rhythm regulates SHBG)",
+        "Cold exposure"
+      ]
     },
     "hormones.dheaS": {
       "freeActions": [
-        "Sleep 7-9h (DHEA is produced during deep sleep)",
+        "Morning sunlight (light drives adrenal hormone production)",
+        "Sleep 7-9h in complete darkness (DHEA produced during deep sleep)",
+        "Cold exposure (stimulates adrenal function)",
         "Reduce chronic stress (cortisol steals the same precursor)"
       ],
       "forms": [
@@ -238,7 +274,9 @@
     },
     "hormones.estradiol": {
       "freeActions": [
-        "Reduce body fat (adipose tissue aromatizes testosterone → estrogen)",
+        "Cold exposure (improves estrogen metabolism)",
+        "Reduce body fat (adipose tissue aromatizes T → estrogen)",
+        "Morning sunlight (circadian rhythm regulates sex hormones)",
         "Reduce alcohol (impairs estrogen clearance)"
       ],
       "foodForms": [
@@ -254,9 +292,11 @@
     },
     "hormones.insulin": {
       "freeActions": [
+        "Morning sunlight — sets circadian clock, improves insulin sensitivity",
         "Walk 15 min after meals (most effective glucose intervention)",
-        "Eat protein/fat before carbs (blunts glucose spike)",
-        "Resistance training (improves insulin sensitivity for 24-48h)"
+        "Cold exposure — cold activates GLUT4 transporters without insulin",
+        "Eat within daylight hours only (circadian-aligned eating)",
+        "Eat protein/fat before carbs (blunts glucose spike)"
       ],
       "foodForms": [
         "Apple cider vinegar",
@@ -275,7 +315,8 @@
     "hormones.igf1": {
       "freeActions": [
         "Resistance training (strongest natural IGF-1 stimulus)",
-        "Sleep 7-9h (GH/IGF-1 axis peaks during deep sleep)"
+        "Sleep 7-9h in cold, dark room (GH/IGF-1 axis peaks during deep sleep)",
+        "Morning sunlight (circadian GH release)"
       ],
       "foodForms": [
         "Adequate protein (1.6-2.2g/kg)"
@@ -287,8 +328,10 @@
     },
     "biochemistry.glucose": {
       "freeActions": [
-        "Post-meal walks",
-        "Eat protein/fat before carbs",
+        "Morning sunlight — sets circadian clock, improves insulin sensitivity",
+        "Post-meal walks (blunts glucose spike)",
+        "Cold exposure — activates GLUT4 without insulin",
+        "Eat within daylight hours only",
         "Resistance training"
       ],
       "foodForms": [
@@ -308,6 +351,8 @@
     "biochemistry.ast": {
       "freeActions": [
         "Reduce/eliminate alcohol",
+        "Morning sunlight + grounding (supports liver detox pathways)",
+        "Cold exposure (reduces liver inflammation)",
         "Avoid unnecessary medications (esp. NSAIDs, acetaminophen)"
       ],
       "foodForms": [
@@ -325,7 +370,8 @@
     "biochemistry.ggt": {
       "freeActions": [
         "Eliminate alcohol (GGT is the most sensitive alcohol marker)",
-        "Regular exercise (upregulates glutathione synthesis)"
+        "Morning sunlight + grounding (glutathione recycling is light-dependent)",
+        "Cold exposure (upregulates glutathione synthesis)"
       ],
       "foodForms": [
         "Same sulfur foods as liver"
@@ -339,8 +385,9 @@
     },
     "biochemistry.uricAcid": {
       "freeActions": [
-        "Stay well hydrated (dilutes uric acid, aids excretion)",
-        "Reduce fructose / high-purine foods (beer, organ meats, shellfish)"
+        "Hydrate with spring water (dilutes uric acid, aids excretion)",
+        "Ground barefoot (electrons help neutralize uric acid crystals)",
+        "Reduce fructose (biggest dietary driver of uric acid)"
       ],
       "foodForms": [
         "Tart cherries/juice",
@@ -355,9 +402,11 @@
     },
     "proteins.hsCRP": {
       "freeActions": [
-        "Sleep 7-9h (sleep deprivation raises CRP)",
-        "Reduce seed oils and ultra-processed food",
-        "Regular moderate exercise (intense overtraining raises CRP)"
+        "Morning sunlight (sets anti-inflammatory circadian rhythm)",
+        "Cold thermogenesis — cold is a potent anti-inflammatory",
+        "Ground barefoot on earth 15-30 min (electrons neutralize free radicals)",
+        "Sleep 7-9h in complete darkness (sleep deprivation raises CRP)",
+        "Reduce seed oils and ultra-processed food"
       ],
       "foodForms": [
         "Fatty fish",
@@ -385,7 +434,11 @@
         "TMG (Betaine)",
         "Riboflavin (B2)"
       ],
-      "label": "Homocysteine / methylation"
+      "label": "Homocysteine / methylation",
+      "freeActions": [
+        "Morning sunlight (supports methylation pathways)",
+        "Reduce nnEMF (oxidative stress depletes B vitamins)"
+      ]
     },
     "hematology.mcv": {
       "foodForms": [
@@ -397,7 +450,10 @@
         "5-MTHF (Methylfolate)",
         "B12 + Folate combo"
       ],
-      "label": "MCV (macrocytic)"
+      "label": "MCV (macrocytic)",
+      "freeActions": [
+        "Morning sunlight (supports B12 and folate metabolism)"
+      ]
     },
     "hematology.rdwcv": {
       "forms": [
@@ -405,7 +461,10 @@
         "B12 + Folate",
         "Iron + B12 + Folate combo"
       ],
-      "label": "RDW-CV"
+      "label": "RDW-CV",
+      "freeActions": [
+        "Morning sunlight (supports healthy red blood cell production)"
+      ]
     },
     "fattyAcids.omega3Index": {
       "foodForms": [
@@ -420,7 +479,12 @@
         "High-DHA concentrate",
         "Algal DHA/EPA"
       ],
-      "label": "Omega-3 Index"
+      "label": "Omega-3 Index",
+      "freeActions": [
+        "Eat seafood 3-5x/week — DHA from fish is fundamentally different from fish oil pills",
+        "Morning sunlight (DHA in cell membranes converts photons to DC electric current)",
+        "Cold exposure (cold activates DHA-rich brown fat)"
+      ]
     },
     "boneMetabolism.osteocalcin": {
       "freeActions": [
@@ -441,7 +505,9 @@
     },
     "calculatedRatios.tgHdlRatio": {
       "freeActions": [
-        "Cut sugar/refined carbs + regular exercise (addresses both sides of the ratio)"
+        "Cut sugar/refined carbs + cold exposure (addresses both sides)",
+        "Outdoor exercise in sunlight",
+        "Circadian-aligned eating — no food after sunset"
       ],
       "foodForms": [
         "Fatty fish + reduce refined carbs"
@@ -461,13 +527,19 @@
       "forms": [
         "Zinc picolinate"
       ],
-      "label": "Cu/Zn ratio"
+      "label": "Cu/Zn ratio",
+      "freeActions": [
+        "Morning sunlight (copper enzymes are light-activated)",
+        "Reduce nnEMF (zinc depleted by EMF-driven oxidative stress)"
+      ]
     },
     "calculatedRatios.nlr": {
       "freeActions": [
-        "Sleep 7-9h (sleep deprivation raises CRP)",
-        "Reduce seed oils and ultra-processed food",
-        "Regular moderate exercise (intense overtraining raises CRP)"
+        "Morning sunlight (sets anti-inflammatory circadian rhythm)",
+        "Cold thermogenesis — cold reduces systemic inflammation",
+        "Ground barefoot on earth 15-30 min",
+        "Sleep 7-9h in complete darkness",
+        "Reduce seed oils and ultra-processed food"
       ],
       "foodForms": [
         "Fatty fish",
@@ -484,9 +556,9 @@
     },
     "light.blueBlockers": {
       "freeActions": [
-        "Avoid screens 1-2h before bed",
-        "Use built-in Night Shift / Night Light on devices",
-        "Dim room lights after sunset"
+        "After sunset: candles, firelight, or dim incandescent bulbs only",
+        "No screens 1-2h before bed — or use blue-blocking glasses as compromise",
+        "Remove/cover all LED standby lights in bedroom"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -498,8 +570,9 @@
     },
     "light.morningLight": {
       "freeActions": [
-        "Go outside within 30 min of waking (even overcast works)",
-        "Have coffee/breakfast outside or by a window"
+        "Go outside within 30 min of waking — no sunglasses (light enters through eyes)",
+        "Face the sun with eyes open (not staring — ambient light through retina)",
+        "Even overcast sky provides 10,000+ lux — far more than any indoor light"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -510,8 +583,10 @@
     },
     "light.coldExposure": {
       "freeActions": [
-        "End shower with 30-90s cold water",
-        "Cold face splash (triggers dive reflex, lowers heart rate)"
+        "Cold shower — start with 30s cold at the end, build to full cold",
+        "Face dunking in ice water (triggers mammalian dive reflex)",
+        "Progress to cold baths/lake/ocean swims",
+        "CT after sunlight is the optimal sequence"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -523,8 +598,9 @@
     },
     "light.grounding": {
       "freeActions": [
-        "Walk barefoot on grass, soil, or sand for 15-30 min",
-        "Sit or stand on natural ground while working outside"
+        "Walk barefoot on grass, soil, sand, or concrete for 15-30 min",
+        "Wet ground is more conductive — after rain or morning dew is ideal",
+        "Combine with sunlight for maximum benefit (photons + electrons)"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -536,8 +612,9 @@
     },
     "light.screenTime": {
       "freeActions": [
+        "Get outside between screen sessions — natural light resets the damage",
         "20-20-20 rule (every 20 min, look 20 feet away for 20 sec)",
-        "Take regular screen breaks — walk, stretch, look outside"
+        "Work near a window — indoor lighting is 100-500 lux vs 10,000+ outdoors"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -549,8 +626,9 @@
     },
     "sleep.blackout": {
       "freeActions": [
-        "Cover LED standby lights with tape",
-        "Use existing towels/blankets over curtain rod"
+        "Complete darkness — if you can see your hand, it is not dark enough",
+        "Cover all LED standby lights with tape",
+        "No phone/screens in the bedroom"
       ],
       "card": "Sleep & Rest",
       "forms": [
@@ -572,8 +650,9 @@
     },
     "sleep.cooling": {
       "freeActions": [
-        "Open a window or crack the door (18-19°C ideal)",
-        "Lighter bedding — swap duvet for a sheet in summer"
+        "Bedroom below 19°C / 66°F (cold triggers melatonin release)",
+        "Sleep naked or minimal clothing (let body thermoregulate)",
+        "Open window year-round if safe"
       ],
       "card": "Sleep & Rest",
       "forms": [
@@ -585,7 +664,8 @@
     },
     "env.waterFilter": {
       "freeActions": [
-        "Check local water quality report (know what you are filtering for)"
+        "Spring water is the gold standard — find a local spring (findaspring.com)",
+        "If filtering: know your local water report first, then filter accordingly"
       ],
       "card": "Environment",
       "forms": [
@@ -620,8 +700,10 @@
     },
     "env.wifiTimer": {
       "freeActions": [
-        "Turn WiFi router off at night manually",
-        "Use airplane mode on phone while sleeping"
+        "Turn WiFi router off at night (or use a timer)",
+        "Hardwire ethernet where possible — WiFi off entirely is ideal",
+        "Phone on airplane mode while sleeping, outside the bedroom",
+        "No electronics in the bedroom"
       ],
       "card": "Environment",
       "forms": [
@@ -656,8 +738,9 @@
     },
     "env.lighting": {
       "freeActions": [
-        "Use candles or dimmed lights in the evening",
-        "Turn off overhead lights — use a single side lamp instead"
+        "Replace LEDs with incandescent or halogen bulbs (full spectrum, low blue)",
+        "After sunset: candles, firelight, or salt lamps only",
+        "No overhead lighting at night — one dim side lamp at most"
       ],
       "card": "Environment",
       "forms": [
@@ -682,9 +765,10 @@
     },
     "diet.digestiveEnzymes": {
       "freeActions": [
+        "Eat in sunlight when possible (light activates digestive enzymes)",
         "Chew food thoroughly (digestion starts in the mouth)",
-        "Don't drink large amounts of water with meals (dilutes stomach acid)",
-        "Eat slowly and without screens"
+        "Don't drink large amounts of water with meals",
+        "Eat slowly, without screens, seated"
       ],
       "card": "Diet & Digestion",
       "forms": [
@@ -706,7 +790,8 @@
     },
     "diet.dao": {
       "freeActions": [
-        "Eat food fresh — histamine builds up in leftovers, aged foods, fermented foods",
+        "Eat food fresh — histamine builds up in leftovers and aged foods",
+        "Morning sunlight (DAO enzyme production is circadian-linked)",
         "Keep a food diary to identify personal triggers"
       ],
       "card": "Diet & Digestion",
@@ -732,9 +817,10 @@
     },
     "stress.adaptogens": {
       "freeActions": [
-        "Box breathing (4-4-4-4) or 4-7-8 breathing — free, instant cortisol reduction",
-        "Time in nature (even 20 min lowers cortisol measurably)",
-        "Journaling, meditation, or prayer"
+        "Morning sunlight (resets cortisol rhythm naturally)",
+        "Cold exposure (hormetic stress that builds resilience)",
+        "Ground barefoot in nature (measurably lowers cortisol)",
+        "Box breathing (4-4-4-4) — free, instant cortisol reduction"
       ],
       "card": "Stress",
       "forms": [
