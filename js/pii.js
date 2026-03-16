@@ -93,13 +93,19 @@ export async function checkOpenAICompatible(url, apiKey) {
     const raw = data.data || [];
     const models = raw.map(m => m.id).filter(Boolean);
     // Extract model details when available (LM Studio, Ollama /v1/models, Jan)
-    const modelDetails = raw.map(m => ({
-      name: m.id,
-      size: m.size || m.vram_required || 0,
-      paramSize: m.parameter_size || '',
-      quantLevel: m.quantization || '',
-      family: m.owned_by || '',
-    })).filter(m => m.name);
+    // Parse param size and quant from model name when API doesn't provide them
+    const modelDetails = raw.map(m => {
+      const id = m.id || '';
+      const paramMatch = id.match(/[\-:](\d+\.?\d*[bB])/);
+      const quantMatch = id.match(/(Q\d+_K(?:_[A-Z]+)?|Q\d+|fp16|fp32|int[48])/i);
+      return {
+        name: id,
+        size: m.size || m.vram_required || 0,
+        paramSize: m.parameter_size || (paramMatch ? paramMatch[1].toUpperCase() : ''),
+        quantLevel: m.quantization || (quantMatch ? quantMatch[1] : ''),
+        family: m.owned_by || '',
+      };
+    }).filter(m => m.name);
     return { available: true, models, modelDetails };
   } catch {
     return { available: false, models: [] };

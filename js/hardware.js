@@ -261,6 +261,15 @@ export function assessFitness(modelName) {
     const tierName = Object.entries(TIER_RANK).find(([, v]) => v === cappedRank)?.[0] || 'capable';
     return { tier: tierName, note: 'Depends on model size — pull a specific variant (e.g. :14b) for best results' };
   }
+  // Last resort: extract parameter count from name (e.g. "Jan-v3-4b-instruct", "phi-4:14b")
+  const paramMatch = lower.match(/[\-:](\d+\.?\d*)b/);
+  if (paramMatch) {
+    const params = parseFloat(paramMatch[1]);
+    if (params >= 30) return { tier: 'recommended', note: `${params}B parameters — large enough for reliable lab parsing` };
+    if (params >= 14) return { tier: 'capable', note: `${params}B parameters — handles most reports` };
+    if (params >= 7) return { tier: 'underpowered', note: `${params}B parameters — may struggle with complex reports` };
+    return { tier: 'inadequate', note: `${params}B parameters — too small for reliable lab analysis` };
+  }
   return null; // unknown model family
 }
 
