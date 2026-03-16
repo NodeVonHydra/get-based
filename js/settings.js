@@ -516,6 +516,7 @@ export function initSettingsOllamaCheck() {
           : (result.modelDetails || []);
         if (modelDetails.length > 0) {
           window._lastOllamaModelDetails = modelDetails;
+          window._lastIsOllamaServer = isOllamaServer;
           renderModelAdvisor(modelDetails, modelSelect, isOllamaServer);
         }
       } else if (result.available) {
@@ -736,6 +737,7 @@ export async function testOllamaConnection() {
         : (result.modelDetails || []);
       if (modelDetails.length > 0 && modelSection && modelSelect) {
         window._lastOllamaModelDetails = modelDetails;
+        window._lastIsOllamaServer = isOllamaServer;
         renderModelAdvisor(modelDetails, modelSelect, isOllamaServer);
       }
     }
@@ -1140,7 +1142,7 @@ Object.assign(window, {
 
 function refreshModelAdvisor() {
   const details = window._lastOllamaModelDetails || [];
-  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'), !!window._lastIsOllamaServer);
 }
 
 function copyOllamaPullCmd(cmd) {
@@ -1152,11 +1154,11 @@ function applyHardwareOverrideFn(vram) {
   if (isNaN(v) || v <= 0) { showNotification('Enter a valid VRAM amount in GB', 'error'); return; }
   saveHardwareOverride(v);
   const details = window._lastOllamaModelDetails || [];
-  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'), !!window._lastIsOllamaServer);
 }
 
 function clearHardwareOverrideFn() {
   saveHardwareOverride(null);
   const details = window._lastOllamaModelDetails || [];
-  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'));
+  if (details.length) renderModelAdvisor(details, document.getElementById('local-ai-model-select'), !!window._lastIsOllamaServer);
 }
