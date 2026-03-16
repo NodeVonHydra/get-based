@@ -241,7 +241,8 @@ MODEL_FITNESS.sort((a, b) => b.match.length - a.match.length);
 
 export function assessFitness(modelName) {
   if (!modelName) return null;
-  const lower = modelName.toLowerCase();
+  // Normalize: LM Studio uses "-" (qwen3.5-0.8b), Ollama uses ":" (qwen3.5:0.8b)
+  const lower = modelName.toLowerCase().replace(/^(.+?)[-:](\d+\.?\d*b)/, '$1:$2');
   // Exact/specific match first (sorted by length descending)
   for (const entry of MODEL_FITNESS) {
     if (lower.includes(entry.match.replace(/:$/, '')) || lower.startsWith(entry.match)) {

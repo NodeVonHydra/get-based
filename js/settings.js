@@ -508,8 +508,11 @@ export function initSettingsOllamaCheck() {
           modelSection.style.display = 'block';
           modelSelect.innerHTML = result.models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
         }
-        // Render model advisor if Ollama details available
-        const modelDetails = ollama.available ? (ollama.modelDetails || []) : [];
+        // Render model advisor — prefer Ollama-native details (/api/tags has sizes),
+        // fall back to OpenAI-compatible details (LM Studio, Jan, etc.)
+        const modelDetails = (ollama.available && ollama.modelDetails?.length > 0)
+          ? ollama.modelDetails
+          : (result.modelDetails || []);
         if (modelDetails.length > 0) {
           window._lastOllamaModelDetails = modelDetails;
           renderModelAdvisor(modelDetails, modelSelect);
@@ -589,15 +592,17 @@ async function renderModelAdvisor(modelDetails, modelSelect) {
   const fitnessLabel = { recommended: '\u2605 Recommended', capable: 'Capable', underpowered: 'Underpowered', inadequate: 'Inadequate' };
   const fitnessCss = { recommended: 'fitness-great', capable: 'fitness-good', underpowered: 'fitness-fair', inadequate: 'fitness-poor' };
   const rows = modelDetails.map(m => {
-    const assess = hw.gpu.vram ? assessModel(m, hw) : { tier: 'unknown', badge: '?', vramNeeded: (m.size / 1e9) * 1.15, label: !isLocal ? 'Enter VRAM' : 'Set VRAM to check' };
+    const hasSize = m.size > 0;
+    const assess = !hasSize ? { tier: 'unknown', badge: '?', label: 'Size unknown' }
+      : hw.gpu.vram ? assessModel(m, hw) : { tier: 'unknown', badge: '?', vramNeeded: (m.size / 1e9) * 1.15, label: !isLocal ? 'Enter VRAM' : 'Set VRAM to check' };
     const fitness = assessFitness(m.name);
-    const sizeGb = (m.size / 1e9).toFixed(1);
+    const sizeLabel = hasSize ? `${(m.size / 1e9).toFixed(1)} GB` : '';
     const isActive = m.name === currentModel;
     const isBest = best && m.name === best.name;
     return `<div class="model-advisor-row${isActive ? ' active' : ''}">
       <span class="model-advisor-badge model-advisor-verdict ${assess.tier}">${assess.badge}</span>
       <span class="model-advisor-name">${escapeHTML(m.name)}${isActive ? ' <span style="font-size:10px;opacity:0.6">\u2190 active</span>' : ''}${isBest && !isActive ? ' <span style="font-size:10px;opacity:0.6">\u2190 best pick</span>' : ''}</span>
-      <span class="model-advisor-size">${sizeGb} GB${m.quantLevel ? ' \u00B7 ' + escapeHTML(m.quantLevel) : ''}${m.paramSize ? ' \u00B7 ' + escapeHTML(m.paramSize) : ''}</span>
+      <span class="model-advisor-size">${sizeLabel}${m.quantLevel ? ' \u00B7 ' + escapeHTML(m.quantLevel) : ''}${m.paramSize ? ' \u00B7 ' + escapeHTML(m.paramSize) : ''}</span>
       ${fitness ? `<span class="model-advisor-fitness ${fitnessCss[fitness.tier]}" title="${escapeAttr(fitness.note)}">${fitnessLabel[fitness.tier]}</span>` : '<span class="model-advisor-fitness" style="opacity:0.4">Unknown</span>'}
       <span class="model-advisor-verdict ${assess.tier}">${escapeHTML(assess.label)}</span>
     </div>`;
@@ -721,8 +726,10 @@ export async function testOllamaConnection() {
         modelSection.style.display = 'block';
         modelSelect.innerHTML = models.map(m => `<option value="${escapeHTML(m)}" ${m === currentModel ? 'selected' : ''}>${escapeHTML(m)}</option>`).join('');
       }
-      // Render model advisor if Ollama details available
-      const modelDetails = ollamaResult.available ? (ollamaResult.modelDetails || []) : [];
+      // Render model advisor — prefer Ollama-native, fall back to OpenAI-compatible
+      const modelDetails = (ollamaResult.available && ollamaResult.modelDetails?.length > 0)
+        ? ollamaResult.modelDetails
+        : (result.modelDetails || []);
       if (modelDetails.length > 0 && modelSection && modelSelect) {
         window._lastOllamaModelDetails = modelDetails;
         renderModelAdvisor(modelDetails, modelSelect);

@@ -90,8 +90,17 @@ export async function checkOpenAICompatible(url, apiKey) {
     const resp = await fetch(`${baseUrl}/v1/models`, { headers, signal: AbortSignal.timeout(3000) });
     if (!resp.ok) return { available: false, models: [] };
     const data = await resp.json();
-    const models = (data.data || []).map(m => m.id).filter(Boolean);
-    return { available: true, models };
+    const raw = data.data || [];
+    const models = raw.map(m => m.id).filter(Boolean);
+    // Extract model details when available (LM Studio, Ollama /v1/models, Jan)
+    const modelDetails = raw.map(m => ({
+      name: m.id,
+      size: m.size || m.vram_required || 0,
+      paramSize: m.parameter_size || '',
+      quantLevel: m.quantization || '',
+      family: m.owned_by || '',
+    })).filter(m => m.name);
+    return { available: true, models, modelDetails };
   } catch {
     return { available: false, models: [] };
   }

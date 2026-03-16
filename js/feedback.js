@@ -69,7 +69,9 @@ export function submitFeedback() {
   const browserSnippet = ua.length > 120 ? ua.slice(0, 120) + '...' : ua;
   const screenSize = `${screen.width}x${screen.height}`;
   const theme = getTheme();
-  const provider = getAIProvider() || 'none';
+  const providerKey = getAIProvider() || 'none';
+  const providerLabels = { anthropic: 'Anthropic', openrouter: 'OpenRouter', venice: 'Venice', ollama: 'Local AI' };
+  const provider = providerLabels[providerKey] || providerKey;
 
   // Build issue body
   let body = `## Description\n${desc || 'No description provided.'}\n`;
