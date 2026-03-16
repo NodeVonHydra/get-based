@@ -141,42 +141,38 @@ function _renderRecSection(slotKey, opts = {}) {
 
   let inner = '';
 
-  // Tier 1: Nature — free, best option
+  // Tier 1: Nature — free, best option (full width, listed)
   if (slot.freeActions && slot.freeActions.length) {
-    inner += `<div class="rec-section-label">NATURE \u2014 <span class="rec-tier-hint">best option</span></div>`;
+    inner += `<div class="rec-section-label">NATURE <span class="rec-tier-hint">best option</span></div>`;
     for (const action of slot.freeActions) {
       inner += `<div class="rec-item-free">${escapeHTML(action)}</div>`;
     }
   }
 
-  // Tier 2: Whole food — second best
+  // Tier 2: Whole food — inline
   if (foodProducts.length) {
-    inner += `<div class="rec-section-label">WHOLE FOOD \u2014 <span class="rec-tier-hint">from nature, not processed</span></div>`;
+    inner += `<div class="rec-section-label">WHOLE FOOD <span class="rec-tier-hint">from nature</span></div>`;
     for (const fp of foodProducts) inner += buildProductRow(fp);
   } else if (slot.foodForms && slot.foodForms.length) {
-    inner += `<div class="rec-section-label">WHOLE FOOD \u2014 <span class="rec-tier-hint">from nature, not processed</span></div>`;
-    for (const food of slot.foodForms) {
-      inner += `<div class="rec-item-food">${escapeHTML(food)}</div>`;
-    }
+    inner += `<div class="rec-section-label">WHOLE FOOD <span class="rec-tier-hint">from nature</span></div>`;
+    inner += `<div class="rec-item-food">${slot.foodForms.map(f => escapeHTML(f)).join(' · ')}</div>`;
   }
 
-  // Tier 3: Tools — useful but not a replacement for nature
+  // Tier 3: Tools
   if (toolProducts.length) {
-    inner += `<div class="rec-section-label">TOOLS \u2014 <span class="rec-tier-hint">supports, doesn\u2019t replace nature</span></div>`;
+    inner += `<div class="rec-section-label">TOOLS <span class="rec-tier-hint">supports nature</span></div>`;
     for (const tp of toolProducts) inner += buildProductRow(tp);
   } else if (slot.productForms && slot.productForms.length) {
-    inner += `<div class="rec-section-label">TOOLS \u2014 <span class="rec-tier-hint">supports, doesn\u2019t replace nature</span></div>`;
-    for (const tool of slot.productForms) {
-      inner += `<div class="rec-item-form">${escapeHTML(tool)}</div>`;
-    }
+    inner += `<div class="rec-section-label">TOOLS <span class="rec-tier-hint">supports nature</span></div>`;
+    inner += `<div class="rec-item-form">${slot.productForms.map(t => escapeHTML(t)).join(' · ')}</div>`;
   }
 
-  // Tier 4: Supplements — last resort
+  // Tier 4: Supplements — inline
   if (suppProducts.length) {
-    inner += `<div class="rec-section-label">SUPPLEMENTS \u2014 <span class="rec-tier-hint">last resort</span></div>`;
+    inner += `<div class="rec-section-label">SUPPLEMENTS <span class="rec-tier-hint">last resort</span></div>`;
     for (const sp of suppProducts) inner += buildProductRow(sp);
   } else if (slot.forms && slot.forms.length) {
-    inner += `<div class="rec-section-label">SUPPLEMENTS \u2014 <span class="rec-tier-hint">last resort, look for</span></div>`;
+    inner += `<div class="rec-section-label">SUPPLEMENTS <span class="rec-tier-hint">last resort</span></div>`;
     inner += `<div class="rec-item-form">${slot.forms.map(f => escapeHTML(f)).join(', ')}</div>`;
   }
 

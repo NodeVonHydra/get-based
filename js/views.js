@@ -442,19 +442,11 @@ async function loadChartCardRecs() {
     const slotKey = id.replace('_', '.');
     const slot = catalog.slots[slotKey];
     if (!slot) continue;
-    // Build contextual label: "3 free · 4 foods · 2 supps →"
-    const counts = [];
-    const nNature = (slot.freeActions || []).length;
-    const nFood = (slot.foodForms || []).length;
-    const nSupps = (slot.forms || []).length;
-    const products = catalog.products?.[slotKey] || [];
-    const nProducts = products.length;
-    if (nNature) counts.push(`${nNature} free`);
-    if (nFood) counts.push(`${nFood} food${nFood > 1 ? 's' : ''}`);
-    if (nSupps || nProducts) counts.push(`${nProducts || nSupps} supp${(nProducts || nSupps) > 1 ? 's' : ''}`);
+    const nTotal = (slot.freeActions || []).length + (slot.foodForms || []).length
+      + (slot.forms || []).length + (catalog.products?.[slotKey] || []).length;
     const link = document.createElement('a');
     link.className = 'chart-card-rec-link';
-    link.textContent = (counts.length ? counts.join(' \u00b7 ') : 'What can help') + ' \u2192';
+    link.textContent = (nTotal ? `${nTotal} tips` : 'Tips') + ' \u2192';
     link.href = '#';
     link.onclick = e => {
       e.preventDefault();
