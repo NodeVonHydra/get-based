@@ -220,8 +220,9 @@ export function showDashboard(data) {
   }
   setupDropZone();
 
-  // Non-blocking: load focus card and health dots after DOM is ready
+  // Non-blocking: load focus card, health dots, and recs after DOM is ready
   if (hasData) loadFocusCard();
+  if (hasData) loadChartCardRecs();
   loadContextHealthDots();
   loadCommitHash();
 
@@ -425,6 +426,32 @@ export function refreshFocusCard() {
   loadFocusCard();
 }
 
+// ── Chart Card Recommendation Links ──
+async function loadChartCardRecs() {
+  if (!window.isProductRecsEnabled || !window.isProductRecsEnabled()) return;
+  if (!window.loadCatalog) return;
+  const catalog = await window.loadCatalog();
+  if (!catalog || !catalog.slots) return;
+
+  const els = document.querySelectorAll('.chart-card-rec');
+  for (const el of els) {
+    if (el.children.length > 0) continue;
+    const id = el.id.replace('chart-rec-', '');
+    const slotKey = id.replace('_', '.');
+    if (!catalog.slots[slotKey]) continue;
+    const link = document.createElement('a');
+    link.className = 'chart-card-rec-link';
+    link.textContent = 'What can help \u2192';
+    link.href = '#';
+    link.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      showDetailModal(id, { scrollToRec: true });
+    };
+    el.appendChild(link);
+  }
+}
+
 // ── Onboarding ──
 
 export function renderOnboardingBanner() {
@@ -564,6 +591,7 @@ export function showCategory(categoryKey, preData) {
       createLineChart(categoryKey + "_" + key, marker, data.dateLabels, data.dates, data.phaseLabels);
     }
   }
+  loadChartCardRecs();
 }
 
 export function renameCategory(categoryKey) {
@@ -789,7 +817,9 @@ export function renderChartCard(id, marker, dateLabels) {
     const rangeLabel = state.rangeMode === 'optimal' && (marker.optimalMin != null || marker.optimalMax != null) ? 'Optimal' : 'Reference';
     rangeHtml = r.min != null || r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${fmtRange(r.min, r.max)} ${escapeHTML(marker.unit)}</div>` : '';
   }
-  html += `</div>${rangeHtml}</div>`;
+  // "What can help" link for out-of-range markers with catalog slots
+  const recPlaceholder = (status === 'high' || status === 'low') ? `<div class="chart-card-rec" id="chart-rec-${id}"></div>` : '';
+  html += `</div>${rangeHtml}${recPlaceholder}</div>`;
   return html;
 }
 
@@ -935,7 +965,7 @@ export async function fetchCustomMarkerDescription(markerId, markerName, unit) {
   } catch { return null; }
 }
 
-export function showDetailModal(id) {
+export function showDetailModal(id, opts = {}) {
   const data = getActiveData();
   const idx = id.indexOf('_');
   const catKey = id.slice(0, idx), mKey = id.slice(idx + 1);
@@ -1180,8 +1210,8 @@ export function showDetailModal(id) {
   // Recommendation placeholder — only for flagged markers
   const _lastVal = nonNull.length ? nonNull[nonNull.length-1].v : null;
   const _lastIdx = nonNull.length ? nonNull[nonNull.length-1].i : null;
-  const _lastRi = _lastIdx !== null ? { min: marker.refMin, max: marker.refMax } : null;
-  const _markerStatus = _lastRi ? getStatus(_lastVal, _lastRi.min, _lastRi.max) : 'missing';
+  const _lastRange = _lastIdx !== null ? getEffectiveRangeForDate(marker, _lastIdx) : null;
+  const _markerStatus = _lastRange ? getStatus(_lastVal, _lastRange.min, _lastRange.max) : 'missing';
   if ((_markerStatus === 'high' || _markerStatus === 'low') && window.isProductRecsEnabled && window.isProductRecsEnabled()) {
     html += `<div id="rec-modal-${id}"></div>`;
   }
@@ -1196,7 +1226,16 @@ export function showDetailModal(id) {
   // Async-fill recommendation section
   if ((_markerStatus === 'high' || _markerStatus === 'low') && window.renderRecommendationSection) {
     window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3 })
-      .then(h => { const el = document.getElementById('rec-modal-' + id); if (h && el) el.innerHTML = h; });
+      .then(h => {
+        const el = document.getElementById('rec-modal-' + id);
+        if (h && el) {
+          el.innerHTML = h;
+          if (opts.scrollToRec) {
+            const details = el.querySelector('.rec-details');
+            if (details) { details.open = true; details.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+          }
+        }
+      });
   }
   setTimeout(() => {
     if (document.getElementById("chart-modal")) createLineChart("modal", marker, data.dateLabels, data.dates, data.phaseLabels);

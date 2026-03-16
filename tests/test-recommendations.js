@@ -174,10 +174,9 @@
   assert('chat.js calls detectSupplementSlots', chatSrc.includes('detectSupplementSlots'));
   assert('chat.js stores recSlots on message', chatSrc.includes('assistantMsg.recSlots'));
   assert('chat.js has rec-chat-wrapper class', chatSrc.includes('rec-chat-wrapper'));
-  assert('context-cards.js calls getSlotsForCard', contextSrc.includes('getSlotsForCard'));
-  assert('context-cards.js creates ctx-rec link', contextSrc.includes('ctx-rec-'));
-  assert('context-cards.js uses openRecPopover', contextSrc.includes('openRecPopover'));
-  assert('context-cards.js gates on yellow/red', contextSrc.includes("color === 'yellow' || color === 'red'"));
+  assert('views.js has chart-card-rec placeholder', viewsSrc.includes('chart-card-rec'));
+  assert('views.js has loadChartCardRecs function', viewsSrc.includes('function loadChartCardRecs'));
+  assert('views.js scrollToRec auto-opens details', viewsSrc.includes('scrollToRec'));
   assert('openRecPopover on window', typeof window.openRecPopover === 'function');
 
   // ═══════════════════════════════════════
