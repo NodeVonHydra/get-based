@@ -100,8 +100,8 @@ export function showDashboard(data) {
   // ── 3. Interpretive Lens ──
   html += renderInterpretiveLensSection();
 
-  // ── 3b. Focus Card ──
-  if (hasAIProvider()) html += renderFocusCard();
+  // ── 3b. Focus Card (always render if data exists — shows cached insight even when AI is paused) ──
+  html += renderFocusCard();
 
   // ── 4. Profile Context Cards ──
   html += renderProfileContextCards();
@@ -220,7 +220,7 @@ export function showDashboard(data) {
   setupDropZone();
 
   // Non-blocking: load focus card and health dots after DOM is ready
-  if (hasData && hasAIProvider()) loadFocusCard();
+  if (hasData) loadFocusCard();
   loadContextHealthDots();
   loadCommitHash();
 
@@ -349,8 +349,12 @@ export async function loadFocusCard() {
   const cacheKey = profileStorageKey(state.currentProfile, 'focusCard');
   const cached = (() => { try { return JSON.parse(localStorage.getItem(cacheKey)); } catch(e) { return null; } })();
   const fp = getFocusCardFingerprint();
-  if (cached && cached.fingerprint === fp && cached.text) {
+  if (cached && cached.text) {
     el.innerHTML = `<span class="focus-card-text">${applyInlineMarkdown(cached.text)}</span>`;
+    if (cached.fingerprint === fp || !hasAIProvider()) return;
+  }
+  if (!hasAIProvider()) {
+    if (!cached?.text) el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">Enable AI to generate insights</span>`;
     return;
   }
   el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">🔍 Looking into your results\u2026</span>`;

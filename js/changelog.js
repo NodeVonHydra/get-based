@@ -10,6 +10,7 @@ const CHANGELOG = [
       'Import lab reports from photos/screenshots (JPG, PNG, WebP) — drop or browse, same AI pipeline as PDF image mode',
       'Scanned PDFs auto-switch to image mode — no manual step needed (#67)',
       'Model Advisor works with all Local AI backends — LM Studio, Jan, not just Ollama (#68)',
+      'Focus card persists when AI is paused — shows cached insight instead of disappearing (#69)',
     ]
   },
   {

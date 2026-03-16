@@ -441,6 +441,8 @@ export async function updatePrivacyStatusCard(enhanced) {
 export function toggleAIPause(enabled) {
   setAIPaused(!enabled);
   showNotification(enabled ? 'AI features enabled' : 'AI features paused', 'info');
+  // Refresh focus card — show cached content when paused, fetch new when enabled
+  if (window.loadFocusCard) window.loadFocusCard();
 }
 
 export function switchAIProvider(provider) {
