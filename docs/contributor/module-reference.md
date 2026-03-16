@@ -357,6 +357,7 @@ DNA raw data import: client-side parser, storage, dashboard section, AI context 
 **Key exports:**
 - `detectDNAFile(text)` — detects format from file header: `'ancestry'` | `'23andme'` | `'livingdna'` | `'csv'` | `null`
 - `isDNAFile(file)` — checks filename patterns for known DNA providers
+- `isDNAFileByContent(file)` — async, reads first 500 bytes to detect DNA format by content
 - `parseDNAFile(file)` — async, runs Web Worker parser, matches against `data/snp-health.json` (41 SNPs), resolves APOE haplotype, returns enriched matches with effect/note per genotype
 - `saveGeneticsData(profileData, result)` — stores matched SNPs + APOE in `importedData.genetics`
 - `deleteGeneticsData(profileData)` — removes genetics data
@@ -366,7 +367,7 @@ DNA raw data import: client-side parser, storage, dashboard section, AI context 
 
 Supports: AncestryDNA (2-column alleles), 23andMe, MyHeritage, FTDNA, Living DNA. Genotype reversal handles strand ambiguity (CT ↔ TC).
 
-**Window exports:** `isDNAFile`, `handleDNAFile`, `confirmDNAImport`, `closeDNAImportPreview`, `deleteGeneticsData`, `_buildGeneticsContext`, `_getRelevantSNPs`
+**Window exports:** `isDNAFile`, `isDNAFileByContent`, `handleDNAFile`, `confirmDNAImport`, `closeDNAImportPreview`, `deleteGeneticsData`, `_buildGeneticsContext`, `_getRelevantSNPs`
 
 ---
 
@@ -377,6 +378,7 @@ Full PDF-to-lab-data import pipeline.
 **Key exports:**
 - `extractPDFText(file)` — pdf.js text extraction with x/y coordinates, returns page-aware formatted text
 - `parseLabPDFWithAI(pdfText)` — sends text + `buildMarkerReference()` to AI; maps lab results to marker keys
+- `handleImageFile(file)` — imports lab reports from JPG/PNG/WebP images via AI image pipeline
 - `handleBatchPDFs(files)` — sequential multi-file import with per-file confirm/skip
 - `showImportPreview(parsed)` — modal with matched (green), new custom (blue), unmatched (yellow) markers. All numeric results are captured — unknowns become custom markers rather than being silently dropped
 - `confirmImport(parsed)` — merges parsed data into `importedData.entries`

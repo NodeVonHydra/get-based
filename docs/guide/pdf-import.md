@@ -80,7 +80,7 @@ If you import a report for a date that already has data, the new values are merg
 These are imported at the detection limit value itself (e.g., `<0.5` becomes `0.5`). This preserves the data point and shows the marker was tested.
 
 **What if results are missing from the preview?**
-Some PDFs use image-based scans rather than text. getbased automatically detects scanned PDFs and switches to **image mode**, rendering each page as a screenshot for the AI to read visually. You can also force image mode by clicking the **"Force image mode"** link in the drop zone. If results are still missing, try a PDF exported directly from your lab's portal.
+Some PDFs use image-based scans rather than text. getbased automatically detects scanned PDFs and switches to **image mode**, rendering each page as a screenshot for the AI to read visually. You can also import lab reports directly as **photos or screenshots** (JPG, PNG, WebP) — they go through the same image pipeline. If results are still missing, try a PDF exported directly from your lab's portal.
 
 **Can I undo an import?**
 Not directly after confirming, but you can export your data as JSON before importing (as a backup), or use **Settings → Backup & Restore** to roll back to an automatic snapshot.

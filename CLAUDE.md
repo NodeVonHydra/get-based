@@ -34,7 +34,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
   - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports
-  - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, image fallback for scanned PDFs. AI detects test type and uses prefixed categories for specialty labs
+  - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, auto image mode for scanned PDFs, direct image import (JPG/PNG/WebP). AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
   - `settings.js` — settings modal, provider panels, privacy section
