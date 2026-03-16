@@ -268,7 +268,7 @@ export function applyAISummary(key, text, color) {
   }
   // Lifestyle recommendation: "What can help" link → popover for yellow/red cards
   const recId = 'ctx-rec-' + key;
-  if ((color === 'yellow' || color === 'red') && window.getSlotsForCard && window.loadCatalog) {
+  if ((color === 'yellow' || color === 'red') && window.isProductRecsEnabled && window.isProductRecsEnabled() && window.getSlotsForCard && window.loadCatalog) {
     let recEl = document.getElementById(recId);
     if (recEl) return; // Already rendered
     window.loadCatalog().then(catalog => {

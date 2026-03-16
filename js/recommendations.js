@@ -99,8 +99,8 @@ function buildProductRow(product) {
   if (product.name) parts.push(escapeHTML(product.name));
   const meta = [];
   if (product.dosage) meta.push(escapeHTML(product.dosage));
-  if (product.priceCZK) meta.push(`~${product.priceCZK} CZK`);
-  else if (product.priceEUR) meta.push(`~\u20AC${product.priceEUR}`);
+  if (product.priceCZK) meta.push(`~${escapeHTML(String(product.priceCZK))} CZK`);
+  else if (product.priceEUR) meta.push(`~\u20AC${escapeHTML(String(product.priceEUR))}`);
   const url = product.affiliateUrl || product.url;
   const isValid = url && /^https?:\/\//.test(url);
   return `<div class="rec-product">
@@ -279,7 +279,7 @@ function _popoverOutsideClick(e) {
 export async function openRecPopover(cardKey, slotKey, anchorEl) {
   closeRecPopover();
   const html = await renderRecommendationSection(slotKey, { label: 'What can help', maxProducts: 2 });
-  if (!html) return;
+  if (!html || !anchorEl.isConnected) return;
   const pop = document.createElement('div');
   pop.className = 'rec-popover';
   pop.innerHTML = `<button class="rec-popover-close" onclick="event.stopPropagation();this.parentElement.remove()">&times;</button>${html}`;

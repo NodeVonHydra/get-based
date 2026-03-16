@@ -3443,7 +3443,7 @@ export async function sendChatMessage() {
     state.chatHistory.push(assistantMsg);
 
     // Detect supplement slots from AI text and attach recs
-    const _recSlots = window.detectSupplementSlots ? window.detectSupplementSlots(displayText) : [];
+    const _recSlots = (window.isProductRecsEnabled && window.isProductRecsEnabled() && window.detectSupplementSlots) ? window.detectSupplementSlots(displayText) : [];
     if (_recSlots.length) assistantMsg.recSlots = _recSlots;
 
     // Append action bar
