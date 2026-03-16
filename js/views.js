@@ -440,10 +440,21 @@ async function loadChartCardRecs() {
     if (el.children.length > 0) continue;
     const id = el.id.replace('chart-rec-', '');
     const slotKey = id.replace('_', '.');
-    if (!catalog.slots[slotKey]) continue;
+    const slot = catalog.slots[slotKey];
+    if (!slot) continue;
+    // Build contextual label: "3 free · 4 foods · 2 supps →"
+    const counts = [];
+    const nNature = (slot.freeActions || []).length;
+    const nFood = (slot.foodForms || []).length;
+    const nSupps = (slot.forms || []).length;
+    const products = catalog.products?.[slotKey] || [];
+    const nProducts = products.length;
+    if (nNature) counts.push(`${nNature} free`);
+    if (nFood) counts.push(`${nFood} food${nFood > 1 ? 's' : ''}`);
+    if (nSupps || nProducts) counts.push(`${nProducts || nSupps} supp${(nProducts || nSupps) > 1 ? 's' : ''}`);
     const link = document.createElement('a');
     link.className = 'chart-card-rec-link';
-    link.textContent = 'What can help \u2192';
+    link.textContent = (counts.length ? counts.join(' \u00b7 ') : 'What can help') + ' \u2192';
     link.href = '#';
     link.onclick = e => {
       e.preventDefault();
@@ -1258,11 +1269,9 @@ export function showDetailModal(id, opts = {}) {
         const el = document.getElementById('rec-modal-' + id);
         if (h && el) {
           el.innerHTML = h;
-          if (opts.scrollToRec) {
-            const details = el.querySelector('.rec-details');
-            if (details && !details.classList.contains('rec-gated')) details.open = true;
-            (details || el).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
+          const details = el.querySelector('.rec-details');
+          if (details && !details.classList.contains('rec-gated')) details.open = true;
+          if (opts.scrollToRec) (details || el).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       });
   }
