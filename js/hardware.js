@@ -249,22 +249,22 @@ export function assessFitness(modelName) {
       return { tier: entry.tier, note: entry.note };
     }
   }
+  // Extract parameter count from name if present (e.g. "qwen3.5:0.8b", "Jan-v3-4b")
+  const paramMatch = lower.match(/[\-:](\d+\.?\d*)b/);
+  const params = paramMatch ? parseFloat(paramMatch[1]) : 0;
   // Fallback: if model has :latest or unknown size tag, try matching just the family
-  // e.g. "qwen3.5:latest" → look for any qwen3.5 entry. Be conservative — unknown size
-  // could be the small default variant, so cap at "capable"
+  // e.g. "qwen3.5:latest" → look for any qwen3.5 entry
   const family = lower.split(':')[0];
   const familyEntries = MODEL_FITNESS.filter(e => e.match.startsWith(family + ':'));
-  if (familyEntries.length > 0) {
+  if (familyEntries.length > 0 && !params) {
     const bestTier = Math.max(...familyEntries.map(e => TIER_RANK[e.tier] || 0));
     // Cap at "capable" since we don't know the actual size
     const cappedRank = Math.min(bestTier, TIER_RANK.capable);
     const tierName = Object.entries(TIER_RANK).find(([, v]) => v === cappedRank)?.[0] || 'capable';
     return { tier: tierName, note: 'Depends on model size — pull a specific variant (e.g. :14b) for best results' };
   }
-  // Last resort: extract parameter count from name (e.g. "Jan-v3-4b-instruct", "phi-4:14b")
-  const paramMatch = lower.match(/[\-:](\d+\.?\d*)b/);
-  if (paramMatch) {
-    const params = parseFloat(paramMatch[1]);
+  // Rate by parameter count — works for any model family
+  if (params) {
     if (params >= 30) return { tier: 'recommended', note: `${params}B parameters — large enough for reliable lab parsing` };
     if (params >= 14) return { tier: 'capable', note: `${params}B parameters — handles most reports` };
     if (params >= 7) return { tier: 'underpowered', note: `${params}B parameters — may struggle with complex reports` };
