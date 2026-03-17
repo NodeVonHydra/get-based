@@ -21,20 +21,37 @@ let _chatAbortController = null;
 // TYPEWRITER — smooth character trickle for streaming
 // ═══════════════════════════════════════════════
 function createTypewriter(el, typingEl, container) {
-  let target = '';     // full text received so far
-  let displayed = 0;   // chars already rendered
+  let target = '';
+  let displayed = 0;
   let timer = null;
+  let autoScrollLocked = false;
+
+  function isNearBottom() {
+    return container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+  }
+  function onWheel(e) { if (e.deltaY < 0) autoScrollLocked = true; }
+  function onTouchMove() { autoScrollLocked = true; }
+  function onScroll() { if (isNearBottom()) autoScrollLocked = false; }
+
+  container.addEventListener('wheel', onWheel, { passive: true });
+  container.addEventListener('touchmove', onTouchMove, { passive: true });
+  container.addEventListener('scroll', onScroll, { passive: true });
+
+  function cleanup() {
+    container.removeEventListener('wheel', onWheel);
+    container.removeEventListener('touchmove', onTouchMove);
+    container.removeEventListener('scroll', onScroll);
+  }
 
   function tick() {
     if (displayed >= target.length) { timer = null; return; }
-    // Trickle: render a batch proportional to how far behind we are
     const behind = target.length - displayed;
     const batch = Math.max(1, Math.ceil(behind * 0.3));
     displayed = Math.min(displayed + batch, target.length);
     if (typingEl.parentNode) typingEl.remove();
     if (!el.parentNode) container.appendChild(el);
     el.textContent = target.slice(0, displayed);
-    container.scrollTop = container.scrollHeight;
+    if (!autoScrollLocked) container.scrollTop = container.scrollHeight;
     timer = setTimeout(tick, 16);
   }
 
@@ -46,6 +63,7 @@ function createTypewriter(el, typingEl, container) {
     stop() {
       if (timer) { clearTimeout(timer); timer = null; }
       displayed = target.length;
+      cleanup();
     }
   };
 }
