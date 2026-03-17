@@ -206,12 +206,14 @@ export function renderProfileContextCards() {
   for (const c of cardDefs) {
     const filled = isContextFilled(c.key);
     const summary = c.summaryFn();
+    const _dnaBadge = window._getDNABadgeForCard ? window._getDNABadgeForCard(c.key) : null;
+    const _dnaBadgeHtml = _dnaBadge ? `<span class="ctx-dna-badge${_dnaBadge.hasAvoid ? ' ctx-dna-badge-avoid' : ''}" title="Genetic findings relevant to this area">DNA</span>` : '';
     html += `<div class="context-card" onclick="${c.editor}()">
       <div class="context-card-header">
         <span class="ctx-health-dot ctx-health-dot-gray" id="ctx-dot-${c.key}"></span>
         <span class="context-card-label">${c.emoji} ${c.label}</span>
         <span class="context-info-icon">i<span class="context-tooltip">${c.tooltip}</span></span>
-        <button class="diagnoses-edit-btn" onclick="event.stopPropagation();${c.editor}()">${filled ? 'Edit' : '+ Add'}</button>
+        ${_dnaBadgeHtml}<button class="diagnoses-edit-btn" onclick="event.stopPropagation();${c.editor}()">${filled ? 'Edit' : '+ Add'}</button>
       </div>
       ${summary
         ? `<div class="context-card-body">${escapeHTML(summary)}</div>`

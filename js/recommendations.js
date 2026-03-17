@@ -2,6 +2,7 @@
 
 import { escapeHTML } from './utils.js';
 import { getProfileLocation } from './profile.js';
+import { state } from './state.js';
 
 // ═══════════════════════════════════════════════
 // CATALOG CACHE
@@ -91,6 +92,59 @@ export function getSlotsForCard(catalog, cardKey) {
 }
 
 // ═══════════════════════════════════════════════
+// DNA HINTS — connect genetics to recommendations
+// ═══════════════════════════════════════════════
+
+function _sortAlleles(g) { return g?.length === 2 ? g.split('').sort().join('') : g; }
+
+export function buildDNAHints(slotKey) {
+  const genetics = state.importedData?.genetics;
+  if (!genetics || !genetics.snps) return [];
+  const snpTable = window._snpTableCache;
+  if (!snpTable) return [];
+
+  const hints = [];
+
+  // APOE haplotype — special handling
+  if (genetics.apoe && slotKey === 'lipids.ldl') {
+    const hap = genetics.apoe;
+    if (hap.includes('\u03B54')) {
+      hints.push({
+        gene: 'APOE', variant: hap, genotype: hap, direction: 'form',
+        text: hap === '\u03B54/\u03B54'
+          ? 'Your APOE \u03B54/\u03B54 suggests strict saturated fat management and LDL particle monitoring \u2014 dietary fat significantly impacts your LDL'
+          : `Your APOE ${hap} suggests moderating saturated fat and monitoring LDL response \u2014 dietary fat has amplified impact on your LDL`,
+        ref: 'https://pubmed.ncbi.nlm.nih.gov/8346443/'
+      });
+    }
+  }
+
+  const apoeRsids = new Set(['rs429358', 'rs7412']);
+  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+    if (genetics.apoe && apoeRsids.has(rsid)) continue;
+    const entry = snpTable[rsid];
+    if (!entry || !entry.snpHints) continue;
+
+    const g = stored.genotype;
+    const rev = g.length === 2 ? g[1] + g[0] : g;
+    const sorted = _sortAlleles(g);
+    const hint = entry.snpHints[g] || entry.snpHints[rev] || entry.snpHints[sorted];
+    if (!hint || hint.slotKey !== slotKey) continue;
+
+    // Skip if genotype effect is "none"
+    const info = entry.genotypes?.[g] || entry.genotypes?.[rev] || entry.genotypes?.[sorted];
+    if (info && info.effect === 'none') continue;
+
+    hints.push({
+      gene: stored.gene, variant: stored.variant, genotype: g,
+      direction: hint.direction, text: hint.text, ref: hint.ref
+    });
+  }
+
+  return hints;
+}
+
+// ═══════════════════════════════════════════════
 // HTML RENDERING
 // ═══════════════════════════════════════════════
 function buildProductRow(product) {
@@ -140,6 +194,21 @@ function _renderRecSection(slotKey, opts = {}) {
   const otherProducts = products.filter(p => !knownTypes.includes(p.type)).slice(0, maxProducts);
 
   let inner = '';
+
+  // DNA hints — prepend before tiers
+  const dnaHints = buildDNAHints(slotKey);
+  if (dnaHints.length > 0) {
+    inner += `<div class="rec-dna-hints">`;
+    inner += `<div class="rec-section-label">YOUR GENETICS</div>`;
+    for (const h of dnaHints) {
+      const isAvoid = h.direction === 'avoid';
+      const icon = isAvoid ? '\u26A0' : '\u2192';
+      const cls = isAvoid ? ' rec-dna-avoid' : '';
+      const refLink = h.ref && /^https?:\/\//.test(h.ref) ? ` <a href="${escapeHTML(h.ref)}" target="_blank" rel="noopener" class="rec-dna-ref">study</a>` : '';
+      inner += `<div class="rec-dna-row${cls}">${icon} ${escapeHTML(h.text)}${refLink}</div>`;
+    }
+    inner += `</div>`;
+  }
 
   // Tier 1: Nature — free, best option (full width, listed)
   if (slot.freeActions && slot.freeActions.length) {
@@ -259,7 +328,27 @@ export function detectSupplementSlots(text) {
     }
     if (matched && !found.includes(slotKey)) found.push(slotKey);
   }
-  return found.slice(0, 1); // Single most relevant slot
+
+  // Second pass: gene name matching for DNA-aware detection
+  const genetics = state.importedData?.genetics;
+  if (genetics?.snps && window._snpTableCache) {
+    const snpTable = window._snpTableCache;
+    for (const [rsid, stored] of Object.entries(genetics.snps)) {
+      const entry = snpTable[rsid];
+      if (!entry || !entry.snpHints) continue;
+      const g = stored.genotype;
+      const rev = g.length === 2 ? g[1] + g[0] : g;
+      const hint = entry.snpHints[g] || entry.snpHints[rev] || entry.snpHints[_sortAlleles(g)];
+      if (!hint) continue;
+      if (lower.includes(stored.gene.toLowerCase()) && !found.includes(hint.slotKey)) {
+        // Verify slot exists in catalog
+        if (_catalog.slots[hint.slotKey]) found.push(hint.slotKey);
+      }
+    }
+  }
+
+  const hasDNA = !!genetics?.snps;
+  return found.slice(0, hasDNA ? 2 : 1);
 }
 
 // ═══════════════════════════════════════════════
@@ -274,4 +363,5 @@ Object.assign(window, {
   getSlotsForCard,
   detectSupplementSlots,
   loadCatalog,
+  buildDNAHints,
 });

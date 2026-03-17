@@ -422,6 +422,41 @@
       ],
       "label": "Inflammation (hs-CRP)"
     },
+    "vitamins.vitaminB12": {
+      "freeActions": [
+        "Morning sunlight (supports methylation and B12 utilization pathways)"
+      ],
+      "foodForms": [
+        "Beef/lamb liver",
+        "Sardines",
+        "Wild salmon",
+        "Pasture-raised eggs"
+      ],
+      "forms": [
+        "Methylcobalamin (sublingual)",
+        "Hydroxocobalamin",
+        "Adenosylcobalamin"
+      ],
+      "label": "Vitamin B12"
+    },
+    "vitamins.folate": {
+      "freeActions": [
+        "Morning sunlight (supports folate-dependent methylation)",
+        "Reduce nnEMF (oxidative stress depletes folate)"
+      ],
+      "foodForms": [
+        "Dark leafy greens (spinach, kale)",
+        "Beef liver",
+        "Asparagus",
+        "Legumes (lentils, chickpeas)"
+      ],
+      "forms": [
+        "5-MTHF (Methylfolate)",
+        "Folinic acid (leucovorin)",
+        "5-MTHF + B12 combo"
+      ],
+      "label": "Folate"
+    },
     "coagulation.homocysteine": {
       "foodForms": [
         "Beef liver",

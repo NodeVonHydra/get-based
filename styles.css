@@ -3642,6 +3642,15 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
   padding: 6px 10px; margin-top: 6px; border-radius: 0 var(--radius) var(--radius) 0;
   font-size: 11px; line-height: 1.4; color: var(--text-secondary);
 }
+/* DNA-aware recommendation hints */
+.rec-dna-hints { border-left: 3px solid var(--accent); padding: 8px 12px; margin-bottom: 10px; background: rgba(99, 102, 241, 0.04); border-radius: 0 var(--radius) var(--radius) 0; }
+.rec-dna-row { font-size: 13px; padding: 4px 0; color: var(--text-secondary); line-height: 1.5; }
+.rec-dna-avoid { border-left: 3px solid var(--orange); padding: 4px 12px; margin: 4px 0 4px -15px; background: rgba(251, 191, 36, 0.06); border-radius: 0 var(--radius) var(--radius) 0; }
+.rec-dna-ref { font-size: 11px; color: var(--accent); text-decoration: none; margin-left: 4px; opacity: 0.6; }
+.rec-dna-ref:hover { text-decoration: underline; opacity: 1; }
+/* DNA badge on context cards */
+.ctx-dna-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap; flex-shrink: 0; }
+.ctx-dna-badge-avoid { color: var(--orange); border-color: rgba(251, 191, 36, 0.4); }
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }

@@ -33,7 +33,8 @@ const TEST_FILES = [
   'tests/test-change-history.js',
   'tests/test-sync.js',
   'tests/test-biometrics.js',
-  'tests/test-recommendations.js'
+  'tests/test-recommendations.js',
+  'tests/test-dna-recommendations.js'
 ];
 
 const PORT = process.env.PORT || 8000;

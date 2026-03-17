@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "version": "1.0.0",
-    "description": "Curated health-relevant SNP lookup table for DNA raw data import. Forward (+) strand alleles. UPDATE when new research warrants adding/revising SNPs — each entry needs gene, genotypes, effect notes, and at least one citation.",
+    "version": "1.1.0",
+    "description": "Curated health-relevant SNP lookup table for DNA raw data import. Forward (+) strand alleles. snpHints connect genetics to supplement recommendation slots. UPDATE when new research warrants adding/revising SNPs — each entry needs gene, genotypes, effect notes, and at least one citation.",
     "snpCount": 42,
     "categories": ["methylation", "iron", "lipids", "vitaminD", "vitaminB12", "bilirubin", "thyroid", "fattyAcids", "bloodSugar", "sexHormones"],
     "sources": ["SNPedia", "ClinVar", "GWAS Catalog", "PharmGKB"]
@@ -17,6 +17,20 @@
       "GG": { "effect": "none", "note": "Normal MTHFR activity (~100%)" },
       "GA": { "effect": "moderate", "note": "~65% enzyme activity; mild homocysteine elevation possible with low folate" },
       "AA": { "effect": "significant", "note": "~30% enzyme activity; likely elevated homocysteine; consider methylfolate over folic acid" }
+    },
+    "snpHints": {
+      "GA": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTHFR C677T (heterozygous) suggests methylfolate (5-MTHF) may be more effective than folic acid",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/7647779/"
+      },
+      "AA": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTHFR C677T (homozygous) strongly suggests methylfolate (5-MTHF) over folic acid",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/7647779/"
+      }
     }
   },
   "rs1801131": {
@@ -30,6 +44,20 @@
       "TT": { "effect": "none", "note": "Normal BH4 production" },
       "TG": { "effect": "moderate", "note": "Mildly reduced BH4 synthesis; homocysteine usually normal" },
       "GG": { "effect": "moderate", "note": "Reduced BH4; impacts dopamine/serotonin cofactor synthesis" }
+    },
+    "snpHints": {
+      "TG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTHFR A1298C (heterozygous) suggests methylfolate may be more effective than folic acid for BH4 support",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/9545395/"
+      },
+      "GG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTHFR A1298C (homozygous) suggests methylfolate and active B vitamins for BH4 pathway support",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/9545395/"
+      }
     }
   },
   "rs1805087": {
@@ -41,6 +69,20 @@
       "AA": { "effect": "none", "note": "Normal methionine synthase activity" },
       "AG": { "effect": "moderate", "note": "Mildly reduced MTR activity" },
       "GG": { "effect": "moderate", "note": "Reduced methionine synthase; may elevate homocysteine especially with low B12" }
+    },
+    "snpHints": {
+      "AG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTR A2756G (heterozygous) suggests active B12 forms (methylcobalamin) to support homocysteine metabolism",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/9327029/"
+      },
+      "GG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTR A2756G (homozygous) suggests active B12 forms (methylcobalamin) and adequate folate for homocysteine clearance",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/9327029/"
+      }
     }
   },
   "rs1801394": {
@@ -52,6 +94,20 @@
       "AA": { "effect": "none", "note": "Normal B12 recycling via MTRR" },
       "AG": { "effect": "moderate", "note": "Modestly reduced B12 recycling" },
       "GG": { "effect": "significant", "note": "Impaired B12 recycling; can elevate homocysteine especially with low B12/riboflavin" }
+    },
+    "snpHints": {
+      "AG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTRR A66G (heterozygous) suggests ensuring adequate active B12 and riboflavin (B2)",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/11472746/"
+      },
+      "GG": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your MTRR A66G (homozygous) suggests active B12 forms (methylcobalamin) and riboflavin (B2) for B12 recycling",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/11472746/"
+      }
     }
   },
   "rs3733890": {
@@ -75,6 +131,20 @@
       "GG": { "effect": "none", "note": "Normal transsulfuration pathway activity" },
       "GA": { "effect": "moderate", "note": "Altered CBS activity; clinical significance debated" },
       "AA": { "effect": "moderate", "note": "Altered CBS activity; may affect homocysteine clearance (direction uncertain)" }
+    },
+    "snpHints": {
+      "GA": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your CBS c.699C>T (heterozygous) suggests monitoring homocysteine and supporting transsulfuration with B6 (P5P)",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/11149614/"
+      },
+      "AA": {
+        "slotKey": "coagulation.homocysteine",
+        "direction": "form",
+        "text": "Your CBS c.699C>T (homozygous) suggests active B6 (P5P) and monitoring homocysteine clearance",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/11149614/"
+      }
     }
   },
 
@@ -87,6 +157,20 @@
       "GG": { "effect": "none", "note": "No hemochromatosis risk from C282Y" },
       "GA": { "effect": "moderate", "note": "Carrier; usually asymptomatic, mildly elevated ferritin/transferrin sat possible" },
       "AA": { "effect": "significant", "note": "Hereditary hemochromatosis (type 1); progressive iron accumulation; monitor ferritin regularly" }
+    },
+    "snpHints": {
+      "GA": {
+        "slotKey": "iron.ferritin",
+        "direction": "avoid",
+        "text": "Your HFE C282Y (carrier) suggests monitoring ferritin and avoiding iron supplementation unless deficiency is confirmed",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/8696333/"
+      },
+      "AA": {
+        "slotKey": "iron.ferritin",
+        "direction": "avoid",
+        "text": "Your HFE C282Y (homozygous) suggests avoiding iron supplementation and iron-fortified foods \u2014 regular ferritin monitoring recommended",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/8696333/"
+      }
     }
   },
   "rs1799945": {
@@ -99,6 +183,20 @@
       "CC": { "effect": "none", "note": "No H63D variant" },
       "CG": { "effect": "moderate", "note": "Mild iron parameter elevation possible" },
       "GG": { "effect": "moderate", "note": "Mild iron overload possible; significant risk if compound heterozygous with C282Y" }
+    },
+    "snpHints": {
+      "CG": {
+        "slotKey": "iron.ferritin",
+        "direction": "avoid",
+        "text": "Your HFE H63D (heterozygous) suggests monitoring iron levels and avoiding unnecessary iron supplementation",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/8696333/"
+      },
+      "GG": {
+        "slotKey": "iron.ferritin",
+        "direction": "avoid",
+        "text": "Your HFE H63D (homozygous) suggests avoiding iron supplementation and monitoring ferritin regularly",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/8696333/"
+      }
     }
   },
   "rs855791": {
@@ -108,9 +206,23 @@
     "strandNote": "Forward strand: G(ref=Ala736)/A(alt=Val736). Literature often cites T/C (complement).",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/19820698/"],
     "genotypes": {
-      "AA": { "effect": "moderate", "note": "Higher hepcidin → lower iron absorption; risk of iron-deficiency anemia" },
+      "AA": { "effect": "moderate", "note": "Higher hepcidin \u2192 lower iron absorption; risk of iron-deficiency anemia" },
       "AG": { "effect": "moderate", "note": "Intermediate hepcidin regulation" },
       "GG": { "effect": "none", "note": "Efficient hepcidin suppression; normal iron absorption" }
+    },
+    "snpHints": {
+      "AA": {
+        "slotKey": "iron.ferritin",
+        "direction": "increase",
+        "text": "Your TMPRSS6 V736A suggests a higher need for dietary iron or iron supplementation due to increased hepcidin",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19820698/"
+      },
+      "AG": {
+        "slotKey": "iron.ferritin",
+        "direction": "increase",
+        "text": "Your TMPRSS6 V736A (heterozygous) suggests a mildly higher iron need due to intermediate hepcidin regulation",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19820698/"
+      }
     }
   },
   "rs2235321": {
@@ -144,9 +256,9 @@
     "composite": "apoe",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/8346443/"],
     "genotypes": {
-      "TT": { "effect": "none", "note": "APOE part 1 — combine with rs7412 for haplotype" },
-      "TC": { "effect": "moderate", "note": "APOE part 1 — one ε4 allele possible" },
-      "CC": { "effect": "significant", "note": "APOE part 1 — ε4/ε4 possible" }
+      "TT": { "effect": "none", "note": "APOE part 1 \u2014 combine with rs7412 for haplotype" },
+      "TC": { "effect": "moderate", "note": "APOE part 1 \u2014 one \u03B54 allele possible" },
+      "CC": { "effect": "significant", "note": "APOE part 1 \u2014 \u03B54/\u03B54 possible" }
     }
   },
   "rs7412": {
@@ -156,9 +268,9 @@
     "composite": "apoe",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/8346443/"],
     "genotypes": {
-      "CC": { "effect": "none", "note": "APOE part 2 — combine with rs429358 for haplotype" },
-      "CT": { "effect": "moderate", "note": "APOE part 2 — one ε2 allele possible" },
-      "TT": { "effect": "moderate", "note": "APOE part 2 — ε2/ε2 possible" }
+      "CC": { "effect": "none", "note": "APOE part 2 \u2014 combine with rs429358 for haplotype" },
+      "CT": { "effect": "moderate", "note": "APOE part 2 \u2014 one \u03B52 allele possible" },
+      "TT": { "effect": "moderate", "note": "APOE part 2 \u2014 \u03B52/\u03B52 possible" }
     }
   },
   "rs11591147": {
@@ -205,6 +317,20 @@
       "GG": { "effect": "none", "note": "Normal vitamin D binding protein levels" },
       "GT": { "effect": "moderate", "note": "Modestly lower 25(OH)D (~2-4 nmol/L)" },
       "TT": { "effect": "significant", "note": "Significantly lower 25(OH)D (~4-8 nmol/L lower); most replicated vitamin D SNP" }
+    },
+    "snpHints": {
+      "GT": {
+        "slotKey": "vitamins.vitaminD",
+        "direction": "increase",
+        "text": "Your GC VDBP (heterozygous) suggests a modestly higher vitamin D3 need due to lower binding protein",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/20541252/"
+      },
+      "TT": {
+        "slotKey": "vitamins.vitaminD",
+        "direction": "increase",
+        "text": "Your GC VDBP (homozygous) suggests a significantly higher vitamin D3 need \u2014 this is the most replicated vitamin D SNP",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/20541252/"
+      }
     }
   },
   "rs10741657": {
@@ -216,6 +342,20 @@
       "AA": { "effect": "none", "note": "Highest CYP2R1 activity; efficient 25-hydroxylation" },
       "AG": { "effect": "moderate", "note": "Mildly lower 25(OH)D" },
       "GG": { "effect": "significant", "note": "Reduced 25-hydroxylation; ~6-7 nmol/L lower 25(OH)D" }
+    },
+    "snpHints": {
+      "AG": {
+        "slotKey": "vitamins.vitaminD",
+        "direction": "increase",
+        "text": "Your CYP2R1 25-hydroxylase (heterozygous) suggests a mildly higher vitamin D3 need due to reduced conversion",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/20541252/"
+      },
+      "GG": {
+        "slotKey": "vitamins.vitaminD",
+        "direction": "increase",
+        "text": "Your CYP2R1 25-hydroxylase (homozygous) suggests a higher vitamin D3 need due to reduced 25-hydroxylation",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/20541252/"
+      }
     }
   },
   "rs2228570": {
@@ -227,6 +367,14 @@
       "AA": { "effect": "moderate", "note": "Longer VDR isoform; slightly lower receptor efficiency" },
       "AG": { "effect": "moderate", "note": "Intermediate receptor activity" },
       "GG": { "effect": "none", "note": "Shorter VDR isoform; more transcriptionally active" }
+    },
+    "snpHints": {
+      "AA": {
+        "slotKey": "vitamins.vitaminD",
+        "direction": "form",
+        "text": "Your VDR FokI suggests maintaining higher 25(OH)D levels to compensate for lower receptor efficiency",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/8970885/"
+      }
     }
   },
   "rs10877012": {
@@ -250,6 +398,20 @@
       "GG": { "effect": "moderate", "note": "Secretor; lower total B12 but cellular B12 likely normal" },
       "GA": { "effect": "moderate", "note": "Heterozygous secretor; intermediate B12 levels" },
       "AA": { "effect": "moderate", "note": "Non-secretor; higher total B12 (lab artifact from haptocorrin); does not indicate better B12 status" }
+    },
+    "snpHints": {
+      "GG": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your FUT2 W154X (secretor) suggests monitoring functional B12 markers (homocysteine, MMA) \u2014 sublingual B12 may offer better bioavailability",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/18776911/"
+      },
+      "GA": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your FUT2 W154X (heterozygous secretor) suggests sublingual B12 forms may offer better bioavailability",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/18776911/"
+      }
     }
   },
   "rs526934": {
@@ -271,7 +433,21 @@
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal transcobalamin II; efficient cellular B12 delivery" },
       "CG": { "effect": "moderate", "note": "Mildly reduced cellular B12 delivery" },
-      "GG": { "effect": "significant", "note": "Reduced holotranscobalamin → impaired cellular B12; total serum B12 can be misleadingly normal" }
+      "GG": { "effect": "significant", "note": "Reduced holotranscobalamin \u2192 impaired cellular B12; total serum B12 can be misleadingly normal" }
+    },
+    "snpHints": {
+      "CG": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your TCN2 P259R (heterozygous) suggests sublingual or hydroxocobalamin B12 for better cellular delivery",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/12194912/"
+      },
+      "GG": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your TCN2 P259R (homozygous) suggests sublingual methylcobalamin or hydroxocobalamin \u2014 serum B12 may be misleadingly normal",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/12194912/"
+      }
     }
   },
   "rs1801222": {
@@ -283,6 +459,20 @@
       "GG": { "effect": "none", "note": "Normal intestinal B12 absorption" },
       "GA": { "effect": "moderate", "note": "Mildly reduced B12 absorption" },
       "AA": { "effect": "significant", "note": "Reduced cubilin function; lower dietary B12 absorption" }
+    },
+    "snpHints": {
+      "GA": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your CUBN cubilin (heterozygous) suggests sublingual B12 forms to partially bypass reduced intestinal absorption",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19303062/"
+      },
+      "AA": {
+        "slotKey": "vitamins.vitaminB12",
+        "direction": "form",
+        "text": "Your CUBN cubilin (homozygous) suggests sublingual or injectable B12 \u2014 intestinal absorption is significantly reduced",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19303062/"
+      }
     }
   },
 
@@ -295,7 +485,7 @@
     "genotypes": {
       "6/6": { "effect": "none", "note": "Normal UGT1A1 activity; normal bilirubin" },
       "6/7": { "effect": "moderate", "note": "~75% UGT1A1 activity; mildly elevated unconjugated bilirubin" },
-      "7/7": { "effect": "significant", "note": "Gilbert syndrome; UGT1A1 ~30-60% of normal; bilirubin 2-3× elevated; benign but affects drug metabolism" }
+      "7/7": { "effect": "significant", "note": "Gilbert syndrome; UGT1A1 ~30-60% of normal; bilirubin 2-3\u00d7 elevated; benign but affects drug metabolism" }
     }
   },
   "rs4148323": {
@@ -316,9 +506,23 @@
     "contextCards": [],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/18492748/"],
     "genotypes": {
-      "CC": { "effect": "none", "note": "Normal DIO1; standard peripheral T4→T3 conversion" },
+      "CC": { "effect": "none", "note": "Normal DIO1; standard peripheral T4\u2192T3 conversion" },
       "CT": { "effect": "moderate", "note": "Mildly reduced DIO1; may lower T3/T4 ratio" },
       "TT": { "effect": "significant", "note": "Reduced DIO1; lower T3 production; may need higher T4 dose to achieve target T3" }
+    },
+    "snpHints": {
+      "CT": {
+        "slotKey": "thyroid.ft3",
+        "direction": "form",
+        "text": "Your DIO1 3'-UTR (heterozygous) suggests selenium (selenomethionine) to support T4-to-T3 conversion",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/18492748/"
+      },
+      "TT": {
+        "slotKey": "thyroid.ft3",
+        "direction": "form",
+        "text": "Your DIO1 3'-UTR (homozygous) suggests selenium and monitoring T3/T4 ratio \u2014 peripheral conversion is reduced",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/18492748/"
+      }
     }
   },
   "rs225014": {
@@ -327,9 +531,23 @@
     "contextCards": ["sleepRest"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/12788902/"],
     "genotypes": {
-      "TT": { "effect": "none", "note": "Normal DIO2; efficient intracellular T4→T3 conversion" },
-      "TC": { "effect": "moderate", "note": "Mildly reduced local T4→T3 conversion" },
-      "CC": { "effect": "significant", "note": "Impaired tissue T4→T3 conversion; serum T3 may appear normal while intracellular T3 is suboptimal; may benefit from T4+T3 combination therapy" }
+      "TT": { "effect": "none", "note": "Normal DIO2; efficient intracellular T4\u2192T3 conversion" },
+      "TC": { "effect": "moderate", "note": "Mildly reduced local T4\u2192T3 conversion" },
+      "CC": { "effect": "significant", "note": "Impaired tissue T4\u2192T3 conversion; serum T3 may appear normal while intracellular T3 is suboptimal; may benefit from T4+T3 combination therapy" }
+    },
+    "snpHints": {
+      "TC": {
+        "slotKey": "thyroid.ft3",
+        "direction": "form",
+        "text": "Your DIO2 Thr92Ala (heterozygous) suggests selenium and zinc to support intracellular T4-to-T3 conversion",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/12788902/"
+      },
+      "CC": {
+        "slotKey": "thyroid.ft3",
+        "direction": "form",
+        "text": "Your DIO2 Thr92Ala (homozygous) suggests selenium, zinc, and discussing T4+T3 combination therapy with your doctor",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/12788902/"
+      }
     }
   },
   "rs179247": {
@@ -339,26 +557,40 @@
     "references": ["https://pubmed.ncbi.nlm.nih.gov/19244275/"],
     "genotypes": {
       "GG": { "effect": "none", "note": "Low Graves' disease risk" },
-      "GA": { "effect": "moderate", "note": "Modestly elevated Graves' disease risk (~1.4×)" },
-      "AA": { "effect": "significant", "note": "Significantly elevated Graves' disease risk (~2-3×); no association with Hashimoto's" }
+      "GA": { "effect": "moderate", "note": "Modestly elevated Graves' disease risk (~1.4\u00d7)" },
+      "AA": { "effect": "significant", "note": "Significantly elevated Graves' disease risk (~2-3\u00d7); no association with Hashimoto's" }
     }
   },
 
   "rs174546": {
     "gene": "FADS1", "variant": "3'-UTR", "category": "fattyAcids",
-    "markers": [],
+    "markers": ["fattyAcids.omega3Index"],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (omega-3 index, AA, EPA, DHA)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "High delta-5 desaturase activity; efficient n-3/n-6 PUFA conversion" },
       "TC": { "effect": "moderate", "note": "Intermediate desaturase activity" },
-      "TT": { "effect": "significant", "note": "Low D5D activity; higher DGLA, lower AA; poor ALA→EPA/DHA conversion; may need preformed DHA" }
+      "TT": { "effect": "significant", "note": "Low D5D activity; higher DGLA, lower AA; poor ALA\u2192EPA/DHA conversion; may need preformed DHA" }
+    },
+    "snpHints": {
+      "TC": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS1 3'-UTR (heterozygous) suggests preformed EPA/DHA may be more effective than plant-based ALA",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16670158/"
+      },
+      "TT": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS1 3'-UTR (homozygous) suggests preformed DHA from fish or algal oil \u2014 ALA conversion is significantly reduced",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16670158/"
+      }
     }
   },
   "rs174547": {
     "gene": "FADS1", "variant": "coding region", "category": "fattyAcids",
-    "markers": [],
+    "markers": ["fattyAcids.omega3Index"],
     "contextCards": ["diet", "supplements"],
     "markerNote": "In strong LD with rs174546; largely redundant",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
@@ -366,30 +598,72 @@
       "CC": { "effect": "none", "note": "High delta-5 desaturase activity" },
       "TC": { "effect": "moderate", "note": "Intermediate activity" },
       "TT": { "effect": "significant", "note": "Low D5D; reduced n-3/n-6 conversion efficiency" }
+    },
+    "snpHints": {
+      "TC": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS1 coding region (heterozygous) suggests preformed EPA/DHA over plant-based omega-3",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16670158/"
+      },
+      "TT": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS1 coding region (homozygous) suggests preformed DHA from fish or algal oil over ALA",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16670158/"
+      }
     }
   },
   "rs174575": {
     "gene": "FADS2", "variant": "delta-6 desaturase", "category": "fattyAcids",
-    "markers": [],
+    "markers": ["fattyAcids.omega3Index"],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (GLA, AA, EPA, DHA)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/17984066/"],
     "genotypes": {
-      "CC": { "effect": "none", "note": "Normal D6D; standard LA→GLA and ALA→SDA conversion" },
+      "CC": { "effect": "none", "note": "Normal D6D; standard LA\u2192GLA and ALA\u2192SDA conversion" },
       "CG": { "effect": "moderate", "note": "Mildly reduced D6D activity" },
       "GG": { "effect": "significant", "note": "Reduced D6D; lower GLA/SDA; may benefit from GLA (evening primrose) and preformed EPA/DHA" }
+    },
+    "snpHints": {
+      "CG": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS2 delta-6 desaturase (heterozygous) suggests preformed EPA/DHA may be more effective",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/17984066/"
+      },
+      "GG": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your FADS2 delta-6 desaturase (homozygous) suggests preformed EPA/DHA and possibly GLA (evening primrose oil)",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/17984066/"
+      }
     }
   },
   "rs953413": {
     "gene": "ELOVL2", "variant": "elongase 2", "category": "fattyAcids",
-    "markers": [],
+    "markers": ["fattyAcids.omega3Index"],
     "contextCards": ["diet", "supplements"],
     "markerNote": "Maps to custom fatty acid markers (EPA, DHA, Omega-3 Index)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/19148276/"],
     "genotypes": {
-      "AA": { "effect": "none", "note": "Normal ELOVL2; efficient EPA→DHA elongation" },
+      "AA": { "effect": "none", "note": "Normal ELOVL2; efficient EPA\u2192DHA elongation" },
       "AG": { "effect": "moderate", "note": "Mildly reduced DHA synthesis" },
       "GG": { "effect": "significant", "note": "Reduced elongase; EPA supplementation may not efficiently raise DHA; supplement DHA directly" }
+    },
+    "snpHints": {
+      "AG": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your ELOVL2 elongase (heterozygous) suggests supplementing DHA directly \u2014 EPA elongation may be mildly reduced",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19148276/"
+      },
+      "GG": {
+        "slotKey": "fattyAcids.omega3Index",
+        "direction": "form",
+        "text": "Your ELOVL2 elongase (homozygous) suggests supplementing DHA directly rather than relying on EPA conversion",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19148276/"
+      }
     }
   },
 
@@ -402,6 +676,20 @@
       "CC": { "effect": "none", "note": "Normal beta cell incretin response" },
       "CT": { "effect": "significant", "note": "~39% increased T2D risk; impaired insulin secretion" },
       "TT": { "effect": "significant", "note": "~60-100% increased T2D risk; impaired post-prandial insulin release" }
+    },
+    "snpHints": {
+      "CT": {
+        "slotKey": "biochemistry.glucose",
+        "direction": "increase",
+        "text": "Your TCF7L2 (heterozygous) suggests a higher need for blood sugar management \u2014 berberine, chromium, and post-meal walks",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16415884/"
+      },
+      "TT": {
+        "slotKey": "biochemistry.glucose",
+        "direction": "increase",
+        "text": "Your TCF7L2 (homozygous) suggests a significantly higher need for blood sugar management \u2014 consider berberine and strict carb control",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/16415884/"
+      }
     }
   },
   "rs1801282": {
@@ -410,7 +698,7 @@
     "contextCards": ["diet", "exercise"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/10973253/"],
     "genotypes": {
-      "CC": { "effect": "none", "note": "Standard PPARγ2; highest insulin resistance risk" },
+      "CC": { "effect": "none", "note": "Standard PPAR\u03B32; highest insulin resistance risk" },
       "CG": { "effect": "moderate", "note": "Improved insulin sensitivity; reduced T2D risk (protective)" },
       "GG": { "effect": "moderate", "note": "Best insulin sensitivity; lowest T2D risk (protective)" }
     }
@@ -447,6 +735,20 @@
       "CC": { "effect": "none", "note": "Higher SHBG; more bound testosterone/estradiol" },
       "CT": { "effect": "moderate", "note": "Intermediate SHBG levels" },
       "TT": { "effect": "moderate", "note": "Lower SHBG; higher free testosterone/estradiol" }
+    },
+    "snpHints": {
+      "CT": {
+        "slotKey": "hormones.shbg",
+        "direction": "form",
+        "text": "Your SHBG promoter (heterozygous) suggests boron (calcium fructoborate) may help modulate SHBG levels",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19064566/"
+      },
+      "TT": {
+        "slotKey": "hormones.shbg",
+        "direction": "form",
+        "text": "Your SHBG promoter (homozygous) suggests lower SHBG \u2014 boron and nettle root may help optimize free hormone balance",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/19064566/"
+      }
     }
   },
   "rs1799941": {
@@ -458,6 +760,20 @@
       "GG": { "effect": "none", "note": "Lower SHBG baseline" },
       "GA": { "effect": "moderate", "note": "Intermediate SHBG" },
       "AA": { "effect": "significant", "note": "~24-39% higher SHBG; higher total but lower free testosterone" }
+    },
+    "snpHints": {
+      "GA": {
+        "slotKey": "hormones.shbg",
+        "direction": "form",
+        "text": "Your SHBG 5'-region (heterozygous) suggests monitoring SHBG \u2014 boron may help optimize free hormone levels",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/22829776/"
+      },
+      "AA": {
+        "slotKey": "hormones.shbg",
+        "direction": "form",
+        "text": "Your SHBG 5'-region (homozygous) suggests elevated SHBG \u2014 boron and stinging nettle root may help optimize free hormone levels",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/22829776/"
+      }
     }
   },
   "rs743572": {
@@ -476,12 +792,12 @@
     "gene": "CYP19A1", "variant": "aromatase", "category": "sexHormones",
     "markers": ["hormones.estradiol", "hormones.testosterone"],
     "contextCards": [],
-    "strandNote": "Forward strand: C(ref)/T(alt) — actual Ancestry alleles. Literature cites A/G (complement).",
+    "strandNote": "Forward strand: C(ref)/T(alt) \u2014 actual Ancestry alleles. Literature cites A/G (complement).",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/23643682/"],
     "genotypes": {
-      "CC": { "effect": "moderate", "note": "Altered testosterone→estradiol conversion; direction depends on sex and body composition" },
+      "CC": { "effect": "moderate", "note": "Altered testosterone\u2192estradiol conversion; direction depends on sex and body composition" },
       "CT": { "effect": "moderate", "note": "Mildly altered aromatase activity" },
-      "TT": { "effect": "none", "note": "Normal aromatase; standard androgen→estrogen conversion" }
+      "TT": { "effect": "none", "note": "Normal aromatase; standard androgen\u2192estrogen conversion" }
     }
   },
   "rs1056836": {
@@ -492,7 +808,21 @@
     "genotypes": {
       "CC": { "effect": "none", "note": "Lower CYP1B1 activity; less genotoxic 4-OH-estradiol production" },
       "CG": { "effect": "moderate", "note": "Intermediate estrogen 4-hydroxylation activity" },
-      "GG": { "effect": "moderate", "note": "~3× higher CYP1B1 activity; more 4-OH-estradiol (genotoxic metabolite)" }
+      "GG": { "effect": "moderate", "note": "~3\u00d7 higher CYP1B1 activity; more 4-OH-estradiol (genotoxic metabolite)" }
+    },
+    "snpHints": {
+      "CG": {
+        "slotKey": "hormones.estradiol",
+        "direction": "form",
+        "text": "Your CYP1B1 Leu432Val (heterozygous) suggests DIM or calcium D-glucarate to support healthy estrogen metabolism",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/10910054/"
+      },
+      "GG": {
+        "slotKey": "hormones.estradiol",
+        "direction": "form",
+        "text": "Your CYP1B1 Leu432Val (homozygous) suggests DIM, calcium D-glucarate, and cruciferous vegetables to reduce 4-OH-estradiol",
+        "ref": "https://pubmed.ncbi.nlm.nih.gov/10910054/"
+      }
     }
   }
 }
