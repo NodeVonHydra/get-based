@@ -156,14 +156,14 @@ const OPENROUTER_CURATED = [
 //   JSON.parse(localStorage.getItem('labcharts-openrouter-models')||'[]').map(m=>m.id)
 const OPENROUTER_RECOMMENDED = [
   'anthropic/claude-sonnet-4.6', 'anthropic/claude-opus-4.6',
-  'openai/gpt-5.2',
-  'google/gemini-3.1-pro', 'google/gemini-3-pro',
+  'openai/gpt-5.4',
+  'google/gemini-3.1-pro',
   'x-ai/grok-4',
 ];
 export function isRecommendedModel(provider, modelId) {
   if (provider === 'openrouter') return OPENROUTER_RECOMMENDED.some(function(prefix) { return modelId.startsWith(prefix); });
   if (provider === 'anthropic') return /sonnet-4-6|opus-4-6/.test(modelId);
-  if (provider === 'venice') return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[23](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
+  if (provider === 'venice') return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[234](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
   return false; // Ollama — local models, can't tier
 }
 export function getActiveModelId() {
