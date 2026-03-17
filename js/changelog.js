@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.3', date: '2026-03-17', title: 'Chat search + scroll fix',
+    items: [
+      'Search across chat messages — find any keyword across all conversations with highlighted snippets, click to jump directly to the message (#72)',
+      'Smart auto-scroll during AI streaming — scroll up to read earlier text without the chat fighting you back to the bottom (thanks @NodeVonHydra)',
+      'Fix: toggling AI provider no longer auto-opens the chat panel (#71)',
+    ]
+  },
+  {
     version: '1.8.2', date: '2026-03-16', title: 'Image import + scanned PDF auto-detect',
     items: [
       'Import lab reports from photos/screenshots (JPG, PNG, WebP) — drop or browse, same AI pipeline as PDF image mode',

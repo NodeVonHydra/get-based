@@ -108,7 +108,7 @@
         <span class="chat-thread-rail-title">Conversations</span>
         <button class="chat-thread-new-btn" onclick="createNewThread()" title="New conversation" aria-label="New conversation">+</button>
       </div>
-      <input type="text" class="chat-thread-search" id="chat-thread-search" placeholder="Search..." aria-label="Search conversations" oninput="filterThreadList(this.value)">
+      <input type="search" class="chat-thread-search" id="chat-thread-search" placeholder="Search conversations..." aria-label="Search conversations and messages" oninput="filterThreadList(this.value)" onsearch="filterThreadList(this.value)">
       <div class="chat-thread-list" id="chat-thread-list"></div>
     </div>
     <div class="chat-panel-conversation">
