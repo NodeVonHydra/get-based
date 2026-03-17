@@ -117,7 +117,7 @@ function _buildDisclosureBanner() {
   if (hasSeenDisclosure()) return '';
   return `<div class="rec-disclosure-banner">
     These suggestions are informational, not medical advice. Always consult your healthcare provider before starting supplements. Affiliate links earn a small commission\u00a0\u2014 brands cannot pay for placement.
-    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');w.nextElementSibling.classList.remove('rec-gated');w.remove()">Got it</button>
+    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');const d=w.nextElementSibling;d.classList.remove('rec-gated');d.open=true;w.remove()">Got it</button>
   </div>`;
 }
 

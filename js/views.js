@@ -442,11 +442,9 @@ async function loadChartCardRecs() {
     const slotKey = id.replace('_', '.');
     const slot = catalog.slots[slotKey];
     if (!slot) continue;
-    const nTotal = (slot.freeActions || []).length + (slot.foodForms || []).length
-      + (slot.forms || []).length + (catalog.products?.[slotKey] || []).length;
     const link = document.createElement('a');
     link.className = 'chart-card-rec-link';
-    link.textContent = (nTotal ? `${nTotal} tips` : 'Tips') + ' \u2192';
+    link.textContent = 'What can help \u2192';
     link.href = '#';
     link.onclick = e => {
       e.preventDefault();
