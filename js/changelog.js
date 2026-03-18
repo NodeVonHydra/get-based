@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.4', date: '2026-03-18', title: 'Web search in chat',
+    items: [
+      'Web search toggle in chat — AI can search the internet before responding, useful for recent studies, drug interactions, and current information',
+      'Available with OpenRouter and Venice providers; toggle auto-hides for Anthropic and Local AI',
+      'Cost footnote shows 🌐 web indicator when search was active; flag persists in message history',
+    ]
+  },
+  {
     version: '1.8.3', date: '2026-03-17', title: 'Chat search + scroll fix',
     items: [
       'Search across chat messages — find any keyword across all conversations with highlighted snippets, click to jump directly to the message (#72)',
