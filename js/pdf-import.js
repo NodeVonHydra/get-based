@@ -19,6 +19,10 @@ function normalizeUnitStr(s) {
 
 function normalizeToSI(key, value, unit) {
   if (value == null) return value;
+  // Hematocrit: schema stores as % (40–50) but some labs report as fraction l/l (0.40–0.50)
+  if (key === 'hematology.hematocrit' && value < 1.5) {
+    return parseFloat((value * 100).toFixed(1));
+  }
   const conv = UNIT_CONVERSIONS[key];
   if (!conv) return value;
 
