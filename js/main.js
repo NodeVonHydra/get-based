@@ -142,12 +142,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const imageFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type?.startsWith('image/'));
       const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
       // Unmatched .txt/.csv files — check content for DNA format
+      const textFiles = [];
       const unmatched = files.filter(f => !jsonFiles.includes(f) && !pdfFiles.includes(f) && !imageFiles.includes(f) && !dnaFiles.includes(f) && /\.(txt|csv)$/i.test(f.name));
       for (const f of unmatched) {
         if (window.isDNAFileByContent && await window.isDNAFileByContent(f)) dnaFiles.push(f);
+        else if (f.name.endsWith('.txt')) textFiles.push(f);
       }
       for (const f of jsonFiles) window.importDataJSON(f);
       if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+      else if (textFiles.length > 0) { for (const f of textFiles) await window.handleTextFile(f); }
       else if (imageFiles.length > 0) { for (const f of imageFiles) await window.handleImageFile(f); }
       else {
         if (pdfFiles.length === 1) await window.handlePDFFile(pdfFiles[0]);

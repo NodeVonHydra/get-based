@@ -939,17 +939,20 @@ export function setupDropZone() {
     const imageFiles = files.filter(f => /\.(jpe?g|png|webp)$/i.test(f.name) || f.type?.startsWith('image/'));
     const dnaFiles = files.filter(f => window.isDNAFile && window.isDNAFile(f));
     // Unmatched .txt/.csv — check content for DNA format
+    const textFiles = [];
     const unmatched = files.filter(f => !jsonFiles.includes(f) && !pdfFiles.includes(f) && !imageFiles.includes(f) && !dnaFiles.includes(f) && /\.(txt|csv)$/i.test(f.name));
     for (const f of unmatched) {
       if (window.isDNAFileByContent && await window.isDNAFileByContent(f)) dnaFiles.push(f);
+      else if (f.name.endsWith('.txt')) textFiles.push(f);
     }
-    const unsupported = files.length - jsonFiles.length - pdfFiles.length - imageFiles.length - dnaFiles.length;
-    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && imageFiles.length === 0 && dnaFiles.length === 0) {
-      showNotification("Unsupported file type. Use PDF, image, JSON, or DNA raw data (.txt/.csv).", "error");
+    const unsupported = files.length - jsonFiles.length - pdfFiles.length - imageFiles.length - dnaFiles.length - textFiles.length;
+    if (unsupported > 0 && jsonFiles.length === 0 && pdfFiles.length === 0 && imageFiles.length === 0 && dnaFiles.length === 0 && textFiles.length === 0) {
+      showNotification("Unsupported file type. Use PDF, text, image, JSON, or DNA raw data (.txt/.csv).", "error");
       return;
     }
     for (const f of jsonFiles) window.importDataJSON(f);
     if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+    else if (textFiles.length > 0) { for (const f of textFiles) await handleTextFile(f); }
     else if (imageFiles.length > 0) { for (const f of imageFiles) await handleImageFile(f); }
     else if (pdfFiles.length === 1) await handlePDFFile(pdfFiles[0]);
     else if (pdfFiles.length > 1) await handleBatchPDFs(pdfFiles);
@@ -1281,12 +1284,12 @@ async function _showImageModeDialog() {
   });
 }
 
-export async function handlePDFFile(file, forceImageMode = false) {
+export async function handlePDFFile(file, forceImageMode = false, preExtractedText = null) {
   const _startProfileId = state.currentProfile;
   try {
     await showImportProgress(0, file.name);
-    const pdfText = await extractPDFText(file);
-    const textQuality = assessTextQuality(pdfText);
+    const pdfText = preExtractedText || await extractPDFText(file);
+    const textQuality = preExtractedText ? 'good' : assessTextQuality(pdfText);
 
     // Determine import mode — auto-switch to image mode for scanned/empty PDFs
     let useImageMode = forceImageMode;
@@ -1727,6 +1730,15 @@ export async function handleImageFile(file) {
 }
 
 // ═══════════════════════════════════════════════
+// TEXT FILE IMPORT
+// ═══════════════════════════════════════════════
+export async function handleTextFile(file) {
+  const text = await file.text();
+  if (!text.trim()) { showNotification("Text file is empty", "error"); return; }
+  await handlePDFFile(file, false, text);
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
@@ -1749,6 +1761,7 @@ Object.assign(window, {
   parseLabPDFWithAIImages,
   handlePDFFile,
   handleImageFile,
+  handleTextFile,
   handleBatchPDFs,
   showBatchImportProgress,
   showImportPreviewAsync,
