@@ -121,10 +121,15 @@
           </div>
         </div>
         <div class="chat-header-actions">
+          <label class="chat-websearch-toggle-label" title="Let AI search the web for current information (Venice &amp; OpenRouter)" style="display:none">
+            <span class="chat-toggle-text">Web</span>
+            <input type="checkbox" id="chat-websearch-checkbox" aria-label="Toggle web search" onchange="setChatWebSearchEnabled(this.checked)">
+            <span class="chat-toggle-slider"></span>
+          </label>
           <label class="chat-sources-toggle-label" title="Include scientific paper references">
-            <span class="chat-sources-toggle-text">Sources (experimental)</span>
+            <span class="chat-toggle-text">Sources</span>
             <input type="checkbox" id="chat-sources-checkbox" aria-label="Toggle chat sources" onchange="setChatSourcesEnabled(this.checked)">
-            <span class="chat-sources-slider"></span>
+            <span class="chat-toggle-slider"></span>
           </label>
           <button class="chat-clear-btn" onclick="clearChatHistory()" title="Clear history">Clear</button>
           <button class="chat-close-btn" onclick="closeChatPanel()" aria-label="Close chat">&times;</button>

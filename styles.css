@@ -1845,25 +1845,27 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 }
 .chat-close-btn:hover { color: var(--text-primary); }
 
-/* Sources mini toggle */
-.chat-sources-toggle-label {
+/* Chat header mini toggles (sources, web search) */
+.chat-sources-toggle-label, .chat-websearch-toggle-label {
   display: flex; gap: 6px; align-items: center; cursor: pointer;
   font-size: 11px; color: var(--text-muted); user-select: none;
 }
-#chat-sources-checkbox { display: none; }
-.chat-sources-slider {
+#chat-sources-checkbox, #chat-websearch-checkbox { display: none; }
+.chat-toggle-slider {
   position: relative; width: 28px; height: 16px; border-radius: 8px;
   background: var(--border); transition: background 0.2s;
 }
-.chat-sources-slider::before {
+.chat-toggle-slider::before {
   content: ''; position: absolute; left: 2px; top: 2px;
   width: 12px; height: 12px; border-radius: 50%;
   background: var(--bg-primary); transition: transform 0.2s;
 }
-#chat-sources-checkbox:checked + .chat-sources-slider {
+#chat-sources-checkbox:checked + .chat-toggle-slider,
+#chat-websearch-checkbox:checked + .chat-toggle-slider {
   background: var(--accent);
 }
-#chat-sources-checkbox:checked + .chat-sources-slider::before {
+#chat-sources-checkbox:checked + .chat-toggle-slider::before,
+#chat-websearch-checkbox:checked + .chat-toggle-slider::before {
   transform: translateX(12px);
 }
 

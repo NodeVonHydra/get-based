@@ -395,6 +395,14 @@ async function _fetchWithRetry(url, options, retries = 2, useProxy = true) {
 }
 
 // ═══════════════════════════════════════════════
+// WEB SEARCH SUPPORT
+// ═══════════════════════════════════════════════
+export function supportsWebSearch() {
+  const provider = getAIProvider();
+  return provider === 'venice' || provider === 'openrouter';
+}
+
+// ═══════════════════════════════════════════════
 // VISION SUPPORT
 // ═══════════════════════════════════════════════
 export function supportsVision() {
@@ -578,12 +586,12 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
 // ═══════════════════════════════════════════════
 // SHARED OPENAI-COMPATIBLE API HELPER
 // ═══════════════════════════════════════════════
-async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream, signal }, extraHeaders = {}, { useProxy = true } = {}) {
+async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { system, messages, maxTokens, onStream, signal }, extraHeaders = {}, { useProxy = true, extraBody = {} } = {}) {
   const apiMessages = [];
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
 
-  const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096 };
+  const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096, ...extraBody };
   if (onStream) { body.stream = true; body.stream_options = { include_usage: true }; }
 
   let res;
@@ -659,16 +667,19 @@ export async function callOpenAICompatibleLocalAPI(opts) {
 export async function callVeniceAPI(opts) {
   const key = getVeniceKey();
   if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
-  return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, getVeniceModel(), 'Venice', opts);
+  const extraBody = opts.webSearch ? { venice_parameters: { enable_web_search: 'on' } } : {};
+  return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, getVeniceModel(), 'Venice', opts, {}, { extraBody });
 }
 
 export async function callOpenRouterAPI(opts) {
   const key = getOpenRouterKey();
   if (!key) throw new Error('No OpenRouter API key configured. Add your key in Settings.');
+  const extraBody = opts.webSearch ? { plugins: [{ id: 'web' }] } : {};
   return callOpenAICompatibleAPI(
     'https://openrouter.ai/api/v1/chat/completions',
     key, getOpenRouterModel(), 'OpenRouter', opts,
-    { 'HTTP-Referer': window.location.origin, 'X-Title': 'getbased' }
+    { 'HTTP-Referer': window.location.origin, 'X-Title': 'getbased' },
+    { extraBody }
   );
 }
 
@@ -719,7 +730,7 @@ Object.assign(window, {
   getActiveModelId, getActiveModelDisplay,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
-  supportsVision,
+  supportsVision, supportsWebSearch,
   validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
   callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
 });

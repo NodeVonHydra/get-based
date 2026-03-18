@@ -93,6 +93,20 @@ All image metadata is automatically stripped before sending. EXIF data — GPS l
 The attach and HD buttons only appear when your active model supports vision (image input). If you don't see them, switch to a vision-capable model in Settings.
 :::
 
+## Web Search
+
+The **Web** toggle in the chat header lets the AI search the internet before responding. This is useful for questions about recent studies, drug interactions, supplement research, or anything where up-to-date information matters.
+
+Toggle it on, ask your question, and the AI will pull in current web results alongside your lab context.
+
+::: warning Higher cost
+Web search injects search results into the AI's context, significantly increasing input tokens. Expect messages to cost 2–4x more than normal. The cost footnote shows a 🌐 web indicator when search was active.
+:::
+
+::: tip Availability
+Web search is available with **OpenRouter** and **Venice** only. The toggle is hidden when using Anthropic or Local AI.
+:::
+
 ## Per-Marker AI Explanations
 
 From any marker's detail view (click a marker name in the sidebar or on the dashboard), you will find an **Ask AI** button. This opens a pre-populated chat asking the AI to explain that specific marker in the context of your results — without you having to type anything.
@@ -126,6 +140,7 @@ Every chat message sends your full lab context + conversation history to the AI.
 - **Filled context cards** — each of the 9 lifestyle cards adds 50–300 tokens when filled
 - **Long conversations** — AI responses are often 300–800 tokens each. After 10 back-and-forth exchanges, history alone can be 5k–8k tokens
 - **Images** — a single standard-quality image adds ~1,500–3,000 input tokens. HD images cost more. Images are only sent with the current message, never re-sent in history
+- **Web search** — when the Web toggle is on, search results are injected into the context, adding thousands of tokens. Expect 2–4x the normal cost per message
 
 ### Realistic cost examples
 

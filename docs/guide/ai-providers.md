@@ -11,6 +11,7 @@ getbased supports four AI backends for PDF import, chat, and dashboard AI featur
 | Focus card (dashboard insight) | Yes |
 | Health status dots on context cards | Yes |
 | AI-generated card tips | Yes |
+| Web search in chat | Yes (OpenRouter, Venice only) |
 | Charts, tables, trend alerts | No |
 | Manual entry | No |
 | JSON export / import | No |
@@ -23,7 +24,7 @@ All non-AI features work fully without any provider configured.
 
 ### OpenRouter (Recommended)
 
-A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more — through a single account. getbased shows a curated list of the latest medically capable models and displays live pricing for each. OpenRouter is the recommended provider and appears as the first tab in Settings.
+A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more — through a single account. getbased shows a curated list of the latest medically capable models and displays live pricing for each. OpenRouter is the recommended provider and appears as the first tab in Settings. Supports [web search](/guide/ai-chat#web-search) in chat with any model.
 
 **Setup — OAuth (easiest):**
 1. In Settings → AI Provider, select **OpenRouter**
@@ -57,7 +58,7 @@ Anthropic charges per token. A typical PDF import costs a few cents. Chat respon
 
 ### Venice AI (Best for privacy)
 
-A privacy-focused cloud provider where your conversations and data are not stored or logged on their servers. Venice also proxies access to GPT, Grok, and DeepSeek models.
+A privacy-focused cloud provider where your conversations and data are not stored or logged on their servers. Venice also proxies access to GPT, Grok, and DeepSeek models. Supports [web search](/guide/ai-chat#web-search) in chat with any model.
 
 **Setup:**
 1. Get an API key at [venice.ai](https://venice.ai)

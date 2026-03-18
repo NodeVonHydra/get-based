@@ -116,10 +116,10 @@
 
   // Toggle slider uses CSS variable not #fff
   assert('Toggle slider uses var(--bg-primary)',
-    css.includes('.chat-sources-slider::before') && !css.includes('chat-sources-slider::before') ||
+    css.includes('.chat-toggle-slider::before') && !css.includes('chat-toggle-slider::before') ||
     css.includes('var(--bg-primary)'));
   // More precise check
-  const sliderIdx = css.indexOf('.chat-sources-slider::before');
+  const sliderIdx = css.indexOf('.chat-toggle-slider::before');
   const sliderBlock = css.substring(sliderIdx, css.indexOf('}', sliderIdx));
   assert('Slider no hardcoded #fff', !sliderBlock.includes('#fff'));
 

@@ -284,7 +284,7 @@
   const indexSrc = await fetch('/app').then(r => r.text());
   assert('index.html has chat-sources-checkbox', indexSrc.includes('chat-sources-checkbox'), 'found');
   assert('index.html has chat-sources-toggle-label', indexSrc.includes('chat-sources-toggle-label'), 'found');
-  assert('index.html has chat-sources-slider', indexSrc.includes('chat-sources-slider'), 'found');
+  assert('index.html has chat-toggle-slider', indexSrc.includes('chat-toggle-slider'), 'found');
   assert('index.html checkbox calls setChatSourcesEnabled', indexSrc.includes('setChatSourcesEnabled(this.checked)'), 'found');
 
   const chatHeaderCheckbox = document.getElementById('chat-sources-checkbox');
@@ -353,7 +353,7 @@
     'chat-context-details', 'chat-context-item', 'chat-sources-toggle',
     'chat-sources-details', 'chat-source-item', 'chat-source-title',
     'chat-source-meta', 'chat-sources-loading', 'chat-sources-shimmer',
-    'chat-toggle-arrow', 'chat-sources-slider', 'chat-sources-toggle-label'
+    'chat-toggle-arrow', 'chat-toggle-slider', 'chat-sources-toggle-label'
   ];
   for (const cls of cssClasses) {
     assert(`CSS .${cls} defined`, cssSrc.includes('.' + cls), 'found in styles.css');

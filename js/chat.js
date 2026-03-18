@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
-import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
@@ -1139,6 +1139,23 @@ export function setGroupInAIContext(groupName, val) {
 }
 
 // ═══════════════════════════════════════════════
+// WEB SEARCH
+// ═══════════════════════════════════════════════
+export function getChatWebSearchEnabled() {
+  return localStorage.getItem('labcharts-chat-websearch') === 'on';
+}
+
+export function setChatWebSearchEnabled(val) {
+  localStorage.setItem('labcharts-chat-websearch', val ? 'on' : 'off');
+  _updateWebSearchToggleVisibility();
+}
+
+function _updateWebSearchToggleVisibility() {
+  const label = document.querySelector('.chat-websearch-toggle-label');
+  if (label) label.style.display = supportsWebSearch() ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════
 // CHAT SOURCES (OpenAlex)
 // ═══════════════════════════════════════════════
 export function getChatSourcesEnabled() {
@@ -2104,7 +2121,8 @@ export function renderChatMessages() {
         const cost = calculateCost(mProvider, mId, msg.usage.inputTokens, msg.usage.outputTokens);
         const totalTokens = (msg.usage.inputTokens || 0) + (msg.usage.outputTokens || 0);
         const mName = msg.modelDisplay || getActiveModelDisplay();
-        html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens</div>`;
+        const webTag = msg.webSearch ? ' \u00b7 \ud83c\udf10 web' : '';
+        html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}</div>`;
       }
       html += buildActionBar(i);
     }
@@ -2294,6 +2312,10 @@ export async function openChatPanel(prefillMessage) {
   // Sync sources toggle
   const srcCb = document.getElementById('chat-sources-checkbox');
   if (srcCb) srcCb.checked = getChatSourcesEnabled();
+  // Sync web search toggle
+  const wsCb = document.getElementById('chat-websearch-checkbox');
+  if (wsCb) wsCb.checked = getChatWebSearchEnabled();
+  _updateWebSearchToggleVisibility();
   // Load threads and ensure active thread
   loadChatThreads();
   ensureActiveThread();
@@ -2324,6 +2346,7 @@ function _updateChatInputState() {
     input.placeholder = noAI ? (isAIPaused() ? 'AI features are paused' : 'Connect an AI provider in Settings to chat') : 'Ask about your lab results...';
   }
   if (sendBtn) sendBtn.disabled = noAI;
+  _updateWebSearchToggleVisibility();
 }
 
 export function closeChatPanel() {
@@ -2741,6 +2764,7 @@ export async function sendChatMessage() {
   // Snapshot context areas before sending
   const contextSnapshot = getContextSummary();
   const sourcesEnabled = getChatSourcesEnabled();
+  const webSearchEnabled = getChatWebSearchEnabled() && supportsWebSearch();
 
   try {
     const labContext = buildLabContext();
@@ -2818,7 +2842,8 @@ export async function sendChatMessage() {
       messages: apiMessages,
       maxTokens: 4096,
       signal: _chatAbortController ? _chatAbortController.signal : undefined,
-      onStream(text) { typewriter.update(text); }
+      onStream(text) { typewriter.update(text); },
+      webSearch: webSearchEnabled
     });
 
     // Final render with full markdown
@@ -2845,14 +2870,16 @@ export async function sendChatMessage() {
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       const cost = calculateCost(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
       const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
+      const webTag = webSearchEnabled ? ' \u00b7 \ud83c\udf10 web' : '';
       const footnote = document.createElement('div');
       footnote.className = 'chat-cost-footnote';
-      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}`;
       aiMsgEl.appendChild(footnote);
     }
 
     // Build assistant message object with context snapshot
     const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
+    if (webSearchEnabled) assistantMsg.webSearch = true;
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
       trackUsage(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
@@ -3148,7 +3175,8 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
         messages: apiMessages,
         maxTokens: 4096,
         signal: _chatAbortController.signal,
-        onStream(text) { typewriter.update(text); }
+        onStream(text) { typewriter.update(text); },
+        webSearch: getChatWebSearchEnabled() && supportsWebSearch()
       });
 
       typewriter.stop();
@@ -3157,16 +3185,19 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
       if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
       aiMsgEl.innerHTML = renderMarkdown(fullText);
 
+      const _dWebSearch = getChatWebSearchEnabled() && supportsWebSearch();
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         const cost = calculateCost(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
         const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
+        const webTag = _dWebSearch ? ' \u00b7 \ud83c\udf10 web' : '';
         const footnote = document.createElement('div');
         footnote.className = 'chat-cost-footnote';
-        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens`;
+        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}`;
         aiMsgEl.appendChild(footnote);
       }
 
       const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon, modelId: _dMsgModelId, modelDisplay: _dMsgModelDisplay };
+      if (_dWebSearch) assistantMsg.webSearch = true;
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
         trackUsage(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
@@ -3481,6 +3512,8 @@ Object.assign(window, {
   setGroupInAIContext,
   getChatSourcesEnabled,
   setChatSourcesEnabled,
+  getChatWebSearchEnabled,
+  setChatWebSearchEnabled,
   searchOpenAlex,
   parseSearchTerms,
   renderSourcesSection,
