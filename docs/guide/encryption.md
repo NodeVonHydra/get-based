@@ -74,3 +74,17 @@ When encryption is enabled, the following are encrypted:
 Settings such as your chosen AI provider and theme are stored in plaintext (they contain no health data).
 
 AI API requests are always transmitted to your chosen provider over HTTPS, regardless of your encryption setting. Your provider's privacy policy governs how they handle those requests.
+
+## Venice End-to-End Encryption (E2EE)
+
+When using Venice AI as your provider, you can enable **End-to-End Encryption** in Venice settings. This encrypts your prompts in the browser before transmission using:
+
+- **ECDH (secp256k1)** key exchange with the model's TEE attestation key
+- **HKDF-SHA256** key derivation
+- **AES-256-GCM** message encryption
+
+With E2EE enabled, your prompts are encrypted before leaving the browser and are only decrypted inside a verified Trusted Execution Environment — not even Venice can read them. Response chunks are encrypted per-chunk by the TEE and decrypted in your browser.
+
+::: warning E2EE trade-offs
+E2EE mode disables web search and image attachments. Only a subset of Venice models support E2EE. A lock icon (🔒) in the chat header and message footer confirms when E2EE is active.
+:::

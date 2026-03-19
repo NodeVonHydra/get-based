@@ -381,7 +381,7 @@ export async function loadFocusCard() {
     const { text: fullText, usage } = await callClaudeAPI({
       system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
-      maxTokens: 500,
+      maxTokens: 2048,
       onStream(text) {
         target = text;
         if (!textEl.parentNode) { el.innerHTML = ''; el.appendChild(textEl); }

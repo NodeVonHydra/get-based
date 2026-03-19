@@ -141,6 +141,10 @@ export async function detectHardware() {
 }
 
 export function assessModel(modelObj, hardware) {
+  // Cloud models run on Ollama's servers — no local VRAM needed
+  if (modelObj.name && modelObj.name.includes(':cloud')) {
+    return { tier: 'cloud', badge: '\u2601', vramNeeded: 0, label: 'Cloud' };
+  }
   const vramNeeded = (modelObj.size / 1e9) * 1.15; // file size + 15% runtime overhead
   const available = hardware.gpu.vram;
   if (!available || !modelObj.size) {
@@ -229,6 +233,15 @@ const MODEL_FITNESS = [
   // Command R
   { match: 'command-r-plus:', tier: 'recommended', note: 'Designed for structured extraction' },
   { match: 'command-r:',      tier: 'capable',     note: 'Good at format instructions' },
+  // Ollama Cloud models (free tier — no local VRAM needed)
+  { match: 'deepseek-v3.2:cloud', tier: 'recommended', note: 'Cloud — clean JSON extraction, strong medical reasoning' },
+  { match: 'nemotron-3-super:cloud', tier: 'recommended', note: 'Cloud — 120B MoE, reliable structured output' },
+  { match: 'kimi-k2.5:cloud', tier: 'recommended', note: 'Cloud — 256K context, multimodal, thinking model' },
+  { match: 'qwen3.5:cloud',   tier: 'recommended', note: 'Cloud — up to 122B, thinking model' },
+  { match: 'glm-5:cloud',     tier: 'capable',     note: 'Cloud — 744B MoE, thinking model' },
+  { match: 'gemini-3-flash-preview:cloud', tier: 'capable', note: 'Cloud — fast, may truncate on complex reports' },
+  { match: 'qwen3-coder-next:cloud', tier: 'capable', note: 'Cloud — code-focused, decent at structured extraction' },
+  { match: ':cloud',           tier: 'capable',     note: 'Cloud model — runs on Ollama servers, no GPU required' },
   // Others
   { match: 'solar:',          tier: 'underpowered', note: 'Inconsistent JSON output' },
   { match: 'yi:',             tier: 'underpowered', note: 'Weak at strict structured output' },

@@ -2943,6 +2943,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .model-advisor-verdict.tight { color: var(--yellow); }
 .model-advisor-verdict.toobig { color: var(--red); }
 .model-advisor-verdict.unknown { color: var(--text-muted); }
+.model-advisor-verdict.cloud { color: var(--accent); }
 .model-advisor-fitness { white-space: nowrap; font-size: 11px; color: var(--text-muted); }
 .model-advisor-fitness.fitness-great { color: var(--green); font-weight: 600; }
 .model-advisor-fitness.fitness-good { color: var(--accent); }

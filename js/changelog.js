@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.1', date: '2026-03-19', title: 'Thinking model support + Ollama Cloud',
+    items: [
+      'Thinking models (Kimi K2.5, DeepSeek R1/V3, GLM-5, QwQ) no longer produce empty responses — max_tokens cap removed so reasoning and content both fit',
+      'Focus card and context card health dots work with all thinking models on any provider',
+      'Ollama Cloud :cloud models recognized in Model Advisor with cloud badge and fitness ratings',
+    ]
+  },
+  {
     version: '1.9.0', date: '2026-03-19', title: 'Venice End-to-End Encryption',
     items: [
       'Venice E2EE — prompts encrypted in your browser, decrypted only inside a verified TEE. Toggle in Venice settings swaps to E2EE models',

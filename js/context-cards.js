@@ -323,7 +323,7 @@ Dot colors: green = supports health, yellow = needs attention, red = concerning,
 Tips must be concise (8 words max, e.g. "Low D may link to limited sun" not "Consider improving this area"). Reference specific markers. If no data, use gray dot and empty tip.`;
   try {
     const result = await Promise.race([
-      callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 500 }),
+      callClaudeAPI({ system: prompt, messages: [{ role: 'user', content: ctx }], maxTokens: 2048 }),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 20000))
     ]);
     const text = (result && typeof result === 'object') ? (result.text || '') : (typeof result === 'string' ? result : '');

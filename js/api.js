@@ -682,7 +682,11 @@ export async function callOpenAICompatibleLocalAPI(opts) {
   const model = getOllamaMainModel();
   const url = config.url.replace(/\/+$/, '');
   const key = config.apiKey || 'not-needed';
-  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', opts, {}, { useProxy: false });
+  // Thinking models burn reasoning tokens against max_tokens — remove the cap
+  // so the model can think freely and still produce content
+  const isThinkingModel = /deepseek-r1|deepseek-v3|kimi-k|qwq|glm-[45]|:cloud/.test(model);
+  const adjustedOpts = isThinkingModel && opts.maxTokens && opts.maxTokens < 4096 ? { ...opts, maxTokens: undefined } : opts;
+  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', adjustedOpts, {}, { useProxy: false });
 }
 
 export async function callVeniceAPI(opts) {

@@ -66,6 +66,10 @@ A privacy-focused cloud provider where your conversations and data are not store
 3. Paste your API key
 4. Choose a model from the dropdown
 
+::: tip End-to-End Encryption
+Venice offers E2EE models where your prompts are encrypted in your browser and only decrypted inside a verified Trusted Execution Environment (TEE) — not even Venice can read them. Enable the **End-to-End Encryption** toggle in Venice settings to switch to E2EE models. Web search and image attachments are disabled in E2EE mode. A lock icon (🔒) appears in the chat header and message footer when E2EE is active.
+:::
+
 ### Local AI (Fully local)
 
 Run a language model entirely on your own machine. Nothing is sent over the network — not even for PDF import. Local AI connects via the standard OpenAI-compatible API (`/v1/chat/completions`), which is supported by all major local servers:
@@ -82,6 +86,10 @@ Run a language model entirely on your own machine. Nothing is sent over the netw
 4. Enter your server URL (default: `http://localhost:11434`)
 5. Click **Test** — the app auto-discovers available models
 6. Add an API key if your server requires one (most don't)
+
+::: warning Ollama Cloud models are not local
+Ollama supports `:cloud` models that run on Ollama's servers, not your machine. These appear in the model dropdown if you've pulled them, but your data leaves your device when using them. If privacy is why you chose Local AI, stick with locally-running models. The Model Advisor marks cloud models with a ☁ badge so you can tell them apart.
+:::
 
 ::: tip Local AI also handles PII stripping
 When enabled in Settings → Privacy, your local server is used to intelligently strip personal information from PDFs before analysis. See [PII Obfuscation](./pii-obfuscation.md) for details.
