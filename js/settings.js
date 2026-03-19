@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
-import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, isAIPaused, setAIPaused /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
+import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, /* ROUTSTR DISABLED: getRoutstrKey, saveRoutstrKey, */ getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, setRoutstrModel, */ getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */ fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, /* ROUTSTR DISABLED: fetchRoutstrModels, */ renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, isAIPaused, setAIPaused, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE /* ROUTSTR DISABLED: , getRoutstrModelDisplay */ } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
@@ -270,15 +270,26 @@ export function renderAIProviderPanel(provider) {
   if (provider === 'venice') {
     const currentKey = getVeniceKey();
     const veniceModel = getVeniceModel();
-    let cachedVeniceModels = []; try { cachedVeniceModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
+    const e2eeOn = getVeniceE2EE();
+    let cachedE2EEModels = []; try { cachedE2EEModels = JSON.parse(localStorage.getItem('labcharts-venice-e2ee-models') || '[]'); } catch(e) {}
+    let cachedRegularModels = []; try { cachedRegularModels = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
+    const displayModels = e2eeOn && cachedE2EEModels.length ? cachedE2EEModels : cachedRegularModels;
+    // If E2EE is on but no E2EE models cached, turn it off
+    if (e2eeOn && !cachedE2EEModels.length) { setVeniceE2EE(false); }
+    const hasE2EEModels = cachedE2EEModels.length > 0;
     let veniceModelHtml;
-    if (cachedVeniceModels.length > 0) {
-      const opts = buildModelOptions('venice', cachedVeniceModels, veniceModel, function(m) { return m.name || m.id; });
+    if (displayModels.length > 0) {
+      const opts = buildModelOptions('venice', displayModels, veniceModel, function(m) { return m.name || m.id; });
       veniceModelHtml = `<div style="margin-top:12px" id="venice-model-area">
         <label style="font-size:12px;color:var(--text-muted)">Model</label>
         <select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">${opts}</select>
         <div id="venice-model-pricing" style="margin-top:4px">${renderModelPricingHint('venice', veniceModel)}</div>
-      </div>`;
+      </div>
+      ${hasE2EEModels ? `<div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <label class="toggle-switch" style="flex-shrink:0"><input type="checkbox" id="venice-e2ee-toggle" ${getVeniceE2EE() ? 'checked' : ''} onchange="toggleVeniceE2EE(this.checked)"><span class="toggle-slider"></span></label>
+        <span style="font-size:13px">End-to-End Encryption</span>
+      </div>
+      <div id="venice-e2ee-indicator" style="margin-top:6px;font-size:12px;${isVeniceE2EEActive() ? '' : 'display:none'}"><span style="color:var(--green)">&#128274;</span> Prompts encrypted in your browser, decrypted only inside a verified TEE. Web search and image attachments are disabled.</div>` : ''}`;
     } else {
       veniceModelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="venice-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getVeniceModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
     }
@@ -474,7 +485,12 @@ export function initSettingsModelFetch() {
   */
   const veniceKey = getVeniceKey();
   if (veniceKey && document.getElementById('venice-model-area')) {
-    fetchVeniceModels(veniceKey).then(function(models) { if (models.length) renderVeniceModelDropdown(models); });
+    fetchVeniceModels(veniceKey).then(function() {
+      // After fetch, render the right list based on E2EE state
+      const listKey = getVeniceE2EE() ? 'labcharts-venice-e2ee-models' : 'labcharts-venice-models';
+      let models = []; try { models = JSON.parse(localStorage.getItem(listKey) || '[]'); } catch(e) {}
+      if (models.length) renderVeniceModelDropdown(models);
+    });
   }
 }
 
@@ -864,7 +880,10 @@ export async function handleSaveVeniceKey() {
   if (result.valid) {
     await saveVeniceKey(key);
     status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
-    const models = await fetchVeniceModels(key);
+    await fetchVeniceModels(key);
+    // Render the right list based on E2EE state
+    const listKey = getVeniceE2EE() ? 'labcharts-venice-e2ee-models' : 'labcharts-venice-models';
+    let models = []; try { models = JSON.parse(localStorage.getItem(listKey) || '[]'); } catch(e) {}
     if (models.length) {
       renderVeniceModelDropdown(models);
       status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
@@ -884,6 +903,11 @@ export function handleRemoveVeniceKey() {
   updateKeyCache('labcharts-venice-key', null);
   localStorage.removeItem('labcharts-venice-models');
   localStorage.removeItem('labcharts-venice-model');
+  localStorage.removeItem('labcharts-venice-e2ee');
+  localStorage.removeItem('labcharts-venice-e2ee-models');
+  localStorage.removeItem('labcharts-venice-model-regular');
+  localStorage.removeItem('labcharts-venice-model-e2ee');
+  window.clearE2EESession?.();
   showNotification('Venice API key removed', 'info');
   openSettingsModal();
 }
@@ -896,6 +920,28 @@ export function renderVeniceModelDropdown(models) {
   area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
     '<select class="api-key-input" id="venice-model-select" style="margin-top:4px" onchange="setVeniceModel(this.value);updateVeniceModelPricing(this.value)">' + opts + '</select>' +
     '<div id="venice-model-pricing" style="margin-top:4px">' + renderModelPricingHint('venice', currentModel) + '</div>';
+}
+
+export function toggleVeniceE2EE(on) {
+  setVeniceE2EE(on);
+  if (!on) window.clearE2EESession?.();
+  // Swap model dropdown to E2EE or regular model list
+  const listKey = on ? 'labcharts-venice-e2ee-models' : 'labcharts-venice-models';
+  let models = []; try { models = JSON.parse(localStorage.getItem(listKey) || '[]'); } catch {}
+  if (models.length) {
+    // Save current model for the mode we're leaving, restore the one for the mode we're entering
+    const prevKey = on ? 'labcharts-venice-model-regular' : 'labcharts-venice-model-e2ee';
+    const restoreKey = on ? 'labcharts-venice-model-e2ee' : 'labcharts-venice-model-regular';
+    localStorage.setItem(prevKey, getVeniceModel());
+    const restored = localStorage.getItem(restoreKey);
+    const newModel = restored && models.some(m => m.id === restored) ? restored : models[0].id;
+    setVeniceModel(newModel);
+    renderVeniceModelDropdown(models);
+  }
+  const el = document.getElementById('venice-e2ee-indicator');
+  if (el) el.style.display = on ? '' : 'none';
+  window.updateChatHeaderModel?.();
+  window.refreshWebSearchToggle?.();
 }
 
 export function updateOpenRouterModelPricing(modelId) {
@@ -1112,6 +1158,7 @@ Object.assign(window, {
   testPIIOllamaConnection,
   updateAnthropicModelPricing,
   updateVeniceModelPricing,
+  toggleVeniceE2EE,
   updateOpenRouterModelPricing,
   // ROUTSTR DISABLED: updateRoutstrModelPricing,
   handleSaveApiKey,

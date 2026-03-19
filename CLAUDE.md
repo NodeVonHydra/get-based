@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 32 ES modules loaded via `js/main.js`:
+- **`js/`** — 33 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
   - `adapters.js` — parser adapter registry for specialty labs. `ADAPTER_MARKERS` (194 entries), `detectProduct`, `normalizeWithAdapter`, `getAdapterByTestType`. Adapters: fattyAcids (29 markers, product detection), metabolomix (FA routing), oat (165 markers)
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
@@ -24,7 +24,8 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `theme.js` — theme get/set/toggle, `getChartColors`, time format functions
   - `hardware.js` — GPU detection (WebGL renderer → GPU_DB), `detectHardware`, `assessModel` (fits/tight/toobig), `getModelSuggestions`, VRAM override
   - `image-utils.js` — `resizeImage`, `formatImageBlock`, `buildVisionContent`, `isValidImageType` (no app imports)
-  - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers, `supportsVision()`, `isAIPaused()`/`setAIPaused()` global AI toggle
+  - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers, `supportsVision()`, `isAIPaused()`/`setAIPaused()` global AI toggle, Venice E2EE branch (`isE2EEModel`, `isVeniceE2EEActive`)
+  - `venice-e2ee.js` — Venice E2EE crypto (ECDH secp256k1 via vendored `@noble/secp256k1` + HKDF-SHA256 + AES-256-GCM via Web Crypto). Session management with 30-min TTL, TEE attestation, per-chunk response decryption
   - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
@@ -46,9 +47,9 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing, marker rename/revert, calculated marker input diagnostics
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
-- **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2). Run `./update-vendor.sh` to update
+- **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 24 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 25 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -83,27 +84,25 @@ Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn
 
 ### Menstrual Cycle Tracking
 
-Female profiles only (`profileSex === 'female'`). Storage: `importedData.menstrualCycle`. `cycleStatus`: regular/perimenopause/postmenopause/pregnant/breastfeeding/absent. Phase-aware reference ranges (`PHASE_RANGES`), cycle phase bands on charts, auto-calculated stats, perimenopause detection, heavy flow + iron alerts. See `cycle.js`.
+Female profiles only. Phase-aware reference ranges (`PHASE_RANGES`), cycle phase bands on charts, perimenopause detection, iron alerts. See `cycle.js`.
 
 ### EMF Assessment
 
-Baubiologie sub-module under Environment card. Storage: `importedData.emfAssessment`. Room-by-room measurements with SBM-2015 severity (`getEMFSeverity`), sleeping/daytime thresholds, source/mitigation tags, room photos, AI interpretation, PDF import for consultant reports. See `emf.js`.
+Baubiologie sub-module under Environment card. Room-by-room measurements with SBM-2015 severity, source/mitigation tags, AI interpretation. See `emf.js`.
 
 ### Calculated Markers
 
-- **Free Water Deficit**: `FWD = TBW × (Na / 140 − 1)`, requires sodium
-- **BUN/Creatinine Ratio**: `(urea × 2.801) / (creatinine × 0.01131)`, computed in US units from SI-stored values. Ref range 10–20
-- **PhenoAge**: Levine et al. 2018 — 9 biomarkers + chronological age. Requires hs-CRP specifically (standard CRP lacks precision, no fallback). `refMin/refMax: null` — meaningful relative to chronological age. Detail modal shows missing inputs
+Free Water Deficit (sodium-based), BUN/Creatinine Ratio (US-unit conversion), PhenoAge (Levine 2018, 9 biomarkers + age, requires hs-CRP). See `data.js` for formulas.
 
 ### AI Chat Panel
 
-Slide-out panel with streaming responses. Features: markdown rendering, 2 built-in personalities (default, House) + unlimited custom (`custom_<id>`), stop button (abort streaming), discuss button (auto-alternate personas), conversation threads (50 max, stored per-profile), image attachments (paste/drag-drop/button, max 5, vision-model gated). Chat setup guide shows when no provider configured — includes OpenRouter OAuth button.
-
-Context: `buildLabContext()` serializes all user data in priority order (goals→lens→values→flags→notes→conditions→supps→cycle→lifestyle). Focus card uses lightweight `buildFocusContext()`.
+Slide-out panel with streaming. 2+custom personalities, stop/discuss buttons, conversation threads (50 max), image attachments (vision-gated), web search hints (3 states: active/available/E2EE). `buildLabContext()` serializes all user data in priority order. Focus card uses `buildFocusContext()`.
 
 ### AI Provider System
 
-Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. OpenRouter (recommended, OAuth PKCE), Anthropic, Venice, Local (Ollama/LM Studio/Jan — internal key `'ollama'`). Routstr disabled (`ROUTSTR DISABLED` markers). See `api.js` for details.
+Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. OpenRouter (recommended, OAuth PKCE), Anthropic, Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`). Routstr disabled (`ROUTSTR DISABLED` markers). See `api.js` for details.
+
+Venice E2EE: toggle in settings swaps model dropdown to `e2ee-*` models. `callVeniceAPI` auto-branches: encrypts all messages, adds `X-Venice-TEE-*` headers, decrypts streamed response chunks per-chunk via ECDH. Web search + vision disabled when E2EE active. Lock emoji in chat header, `🔒 e2ee` in message footer. Session has 30-min TTL.
 
 ### Dashboard Section Order
 
@@ -128,7 +127,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-24 browser-based test files run headlessly:
+25 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

@@ -283,7 +283,7 @@
   assert('Health goals at top of Priority Context', constSrc.indexOf('Health goals:') < constSrc.indexOf('Medical conditions:'));
 
   // Persona after data in chat prompt
-  assert('Persona placed after lab data', chatSrc.includes("CHAT_SYSTEM_PROMPT + '\\n\\nCurrent lab data:\\n' + labContext + personalityPrompt"));
+  assert('Persona placed after lab data', chatSrc.includes("'\\n\\nCurrent lab data:\\n' + labContext + personalityPrompt"));
 
   // Focus card lightweight context
   assert('buildFocusContext exists in views.js', viewsSrc.includes('function buildFocusContext()'));

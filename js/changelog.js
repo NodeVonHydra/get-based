@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.0', date: '2026-03-19', title: 'Venice End-to-End Encryption',
+    items: [
+      'Venice E2EE — prompts encrypted in your browser, decrypted only inside a verified TEE. Toggle in Venice settings swaps to E2EE models',
+      'Per-message lock indicator (🔒 e2ee) in chat footer when E2EE was used',
+      'Web search context hints — model knows when it has web access and when to suggest enabling it',
+      'Chat links in user messages now visible (white on accent gradient)',
+      'Thread list no longer reorders when switching between conversations',
+    ]
+  },
+  {
     version: '1.8.5', date: '2026-03-19', title: 'Fatty acid trends + smarter trend colors',
     items: [
       'Fatty acid panels now show trend charts across multiple tests — previously only the latest result was visible',

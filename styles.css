@@ -2081,6 +2081,7 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
 .chat-hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
 .chat-msg a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
 .chat-msg a:hover { text-decoration-thickness: 2px; }
+.chat-user a { color: #fff; text-decoration-color: rgba(255,255,255,0.6); }
 .chat-msg em { font-style: italic; }
 .chat-user .chat-para { margin-bottom: 4px; }
 .chat-user .chat-list { margin-bottom: 4px; }

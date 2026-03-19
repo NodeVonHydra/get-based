@@ -83,6 +83,9 @@ export function getVeniceModelDisplay() {
   return m ? (m.name || m.id) : id;
 }
 
+export function getVeniceE2EE() { return localStorage.getItem('labcharts-venice-e2ee') === 'on'; }
+export function setVeniceE2EE(on) { localStorage.setItem('labcharts-venice-e2ee', on ? 'on' : 'off'); }
+
 export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
 export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
@@ -163,7 +166,10 @@ const OPENROUTER_RECOMMENDED = [
 export function isRecommendedModel(provider, modelId) {
   if (provider === 'openrouter') return OPENROUTER_RECOMMENDED.some(function(prefix) { return modelId.startsWith(prefix); });
   if (provider === 'anthropic') return /sonnet-4-6|opus-4-6/.test(modelId);
-  if (provider === 'venice') return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[234](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
+  if (provider === 'venice') {
+    if (modelId.startsWith('e2ee-')) return /qwen3-5-122b|gpt-oss-120b|qwen3-30b|glm-5/.test(modelId);
+    return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[234](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
+  }
   return false; // Ollama — local models, can't tier
 }
 export function getActiveModelId() {
@@ -318,7 +324,11 @@ export async function fetchVeniceModels(key) {
     if (!res.ok) return [];
     const json = await res.json();
     // Sort descending so latest version comes first per family
-    const all = (json.data || []).filter(function(m) { return m.id && m.type === 'text'; }).sort(function(a, b) { return b.id.localeCompare(a.id); });
+    const allText = (json.data || []).filter(function(m) { return m.id && m.type === 'text'; }).sort(function(a, b) { return b.id.localeCompare(a.id); });
+    // Cache E2EE models separately
+    const e2eeList = allText.filter(function(m) { return m.id.startsWith('e2ee-'); });
+    localStorage.setItem('labcharts-venice-e2ee-models', JSON.stringify(e2eeList));
+    const all = allText.filter(function(m) { return !m.id.startsWith('e2ee-'); });
     // Deduplicate: Venice curates Claude models (no date-stamped variants), so keep all.
     // For others, strip size/date suffixes to collapse duplicates.
     const models = deduplicateModels(all, function(id) {
@@ -399,7 +409,17 @@ async function _fetchWithRetry(url, options, retries = 2, useProxy = true) {
 // ═══════════════════════════════════════════════
 export function supportsWebSearch() {
   const provider = getAIProvider();
-  return provider === 'venice' || provider === 'openrouter';
+  if (provider === 'venice') return !isVeniceE2EEActive();
+  return provider === 'openrouter';
+}
+
+export function isE2EEModel(modelId) {
+  return typeof modelId === 'string' && modelId.startsWith('e2ee-');
+}
+
+// Is Venice E2EE currently active?
+export function isVeniceE2EEActive() {
+  return isE2EEModel(getVeniceModel());
 }
 
 // ═══════════════════════════════════════════════
@@ -420,6 +440,7 @@ export function supportsVision() {
     } catch { return false; }
   }
   if (provider === 'venice') {
+    if (isVeniceE2EEActive()) return false;
     return /qwen.*vl|llava|vision/i.test(getVeniceModel());
   }
   // Local AI — optimistic (user's responsibility)
@@ -667,8 +688,77 @@ export async function callOpenAICompatibleLocalAPI(opts) {
 export async function callVeniceAPI(opts) {
   const key = getVeniceKey();
   if (!key) throw new Error('No Venice API key configured. Add your key in Settings.');
-  const extraBody = opts.webSearch ? { venice_parameters: { enable_web_search: 'on' } } : {};
-  return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, getVeniceModel(), 'Venice', opts, {}, { extraBody });
+  const modelId = getVeniceModel();
+
+  if (!isE2EEModel(modelId)) {
+    const extraBody = opts.webSearch ? { venice_parameters: { enable_web_search: 'on' } } : {};
+    return callOpenAICompatibleAPI('https://api.venice.ai/api/v1/chat/completions', key, modelId, 'Venice', opts, {}, { extraBody });
+  }
+
+  // ── E2EE path ──
+  if (!crypto?.subtle) throw new Error('E2EE requires a secure context (HTTPS). Cannot encrypt on this page.');
+  const { getOrCreateE2EESession, encryptMessage, decryptChunk } = await import('./venice-e2ee.js');
+  let session;
+  try { session = await getOrCreateE2EESession(modelId, key); }
+  catch (e) { throw new Error(`Venice E2EE setup failed: ${e.message}`); }
+
+  const _contentStr = (c) => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(b => b.type === 'text').map(b => b.text).join('') : String(c);
+  const { system, messages, maxTokens, onStream, signal } = opts;
+  const apiMessages = [];
+  if (system) apiMessages.push({ role: 'system', content: await encryptMessage(session.aesKey, session.publicKey, system) });
+  for (const msg of messages) {
+    apiMessages.push({ role: msg.role, content: await encryptMessage(session.aesKey, session.publicKey, _contentStr(msg.content)) });
+  }
+
+  const body = { model: modelId, messages: apiMessages, max_tokens: maxTokens || 4096, stream: true, stream_options: { include_usage: true } };
+  let res;
+  try {
+    res = await _fetchWithRetry('https://api.venice.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}`,
+        'X-Venice-TEE-Client-Pub-Key': session.pubKeyHex,
+        'X-Venice-TEE-Model-Pub-Key': session.modelPubKeyHex,
+        'X-Venice-TEE-Signing-Algo': 'ecdsa' },
+      body: JSON.stringify(body), signal
+    }, 2, true);
+  } catch (e) { throw new Error(`Cannot reach Venice API: ${e.message}`); }
+
+  if (!res.ok) {
+    if (res.status === 401) throw new Error('Invalid Venice API key. Check your settings.');
+    if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
+    let errMsg = `Venice API error (${res.status})`;
+    try { const b = await res.json(); errMsg += `: ${b.error?.message || JSON.stringify(b.error)}`; } catch {}
+    throw new Error(errMsg);
+  }
+
+  // Streaming with per-chunk decryption
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '', fullText = '', inputTokens = 0, outputTokens = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6);
+      if (data === '[DONE]') continue;
+      try {
+        const event = JSON.parse(data);
+        if (event.choices?.[0]?.delta?.content) {
+          const chunk = await decryptChunk(session.privateKey, event.choices[0].delta.content);
+          fullText += chunk;
+          if (onStream) onStream(fullText);
+        }
+        if (event.usage) { inputTokens = event.usage.prompt_tokens || inputTokens; outputTokens = event.usage.completion_tokens || outputTokens; }
+      } catch (e) {
+        if (e.name === 'OperationError') throw new Error('E2EE decryption failed — session may be stale. Try sending again.');
+      }
+    }
+  }
+  return { text: fullText, usage: { inputTokens, outputTokens } };
 }
 
 export async function callOpenRouterAPI(opts) {
@@ -730,7 +820,7 @@ Object.assign(window, {
   getActiveModelId, getActiveModelDisplay,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
-  supportsVision, supportsWebSearch,
+  supportsVision, supportsWebSearch, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE,
   validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
   callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
 });

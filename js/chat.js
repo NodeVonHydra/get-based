@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
-import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 
@@ -1154,6 +1154,7 @@ function _updateWebSearchToggleVisibility() {
   const label = document.querySelector('.chat-websearch-toggle-label');
   if (label) label.style.display = supportsWebSearch() ? '' : 'none';
 }
+export function refreshWebSearchToggle() { _updateWebSearchToggleVisibility(); }
 
 // ═══════════════════════════════════════════════
 // CHAT SOURCES (OpenAlex)
@@ -1465,7 +1466,10 @@ export function updateChatHeaderTitle() {
 export function updateChatHeaderModel() {
   const el = document.querySelector('.chat-header-model');
   if (!el) return;
-  el.textContent = hasAIProvider() ? getActiveModelDisplay() : '';
+  if (!hasAIProvider()) { el.textContent = ''; return; }
+  const display = getActiveModelDisplay();
+  const e2ee = getAIProvider() === 'venice' && isVeniceE2EEActive();
+  el.textContent = display + (e2ee ? ' \uD83D\uDD12' : '');
 }
 
 export function updatePersonalityBar() {
@@ -1739,7 +1743,8 @@ export async function saveChatHistory() {
   // Update thread index metadata
   const thread = state.chatThreads.find(t => t.id === state.currentThreadId);
   if (thread) {
-    thread.updatedAt = new Date().toISOString();
+    // Only bump timestamp if messages changed (avoids reordering on thread switch)
+    if (thread.messageCount !== state.chatHistory.length) thread.updatedAt = new Date().toISOString();
     thread.messageCount = state.chatHistory.length;
     thread.personality = state.currentChatPersonality;
     const p = getActivePersonality();
@@ -2122,7 +2127,8 @@ export function renderChatMessages() {
         const totalTokens = (msg.usage.inputTokens || 0) + (msg.usage.outputTokens || 0);
         const mName = msg.modelDisplay || getActiveModelDisplay();
         const webTag = msg.webSearch ? ' \u00b7 \ud83c\udf10 web' : '';
-        html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}</div>`;
+        const e2eeTag = msg.e2ee ? ' \u00b7 \ud83d\udd12 e2ee' : '';
+        html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}</div>`;
       }
       html += buildActionBar(i);
     }
@@ -2797,7 +2803,16 @@ export async function sendChatMessage() {
     if (otherPersonas.size > 0) {
       multiPersonaInstruction = `\n\nThis conversation includes responses from other AI personalities (${[...otherPersonas].join(', ')}). Messages marked [Response from ...] were written by a different persona — treat them as a separate analyst's opinion, not your own. You may agree or disagree with their analysis, but never claim you wrote their responses.`;
     }
-    const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
+    const _isE2EE = getAIProvider() === 'venice' && isVeniceE2EEActive();
+    let webHint = '';
+    if (_isE2EE) {
+      webHint = '\n\n[NO WEB ACCESS — E2EE mode] Do not generate URLs. Suggest disabling E2EE for web-enabled queries.';
+    } else if (webSearchEnabled) {
+      webHint = '\n\n[WEB SEARCH ACTIVE] You can search the internet. Always include direct URLs to specific products/pages when the user asks. Do not give generic advice without links when the user names a specific website.';
+    } else if (supportsWebSearch()) {
+      webHint = '\n\n[NO WEB ACCESS] Do not fabricate URLs. The user can enable web search via the "Web" toggle in the chat header.';
+    }
+    const systemPrompt = CHAT_SYSTEM_PROMPT + webHint + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
 
     // Send last 30 messages for context — tag messages from other personas
     const apiMessages = state.chatHistory.filter(m => !m.joined && m.role).slice(-30).map(m => {
@@ -2831,6 +2846,7 @@ export async function sendChatMessage() {
     const _msgModelId = getActiveModelId();
     const _msgModelDisplay = getActiveModelDisplay();
     const _msgProvider = getAIProvider();
+    const _msgE2EE = _isE2EE;
 
     // Create AI message placeholder
     const aiMsgEl = document.createElement('div');
@@ -2874,15 +2890,17 @@ export async function sendChatMessage() {
       const cost = calculateCost(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
       const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
       const webTag = webSearchEnabled ? ' \u00b7 \ud83c\udf10 web' : '';
+      const e2eeTag = _msgE2EE ? ' \u00b7 \ud83d\udd12 e2ee' : '';
       const footnote = document.createElement('div');
       footnote.className = 'chat-cost-footnote';
-      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}`;
+      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
       aiMsgEl.appendChild(footnote);
     }
 
     // Build assistant message object with context snapshot
     const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
     if (webSearchEnabled) assistantMsg.webSearch = true;
+    if (_msgE2EE) assistantMsg.e2ee = true;
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
       trackUsage(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
@@ -3149,7 +3167,13 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
       if (otherNames.size > 0) {
         multiPersonaInstruction = `\n\nThis conversation includes responses from other AI personalities (${[...otherNames].join(', ')}). Messages marked [Response from ...] were written by a different persona — treat them as a separate analyst's opinion, not your own. You may agree or disagree with their analysis, but never claim you wrote their responses.`;
       }
-      const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
+      const _dMsgModelId = getActiveModelId();
+      const _dMsgModelDisplay = getActiveModelDisplay();
+      const _dMsgProvider = getAIProvider();
+      const _dMsgE2EE = _dMsgProvider === 'venice' && isVeniceE2EEActive();
+
+      const e2eeInstruction = _dMsgE2EE ? '\n\n[NO WEB ACCESS — E2EE mode] Do not generate URLs. Suggest disabling E2EE for web-enabled queries.' : '';
+      const systemPrompt = CHAT_SYSTEM_PROMPT + e2eeInstruction + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
       const apiMessages = state.chatHistory.filter(m => !m.joined && m.role).slice(-30).map(m => {
         if (m.role === 'assistant' && m.personalityName && m.personalityName !== personality.name) {
@@ -3162,10 +3186,6 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
       labelEl.className = 'chat-persona-label';
       labelEl.textContent = `${personality.icon || ''} ${personality.name}`;
       container.appendChild(labelEl);
-
-      const _dMsgModelId = getActiveModelId();
-      const _dMsgModelDisplay = getActiveModelDisplay();
-      const _dMsgProvider = getAIProvider();
 
       const aiMsgEl = document.createElement('div');
       aiMsgEl.className = 'chat-msg chat-ai';
@@ -3193,14 +3213,16 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
         const cost = calculateCost(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
         const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
         const webTag = _dWebSearch ? ' \u00b7 \ud83c\udf10 web' : '';
+        const e2eeTag = _dMsgE2EE ? ' \u00b7 \ud83d\udd12 e2ee' : '';
         const footnote = document.createElement('div');
         footnote.className = 'chat-cost-footnote';
-        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}`;
+        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
         aiMsgEl.appendChild(footnote);
       }
 
       const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon, modelId: _dMsgModelId, modelDisplay: _dMsgModelDisplay };
       if (_dWebSearch) assistantMsg.webSearch = true;
+      if (_dMsgE2EE) assistantMsg.e2ee = true;
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
         trackUsage(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
@@ -3462,6 +3484,7 @@ Object.assign(window, {
   loadChatPersonality,
   updateChatHeaderTitle,
   updateChatHeaderModel,
+  refreshWebSearchToggle,
   updatePersonalityBar,
   togglePersonalityBar,
   saveCustomPersonality,
