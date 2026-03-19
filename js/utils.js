@@ -26,15 +26,23 @@ export function getRangePosition(value, refMin, refMax) {
   return ((value - refMin) / (refMax - refMin)) * 100;
 }
 
-export function getTrend(values) {
+export function getTrend(values, refMin, refMax) {
   const nn = values.filter(v=>v!==null);
   if (nn.length<2) return {arrow:"\u2014",cls:"trend-stable"};
   const prev = nn[nn.length-2];
   if (prev === 0) return {arrow:"→",cls:"trend-stable"};
-  const pct = ((nn[nn.length-1]-prev)/prev)*100;
+  const curr = nn[nn.length-1];
+  const pct = ((curr-prev)/prev)*100;
   if (Math.abs(pct)<2) return {arrow:"\u2192",cls:"trend-stable"};
-  if (pct>0) return {arrow:`\u2191 +${pct.toFixed(1)}%`,cls:"trend-up"};
-  return {arrow:`\u2193 ${pct.toFixed(1)}%`,cls:"trend-down"};
+  const dir = pct > 0 ? 'up' : 'down';
+  const arrow = pct > 0 ? `\u2191 +${pct.toFixed(1)}%` : `\u2193 ${pct.toFixed(1)}%`;
+  // Color based on whether change is good or bad relative to ref range
+  const status = getStatus(curr, refMin, refMax);
+  let quality;
+  if (status === 'high') quality = dir === 'down' ? 'good' : 'bad';
+  else if (status === 'low') quality = dir === 'up' ? 'good' : 'bad';
+  else quality = 'neutral';
+  return {arrow, cls:`trend-${dir} trend-${quality}`};
 }
 
 export function formatValue(v) {

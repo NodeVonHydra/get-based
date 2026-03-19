@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.8.5', date: '2026-03-19', title: 'Fatty acid trends + smarter trend colors',
+    items: [
+      'Fatty acid panels now show trend charts across multiple tests — previously only the latest result was visible',
+      'Trend arrow colors reflect whether the change is good or bad relative to reference ranges (not just direction)',
+      'Raw URLs in chat responses are now clickable links',
+      'Fix: importing fatty acid results alongside blood work on the same date no longer loses the FA data',
+    ]
+  },
+  {
     version: '1.8.4', date: '2026-03-18', title: 'Web search in chat',
     items: [
       'Web search toggle in chat — AI can search the internet before responding, useful for recent studies, drug interactions, and current information',

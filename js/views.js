@@ -741,7 +741,7 @@ export function renderChartCard(id, marker, dateLabels) {
   const statusLabel = status === "normal" ? "Normal" : status === "high" ? "High" : status === "low" ? "Low" : "N/A";
   const sIcon = statusIcon(status);
 
-  const trend = getTrend(marker.values);
+  const trend = getTrend(marker.values, lr.min, lr.max);
   const trendBadge = trend.cls !== 'trend-stable' || trend.arrow !== '\u2014' ? `<span class="chart-card-trend ${trend.cls}">${trend.arrow}</span>` : '';
 
   let html = `<div class="chart-card" onclick="showDetailModal('${id}')">
@@ -802,9 +802,10 @@ export function renderTableView(cat, dateLabels, categoryKey) {
       const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
       html += `<td class="value-cell val-${s}">${v !== null ? formatValue(v) : "\u2014"}</td>`;
     }
-    const trend = getTrend(marker.values);
-    html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     const li = getLatestValueIndex(marker.values);
+    const trendRange = li !== -1 ? getEffectiveRangeForDate(marker, li) : r;
+    const trend = getTrend(marker.values, trendRange.min, trendRange.max);
+    html += `<td><span class="trend-arrow ${trend.cls}">${trend.arrow}</span></td>`;
     if (li !== -1 && r.min != null && r.max != null) {
       const lr = getEffectiveRangeForDate(marker, li);
       const pos = Math.max(0, Math.min(100, getRangePosition(marker.values[li], lr.min, lr.max)));

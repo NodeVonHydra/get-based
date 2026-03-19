@@ -288,8 +288,11 @@ body {
 .data-table .value-cell.val-low::before { content: "\25BC "; font-size: 0.7em; }
 .data-table .value-cell.val-missing { color: var(--text-muted); font-weight: 400; }
 .trend-arrow { font-size: 12px; margin-left: 4px; display: inline-block; }
-.trend-up { color: var(--red); animation: trendUp 0.4s ease 0.2s both; }
-.trend-down { color: var(--green); animation: trendDown 0.4s ease 0.2s both; }
+.trend-up { animation: trendUp 0.4s ease 0.2s both; }
+.trend-down { animation: trendDown 0.4s ease 0.2s both; }
+.trend-good { color: var(--green); }
+.trend-bad { color: var(--red); }
+.trend-neutral { color: var(--text-muted); }
 .trend-stable { color: var(--text-muted); }
 @keyframes trendUp { from { transform: translateY(3px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes trendDown { from { transform: translateY(-3px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

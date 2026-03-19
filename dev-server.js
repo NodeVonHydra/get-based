@@ -74,8 +74,13 @@ const server = http.createServer((req, res) => {
     res.writeHead(404); res.end('Not found'); return;
   }
 
-  // Route: /blog and /blog/{slug} → blog.html (mirrors Vercel rewrites)
-  if (hasSite && (pathname === '/blog' || /^\/blog\/[^/]+$/.test(pathname))) {
+  // Route: /blog → blog.html, /blog/{slug} → blog/{slug}/index.html (mirrors Vercel rewrites)
+  if (hasSite && pathname === '/blog') {
+    return serveFile(res, path.join(SITE_DIR, 'blog.html'));
+  }
+  if (hasSite && /^\/blog\/[^/]+$/.test(pathname)) {
+    let slugIndex = path.join(SITE_DIR, pathname, 'index.html');
+    if (fs.existsSync(slugIndex)) return serveFile(res, slugIndex);
     return serveFile(res, path.join(SITE_DIR, 'blog.html'));
   }
 

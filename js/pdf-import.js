@@ -846,7 +846,6 @@ export function confirmImport() {
     cmDef.unit = m.unit || cmDef.unit || '';
     cmDef.refMin = m.refMin != null ? m.refMin : cmDef.refMin;
     cmDef.refMax = m.refMax != null ? m.refMax : cmDef.refMax;
-    if (result.testType === 'fattyAcids') cmDef.singlePoint = true;
     // Always update organizational fields from latest import
     cmDef.categoryLabel = categoryLabel;
     // FA-normalized markers carry their own group — don't override with testType-based importGroup

@@ -115,8 +115,8 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
     }
     body += `<th>Trend</th></tr></thead><tbody>`;
     for (const [mKey, marker] of markersWithData) {
-      const trend = getTrend(marker.values);
       const r = getEffectiveRange(marker);
+      const trend = getTrend(marker.values, r.min, r.max);
       let rangeStr = r.min != null && r.max != null ? `${formatValue(r.min)} \u2013 ${formatValue(r.max)}` : '\u2014';
       if (state.rangeMode === 'both' && marker.optimalMin != null) {
         rangeStr = `${formatValue(marker.refMin)} \u2013 ${formatValue(marker.refMax)}<br><span class="optimal">opt: ${formatValue(marker.optimalMin)} \u2013 ${formatValue(marker.optimalMax)}</span>`;

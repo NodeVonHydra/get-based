@@ -124,6 +124,12 @@ export function migrateProfileData(data) {
     }
     data.lightCircadian = newLc;
   }
+  // Remove singlePoint from fatty acid custom markers (FA now supports trends)
+  if (data.customMarkers) {
+    for (const [key, def] of Object.entries(data.customMarkers)) {
+      if (def.singlePoint && def.group === 'Fatty Acids') delete def.singlePoint;
+    }
+  }
   // Migrate hardcoded specialty markers to customMarkers
   if (data.entries?.length) {
     const usedSpecialtyKeys = new Set();
@@ -178,8 +184,8 @@ export function migrateProfileData(data) {
     }
     for (const key of toDelete) delete data.customMarkers[key];
     // Phase 2: clean up remaining FA-prefixed markers from entries that also contain standard blood markers.
-    // An entry with both standard markers and FA-prefixed markers = corrupted blood import.
-    // Pure FA-only entries (legitimate FA tests) are left alone.
+    // An entry with both standard markers and FA-prefixed markers = corrupted blood import,
+    // UNLESS the FA marker has a valid customMarker definition (legitimate FA test on same date).
     const _stdCats = new Set(Object.keys(MARKER_SCHEMA));
     for (const entry of data.entries) {
       if (!entry.markers) continue;
@@ -189,6 +195,8 @@ export function migrateProfileData(data) {
       for (const key of keys) {
         const catKey = key.split('.')[0];
         if (!_stdCats.has(catKey) && !SPECIALTY_MARKER_DEFS[key] && (catKey.endsWith('FA') || catKey === 'fattyAcidsTest')) {
+          // Keep markers that have a valid custom marker definition (legitimate FA import)
+          if (data.customMarkers?.[key]) continue;
           delete entry.markers[key];
         }
       }
