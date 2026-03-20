@@ -318,6 +318,19 @@ export function buildFocusContext() {
     }
   }
 
+  // Supplements with temporal context
+  const supps = state.importedData.supplements || [];
+  if (supps.length > 0) {
+    ctx += `Supplements:\n`;
+    for (const s of supps) {
+      const dateRange = `${s.startDate} → ${s.endDate || 'ongoing'}`;
+      let timing = '';
+      if (lastDate && s.startDate > lastDate) timing = ' (started AFTER last labs — cannot have affected these results)';
+      else if (lastDate && data.dates.length >= 2 && s.startDate > data.dates[data.dates.length - 2]) timing = ' (started between last two labs)';
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${timing}\n`;
+    }
+  }
+
   // Also include any markers that changed significantly (latest vs previous)
   const changes = [];
   for (const [catKey, cat] of Object.entries(data.categories)) {
@@ -364,7 +377,7 @@ export async function loadFocusCard() {
       el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
       return;
     }
-    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. Be direct, grounded, and proportionate. A value that changed but remains within its reference range is normal fluctuation — do not alarm the user about it. Only flag genuinely out-of-range or trending-out-of-range values. The next step should be practical (retest, monitor, adjust lifestyle, discuss with provider) — never recommend specific products or supplements. No preamble, no disclaimer.';
+    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. Be direct, grounded, and proportionate. A value that changed but remains within its reference range is normal fluctuation — do not alarm the user about it. Only flag genuinely out-of-range or trending-out-of-range values. The next step should be practical (retest, monitor, adjust lifestyle, discuss with provider) — never recommend specific products or supplements. IMPORTANT: Only reference data explicitly provided below — do not infer, assume, or hallucinate information not present. Never attribute a biomarker change to a supplement unless the supplement was already active BEFORE the earlier lab draw date. Supplements started after the last labs cannot have affected those results. No preamble, no disclaimer.';
 
     // Typewriter: trickle streamed text for smooth appearance
     const textEl = document.createElement('span');
@@ -1149,6 +1162,20 @@ export function showDetailModal(id) {
       html += `</div>`;
     }
   }
+  // Marker note
+  const markerNote = state.importedData.markerNotes?.[dotKey] || '';
+  html += `<div class="marker-note-section">
+    <div class="marker-note-header"><span class="marker-note-label">Note</span><button class="marker-note-edit-btn" onclick="event.stopPropagation();toggleMarkerNoteEditor('${dotKey}')">${markerNote ? 'Edit' : '+ Add note'}</button></div>
+    ${markerNote ? `<div class="marker-note-text">${escapeHTML(markerNote)}</div>` : ''}
+    <div class="marker-note-editor" id="marker-note-editor" style="display:none">
+      <textarea id="marker-note-input" placeholder="Your notes about this marker (e.g. why it's high, what to watch for, what you've learned...)" rows="3">${escapeHTML(markerNote)}</textarea>
+      <div class="marker-note-actions">
+        <button class="import-btn import-btn-primary" onclick="event.stopPropagation();saveMarkerNote('${dotKey}','${id}')">Save</button>
+        <button class="import-btn import-btn-secondary" onclick="event.stopPropagation();toggleMarkerNoteEditor('${dotKey}')">Cancel</button>
+        ${markerNote ? `<button class="import-btn import-btn-secondary" style="color:var(--red)" onclick="event.stopPropagation();deleteMarkerNote('${dotKey}','${id}')">Delete</button>` : ''}
+      </div>
+    </div>
+  </div>`;
   html += `<button class="ask-ai-btn" onclick="event.stopPropagation();askAIAboutMarker('${id}')">Ask AI about this marker</button>`;
   html += `<button class="manual-entry-btn" onclick="event.stopPropagation();openManualEntryForm('${id}')">+ Add Value</button>`;
   // Show delete link for custom markers only
@@ -1920,6 +1947,40 @@ export function revertRefRange(id, type) {
 
 
 // ═══════════════════════════════════════════════
+// MARKER NOTES
+// ═══════════════════════════════════════════════
+
+function toggleMarkerNoteEditor(dotKey) {
+  const editor = document.getElementById('marker-note-editor');
+  if (!editor) return;
+  const isHidden = editor.style.display === 'none';
+  editor.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    const input = document.getElementById('marker-note-input');
+    if (input) input.focus();
+  }
+}
+
+function saveMarkerNote(dotKey, id) {
+  const input = document.getElementById('marker-note-input');
+  const text = input?.value?.trim();
+  if (!text) return;
+  if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
+  state.importedData.markerNotes[dotKey] = text;
+  saveImportedData();
+  showNotification('Note saved', 'success');
+  showDetailModal(id);
+}
+
+function deleteMarkerNote(dotKey, id) {
+  if (!state.importedData.markerNotes) return;
+  delete state.importedData.markerNotes[dotKey];
+  saveImportedData();
+  showNotification('Note removed', 'info');
+  showDetailModal(id);
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 
@@ -1959,6 +2020,9 @@ Object.assign(window, {
   deleteCustomMarker,
   editMarkerValue,
   revertMarkerValue,
+  toggleMarkerNoteEditor,
+  saveMarkerNote,
+  deleteMarkerNote,
   closeModal,
   showCompare,
   setCompareDate1,

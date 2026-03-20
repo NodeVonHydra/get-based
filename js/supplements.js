@@ -76,6 +76,7 @@ export function openSupplementsEditor(editIdx) {
         <div class="supp-list-info">
           <div class="supp-list-name">${escapeHTML(s.name)}${s.dosage ? ` <span class="supp-list-meta">${escapeHTML(s.dosage)}</span>` : ''}</div>
           <div class="supp-list-meta">${dateRange}</div>
+          ${s.note ? `<div class="supp-list-note">${escapeHTML(s.note)}</div>` : ''}
         </div>
         <div class="supp-list-actions">
           <button onclick="openSupplementsEditor(${i})">Edit</button>
@@ -109,6 +110,11 @@ export function openSupplementsEditor(editIdx) {
         <input type="date" id="supp-end" value="${editing && editing.endDate ? editing.endDate : ''}">
       </div>
     </div>
+    <div class="supp-form-row">
+      <div class="supp-form-field" style="flex:1"><label>Note / Reason</label>
+        <input type="text" id="supp-note" placeholder="e.g. For low vitamin D, recommended by Dr. Smith" value="${editing ? escapeHTML(editing.note || '') : ''}">
+      </div>
+    </div>
     <div class="note-editor-actions">
       <button class="import-btn import-btn-primary" onclick="saveSupplement(${editing ? editIdx : -1})">${editing ? 'Update' : 'Add'}</button>
       <button class="import-btn import-btn-secondary" onclick="closeModal()">Cancel</button>
@@ -131,8 +137,9 @@ export function saveSupplement(idx) {
   if (!name) { showNotification('Name is required', 'error'); return; }
   if (!startDate) { showNotification('Start date is required', 'error'); return; }
   if (endDate && endDate < startDate) { showNotification('End date must be after start date', 'error'); return; }
+  const note = document.getElementById('supp-note').value.trim();
   if (!state.importedData.supplements) state.importedData.supplements = [];
-  const entry = { name, dosage, startDate, endDate, type };
+  const entry = { name, dosage, startDate, endDate, type, note };
   if (idx >= 0) {
     state.importedData.supplements[idx] = entry;
   } else {

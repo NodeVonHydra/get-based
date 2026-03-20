@@ -307,11 +307,13 @@ export const supplementBarPlugin = {
       const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const line1 = `${s.name}${s.dosage ? ' — ' + s.dosage : ''}`;
       const line2 = `${fmtDate(s.startDate)} → ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      const line3 = s.note ? (s.note.length > 60 ? s.note.slice(0, 57) + '...' : s.note) : null;
       ctx.font = '12px Inter, sans-serif';
       const w1 = ctx.measureText(line1).width;
       const w2 = ctx.measureText(line2).width;
-      const boxW = Math.max(w1, w2) + 16;
-      const boxH = 38;
+      const w3 = line3 ? ctx.measureText(line3).width : 0;
+      const boxW = Math.max(w1, w2, w3) + 16;
+      const boxH = line3 ? 52 : 38;
       let tx = r.x + r.w / 2 - boxW / 2;
       let ty = r.y + r.h + 6;
       const { left, right } = chart.chartArea;
@@ -334,6 +336,11 @@ export const supplementBarPlugin = {
       ctx.fillStyle = cs.getPropertyValue('--text-primary').trim();
       ctx.font = '11px Inter, sans-serif';
       ctx.fillText(line2, tx + 8, ty + 22);
+      if (line3) {
+        ctx.fillStyle = cs.getPropertyValue('--text-muted').trim() || '#999';
+        ctx.font = 'italic 10px Inter, sans-serif';
+        ctx.fillText(line3, tx + 8, ty + 37);
+      }
     }
     ctx.restore();
   },

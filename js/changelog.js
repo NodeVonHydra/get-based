@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.2', date: '2026-03-20', title: 'Supplements, notes & export improvements',
+    items: [
+      'Focus card now includes supplements with date-aware context — AI no longer attributes changes to supplements started after your last labs (#80)',
+      'Add a note/reason to each supplement to track why you\'re taking it — shown in editor, chart tooltips, AI context, and PDF report (#74)',
+      'Per-biomarker notes — add persistent notes to any marker from the detail modal, included in AI context (#79)',
+      'Genetics section added to PDF export report — full table of findings grouped by category with effect severity (#73)',
+    ]
+  },
+  {
     version: '1.9.1', date: '2026-03-19', title: 'Thinking model support + Ollama Cloud',
     items: [
       'Thinking models (Kimi K2.5, DeepSeek R1/V3, GLM-5, QwQ) no longer produce empty responses — max_tokens cap removed so reasoning and content both fit',

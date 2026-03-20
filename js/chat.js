@@ -815,6 +815,19 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
+  // ── 5b. Marker Notes ──
+  const markerNotes = state.importedData.markerNotes || {};
+  const mnKeys = Object.keys(markerNotes);
+  if (mnKeys.length > 0) {
+    ctx += `## Marker Notes\n`;
+    for (const key of mnKeys) {
+      const [catKey, mKey] = key.split('.');
+      const mName = data.categories[catKey]?.markers[mKey]?.name || key;
+      ctx += `- ${mName}: ${markerNotes[key]}\n`;
+    }
+    ctx += '\n';
+  }
+
   // ── 6. Medical Conditions ("what medical context applies?") ──
   const diag = state.importedData.diagnoses;
   if (hasCardContent(diag)) {
@@ -834,7 +847,7 @@ export function buildLabContext() {
     ctx += `## Supplements & Medications\n`;
     for (const s of supps) {
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
-      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}\n`;
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}\n`;
     }
     ctx += '\n';
   }
