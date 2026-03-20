@@ -67,7 +67,8 @@ export function getFocusCardFingerprint() {
     (state.importedData.healthGoals || []).map(g => g.severity + ':' + g.text).join(','),
     state.importedData.interpretiveLens || '',
     state.importedData.contextNotes || '',
-    (state.importedData.supplements || []).map(s => s.name + s.startDate + (s.endDate || '')).join(',')
+    (state.importedData.supplements || []).map(s => s.name + s.startDate + (s.endDate || '')).join(','),
+    JSON.stringify(state.importedData.markerNotes || {})
   ];
   return hashString(parts.join('|'));
 }

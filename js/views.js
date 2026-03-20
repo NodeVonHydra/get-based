@@ -1964,7 +1964,16 @@ function toggleMarkerNoteEditor(dotKey) {
 function saveMarkerNote(dotKey, id) {
   const input = document.getElementById('marker-note-input');
   const text = input?.value?.trim();
-  if (!text) return;
+  if (!text) {
+    // Empty text = delete the note
+    if (state.importedData.markerNotes?.[dotKey]) {
+      delete state.importedData.markerNotes[dotKey];
+      saveImportedData();
+      showNotification('Note removed', 'info');
+      showDetailModal(id);
+    }
+    return;
+  }
   if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
   state.importedData.markerNotes[dotKey] = text;
   saveImportedData();

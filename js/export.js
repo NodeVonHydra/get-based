@@ -378,7 +378,8 @@ export async function exportClientJSON(profileId, includeChat = false) {
     markerLabels: data.markerLabels || null,
     menstrualCycle: data.menstrualCycle || null,
     emfAssessment: data.emfAssessment || null,
-    genetics: data.genetics || null
+    genetics: data.genetics || null,
+    markerNotes: data.markerNotes || {}
   };
   if (includeChat) {
     const chat = await _exportChatData(profileId);
@@ -596,6 +597,11 @@ export function importDataJSON(file) {
       // Import genetics
       if (json.genetics && json.genetics.snps) {
         state.importedData.genetics = json.genetics;
+      }
+      // Import marker notes
+      if (json.markerNotes && typeof json.markerNotes === 'object') {
+        if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
+        Object.assign(state.importedData.markerNotes, json.markerNotes);
       }
       // Import supplements
       if (json.supplements && Array.isArray(json.supplements)) {
