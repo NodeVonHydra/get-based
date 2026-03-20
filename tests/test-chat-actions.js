@@ -26,9 +26,7 @@
 
   const requiredExports = [
     'getContextSummary', 'buildActionBar', 'regenerateLastMessage',
-    'copyMessage', 'toggleContextDetails', 'toggleSourcesDetails',
-    'getChatSourcesEnabled', 'setChatSourcesEnabled', 'searchOpenAlex',
-    'parseSearchTerms', 'renderSourcesSection'
+    'copyMessage', 'toggleContextDetails'
   ];
   for (const fn of requiredExports) {
     assert(`window.${fn} exists`, typeof window[fn] === 'function', typeof window[fn]);
@@ -135,139 +133,6 @@
     console.warn('Skipping backward compat tests — _labState not available');
   }
 
-  // ─── Section 6: parseSearchTerms() ───
-  console.log('%c Section 6: parseSearchTerms()', 'font-weight:bold;color:#6366f1');
-
-  const parsed1 = window.parseSearchTerms('Here is some info about vitamin D.\n\nSEARCH_TERMS: vitamin D deficiency, 25-hydroxyvitamin D, immune function');
-  assert('parseSearchTerms extracts terms', parsed1.terms !== null, JSON.stringify(parsed1.terms));
-  assert('parseSearchTerms returns 3 terms', parsed1.terms && parsed1.terms.length === 3, parsed1.terms?.length);
-  assert('parseSearchTerms cleans text', !parsed1.cleanText.includes('SEARCH_TERMS'), parsed1.cleanText.substring(0, 60));
-  assert('Clean text preserves content', parsed1.cleanText.includes('vitamin D'), parsed1.cleanText.substring(0, 60));
-
-  const parsed2 = window.parseSearchTerms('Just a normal response without terms.');
-  assert('No SEARCH_TERMS line returns null terms', parsed2.terms === null, String(parsed2.terms));
-  assert('Text unchanged when no terms', parsed2.cleanText === 'Just a normal response without terms.', parsed2.cleanText);
-
-  const parsed3 = window.parseSearchTerms('Response here.\n\nsearch_terms: term1, term2');
-  assert('parseSearchTerms is case-insensitive', parsed3.terms !== null && parsed3.terms.length === 2, JSON.stringify(parsed3.terms));
-
-  // Bug C fix: indented SEARCH_TERMS line
-  const parsed4 = window.parseSearchTerms('Response here.\n\n  SEARCH_TERMS: indented1, indented2');
-  assert('parseSearchTerms handles indented lines', parsed4.terms !== null && parsed4.terms.length === 2, JSON.stringify(parsed4.terms));
-
-  // Key fix: AI wraps in backticks
-  const parsed5 = window.parseSearchTerms('Response.\n\n`SEARCH_TERMS: backtick1, backtick2`');
-  assert('parseSearchTerms strips backticks', parsed5.terms !== null && parsed5.terms.length === 2, JSON.stringify(parsed5.terms));
-
-  // Markdown prefix variants
-  const parsed6 = window.parseSearchTerms('Response.\n\n> SEARCH_TERMS: quoted1, quoted2');
-  assert('parseSearchTerms strips blockquote >', parsed6.terms !== null && parsed6.terms.length === 2, JSON.stringify(parsed6.terms));
-
-  const parsed7 = window.parseSearchTerms('Response.\n\n- SEARCH_TERMS: listed1, listed2');
-  assert('parseSearchTerms strips list prefix', parsed7.terms !== null && parsed7.terms.length === 2, JSON.stringify(parsed7.terms));
-
-  // ─── Section 7: Chat Sources setting ───
-  console.log('%c Section 7: Chat Sources setting', 'font-weight:bold;color:#6366f1');
-
-  const origSources = localStorage.getItem('labcharts-chat-sources');
-
-  window.setChatSourcesEnabled(true);
-  assert('setChatSourcesEnabled(true) sets on', localStorage.getItem('labcharts-chat-sources') === 'on', localStorage.getItem('labcharts-chat-sources'));
-  assert('getChatSourcesEnabled returns true', window.getChatSourcesEnabled() === true, String(window.getChatSourcesEnabled()));
-
-  window.setChatSourcesEnabled(false);
-  assert('setChatSourcesEnabled(false) sets off', localStorage.getItem('labcharts-chat-sources') === 'off', localStorage.getItem('labcharts-chat-sources'));
-  assert('getChatSourcesEnabled returns false', window.getChatSourcesEnabled() === false, String(window.getChatSourcesEnabled()));
-
-  // Restore
-  if (origSources === null) localStorage.removeItem('labcharts-chat-sources');
-  else localStorage.setItem('labcharts-chat-sources', origSources);
-
-  // ─── Section 8: searchOpenAlex URL construction ───
-  console.log('%c Section 8: searchOpenAlex()', 'font-weight:bold;color:#6366f1');
-
-  const origFetch = window.fetch;
-  let capturedUrl = null;
-  let fetchCallCount = 0;
-  window.fetch = function(url, opts) {
-    if (typeof url === 'string' && url.includes('openalex.org')) {
-      capturedUrl = url;
-      fetchCallCount++;
-      // Return a mix: one with landing page, one with DOI only, one with only OA id
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({
-          results: [
-            {
-              id: 'https://openalex.org/W1234',
-              title: 'Test Paper',
-              authorships: [
-                { author: { display_name: 'Smith J' } },
-                { author: { display_name: 'Doe A' } },
-                { author: { display_name: 'Lee B' } },
-                { author: { display_name: 'Kim C' } }
-              ],
-              publication_year: 2023,
-              doi: 'https://doi.org/10.1234/test',
-              cited_by_count: 42,
-              primary_location: { landing_page_url: 'https://example.com/paper' }
-            },
-            {
-              id: 'https://openalex.org/W5678',
-              title: 'DOI-only Paper',
-              authorships: [{ author: { display_name: 'Chen X' } }],
-              publication_year: 2022,
-              doi: 'https://doi.org/10.5678/doionly',
-              cited_by_count: 10,
-              primary_location: null
-            },
-            {
-              id: 'https://openalex.org/W9999',
-              title: 'OpenAlex-only Paper',
-              authorships: [],
-              publication_year: 2021,
-              doi: null,
-              cited_by_count: 0,
-              primary_location: null
-            }
-          ]
-        })
-      });
-    }
-    return origFetch.apply(this, arguments);
-  };
-
-  const sources = await window.searchOpenAlex(['vitamin D', 'immunity']);
-  assert('searchOpenAlex calls OpenAlex API', capturedUrl !== null && capturedUrl.includes('api.openalex.org'), capturedUrl?.substring(0, 80));
-  assert('URL includes search terms', capturedUrl !== null && capturedUrl.includes('search='), capturedUrl?.substring(0, 100));
-  assert('URL includes per_page', capturedUrl !== null && capturedUrl.includes('per_page=5'), 'has per_page=5');
-  assert('URL includes mailto', capturedUrl !== null && capturedUrl.includes('mailto='), 'has mailto');
-  assert('URL selects id field', capturedUrl !== null && capturedUrl.includes('select=id,'), 'has id in select');
-  assert('Returns all 3 results (none filtered)', sources.length === 3, `${sources.length} results`);
-  assert('Result 1 has landing page URL', sources[0].url === 'https://example.com/paper', sources[0].url);
-  assert('Result 2 has DOI fallback URL', sources[1].url === 'https://doi.org/10.5678/doionly', sources[1].url);
-  assert('Result 3 has OpenAlex fallback URL', sources[2].url === 'https://openalex.org/W9999', sources[2].url);
-  assert('et al. for 4+ authors', sources[0].authors.includes('et al.'), sources[0].authors);
-  assert('Result has citations', sources[0].citations === 42, String(sources[0].citations));
-
-  const emptySources = await window.searchOpenAlex([]);
-  assert('Empty terms returns empty array', emptySources.length === 0, String(emptySources.length));
-
-  window.fetch = origFetch;
-
-  // ─── Section 9: renderSourcesSection() ───
-  console.log('%c Section 9: renderSourcesSection()', 'font-weight:bold;color:#6366f1');
-
-  const srcHtml = window.renderSourcesSection([
-    { title: 'Paper One', authors: 'Doe J, Smith K', year: 2022, doi: '10.1/test', url: 'https://doi.org/10.1/test', citations: 100 },
-    { title: 'Paper Two', authors: 'Lee M', year: 2023, doi: null, url: 'https://example.com', citations: 5 }
-  ], 0);
-  assert('renderSourcesSection returns HTML', srcHtml.includes('chat-sources-details'), 'has details container');
-  assert('Sources contain paper titles', srcHtml.includes('Paper One') && srcHtml.includes('Paper Two'), 'both titles');
-  assert('Sources have links', srcHtml.includes('href='), 'has links');
-  assert('Sources have citation counts', srcHtml.includes('100 cites'), 'has citations');
-  assert('Sources have author info', srcHtml.includes('Doe J, Smith K'), 'has authors');
-
   // ─── Section 10: Copy message functionality ───
   console.log('%c Section 10: Copy message', 'font-weight:bold;color:#6366f1');
 
@@ -277,18 +142,6 @@
   } else {
     assert('clipboard.writeText is function (may need HTTPS)', false, 'not available');
   }
-
-  // ─── Section 11: Sources toggle in chat header ───
-  console.log('%c Section 11: Sources toggle in chat header', 'font-weight:bold;color:#6366f1');
-
-  const indexSrc = await fetch('/app').then(r => r.text());
-  assert('index.html has chat-sources-checkbox', indexSrc.includes('chat-sources-checkbox'), 'found');
-  assert('index.html has chat-sources-toggle-label', indexSrc.includes('chat-sources-toggle-label'), 'found');
-  assert('index.html has chat-toggle-slider', indexSrc.includes('chat-toggle-slider'), 'found');
-  assert('index.html checkbox calls setChatSourcesEnabled', indexSrc.includes('setChatSourcesEnabled(this.checked)'), 'found');
-
-  const chatHeaderCheckbox = document.getElementById('chat-sources-checkbox');
-  assert('chat-sources-checkbox element exists', chatHeaderCheckbox !== null, chatHeaderCheckbox ? 'found' : 'not in DOM');
 
   // ─── Section 12: Context toggle ───
   console.log('%c Section 12: Context toggle', 'font-weight:bold;color:#6366f1');
@@ -310,23 +163,7 @@
 
   testDiv.remove();
 
-  // ─── Section 13: Sources toggle ───
-  console.log('%c Section 13: Sources toggle', 'font-weight:bold;color:#6366f1');
-
-  const srcDiv = document.createElement('div');
-  srcDiv.innerHTML = `<div id="chat-src-details-2" style="display:none">papers</div><span id="chat-src-arrow-2">\u25B8</span>`;
-  document.body.appendChild(srcDiv);
-
-  window.toggleSourcesDetails(2);
-  const srcDet = document.getElementById('chat-src-details-2');
-  assert('toggleSourcesDetails opens', srcDet && srcDet.style.display === 'block', srcDet?.style.display);
-
-  window.toggleSourcesDetails(2);
-  assert('toggleSourcesDetails closes', srcDet && srcDet.style.display === 'none', srcDet?.style.display);
-
-  srcDiv.remove();
-
-  // ─── Section 14: Settings UI — Chat Sources removed ───
+  // ─── Section 14: Settings UI ───
   console.log('%c Section 14: Settings UI', 'font-weight:bold;color:#6366f1');
 
   const settingsSrc = await fetch('js/settings.js').then(r => r.text());
@@ -338,7 +175,6 @@
   console.log('%c Section 15: Service worker', 'font-weight:bold;color:#6366f1');
 
   const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW bypasses api.openalex.org', swSrc.includes('api.openalex.org'), 'found in bypass list');
   assert('SW still bypasses Anthropic', swSrc.includes('api.anthropic.com'), 'found');
   assert('SW still bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
   assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"), 'found');
@@ -350,10 +186,8 @@
   const cssSrc = await fetch('styles.css').then(r => r.text());
   const cssClasses = [
     'chat-action-bar', 'chat-action-btn', 'chat-context-toggle',
-    'chat-context-details', 'chat-context-item', 'chat-sources-toggle',
-    'chat-sources-details', 'chat-source-item', 'chat-source-title',
-    'chat-source-meta', 'chat-sources-loading', 'chat-sources-shimmer',
-    'chat-toggle-arrow', 'chat-toggle-slider', 'chat-sources-toggle-label'
+    'chat-context-details', 'chat-context-item',
+    'chat-toggle-arrow', 'chat-toggle-slider'
   ];
   for (const cls of cssClasses) {
     assert(`CSS .${cls} defined`, cssSrc.includes('.' + cls), 'found in styles.css');
@@ -370,27 +204,10 @@
   assert('chat.js has regenerateLastMessage', chatSrc.includes('function regenerateLastMessage'), 'found');
   assert('chat.js does NOT have readAloud', !chatSrc.includes('function readAloud'), 'removed');
   assert('chat.js has copyMessage', chatSrc.includes('function copyMessage'), 'found');
-  assert('chat.js has searchOpenAlex', chatSrc.includes('function searchOpenAlex'), 'found');
-  assert('chat.js has parseSearchTerms', chatSrc.includes('function parseSearchTerms'), 'found');
-  assert('chat.js has renderSourcesSection', chatSrc.includes('function renderSourcesSection'), 'found');
-  assert('chat.js has getChatSourcesEnabled', chatSrc.includes('function getChatSourcesEnabled'), 'found');
-  assert('chat.js has setChatSourcesEnabled', chatSrc.includes('function setChatSourcesEnabled'), 'found');
   assert('sendChatMessage snapshots context', chatSrc.includes('contextSnapshot'), 'found');
-  assert('sendChatMessage parses search terms', chatSrc.includes('parseSearchTerms(fullText)'), 'found');
-  assert('sendChatMessage calls searchOpenAlex', chatSrc.includes('searchOpenAlex(searchTerms)'), 'found');
   assert('regenerateLastMessage checks _chatAbortController', chatSrc.includes('_chatAbortController') && chatSrc.includes('regenerateLastMessage'), 'found');
   assert('renderChatMessages calls buildActionBar', chatSrc.includes('buildActionBar(i)'), 'found');
   assert('API messages tag other personas', chatSrc.includes('Response from') && chatSrc.includes('personalityName'), 'tags messages from different personas');
-  assert('Sources bug fix: isConnected guard', chatSrc.includes('aiMsgEl.isConnected'), 'found');
-  assert('Sources bug fix: sourcesPending stripped from JSON', chatSrc.includes('sourcesPending') && chatSrc.includes('undefined'), 'JSON replacer strips sourcesPending');
-  assert('Sources bug fix: .catch() handler', chatSrc.includes('.catch('), 'has catch for OpenAlex errors');
-  assert('Sources bug fix: thread ID captured for async save', chatSrc.includes('sourceThreadId'), 'captures thread context');
-  assert('openChatPanel syncs sources checkbox', chatSrc.includes('chat-sources-checkbox'), 'found');
-  assert('Prompt does NOT use backticks around SEARCH_TERMS', !chatSrc.includes('`SEARCH_TERMS:'), 'no backtick wrap');
-  assert('OpenAlex URL selects id field', chatSrc.includes('select=id,'), 'found');
-  assert('OpenAlex fallback: openalex.org URL', chatSrc.includes('openalex.org/'), 'OpenAlex fallback URL');
-  assert('parseSearchTerms strips backticks', chatSrc.includes("replace(/^[`>*-]+"), 'backtick strip regex');
-  assert('Fallback search terms from user question', chatSrc.includes('text.slice(0, 120)'), 'fallback when AI omits SEARCH_TERMS');
 
   // ─── Section 18: Regenerate only on last AI message ───
   console.log('%c Section 18: Regenerate placement', 'font-weight:bold;color:#6366f1');
@@ -446,25 +263,6 @@
 
   const stateSrc = await fetch('js/state.js').then(r => r.text());
   assert('state.js exports _labState to window', stateSrc.includes('window._labState'), 'found');
-
-  // ─── Section 21: Live OpenAlex API test ───
-  console.log('%c Section 21: Live OpenAlex API', 'font-weight:bold;color:#6366f1');
-
-  try {
-    const liveResults = await window.searchOpenAlex(['vitamin D blood test']);
-    assert('Live OpenAlex returns results', liveResults.length > 0, `${liveResults.length} papers found`);
-    if (liveResults.length > 0) {
-      assert('Live result has title', typeof liveResults[0].title === 'string' && liveResults[0].title.length > 0, liveResults[0].title.substring(0, 60));
-      assert('Live result has URL', typeof liveResults[0].url === 'string' && liveResults[0].url.startsWith('http'), liveResults[0].url.substring(0, 60));
-      assert('Live result has year', typeof liveResults[0].year === 'number', String(liveResults[0].year));
-      console.log('%c  Sample papers:', 'color:#6366f1');
-      for (const r of liveResults.slice(0, 3)) {
-        console.log(`  ${r.year} | ${r.title.substring(0, 60)} | ${r.citations} cites | ${r.url.substring(0, 40)}`);
-      }
-    }
-  } catch (e) {
-    assert('Live OpenAlex API reachable', false, e.message);
-  }
 
   // ─── Cleanup ───
   if (hasState && origHistory) S.chatHistory = origHistory;

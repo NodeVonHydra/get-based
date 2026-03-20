@@ -1170,59 +1170,6 @@ function _updateWebSearchToggleVisibility() {
 export function refreshWebSearchToggle() { _updateWebSearchToggleVisibility(); }
 
 // ═══════════════════════════════════════════════
-// CHAT SOURCES (OpenAlex)
-// ═══════════════════════════════════════════════
-export function getChatSourcesEnabled() {
-  return localStorage.getItem('labcharts-chat-sources') === 'on';
-}
-
-export function setChatSourcesEnabled(val) {
-  localStorage.setItem('labcharts-chat-sources', val ? 'on' : 'off');
-}
-
-export async function searchOpenAlex(terms) {
-  if (!terms || terms.length === 0) return [];
-  const query = encodeURIComponent(terms.join(' '));
-  try {
-    const resp = await fetch(`https://api.openalex.org/works?search=${query}&per_page=5&mailto=user@getbased.health&select=id,title,authorships,publication_year,doi,cited_by_count,primary_location`, { signal: AbortSignal.timeout(10000) });
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    return (data.results || []).map(w => {
-      const allAuthors = (w.authorships || []).map(a => a.author?.display_name || '').filter(Boolean);
-      const authorStr = allAuthors.length > 3 ? allAuthors.slice(0, 2).join(', ') + ' et al.' : allAuthors.join(', ');
-      const doi = w.doi ? w.doi.replace('https://doi.org/', '') : null;
-      // Fallback chain: landing page → DOI link → OpenAlex page
-      const oaId = w.id ? w.id.replace('https://openalex.org/', '') : null;
-      const url = w.primary_location?.landing_page_url
-        || (doi ? `https://doi.org/${doi}` : null)
-        || (oaId ? `https://openalex.org/${oaId}` : null);
-      return {
-        title: w.title || 'Untitled',
-        authors: authorStr,
-        year: w.publication_year,
-        doi,
-        url,
-        citations: w.cited_by_count || 0
-      };
-    }).filter(s => s.url);
-  } catch { return []; }
-}
-
-export function parseSearchTerms(fullText) {
-  const lines = fullText.split('\n');
-  // Strip backticks, markdown prefixes (>, -, *) before matching
-  const cleanLine = l => l.trim().replace(/^[`>*-]+\s*/, '').replace(/`+$/, '').trim();
-  const termLine = lines.findIndex(l => /^SEARCH_TERMS:\s*/i.test(cleanLine(l)));
-  if (termLine === -1) return { cleanText: fullText, terms: null };
-  const raw = cleanLine(lines[termLine]).replace(/^SEARCH_TERMS:\s*/i, '').trim();
-  const terms = raw.split(',').map(t => t.trim()).filter(Boolean);
-  const cleanLines = lines.slice(0, termLine).concat(lines.slice(termLine + 1));
-  // Remove trailing empty lines
-  while (cleanLines.length > 0 && cleanLines[cleanLines.length - 1].trim() === '') cleanLines.pop();
-  return { cleanText: cleanLines.join('\n'), terms: terms.length > 0 ? terms : null };
-}
-
-// ═══════════════════════════════════════════════
 // ACTION BAR RENDERING
 // ═══════════════════════════════════════════════
 export function buildActionBar(msgIndex) {
@@ -1249,33 +1196,6 @@ export function buildActionBar(msgIndex) {
     html += '</div>';
   }
 
-  // Sources section
-  if (msg.sources && msg.sources.length > 0) {
-    html += `<div class="chat-sources-toggle" onclick="toggleSourcesDetails(${msgIndex})">`;
-    html += `<span class="chat-toggle-arrow" id="chat-src-arrow-${msgIndex}">\u25B8</span> Sources (${msg.sources.length} paper${msg.sources.length !== 1 ? 's' : ''})`;
-    html += '</div>';
-    html += renderSourcesSection(msg.sources, msgIndex);
-  } else if (msg.sourcesPending) {
-    html += '<div class="chat-sources-loading"><span class="chat-sources-shimmer"></span> Finding relevant papers\u2026</div>';
-  }
-
-  return html;
-}
-
-export function renderSourcesSection(sources, msgIndex) {
-  let html = `<div class="chat-sources-details" id="chat-src-details-${msgIndex}" style="display:none">`;
-  for (const s of sources) {
-    const linkUrl = (s.url && /^https?:/.test(s.url)) ? s.url.replace(/"/g, '&quot;') : '#';
-    html += `<div class="chat-source-item">`;
-    html += `<a href="${linkUrl}" target="_blank" rel="noopener" class="chat-source-title">\uD83D\uDCC4 ${escapeHTML(s.title)}</a>`;
-    const meta = [];
-    if (s.authors) meta.push(escapeHTML(s.authors));
-    if (s.year) meta.push(s.year);
-    if (s.citations > 0) meta.push(`${s.citations} cite${s.citations !== 1 ? 's' : ''}`);
-    if (meta.length > 0) html += `<div class="chat-source-meta">${meta.join(' \u00b7 ')}</div>`;
-    html += '</div>';
-  }
-  html += '</div>';
   return html;
 }
 
@@ -1324,14 +1244,6 @@ export function toggleContextDetails(msgIndex) {
   if (arrow) arrow.textContent = open ? '\u25B8' : '\u25BE';
 }
 
-export function toggleSourcesDetails(msgIndex) {
-  const details = document.getElementById(`chat-src-details-${msgIndex}`);
-  const arrow = document.getElementById(`chat-src-arrow-${msgIndex}`);
-  if (!details) return;
-  const open = details.style.display !== 'none';
-  details.style.display = open ? 'none' : 'block';
-  if (arrow) arrow.textContent = open ? '\u25B8' : '\u25BE';
-}
 
 // ═══════════════════════════════════════════════
 // LEGACY STORAGE KEY (for migration detection)
@@ -1746,8 +1658,7 @@ export async function saveChatHistory() {
   invalidateThreadContentCache();
   // No message limit per thread (API still sends last 10)
   const key = getChatThreadKey(state.currentThreadId);
-  // Strip transient sourcesPending flag — must never reach storage
-  const value = JSON.stringify(state.chatHistory, (k, v) => k === 'sourcesPending' ? undefined : v);
+  const value = JSON.stringify(state.chatHistory);
   if (getEncryptionEnabled()) {
     await encryptedSetItem(key, value);
   } else {
@@ -2331,9 +2242,6 @@ export async function openChatPanel(prefillMessage) {
   loadChatPersonality();
   updateChatHeaderTitle();
   updatePersonalityBar();
-  // Sync sources toggle
-  const srcCb = document.getElementById('chat-sources-checkbox');
-  if (srcCb) srcCb.checked = getChatSourcesEnabled();
   // Sync web search toggle
   const wsCb = document.getElementById('chat-websearch-checkbox');
   if (wsCb) wsCb.checked = getChatWebSearchEnabled();
@@ -2785,7 +2693,6 @@ export async function sendChatMessage() {
 
   // Snapshot context areas before sending
   const contextSnapshot = getContextSummary();
-  const sourcesEnabled = getChatSourcesEnabled();
   const webSearchEnabled = getChatWebSearchEnabled() && supportsWebSearch();
 
   try {
@@ -2799,10 +2706,6 @@ export async function sendChatMessage() {
       }
     } else if (personality.promptAddition) {
       personalityPrompt = '\n\n' + personality.promptAddition;
-    }
-    let searchInstruction = '';
-    if (sourcesEnabled) {
-      searchInstruction = '\n\nAfter your response, on its own line output SEARCH_TERMS: followed by 2-3 concise medical/scientific search terms separated by commas. Example:\nSEARCH_TERMS: vitamin D deficiency, immune function, 25-hydroxyvitamin D';
     }
     // Check if other personas have responded in this thread
     const currentPersonaName = personality.name;
@@ -2825,7 +2728,7 @@ export async function sendChatMessage() {
     } else if (supportsWebSearch()) {
       webHint = '\n\n[NO WEB ACCESS] Do not fabricate URLs. The user can enable web search via the "Web" toggle in the chat header.';
     }
-    const systemPrompt = CHAT_SYSTEM_PROMPT + webHint + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction + searchInstruction;
+    const systemPrompt = CHAT_SYSTEM_PROMPT + webHint + '\n\nCurrent lab data:\n' + labContext + personalityPrompt + multiPersonaInstruction;
 
     // Send last 30 messages for context — tag messages from other personas
     const apiMessages = state.chatHistory.filter(m => !m.joined && m.role).slice(-30).map(m => {
@@ -2884,20 +2787,7 @@ export async function sendChatMessage() {
     if (typingEl.parentNode) typingEl.remove();
     if (!aiMsgEl.parentNode) container.appendChild(aiMsgEl);
 
-    // Parse search terms if sources enabled
-    let displayText = fullText;
-    let searchTerms = null;
-    if (sourcesEnabled) {
-      const parsed = parseSearchTerms(fullText);
-      displayText = parsed.cleanText;
-      searchTerms = parsed.terms;
-      // Fallback: if AI didn't output SEARCH_TERMS, derive from user's question
-      if (!searchTerms && text.length > 10) {
-        searchTerms = [text.slice(0, 120)];
-      }
-    }
-
-    aiMsgEl.innerHTML = renderMarkdown(displayText);
+    aiMsgEl.innerHTML = renderMarkdown(fullText);
     // Cost footnote
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       const cost = calculateCost(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
@@ -2911,17 +2801,16 @@ export async function sendChatMessage() {
     }
 
     // Build assistant message object with context snapshot
-    const assistantMsg = { role: 'assistant', content: displayText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
+    const assistantMsg = { role: 'assistant', content: fullText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
     if (webSearchEnabled) assistantMsg.webSearch = true;
     if (_msgE2EE) assistantMsg.e2ee = true;
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
       trackUsage(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
     }
-    if (searchTerms) assistantMsg.sourcesPending = true;
     state.chatHistory.push(assistantMsg);
 
-    // Append action bar (with possible sources placeholder)
+    // Append action bar
     const msgIndex = state.chatHistory.length - 1;
     const actionBarHtml = buildActionBar(msgIndex);
     const actionBarContainer = document.createElement('div');
@@ -2929,52 +2818,6 @@ export async function sendChatMessage() {
     while (actionBarContainer.firstChild) aiMsgEl.appendChild(actionBarContainer.firstChild);
 
     container.scrollTop = container.scrollHeight;
-
-    // Fetch OpenAlex sources async (capture thread ID for correct save target)
-    if (searchTerms) {
-      const sourceThreadId = state.currentThreadId;
-      searchOpenAlex(searchTerms).then(sources => {
-        delete assistantMsg.sourcesPending;
-        if (sources.length > 0) {
-          assistantMsg.sources = sources;
-        }
-        // Update DOM — guard against stale reference (re-render may have detached node)
-        if (aiMsgEl.isConnected) {
-          const loadingEl = aiMsgEl.querySelector('.chat-sources-loading');
-          if (loadingEl) loadingEl.remove();
-          if (sources.length > 0) {
-            const srcToggle = document.createElement('div');
-            srcToggle.className = 'chat-sources-toggle';
-            srcToggle.setAttribute('onclick', `toggleSourcesDetails(${msgIndex})`);
-            srcToggle.innerHTML = `<span class="chat-toggle-arrow" id="chat-src-arrow-${msgIndex}">\u25B8</span> Sources (${sources.length} paper${sources.length !== 1 ? 's' : ''})`;
-            aiMsgEl.appendChild(srcToggle);
-            const srcDetails = document.createElement('div');
-            srcDetails.innerHTML = renderSourcesSection(sources, msgIndex);
-            while (srcDetails.firstChild) aiMsgEl.appendChild(srcDetails.firstChild);
-          }
-          container.scrollTop = container.scrollHeight;
-        } else if (state.currentThreadId === sourceThreadId) {
-          // DOM was detached but still on same thread — re-render to pick up sources
-          renderChatMessages();
-        }
-        // Only save to original thread (user may have switched threads during fetch)
-        if (state.currentThreadId === sourceThreadId) {
-          saveChatHistory();
-        }
-      }).catch(() => {
-        // Network/API error — clean up shimmer, save without sources
-        delete assistantMsg.sourcesPending;
-        if (aiMsgEl.isConnected) {
-          const loadingEl = aiMsgEl.querySelector('.chat-sources-loading');
-          if (loadingEl) loadingEl.remove();
-        }
-        if (state.currentThreadId === sourceThreadId) {
-          saveChatHistory();
-        }
-      });
-    }
-
-    // Always save immediately — sourcesPending is stripped from serialization by saveChatHistory
     saveChatHistory();
   } catch (err) {
     if (typingEl.parentNode) typingEl.remove();
@@ -3546,16 +3389,10 @@ Object.assign(window, {
   regenerateLastMessage,
   copyMessage,
   toggleContextDetails,
-  toggleSourcesDetails,
   isGroupInAIContext,
   setGroupInAIContext,
-  getChatSourcesEnabled,
-  setChatSourcesEnabled,
   getChatWebSearchEnabled,
   setChatWebSearchEnabled,
-  searchOpenAlex,
-  parseSearchTerms,
-  renderSourcesSection,
   // Image attachments
   addImageAttachment,
   toggleHDMode,

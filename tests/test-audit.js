@@ -51,7 +51,6 @@
 
   const chatSrc = await fetch('js/chat.js').then(r => r.text());
   assert('Markdown URL has quote escaping', chatSrc.includes('.replace(/"/g, \'&quot;\')'));
-  assert('OpenAlex URL has protocol check', chatSrc.includes('/^https?:/.test(s.url)'));
   assert('Clipboard has navigator.clipboard guard', chatSrc.includes('if (!navigator.clipboard)'));
 
   // ═══════════════════════════════════════
