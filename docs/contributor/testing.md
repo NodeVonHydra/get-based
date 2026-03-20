@@ -46,7 +46,7 @@ All test files live in the `tests/` directory.
 |---|---|
 | `tests/test-audit.js` | Security audit: XSS escaping, null guards, div-by-zero, JSON.parse guards, focus trapping |
 | `tests/test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
-| `tests/test-chat-actions.js` | Chat message action buttons: regenerate, copy, read aloud, context, sources (OpenAlex) |
+| `tests/test-chat-actions.js` | Chat message action buttons: regenerate, copy, context toggle |
 | `tests/test-chat-threads.js` | Chat thread CRUD, auto-naming, migration, encryption patterns, backup inclusion |
 | `tests/test-crypto.js` | AES-256-GCM encryption, PBKDF2, IndexedDB auto-backup, passphrase validation (20+ sections) |
 | `tests/test-custom-personality.js` | Named custom personalities: storage, icon picker, generation, dirty state, thread metadata |

@@ -249,13 +249,6 @@ The most complex composition — layers 4 components. Lab context is placed befo
 │  │    + evidence-based disclaimer if opted in     │  │
 │  └────────────────────────────────────────────────┘  │
 │                       +                              │
-│  ┌────────────────────────────────────────────────┐  │
-│  │ SEARCH INSTRUCTION (optional)                  │  │
-│  │  "After your response, output SEARCH_TERMS:    │  │
-│  │   followed by 2-3 medical search terms"        │  │
-│  │  (only when OpenAlex sources enabled)          │  │
-│  └────────────────────────────────────────────────┘  │
-│                                                      │
 ├──────────────────────────────────────────────────────┤
 │                    MESSAGES                           │
 │                                                      │
