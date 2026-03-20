@@ -22,6 +22,7 @@ Every message you send includes a full snapshot of your data:
 - Your nine [Context Cards](/guide/context-cards) (diet, sleep, exercise, environment, etc.)
 - Your [Interpretive Lens](/guide/interpretive-lens) and [Health Goals](/guide/health-goals)
 - Your supplements and their date ranges
+- A timestamped change timeline for context cards (diet changes, stress level shifts, etc.) so the AI can correlate lifestyle changes with lab trends
 - Your notes
 - For female profiles: menstrual cycle data and phase context
 

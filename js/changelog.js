@@ -5,6 +5,12 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.3', date: '2026-03-20', title: 'Context change history',
+    items: [
+      'AI now knows when your health context changed — diet switches, new exercise routines, stress changes, etc. are timestamped and included in AI context so it can reason about temporal correlations with your lab results (#76)',
+    ]
+  },
+  {
     version: '1.9.2', date: '2026-03-20', title: 'Supplements, notes & export improvements',
     items: [
       'Focus card now includes supplements with date-aware context — AI no longer attributes changes to supplements started after your last labs (#80)',

@@ -18,6 +18,7 @@ The exported file includes everything for the current profile:
 - Supplements
 - Menstrual cycle data (if entered)
 - Genetics data (SNP results from DNA raw data import, if imported)
+- Context card change history (timestamped log of lifestyle changes)
 - Custom marker definitions
 - Chat history and conversation threads
 

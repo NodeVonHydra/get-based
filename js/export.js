@@ -379,7 +379,8 @@ export async function exportClientJSON(profileId, includeChat = false) {
     menstrualCycle: data.menstrualCycle || null,
     emfAssessment: data.emfAssessment || null,
     genetics: data.genetics || null,
-    markerNotes: data.markerNotes || {}
+    markerNotes: data.markerNotes || {},
+    changeHistory: data.changeHistory || []
   };
   if (includeChat) {
     const chat = await _exportChatData(profileId);
@@ -603,6 +604,18 @@ export function importDataJSON(file) {
         if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
         Object.assign(state.importedData.markerNotes, json.markerNotes);
       }
+      // Import change history (merge by field+date, imported snapshot wins on conflict)
+      if (Array.isArray(json.changeHistory)) {
+        if (!state.importedData.changeHistory) state.importedData.changeHistory = [];
+        for (const entry of json.changeHistory) {
+          if (!entry.field || !entry.date) continue;
+          const idx = state.importedData.changeHistory.findIndex(e => e.field === entry.field && e.date === entry.date);
+          if (idx >= 0) { state.importedData.changeHistory[idx] = entry; }
+          else { state.importedData.changeHistory.push(entry); }
+        }
+        state.importedData.changeHistory.sort((a, b) => a.date.localeCompare(b.date));
+        while (state.importedData.changeHistory.length > 200) state.importedData.changeHistory.shift();
+      }
       // Import supplements
       if (json.supplements && Array.isArray(json.supplements)) {
         if (!state.importedData.supplements) state.importedData.supplements = [];
@@ -624,7 +637,10 @@ export function importDataJSON(file) {
       }
       migrateProfileData(state.importedData);
       saveImportedData();
-      if (json.chat) _importChatData(state.currentProfile, json.chat);
+      if (json.chat) {
+        await _importChatData(state.currentProfile, json.chat);
+        if (window.loadChatThreads) window.loadChatThreads();
+      }
       window.buildSidebar();
       window.updateHeaderDates();
       window.navigate('dashboard');
@@ -717,6 +733,18 @@ async function _importDatabaseBundle(json) {
       }
       if (importData.interpretiveLens) current.interpretiveLens = importData.interpretiveLens;
       if (importData.contextNotes) current.contextNotes = importData.contextNotes;
+      // Change history: merge by field+date, imported snapshot wins on conflict
+      if (Array.isArray(importData.changeHistory)) {
+        if (!current.changeHistory) current.changeHistory = [];
+        for (const entry of importData.changeHistory) {
+          if (!entry.field || !entry.date) continue;
+          const idx = current.changeHistory.findIndex(e => e.field === entry.field && e.date === entry.date);
+          if (idx >= 0) { current.changeHistory[idx] = entry; }
+          else { current.changeHistory.push(entry); }
+        }
+        current.changeHistory.sort((a, b) => a.date.localeCompare(b.date));
+        while (current.changeHistory.length > 200) current.changeHistory.shift();
+      }
       // Display overrides: merge labels/icons (don't overwrite existing)
       for (const field of ['categoryLabels', 'categoryIcons', 'markerLabels']) {
         if (importData[field] && typeof importData[field] === 'object') {

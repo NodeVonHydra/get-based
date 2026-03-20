@@ -245,7 +245,13 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
       refMax: 720,
       categoryLabel: "My Lab"
     }
-  }
+  },
+
+  // Timestamped snapshots of context field changes — appended by recordChange()
+  changeHistory: [
+    { field: "diet", date: "2026-03-01", snapshot: { type: "carnivore", ... } },
+    { field: "stress", date: "2026-02-15", snapshot: { level: "moderate", ... } }
+  ]
 }
 ```
 

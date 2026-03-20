@@ -343,6 +343,7 @@ All 9 lifestyle context card editors plus AI health dots.
 - `getSelectedOption(group)` — reads selected value from a `.ctx-btn-group`
 - `summaryFn` implementations — generate the one-line text shown on each collapsed card
 - `debounceContextNotes()` — auto-saves the free-form context notes textarea
+- `recordChange(field)` — snapshots a context field and appends a timestamped entry to `importedData.changeHistory` (dedup: same-day overwrite, identical skip, 200 cap)
 
 **Window exports:** all open/save functions, `selectCtxOption`, `addCondition`, `deleteCondition`, `addGoal`, `deleteGoal`, `syncDiagnosesNote`, `openInterpretiveLensEditor`, `saveInterpretiveLens`
 

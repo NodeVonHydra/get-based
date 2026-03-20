@@ -91,6 +91,14 @@ Below the card grid is a free-form **Additional Notes** textarea. Use this to ad
 
 When you chat with the AI or view the Focus Card, all nine cards plus the Additional Notes textarea are included in the context sent to the AI. The AI uses this to give you interpretations that go beyond the numbers — it can flag when your sleep schedule, diet, or environment might explain a result, or suggest that a pattern in your labs aligns with something you mentioned in a card.
 
+## Change History
+
+getbased automatically timestamps every change you make to a context card. When you switch from Mediterranean to carnivore diet, or change your stress level from high to moderate, the previous value and the date of the change are recorded.
+
+This timeline is included in the AI context so the AI can reason about temporal correlations — for example, connecting a dietary change on March 1 to a shift in your LDL two weeks later. You do not need to do anything to enable this; it works automatically whenever you save a card.
+
+Change history is included in [JSON export and import](/guide/json-export-import).
+
 ::: warning
 Context cards never leave your device except as part of AI API calls (to your chosen provider). See [AI Providers](/guide/ai-providers) and [Encryption](/guide/encryption) for details on how your data is handled.
 :::

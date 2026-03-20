@@ -685,6 +685,50 @@ function restoreRailState() {
   }
 }
 
+// ── Change History diff summarizer ──
+function summarizeChange(field, prev, curr) {
+  if (prev == null && curr == null) return null;
+  if (prev == null) return 'added';
+  if (curr == null) return 'cleared';
+  // String fields (interpretiveLens, contextNotes)
+  if (typeof curr === 'string' || typeof prev === 'string') {
+    const p = (prev || '').toString().slice(0, 60);
+    const c = (curr || '').toString().slice(0, 60);
+    if (p === c) return null;
+    return `changed${p ? ' (was: "' + p + (prev.length > 60 ? '…' : '') + '")' : ''}`;
+  }
+  // Arrays (healthGoals)
+  if (Array.isArray(curr)) {
+    const pLen = Array.isArray(prev) ? prev.length : 0;
+    if (curr.length > pLen) {
+      const added = curr.slice(pLen).map(g => g.text || JSON.stringify(g)).join(', ');
+      return `added: ${added}`;
+    }
+    if (curr.length < pLen) return `removed ${pLen - curr.length} item${pLen - curr.length > 1 ? 's' : ''}`;
+    return 'updated';
+  }
+  // Objects (context cards, diagnoses, menstrualCycle)
+  const changes = [];
+  const allKeys = new Set([...Object.keys(prev || {}), ...Object.keys(curr || {})]);
+  for (const k of allKeys) {
+    if (k === 'note') continue; // skip free-text notes for brevity
+    const pv = prev?.[k], cv = curr?.[k];
+    const pvStr = JSON.stringify(pv), cvStr = JSON.stringify(cv);
+    if (pvStr === cvStr) continue;
+    if (pv == null || (Array.isArray(pv) && pv.length === 0)) {
+      const val = Array.isArray(cv) ? cv.join(', ') : cv;
+      changes.push(`${k}: ${val}`);
+    } else if (cv == null || (Array.isArray(cv) && cv.length === 0)) {
+      changes.push(`${k}: removed`);
+    } else {
+      const val = Array.isArray(cv) ? cv.join(', ') : cv;
+      const old = Array.isArray(pv) ? pv.join(', ') : pv;
+      changes.push(`${k}: ${old} → ${val}`);
+    }
+  }
+  return changes.length > 0 ? changes.slice(0, 5).join('; ') + (changes.length > 5 ? '; …' : '') : null;
+}
+
 // ═══════════════════════════════════════════════
 // LAB CONTEXT (unchanged)
 // ═══════════════════════════════════════════════
@@ -1085,7 +1129,34 @@ export function buildLabContext() {
     ctx += '\n';
   }
 
-  // ── 17. Additional Context Notes ──
+  // ── 17. Context Change Timeline ──
+  const changeHistory = state.importedData.changeHistory || [];
+  if (changeHistory.length > 0) {
+    const fieldLabels = { diet: 'Diet & Digestion', exercise: 'Exercise', sleepRest: 'Sleep & Rest', lightCircadian: 'Light & Circadian', stress: 'Stress', loveLife: 'Love Life', environment: 'Environment', diagnoses: 'Medical Conditions', healthGoals: 'Health Goals', interpretiveLens: 'Interpretive Lens', contextNotes: 'Context Notes', menstrualCycle: 'Menstrual Cycle' };
+    // Group by field, sorted by date
+    const sorted = [...changeHistory].sort((a, b) => a.date.localeCompare(b.date));
+    // Build timeline with diffs between consecutive snapshots per field
+    const lines = [];
+    const byField = {};
+    for (const entry of sorted) {
+      if (!byField[entry.field]) byField[entry.field] = [];
+      byField[entry.field].push(entry);
+    }
+    for (const entry of sorted) {
+      const label = fieldLabels[entry.field] || entry.field;
+      const fieldEntries = byField[entry.field];
+      const idx = fieldEntries.indexOf(entry);
+      const prev = idx > 0 ? fieldEntries[idx - 1].snapshot : null;
+      const diff = summarizeChange(entry.field, prev, entry.snapshot);
+      if (diff) lines.push(`- ${fmtDate(entry.date)}: ${label} — ${diff}`);
+    }
+    if (lines.length > 0) {
+      ctx += `## Context Change Timeline\n`;
+      ctx += lines.join('\n') + '\n\n';
+    }
+  }
+
+  // ── 18. Additional Context Notes ──
   const ctxNotes = state.importedData.contextNotes || '';
   if (ctxNotes.trim()) {
     ctx += `## Additional Context Notes\n${ctxNotes.trim()}\n\n`;
@@ -2455,6 +2526,7 @@ export function saveCycleStatus(status) {
   if (!state.importedData.menstrualCycle) state.importedData.menstrualCycle = {};
   state.importedData.menstrualCycle.cycleStatus = status;
   if (!state.importedData.menstrualCycle.periods) state.importedData.menstrualCycle.periods = [];
+  window.recordChange('menstrualCycle');
   saveImportedData();
   const labels = { perimenopause: 'Perimenopause noted', postmenopause: 'Noted — postmenopause', pregnant: 'Noted — pregnant', breastfeeding: 'Noted — breastfeeding', absent: 'Noted — no active cycle' };
   showNotification(labels[status] || 'Cycle status saved', 'success');
@@ -2514,6 +2586,7 @@ export function saveChatPeriod() {
   mc.cycleStatus = 'regular';
   if (!mc.cycleLength) mc.cycleLength = 28;
   mc.periodLength = periodDays;
+  window.recordChange('menstrualCycle');
   saveImportedData();
   showNotification('Cycle tracking set up!', 'success');
   _refreshDashboardCycle();

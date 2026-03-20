@@ -269,6 +269,7 @@ export function migrateProfileData(data) {
   if (data.emfAssessment && !Array.isArray(data.emfAssessment.assessments)) data.emfAssessment = null;
   if (data.genetics === undefined) data.genetics = null;
   if (data.markerNotes === undefined) data.markerNotes = {};
+  if (data.changeHistory === undefined) data.changeHistory = [];
   return data;
 }
 
@@ -276,7 +277,7 @@ export async function loadProfile(profileId) {
   state.currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = await encryptedGetItem(profileStorageKey(profileId, 'imported'));
-  const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, emfAssessment: null, customMarkers: {} };
+  const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, emfAssessment: null, customMarkers: {}, changeHistory: [] };
   state.importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return defaultData; } })() : defaultData;
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   state.unitSystem = savedUnits === 'US' ? 'US' : 'EU';

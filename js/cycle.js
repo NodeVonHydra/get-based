@@ -411,6 +411,7 @@ export function openMenstrualCycleEditor() {
 
 export function saveMenstrualCycle() {
   syncMenstrualCycleProfileFromForm();
+  window.recordChange('menstrualCycle');
   saveImportedData();
   window.closeModal();
   const activeNav = document.querySelector(".nav-item.active");
@@ -423,6 +424,7 @@ export function saveMenstrualCycle() {
 export function clearMenstrualCycle() {
   showConfirmDialog('Clear all menstrual cycle data? This cannot be undone.', () => {
     state.importedData.menstrualCycle = null;
+    window.recordChange('menstrualCycle');
     saveImportedData();
     window.closeModal();
     const activeNav = document.querySelector(".nav-item.active");

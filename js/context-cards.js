@@ -226,6 +226,7 @@ export function debounceContextNotes() {
     const ta = document.getElementById('ctx-notes-textarea');
     if (ta) {
       state.importedData.contextNotes = ta.value;
+      recordChange('contextNotes');
       saveImportedData();
     }
   }, 500);
@@ -456,7 +457,31 @@ export function contextEditorActions(hasCurrent, saveFn, clearFn) {
   </div>`;
 }
 
-export function saveAndRefresh(msg) {
+// ── Change History ──
+
+export function recordChange(field) {
+  const today = new Date().toISOString().slice(0, 10);
+  const current = state.importedData[field];
+  const snapshot = current != null ? JSON.parse(JSON.stringify(current)) : null;
+  const snapshotStr = JSON.stringify(snapshot);
+  if (!state.importedData.changeHistory) state.importedData.changeHistory = [];
+  const history = state.importedData.changeHistory;
+  // Skip if identical to last snapshot for this field
+  const lastIdx = history.findLastIndex(e => e.field === field);
+  if (lastIdx >= 0 && JSON.stringify(history[lastIdx].snapshot) === snapshotStr) return;
+  // Same field + same day → overwrite
+  const todayIdx = history.findIndex(e => e.field === field && e.date === today);
+  if (todayIdx >= 0) {
+    history[todayIdx].snapshot = snapshot;
+  } else {
+    history.push({ field, date: today, snapshot });
+  }
+  // Cap at 200
+  while (history.length > 200) history.shift();
+}
+
+export function saveAndRefresh(msg, field) {
+  if (field) recordChange(field);
   saveImportedData();
   // Preserve details open state before closeModal re-renders the dashboard
   const details = document.querySelector('.welcome-context-details');
@@ -581,6 +606,7 @@ export function addCondition() {
   const cond = { name, severity };
   if (since && since.value.trim()) cond.since = since.value.trim();
   state.importedData.diagnoses.conditions.push(cond);
+  recordChange('diagnoses');
   saveImportedData();
   renderDiagnosesModal(document.getElementById("detail-modal"), state.importedData.diagnoses);
 }
@@ -589,6 +615,7 @@ export function deleteCondition(idx) {
   if (!state.importedData.diagnoses || !state.importedData.diagnoses.conditions) return;
   syncDiagnosesNote();
   state.importedData.diagnoses.conditions.splice(idx, 1);
+  recordChange('diagnoses');
   saveImportedData();
   renderDiagnosesModal(document.getElementById("detail-modal"), state.importedData.diagnoses);
 }
@@ -600,7 +627,7 @@ export function saveDiagnoses() {
   if (state.importedData.diagnoses.conditions.length === 0 && !state.importedData.diagnoses.note) {
     state.importedData.diagnoses = null;
   }
-  saveAndRefresh('Medical conditions saved');
+  saveAndRefresh('Medical conditions saved', 'diagnoses');
 }
 
 export function closeDiagnoses() {
@@ -609,7 +636,7 @@ export function closeDiagnoses() {
 
 export function clearDiagnoses() {
   state.importedData.diagnoses = null;
-  saveAndRefresh('Medical conditions cleared');
+  saveAndRefresh('Medical conditions cleared', 'diagnoses');
 }
 
 // ═══════════════════════════════════════════════
@@ -678,12 +705,12 @@ export function saveDiet() {
   } else {
     state.importedData.diet = { type, restrictions, pattern, breakfast: breakfast.trim(), breakfastTime, lunch: lunch.trim(), lunchTime, dinner: dinner.trim(), dinnerTime, snacks: snacks.trim(), snacksTime, bowelFrequency, stoolConsistency, bloating, gas, acidReflux, burping, nausea, appetite, abdominalPain, foodSensitivities, note: note.trim() };
   }
-  saveAndRefresh('Diet & Digestion saved');
+  saveAndRefresh('Diet & Digestion saved', 'diet');
 }
 
 export function clearDiet() {
   state.importedData.diet = null;
-  saveAndRefresh('Diet & Digestion cleared');
+  saveAndRefresh('Diet & Digestion cleared', 'diet');
 }
 
 // ═══════════════════════════════════════════════
@@ -724,12 +751,12 @@ export function saveSleepRest() {
   } else {
     state.importedData.sleepRest = { duration, quality, schedule, roomTemp, issues, environment, practices, note: note.trim() };
   }
-  saveAndRefresh('Sleep saved');
+  saveAndRefresh('Sleep saved', 'sleepRest');
 }
 
 export function clearSleepRest() {
   state.importedData.sleepRest = null;
-  saveAndRefresh('Sleep cleared');
+  saveAndRefresh('Sleep cleared', 'sleepRest');
 }
 
 // ═══════════════════════════════════════════════
@@ -777,12 +804,12 @@ export function saveLightCircadian() {
   } else {
     state.importedData.lightCircadian = { amLight, daytime, uvExposure, evening, screenTime, techEnv, cold, grounding, mealTiming, note: note.trim() };
   }
-  saveAndRefresh('Light & circadian saved');
+  saveAndRefresh('Light & circadian saved', 'lightCircadian');
 }
 
 export function clearLightCircadian() {
   state.importedData.lightCircadian = null;
-  saveAndRefresh('Light & circadian cleared');
+  saveAndRefresh('Light & circadian cleared', 'lightCircadian');
 }
 
 // ═══════════════════════════════════════════════
@@ -816,12 +843,12 @@ export function saveExercise() {
   } else {
     state.importedData.exercise = { frequency, types, intensity, dailyMovement, note: note.trim() };
   }
-  saveAndRefresh('Exercise saved');
+  saveAndRefresh('Exercise saved', 'exercise');
 }
 
 export function clearExercise() {
   state.importedData.exercise = null;
-  saveAndRefresh('Exercise cleared');
+  saveAndRefresh('Exercise cleared', 'exercise');
 }
 
 // ═══════════════════════════════════════════════
@@ -853,12 +880,12 @@ export function saveStress() {
   } else {
     state.importedData.stress = { level, sources, management, note: note.trim() };
   }
-  saveAndRefresh('Stress profile saved');
+  saveAndRefresh('Stress profile saved', 'stress');
 }
 
 export function clearStress() {
   state.importedData.stress = null;
-  saveAndRefresh('Stress profile cleared');
+  saveAndRefresh('Stress profile cleared', 'stress');
 }
 
 // ═══════════════════════════════════════════════
@@ -904,12 +931,12 @@ export function saveLoveLife() {
   } else {
     state.importedData.loveLife = { status, relationship, satisfaction, libido, frequency, orgasm, concerns, note: note.trim() };
   }
-  saveAndRefresh('Love life saved');
+  saveAndRefresh('Love life saved', 'loveLife');
 }
 
 export function clearLoveLife() {
   state.importedData.loveLife = null;
-  saveAndRefresh('Love life cleared');
+  saveAndRefresh('Love life cleared', 'loveLife');
 }
 
 // ═══════════════════════════════════════════════
@@ -969,12 +996,12 @@ export function saveEnvironment() {
   } else {
     state.importedData.environment = { setting, climate, water, waterConcerns, emf, emfMitigation, homeLight, air, toxins, building, note: note.trim() };
   }
-  saveAndRefresh('Environment saved');
+  saveAndRefresh('Environment saved', 'environment');
 }
 
 export function clearEnvironment() {
   state.importedData.environment = null;
-  saveAndRefresh('Environment cleared');
+  saveAndRefresh('Environment cleared', 'environment');
 }
 
 // ═══════════════════════════════════════════════
@@ -1037,6 +1064,7 @@ export function addHealthGoal() {
   if (!text) return;
   if (!state.importedData.healthGoals) state.importedData.healthGoals = [];
   state.importedData.healthGoals.push({ text, severity });
+  recordChange('healthGoals');
   saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
 }
@@ -1044,6 +1072,7 @@ export function addHealthGoal() {
 export function deleteHealthGoal(idx) {
   if (!state.importedData.healthGoals) return;
   state.importedData.healthGoals.splice(idx, 1);
+  recordChange('healthGoals');
   saveImportedData();
   renderHealthGoalsModal(document.getElementById("detail-modal"));
 }
@@ -1057,6 +1086,7 @@ export function closeHealthGoals() {
 
 export function clearHealthGoals() {
   state.importedData.healthGoals = [];
+  recordChange('healthGoals');
   saveImportedData();
   window.closeModal();
   const activeNav = document.querySelector(".nav-item.active");
@@ -1092,6 +1122,7 @@ export function saveInterpretiveLens() {
   const ta = document.getElementById('interpretive-lens-textarea');
   const text = ta ? ta.value.trim() : '';
   state.importedData.interpretiveLens = text || '';
+  recordChange('interpretiveLens');
   saveImportedData();
   window.closeModal();
   const activeNav = document.querySelector(".nav-item.active");
@@ -1101,6 +1132,7 @@ export function saveInterpretiveLens() {
 
 export function clearInterpretiveLens() {
   state.importedData.interpretiveLens = '';
+  recordChange('interpretiveLens');
   saveImportedData();
   window.closeModal();
   const activeNav = document.querySelector(".nav-item.active");
@@ -1184,4 +1216,5 @@ Object.assign(window, {
   saveInterpretiveLens,
   clearInterpretiveLens,
   renderInterpretiveLensSection,
+  recordChange,
 });

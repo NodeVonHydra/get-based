@@ -33,7 +33,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `notes.js` — note editor (open/save/delete)
   - `supplements.js` — supplement editor + render section
   - `cycle.js` — menstrual cycle helpers + editor + render section
-  - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens
+  - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens, `recordChange()` for change history
   - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports
   - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, auto image mode for scanned PDFs, direct image import (JPG/PNG/WebP). AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
@@ -49,15 +49,16 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 25 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 26 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
 ### Data Flow
 
 1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides, emfAssessment, markerNotes }`. Legacy fields auto-migrated via `migrateProfileData()`
+2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides, emfAssessment, markerNotes, changeHistory }`. Legacy fields auto-migrated via `migrateProfileData()`
 3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax, labRefMin, labRefMax, refSource } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle. Two-step revert: manual edit → lab range → schema default. `categoryLabels` and `categoryIcons` override display names/icons per category. `markerLabels` overrides individual marker display names (same dot-key format). `markerNotes` stores per-marker freeform notes (`{ "category.marker": "text" }`), shown in detail modal and included in AI context
+3b. `changeHistory` is a capped (200) array of `{ field, date, snapshot }` entries, recording timestamped snapshots of context field changes (13 fields: 9 context cards + healthGoals + interpretiveLens + contextNotes + menstrualCycle). `recordChange(field)` in context-cards.js handles dedup (same-day overwrite, identical-snapshot skip). Included in `buildLabContext()` as a diff timeline so the AI can reason about temporal correlations
 4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
 5. `singlePoint` categories have `singlePoint: true` — grid cards instead of trend charts. Fatty acids flow through the custom marker pipeline with per-product prefixes (spadiaFA, zinzinoFA, omegaquantFA) under a "Fatty Acids" sidebar group
 6. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
@@ -127,7 +128,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-25 browser-based test files run headlessly:
+26 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

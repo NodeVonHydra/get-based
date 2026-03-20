@@ -139,7 +139,11 @@ Status: partnered. Relationship quality: good. Libido: normal.
 ## Environment
 Water: filtered. EMF: wifi router. Home lighting: mixed.
 
-## Additional Context Notes                ←── 16. FREETEXT NOTES
+## Context Change Timeline                 ←── 17. CHANGE HISTORY
+- Mar 1, 2026: Diet & Digestion — type: omnivore → carnivore
+- Feb 15, 2026: Stress — level: high → moderate
+
+## Additional Context Notes                ←── 18. FREETEXT NOTES
 Started cold plunges in January
 ```
 
@@ -191,6 +195,7 @@ importedData (localStorage)
          ├─── .stress ─────────────────────────────────────┤
          ├─── .loveLife ───────────────────────────────────┤
          ├─── .environment ────────────────────────────────┤
+         ├─── .changeHistory ──────────────────────────────┤
          └─── .contextNotes ───────────────────────────────┤  ← LAST
                                                            │
                                                            ▼
@@ -536,6 +541,15 @@ Each entry documents:
 
 **Files modified**: `js/utils.js`, `js/chat.js`, `js/constants.js`, `js/views.js`, `js/changelog.js`, `service-worker.js` (v52→v53), `test-audit.js`, `test-changelog.js`, `CLAUDE.md`
 
+### 2026-03 — Change History
+
+**Context card change tracking** (`buildLabContext`)
+- `importedData.changeHistory` populated by `recordChange()` in `context-cards.js` whenever a card save detects a field value change
+- New `## Context Change Timeline` section (17) appended to `buildLabContext()` output, showing human-readable diffs between consecutive snapshots per field
+- Enables temporal correlation: AI can connect a diet change on March 1 to a lab shift on March 15
+
+**Files modified**: `js/state.js`, `js/profile.js`, `js/context-cards.js`, `js/cycle.js`, `js/chat.js`, `js/export.js`, `tests/test-change-history.js`, `CLAUDE.md`
+
 ## Source Files
 
 | File | Key Functions |
@@ -548,6 +562,7 @@ Each entry documents:
 | `js/chat.js` | `generateCustomPersonality()` — persona generator prompt |
 | `js/views.js` | `buildFocusContext()` — lightweight focus card context (~200-400 tokens) |
 | `js/views.js` | `loadFocusCard()` — focus card prompt (health-goals-aware) |
+| `js/context-cards.js` | `recordChange(field)` — timestamps context field snapshots into `changeHistory` |
 | `js/context-cards.js` | `loadContextHealthDots()` — health dots prompt (JSON.parse guarded) |
 | `js/pdf-import.js` | `parseLabPDFWithAI()` — PDF import prompt (filename included) |
 | `js/pdf-import.js` | `buildMarkerReference()` — marker schema serializer |

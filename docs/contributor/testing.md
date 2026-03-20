@@ -38,13 +38,14 @@ Every test file defines a local `assert` helper and collects results:
 
 The `detail` argument appears in the failure output — use it to print the actual value that caused the failure.
 
-## The 17 test files
+## The 18 test files
 
 All test files live in the `tests/` directory.
 
 | File | What it covers |
 |---|---|
 | `tests/test-audit.js` | Security audit: XSS escaping, null guards, div-by-zero, JSON.parse guards, focus trapping |
+| `tests/test-change-history.js` | Change history: `recordChange` dedup, snapshot deep-copy, cap, AI context timeline, export/import round-trip |
 | `tests/test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
 | `tests/test-chat-actions.js` | Chat message action buttons: regenerate, copy, context toggle |
 | `tests/test-chat-threads.js` | Chat thread CRUD, auto-naming, migration, encryption patterns, backup inclusion |
