@@ -11,6 +11,7 @@ const CHANGELOG = [
       'Add a note/reason to each supplement to track why you\'re taking it — shown in editor, chart tooltips, AI context, and PDF report (#74)',
       'Per-biomarker notes — add persistent notes to any marker from the detail modal, included in AI context (#79)',
       'Genetics section added to PDF export report — full table of findings grouped by category with effect severity (#73)',
+      'Removed Sources (OpenAlex) feature — web search via OpenRouter provides better academic coverage',
     ]
   },
   {
