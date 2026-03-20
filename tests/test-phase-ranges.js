@@ -288,7 +288,7 @@
   const chartsSource = await fetch('js/charts.js').then(r => r.text());
   assert('charts.js imports getEffectiveRangeForDate', chartsSource.includes('getEffectiveRangeForDate'));
   assert('charts.js imports getPhaseRefEnvelope', chartsSource.includes('getPhaseRefEnvelope'));
-  assert('charts.js uses per-point coloring', chartsSource.includes('getEffectiveRangeForDate(marker, i)'));
+  assert('charts.js uses per-point coloring', chartsSource.includes('getEffectiveRangeForDate(marker, i + trimOffset)'));
   assert('charts.js tooltip shows phase label', chartsSource.includes('phaseLabels') && chartsSource.includes('phaseLabel'));
   assert('charts.js ref band uses envelope', chartsSource.includes('getPhaseRefEnvelope(marker)'));
 

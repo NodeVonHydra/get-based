@@ -93,36 +93,33 @@ export const noteAnnotationPlugin = {
   _getNoteDots(chart) {
     const opts = chart.options.plugins.noteAnnotations;
     if (!opts || !opts.notes || !opts.notes.length || !chart.chartArea) return [];
-    const { chartArea: { top }, scales: { x } } = chart;
+    const { chartArea: { left, right, top }, scales: { x } } = chart;
     if (!x) return [];
-    const chartLabels = chart.data.labels || [];
+    const isTime = x.type === 'time';
+    const chartDates = opts.chartDates || [];
     const dots = [];
     const DOT_RADIUS = window.innerWidth <= 768 ? 8 : 5;
     const DOT_Y = top + DOT_RADIUS + 2;
     for (const note of opts.notes) {
-      let pixelX = null;
-      const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      const idx = chartLabels.indexOf(noteDateLabel);
-      if (idx !== -1) {
-        pixelX = x.getPixelForValue(idx);
+      let pixelX;
+      if (isTime) {
+        pixelX = x.getPixelForValue(new Date(note.date + 'T00:00:00').getTime());
       } else {
-        const chartDates = opts.chartDates || [];
-        if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
+        // Category scale: match label or interpolate between chartDates
+        const noteDateLabel = new Date(note.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const idx = (chart.data.labels || []).indexOf(noteDateLabel);
+        if (idx !== -1) { pixelX = x.getPixelForValue(idx); }
+        else if (chartDates.length >= 2 && note.date >= chartDates[0] && note.date <= chartDates[chartDates.length - 1]) {
           for (let i = 0; i < chartDates.length - 1; i++) {
             if (note.date >= chartDates[i] && note.date <= chartDates[i + 1]) {
-              const d0 = new Date(chartDates[i]).getTime();
-              const d1 = new Date(chartDates[i + 1]).getTime();
-              const dn = new Date(note.date).getTime();
-              const frac = (dn - d0) / (d1 - d0);
-              const px0 = x.getPixelForValue(i);
-              const px1 = x.getPixelForValue(i + 1);
-              pixelX = px0 + frac * (px1 - px0);
+              const frac = (new Date(note.date).getTime() - new Date(chartDates[i]).getTime()) / (new Date(chartDates[i + 1]).getTime() - new Date(chartDates[i]).getTime());
+              pixelX = x.getPixelForValue(i) + frac * (x.getPixelForValue(i + 1) - x.getPixelForValue(i));
               break;
             }
           }
         }
       }
-      if (pixelX === null) continue;
+      if (pixelX == null || pixelX < left || pixelX > right) continue;
       dots.push({ x: pixelX, y: DOT_Y, radius: DOT_RADIUS, note });
     }
     return dots;
@@ -227,26 +224,23 @@ export const supplementBarPlugin = {
   id: 'supplementBars',
   _dateToPixelX(dateStr, chart) {
     const x = chart.scales.x;
-    const labels = chart.data.labels;
+    const { left, right } = chart.chartArea;
+    if (x.type === 'time') {
+      const px = x.getPixelForValue(new Date(dateStr + 'T00:00:00').getTime());
+      return Math.max(left, Math.min(right, px));
+    }
+    // Category scale fallback
     const chartDates = chart.options.plugins.supplementBars?.chartDates || [];
-    // Exact label match
     const idx = chartDates.indexOf(dateStr);
     if (idx !== -1) return x.getPixelForValue(idx);
-    // Interpolate between dates
     for (let i = 0; i < chartDates.length - 1; i++) {
       if (dateStr > chartDates[i] && dateStr < chartDates[i + 1]) {
-        const d0 = new Date(chartDates[i] + 'T00:00:00').getTime();
-        const d1 = new Date(chartDates[i + 1] + 'T00:00:00').getTime();
-        const dt = new Date(dateStr + 'T00:00:00').getTime();
-        const frac = (dt - d0) / (d1 - d0);
-        const px0 = x.getPixelForValue(i);
-        const px1 = x.getPixelForValue(i + 1);
-        return px0 + frac * (px1 - px0);
+        const frac = (new Date(dateStr + 'T00:00:00').getTime() - new Date(chartDates[i] + 'T00:00:00').getTime()) / (new Date(chartDates[i + 1] + 'T00:00:00').getTime() - new Date(chartDates[i] + 'T00:00:00').getTime());
+        return x.getPixelForValue(i) + frac * (x.getPixelForValue(i + 1) - x.getPixelForValue(i));
       }
     }
-    // Before first date or after last date — clamp
-    if (dateStr <= chartDates[0]) return x.getPixelForValue(0);
-    return x.getPixelForValue(chartDates.length - 1);
+    if (dateStr <= chartDates[0]) return Math.max(left, x.getPixelForValue(0));
+    return Math.min(right, x.getPixelForValue(chartDates.length - 1));
   },
   _getBarRects(chart) {
     const cfg = chart.options.plugins.supplementBars;
@@ -371,7 +365,7 @@ export const phaseBandPlugin = {
   id: 'phaseBands',
   beforeDraw(chart) {
     const cfg = chart.options.plugins.phaseBands;
-    if (!cfg?.phases?.length) return;
+    if (!cfg?.phases?.length || !cfg?.chartDates?.length) return;
     const { ctx, chartArea, scales: { x } } = chart;
     if (!x || !chartArea) return;
     const { top, bottom } = chartArea;
@@ -387,14 +381,18 @@ export const phaseBandPlugin = {
       ovulatory:  'rgba(168, 85, 247, 0.6)',
       luteal:     'rgba(245, 158, 11, 0.6)'
     };
-    const labels = { menstrual: 'M', follicular: 'F', ovulatory: 'O', luteal: 'L' };
+    const phaseLetters = { menstrual: 'M', follicular: 'F', ovulatory: 'O', luteal: 'L' };
     const phases = cfg.phases;
+    const chartDates = cfg.chartDates;
+    const toTs = d => new Date(d + 'T00:00:00').getTime();
     ctx.save();
     for (let i = 0; i < phases.length; i++) {
-      if (!phases[i] || !colors[phases[i]]) continue;
-      const px = x.getPixelForValue(i);
-      const left = i === 0 ? chartArea.left : (px + x.getPixelForValue(i - 1)) / 2;
-      const right = i === phases.length - 1 ? chartArea.right : (px + x.getPixelForValue(i + 1)) / 2;
+      if (!phases[i] || !colors[phases[i]] || !chartDates[i]) continue;
+      const px = x.getPixelForValue(toTs(chartDates[i]));
+      const prevPx = i > 0 && chartDates[i - 1] ? x.getPixelForValue(toTs(chartDates[i - 1])) : null;
+      const nextPx = i < phases.length - 1 && chartDates[i + 1] ? x.getPixelForValue(toTs(chartDates[i + 1])) : null;
+      const left = prevPx != null ? (px + prevPx) / 2 : chartArea.left;
+      const right = nextPx != null ? (px + nextPx) / 2 : chartArea.right;
       ctx.fillStyle = colors[phases[i]];
       ctx.fillRect(left, top, right - left, bottom - top);
     }
@@ -403,11 +401,11 @@ export const phaseBandPlugin = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     for (let i = 0; i < phases.length; i++) {
-      if (!phases[i]) continue;
+      if (!phases[i] || !chartDates[i]) continue;
       if (i > 0 && phases[i] === phases[i - 1]) continue;
-      const px = x.getPixelForValue(i);
+      const px = x.getPixelForValue(toTs(chartDates[i]));
       ctx.fillStyle = labelColors[phases[i]] || 'rgba(150,150,150,0.6)';
-      ctx.fillText(labels[phases[i]] || '', px, top + 2);
+      ctx.fillText(phaseLetters[phases[i]] || '', px, top + 2);
     }
     ctx.restore();
   }
@@ -421,12 +419,15 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
   let values = marker.values;
   let valid = values.filter(v => v !== null);
   if (valid.length === 0) return;
-  // Trim leading/trailing nulls so charts don't show empty date gaps
-  if (!marker.singlePoint && values.length > 1) {
+  const useTimeScale = !marker.singlePoint && valid.length > 1;
+  // Trim leading/trailing nulls for category scale (time scale handles gaps proportionally)
+  let trimOffset = 0;
+  if (!useTimeScale && !marker.singlePoint && values.length > 1) {
     let first = values.findIndex(v => v !== null);
     let last = values.length - 1;
     while (last > first && values[last] === null) last--;
     if (first > 0 || last < values.length - 1) {
+      trimOffset = first;
       values = values.slice(first, last + 1);
       dates = dates.slice(first, last + 1);
       if (chartDates) chartDates = chartDates.slice(first, last + 1);
@@ -472,7 +473,7 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
     if (v === null) { ptColors.push("transparent"); ptStyles.push('circle'); continue; }
-    const r = getEffectiveRangeForDate(marker, i);
+    const r = getEffectiveRangeForDate(marker, i + trimOffset);
     const s = getStatus(v, r.min, r.max);
     ptColors.push(s==="normal"?tc.green:s==="high"?tc.red:tc.yellow);
     ptStyles.push('circle');
@@ -493,20 +494,24 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
       tension: 0.3, fill: false, spanGaps: true, label: 'Chronological Age'
     });
   }
+  const chartLabels = useTimeScale ? rawDates : dates;
+  const xScale = useTimeScale
+    ? { type: 'time', time: { tooltipFormat: 'MMM d, yyyy', displayFormats: { day: 'MMM d, yyyy', month: 'MMM yyyy', year: 'yyyy' } }, ticks: { source: 'labels', color: tc.tickColor, font: { size: 11 }, maxTicksLimit: 8 }, grid: { display: false } }
+    : { ticks: { color: tc.tickColor, font: { size: 11 } }, grid: { display: false } };
   state.chartInstances[id] = new Chart(canvas, {
     type: "line",
-    data: { labels: dates, datasets },
+    data: { labels: chartLabels, datasets },
     options: { responsive:true, maintainAspectRatio:false,
       plugins: { legend:{ display: isPhenoAge && chronoAgeValues ? true : false, labels: { color: tc.legendColor, font: { size: 11 }, boxWidth: 20, padding: 10 } },
         tooltip:{ backgroundColor:tc.tooltipBg, titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, borderColor:tc.tooltipBorder, borderWidth:1,
-          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const di = c.dataIndex; const pr = getEffectiveRangeForDate(marker, di); const phaseLabel = marker.phaseLabels && marker.phaseLabels[di]; const lines = []; if (phaseLabel) lines.push(`Phase: ${phaseLabel}`); if (pr.min != null || pr.max != null) { const rl = phaseLabel ? 'Phase ref' : (state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'); const rMin = pr.min != null ? formatValue(pr.min) : '–'; const rMax = pr.max != null ? formatValue(pr.max) : '–'; lines.push(`${rl}: ${rMin} \u2013 ${rMax}`); } return lines.join('\n'); } }},
+          callbacks:{ label:(c)=>`${c.dataset.label ? c.dataset.label + ': ' : ''}${formatValue(c.parsed.y)} ${marker.unit}`, afterLabel:(c)=> { if (c.datasetIndex !== 0) return ''; const di = c.dataIndex; const oi = di + trimOffset; const pr = getEffectiveRangeForDate(marker, oi); const phaseLabel = marker.phaseLabels && marker.phaseLabels[oi]; const lines = []; if (phaseLabel) lines.push(`Phase: ${phaseLabel}`); if (pr.min != null || pr.max != null) { const rl = phaseLabel ? 'Phase ref' : (state.rangeMode === 'optimal' && marker.optimalMin != null ? 'Optimal' : 'Ref'); const rMin = pr.min != null ? formatValue(pr.min) : '–'; const rMax = pr.max != null ? formatValue(pr.max) : '–'; lines.push(`${rl}: ${rMin} \u2013 ${rMax}`); } return lines.join('\n'); } }},
         refBand: (() => { const env = getPhaseRefEnvelope(marker); if (state.rangeMode === 'both') return { refMin: marker.refMin, refMax: marker.refMax }; if (env) return { refMin: env.min, refMax: env.max }; return { refMin: chartRange.min, refMax: chartRange.max }; })(),
         optimalBand: state.rangeMode === 'both' && (marker.optimalMin != null || marker.optimalMax != null) ? { optimalMin: marker.optimalMin, optimalMax: marker.optimalMax } : false,
         noteAnnotations: chartNotes.length ? { notes: chartNotes, chartDates: rawDates } : false,
         supplementBars: chartSupps.length ? { supplements: chartSupps, chartDates: rawDates } : false,
-        phaseBands: (phaseLabels && phaseLabels.some(p => p) && state.phaseOverlayMode === 'on') ? { phases: phaseLabels } : false},
+        phaseBands: (phaseLabels && phaseLabels.some(p => p) && state.phaseOverlayMode === 'on') ? { phases: phaseLabels, chartDates: rawDates } : false},
       layout: { padding: { top: chartSupps.length ? chartSupps.length * 14 + 6 : 0 } },
-      scales: { x:{ticks:{color:tc.tickColor,font:{size:11}},grid:{display:false}},
+      scales: { x: xScale,
         y:{min:minV-pad, max:maxV+pad, ticks:{color:tc.tickColor,font:{size:10}}, grid:{color:tc.gridColor}}}
     },
     plugins: [phaseBandPlugin, refBandPlugin, optimalBandPlugin, noteAnnotationPlugin, supplementBarPlugin]

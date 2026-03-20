@@ -47,7 +47,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing, marker rename/revert, calculated marker input diagnostics
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
-- **`vendor/`** — locally bundled Chart.js, pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE). Run `./update-vendor.sh` to update
+- **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
 - **`tests/`** — 26 browser-based test files (`test-*.js`) + `verify-modules.js`
 
@@ -151,7 +151,7 @@ Breakpoints: 3000/2000/1600/1400px (chat scaling), 1200px (cards 3→2 col), 102
 - **Status**: `getStatus()` → `"normal"`, `"high"`, `"low"`, `"missing"`. Returns `"normal"` when refs are `null`
 - **Theme**: Dark (default) / light. CSS vars in `:root`, overridden in `[data-theme="light"]`
 - **Performance**: rendering functions accept optional `data` param to avoid redundant `getActiveData()` calls
-- **Chart.js plugins**: `refBandPlugin`, `optimalBandPlugin`, `noteAnnotationPlugin`, `supplementBarPlugin`, `phaseBandPlugin`
+- **Chart.js plugins**: `refBandPlugin`, `optimalBandPlugin`, `noteAnnotationPlugin`, `supplementBarPlugin`, `phaseBandPlugin`. Time scale (proportional) for multi-point markers, category scale for single-point. Custom native date adapter (`vendor/chartjs-adapter-native.js`). Plugins detect scale type and fall back to index-based positioning for category charts (correlation view)
 - **Streaming**: SSE via `callClaudeAPI({ onStream })`
 - **Security**: `escapeHTML(str)` for all innerHTML. Markdown URLs validated to http/https/mailto
 - **Marker keys**: `category.markerKey` format (e.g., `biochemistry.glucose`) used everywhere

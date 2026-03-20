@@ -40,6 +40,7 @@ const APP_SHELL = [
   '/icon-512.png',
   '/manifest.json',
   '/vendor/chart.min.js',
+  '/vendor/chartjs-adapter-native.js',
   '/vendor/pdf.min.js',
   '/vendor/pdf.worker.min.js',
   '/vendor/fonts/fonts.css',
