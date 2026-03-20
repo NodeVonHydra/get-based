@@ -434,6 +434,19 @@ export function createLineChart(id, marker, dateLabels, chartDates, phaseLabels)
     }
   }
 
+  // Extend chart to today so supplements/notes after last lab date are visible (skip if <30 days)
+  if (!marker.singlePoint && chartDates && chartDates.length > 0) {
+    const today = new Date().toISOString().slice(0, 10);
+    const lastDate = chartDates[chartDates.length - 1];
+    const daysSince = Math.round((new Date(today) - new Date(lastDate + 'T00:00:00')) / 86400000);
+    if (daysSince >= 30) {
+      chartDates = [...chartDates, today];
+      dates = [...dates, 'Today'];
+      values = [...values, null];
+      if (phaseLabels) phaseLabels = [...phaseLabels, null];
+    }
+  }
+
   // Biological Age: add chronological age line for comparison
   const isPhenoAge = marker.name && (marker.name === 'Biological Age' || marker.name.startsWith('PhenoAge'));
   let chronoAgeValues = null;

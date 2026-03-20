@@ -8,6 +8,7 @@ const CHANGELOG = [
     version: '1.9.3', date: '2026-03-20', title: 'Context change history',
     items: [
       'AI now knows when your health context changed — diet switches, new exercise routines, stress changes, etc. are timestamped and included in AI context so it can reason about temporal correlations with your lab results (#76)',
+      'Chart timelines extend to today when your last labs are more than 30 days old, so supplements and notes added since then are visible (#78)',
     ]
   },
   {
