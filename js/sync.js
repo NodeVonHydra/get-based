@@ -1,0 +1,397 @@
+// sync.js — Evolu sync layer (opt-in, E2E encrypted)
+// Stores importedData + profile metadata per profile as a JSON blob.
+// Last-write-wins at the profile level — fine for single-user cross-device sync.
+
+import { state } from './state.js';
+import { showNotification, isDebugMode } from './utils.js';
+import { profileStorageKey, getProfiles, saveProfiles, migrateProfileData } from './profile.js';
+import { getEncryptionEnabled, encryptedSetItem, encryptedGetItem } from './crypto.js';
+
+function dbg(...args) { if (isDebugMode()) console.log('[sync]', ...args); }
+
+let evolu = null;
+let profileQuery = null;
+let _syncEnabled = false;
+let _syncing = false;
+let _pulling = false;
+let _appOwner = null;
+let _readyPromise = null;
+let _queryLoaded = null;
+
+// ═══════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════
+
+const SYNC_STORAGE_KEY = 'labcharts-sync-enabled';
+const SYNC_RELAY_KEY = 'labcharts-sync-relay';
+const DEFAULT_RELAY = 'wss://free.evoluhq.com';
+
+export function isSyncEnabled() { return _syncEnabled; }
+
+export function getSyncRelay() {
+  return localStorage.getItem(SYNC_RELAY_KEY) || DEFAULT_RELAY;
+}
+
+export function setSyncRelay(url) {
+  localStorage.setItem(SYNC_RELAY_KEY, url);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+
+export async function initSync() {
+  _syncEnabled = localStorage.getItem(SYNC_STORAGE_KEY) === 'true';
+  if (!_syncEnabled) return;
+
+  // Defer to next microtask — SharedWorker + navigator.locks can race during DOMContentLoaded
+  await new Promise(r => setTimeout(r, 0));
+
+  try {
+    const { createEvolu, id, nullOr, SimpleName, NonEmptyString1000, NonEmptyString, evoluWebDeps } =
+      await import('../vendor/evolu/evolu-bundle.js');
+
+    const ProfileDataId = id("ProfileData");
+    const Schema = {
+      profileData: {
+        id: ProfileDataId,
+        profileId: NonEmptyString,
+        dataJson: NonEmptyString,
+        syncedAt: nullOr(NonEmptyString),
+      },
+    };
+
+    const relay = getSyncRelay();
+    evolu = createEvolu(evoluWebDeps)(Schema, {
+      name: SimpleName.orThrow("getbased4"),
+      reloadUrl: window.location.pathname,
+      enableLogging: isDebugMode(),
+      transport: { type: "WebSocket", url: relay },
+    });
+
+    // Query all profile data rows
+    profileQuery = evolu.createQuery((db) =>
+      db.selectFrom("profileData")
+        .selectAll()
+        .where("isDeleted", "is not", 1)
+    );
+
+    // Subscribe to sync updates
+    evolu.subscribeQuery(profileQuery)(() => {
+      if (!_syncing && !_pulling) onSyncReceived();
+    });
+
+    // Load initial data — store promise for enableSync to await
+    _queryLoaded = evolu.loadQuery(profileQuery).then(() => {
+      dbg('Initial query loaded');
+    }).catch(e => {
+      console.warn('[sync] Query load failed:', e);
+    });
+
+    // Wait for owner (mnemonic) — signals DB is ready
+    _readyPromise = evolu.appOwner.then(owner => {
+      _appOwner = owner;
+      dbg('Owner resolved');
+    }).catch(e => {
+      console.warn('[sync] Owner resolution failed:', e);
+    });
+
+    // Debug helper — only in debug mode
+    if (isDebugMode()) {
+      window._syncDebug = {
+        getRows: () => evolu.getQueryRows(profileQuery),
+        getOwner: () => _appOwner,
+        evolu,
+      };
+    }
+
+    dbg('Initialized, relay:', relay);
+  } catch (e) {
+    console.error('[sync] Failed to initialize Evolu:', e);
+    _syncEnabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// ENABLE / DISABLE
+// ═══════════════════════════════════════════════
+
+export async function enableSync() {
+  localStorage.setItem(SYNC_STORAGE_KEY, 'true');
+  _syncEnabled = true;
+  await initSync();
+  if (evolu && _readyPromise) {
+    await _readyPromise;
+    // Wait for query to load so pushCurrentProfile can check for existing rows
+    if (_queryLoaded) await _queryLoaded;
+    await pushCurrentProfile();
+    showNotification('Sync enabled', 'success');
+  }
+}
+
+export async function disableSync() {
+  localStorage.setItem(SYNC_STORAGE_KEY, 'false');
+  _syncEnabled = false;
+  evolu = null;
+  profileQuery = null;
+  // Cancel pending debounce timer
+  clearTimeout(onDataSaved._timer);
+  showNotification('Sync disabled', 'success');
+}
+
+// ═══════════════════════════════════════════════
+// MNEMONIC (identity)
+// ═══════════════════════════════════════════════
+
+export function getMnemonic() {
+  if (!_appOwner) return null;
+  return _appOwner.mnemonic || null;
+}
+
+export async function restoreFromMnemonic(mnemonic) {
+  if (!evolu) return false;
+  try {
+    // Clear all sync timestamps so pulled data isn't skipped
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.endsWith('-sync-ts')) localStorage.removeItem(key);
+    }
+    await evolu.restoreAppOwner(mnemonic);
+    showNotification('Restored from mnemonic — reloading...', 'success');
+    return true;
+  } catch (e) {
+    console.error('[sync] Restore failed:', e);
+    showNotification('Invalid mnemonic', 'error');
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SYNC PAYLOAD — wraps importedData + profile meta
+// ═══════════════════════════════════════════════
+
+// AI settings keys to sync (global, not per-profile)
+const AI_SETTINGS_KEYS = [
+  'labcharts-ai-provider',
+  'labcharts-api-key',           // Anthropic key (encrypted)
+  'labcharts-openrouter-key',    // OpenRouter key (encrypted)
+  'labcharts-venice-key',        // Venice key (encrypted)
+  'labcharts-anthropic-model',
+  'labcharts-openrouter-model',
+  'labcharts-venice-model',
+  'labcharts-venice-e2ee',
+  'labcharts-ollama-model',
+  'labcharts-ollama-pii-url',
+  'labcharts-ollama-pii-model',
+];
+
+async function collectAISettings() {
+  const settings = {};
+  for (const key of AI_SETTINGS_KEYS) {
+    const val = await encryptedGetItem(key);
+    if (val) settings[key] = val;
+  }
+  return settings;
+}
+
+const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key'];
+
+async function applyAISettings(settings) {
+  if (!settings) return;
+  for (const [key, val] of Object.entries(settings)) {
+    if (!AI_SETTINGS_KEYS.includes(key)) continue;
+    if (typeof val !== 'string' || val.length > 10000) continue; // sanity check
+    if (ENCRYPTED_AI_KEYS.includes(key)) {
+      await encryptedSetItem(key, val);
+    } else {
+      localStorage.setItem(key, val);
+    }
+  }
+}
+
+async function buildSyncPayload(profileId, importedData) {
+  const profiles = getProfiles();
+  const profile = profiles.find(p => p.id === profileId);
+  const aiSettings = await collectAISettings();
+  return JSON.stringify({
+    _v: 2,
+    importedData,
+    profile: profile || null,
+    aiSettings: Object.keys(aiSettings).length > 0 ? aiSettings : undefined,
+  });
+}
+
+function parseSyncPayload(dataJson) {
+  const parsed = JSON.parse(dataJson);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Invalid sync payload');
+  }
+  // v2: wrapped payload with profile metadata + AI settings
+  if (parsed._v === 2) {
+    return { importedData: parsed.importedData, profile: parsed.profile, aiSettings: parsed.aiSettings };
+  }
+  // v1 compat: raw importedData (no profile metadata)
+  return { importedData: parsed, profile: null, aiSettings: null };
+}
+
+// ═══════════════════════════════════════════════
+// PUSH — localStorage → Evolu
+// ═══════════════════════════════════════════════
+
+export async function pushCurrentProfile() {
+  if (!evolu || !_syncEnabled || _syncing) return;
+  const profileId = state.currentProfile;
+  if (!profileId || typeof profileId !== 'string') return;
+  _syncing = true;
+  try {
+    const dataJson = await buildSyncPayload(profileId, state.importedData);
+    const syncedAt = new Date().toISOString();
+
+    // Check if row exists for this profile
+    const rows = evolu.getQueryRows(profileQuery);
+    const existing = rows?.find(r => r.profileId === profileId);
+
+    if (existing) {
+      evolu.update("profileData", {
+        id: existing.id,
+        dataJson,
+        syncedAt,
+      });
+    } else {
+      evolu.insert("profileData", {
+        profileId,
+        dataJson,
+        syncedAt,
+      });
+    }
+    // Only update sync-ts after successful push
+    localStorage.setItem(`labcharts-${profileId}-sync-ts`, String(Date.now()));
+    dbg('Pushed:', profileId);
+  } catch (e) {
+    console.error('[sync] Push failed:', e);
+  } finally {
+    _syncing = false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// PULL — Evolu → localStorage
+// ═══════════════════════════════════════════════
+
+async function onSyncReceived() {
+  if (!evolu || !profileQuery || _pulling) return;
+  _pulling = true;
+  try {
+    const rows = evolu.getQueryRows(profileQuery);
+    if (!rows || rows.length === 0) return;
+
+    let profilesChanged = false;
+    let latestAiSettings = null;
+    let latestAiTs = 0;
+
+    for (const row of rows) {
+      try {
+        const profileId = row.profileId;
+        if (!profileId || typeof profileId !== 'string') continue;
+        const remoteUpdated = row.syncedAt ? new Date(row.syncedAt).getTime() : 0;
+
+        // Check local timestamp
+        const localKey = profileStorageKey(profileId, 'imported');
+        const localMeta = localStorage.getItem(`labcharts-${profileId}-sync-ts`);
+        const localUpdated = localMeta ? parseInt(localMeta, 10) : 0;
+
+        if (remoteUpdated <= localUpdated) continue;
+
+        // Remote is newer — parse payload
+        const { importedData, profile, aiSettings } = parseSyncPayload(row.dataJson);
+
+        // Track latest AI settings (apply once, from most recent row)
+        if (aiSettings && remoteUpdated > latestAiTs) {
+          latestAiSettings = aiSettings;
+          latestAiTs = remoteUpdated;
+        }
+
+        // Validate importedData shape
+        if (!importedData || typeof importedData !== 'object') continue;
+
+        // Update importedData in localStorage
+        const importedJson = JSON.stringify(importedData);
+        if (getEncryptionEnabled()) {
+          await encryptedSetItem(localKey, importedJson);
+        } else {
+          localStorage.setItem(localKey, importedJson);
+        }
+        localStorage.setItem(`labcharts-${profileId}-sync-ts`, String(remoteUpdated));
+
+        // Merge profile into local profiles list
+        if (profile) {
+          const profiles = getProfiles();
+          const idx = profiles.findIndex(p => p.id === profileId);
+          if (idx >= 0) {
+            const local = profiles[idx];
+            profiles[idx] = { ...local, ...profile, lastUpdated: Date.now() };
+          } else {
+            profiles.push({ ...profile, lastUpdated: Date.now() });
+          }
+          await saveProfiles(profiles);
+          profilesChanged = true;
+          dbg('Merged profile:', profileId, profile.name);
+        }
+
+        // If this is the active profile, update in-memory state
+        if (profileId === state.currentProfile) {
+          state.importedData = importedData;
+          migrateProfileData(state.importedData);
+          // Only auto-navigate if user is on the dashboard (don't interrupt other views)
+          const activeNav = document.querySelector('.nav-item.active');
+          if (!activeNav || activeNav.dataset.category === 'dashboard') {
+            window.navigate?.('dashboard');
+          } else {
+            showNotification('Data updated from another device', 'success');
+          }
+          dbg('Pulled active profile:', profileId);
+        } else {
+          dbg('Pulled profile:', profileId);
+        }
+      } catch (e) {
+        console.error('[sync] Pull failed for row:', e);
+      }
+    }
+
+    // Apply AI settings once from the most recent row
+    if (latestAiSettings) await applyAISettings(latestAiSettings);
+
+    // Rebuild profile dropdown if profiles changed
+    if (profilesChanged) {
+      window.renderProfileDropdown?.();
+    }
+  } finally {
+    _pulling = false;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HOOK — called from saveImportedData()
+// ═══════════════════════════════════════════════
+
+export function onDataSaved() {
+  if (_syncEnabled && evolu && !_syncing) {
+    // Debounce — don't push on every keystroke
+    clearTimeout(onDataSaved._timer);
+    onDataSaved._timer = setTimeout(() => {
+      pushCurrentProfile(); // sync-ts is set inside pushCurrentProfile on success
+    }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// EXPORTS for window binding
+// ═══════════════════════════════════════════════
+
+Object.assign(window, {
+  enableSync,
+  disableSync,
+  getMnemonic,
+  restoreFromMnemonic,
+  isSyncEnabled,
+});

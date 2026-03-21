@@ -815,6 +815,7 @@ export function clearAllData() {
       localStorage.removeItem(`labcharts-${id}-tour`);
       localStorage.removeItem(`labcharts-${id}-cycleTour`);
       localStorage.removeItem(`labcharts-${id}-phaseOverlay`);
+      localStorage.removeItem(`labcharts-${id}-sync-ts`);
     }
     // Reset to single default profile
     const defaultId = profiles[0]?.id || 'default';
