@@ -10,11 +10,13 @@
 
 ## What it does
 
-- **AI-powered PDF import** — drop any lab report (any format, language, or country) and AI extracts and maps results to 287+ known biomarkers automatically. Batch import for multiple PDFs
-- **Biomarker trend charts** — interactive line charts with reference bands, optimal ranges (including open-ended), and trend detection across 16 categories
+- **AI-powered PDF import** — drop any lab report (any format, language, or country) and AI extracts and maps results to 287+ known biomarkers automatically. Batch import, direct image import (JPG/PNG/WebP), auto image mode for scanned PDFs
+- **Biomarker trend charts** — interactive line charts with proportional time scale, reference bands, optimal ranges, and trend detection across 16 categories
 - **AI chat** — ask questions about your results with full health context, image attachments, multiple personalities, conversation threads
-- **Specialty lab adapters** — OAT (165 markers), fatty acids (Spadia, ZinZino, OmegaQuant), Metabolomix+. DUTCH, HTMA, GI maps flow through the custom marker pipeline
-- **Calculated markers** — PhenoAge (biological age), HOMA-IR, BUN/Creatinine ratio, free water deficit, lipid ratios
+- **DNA import** — upload raw data from AncestryDNA, 23andMe, MyHeritage, FTDNA, or Living DNA. 42 curated SNPs across 10 categories (methylation, iron, lipids, vitamin D, etc.) with APOE haplotype resolution. Genetic factors shown on dashboard, detail modals, and in AI context
+- **Specialty lab adapters** — OAT (165 markers), fatty acids (Spadia, ZinZino, OmegaQuant), Metabolomix+. Any other specialty test imports through the custom marker pipeline
+- **Biological age** — PhenoAge (Levine 2018) + Bortz Age (Bortz 2023) combined into a unified Biological Age marker with component breakdown
+- **Calculated markers** — HOMA-IR, BUN/Creatinine ratio, free water deficit, lipid ratios (TG/HDL, LDL/HDL, ApoB/ApoA-I), NLR, PLR, De Ritis ratio, hs-CRP/HDL cardiovascular risk ratio
 - **Trend alerts** — sudden changes and linear regression flagged on the dashboard
 - **Correlation viewer** — compare any two markers, heatmap view
 - **Compare dates** — side-by-side comparison of any two lab dates
@@ -33,6 +35,7 @@
 - Personal info stripped from PDFs before AI processing (regex + streaming local AI obfuscation)
 - AES-256-GCM encryption at rest
 - Automatic backups (IndexedDB snapshots + daily folder backup via File System Access API)
+- Venice AI end-to-end encryption option — prompts encrypted client-side (ECDH secp256k1 + AES-256-GCM), decrypted only inside a TEE. Nothing readable in transit or at rest on their servers
 - Run a local AI server and nothing leaves your machine at all
 - No account, no sign-up, no tracking
 
@@ -42,7 +45,7 @@
 |---|---|
 | **OpenRouter** | Model marketplace — one key, 200+ models (Claude, GPT, Gemini, Grok, DeepSeek). One-click OAuth connect. Recommended for most users. |
 | **Anthropic** | Direct Claude API. Best accuracy on medical data. |
-| **Venice AI** | Privacy cloud — access GPT, Grok, DeepSeek with nothing logged. |
+| **Venice AI** | Privacy cloud with optional end-to-end encryption — prompts encrypted client-side, decrypted only in a TEE. |
 | **Local AI** | Any OpenAI-compatible server — Ollama, LM Studio, Jan, llama.cpp. Fully offline. Free forever. |
 
 Switch providers anytime. All non-AI features work without a provider configured.
@@ -57,7 +60,8 @@ Switch providers anytime. All non-AI features work without a provider configured
 | AI providers | 4 choices (including fully local) | Locked to one |
 | Lab import | Any PDF, any format, any language | Specific labs/formats only |
 | Biomarkers | 287+ standard + unlimited custom | Limited set |
-| Specialty labs | OAT, fatty acids, adapters for more | Blood only |
+| Specialty labs | OAT, fatty acids + custom marker pipeline for any test | Blood only |
+| DNA raw data | 42 curated SNPs, APOE, 5 providers | No |
 | Lifestyle context | 9 cards inform all AI analysis | None or basic |
 | Account required | No | Yes |
 
@@ -75,16 +79,16 @@ Open `http://localhost:8000`. You need an AI provider API key or local AI server
 
 ## Tech stack
 
-No build tools, no bundler, no package manager. Pure ES modules — 30 files under `js/`.
+No build tools, no bundler, no package manager. Pure ES modules — 33 files under `js/`.
 
 - Chart.js for interactive charts
 - pdf.js for PDF text extraction
-- All dependencies loaded from CDN with SRI integrity hashes
+- All dependencies vendored locally (`vendor/`) — no CDN calls
 - Installable as a PWA (works offline for non-AI features)
 
 ## Testing
 
-22 browser-based test files run headlessly:
+26 browser-based test files run headlessly:
 
 ```bash
 ./run-tests.sh
