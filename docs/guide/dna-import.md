@@ -110,7 +110,22 @@ getbased identifies files by their content headers, not just the filename. Make 
 Quality over quantity. Each SNP was selected because it has a well-understood mechanism, a large effect size, and directly helps interpret a biomarker you're tracking. Adding hundreds of low-confidence GWAS hits would create noise, not signal. Each SNP links to its primary research paper so you can verify the evidence yourself.
 
 **Can I add my own SNPs?**
-Not currently. The SNP lookup table (`data/snp-health.json`) is curated and versioned. Community contributions are welcome via pull request — each new entry needs a gene, genotypes with effect notes, mapped biomarkers, and citations.
+Not directly. The SNP lookup table (`data/snp-health.json`) is curated and versioned — every entry must pass the [five criteria above](#how-snps-are-selected). Community contributions are welcome via pull request, but **you must do the research first**. Open an issue with:
+
+1. **The rsID and gene/variant name**
+2. **Which biomarker(s) it maps to** in the getbased schema (e.g., `vitamins.folate`, `coagulation.homocysteine`)
+3. **Mechanism** — what enzyme/receptor/transporter does the variant affect, and how? (not just "associated with X in a GWAS")
+4. **Effect size** — what is the functional impact? (e.g., "reduces enzyme activity to 30%" not "slightly associated with")
+5. **Replication** — links to at least 2 independent studies or a meta-analysis confirming the effect on the specific biomarker
+6. **Actionability** — what concrete recommendation follows from the genotype?
+
+SNPs that fail any criterion will be declined. Common reasons for rejection:
+- Synonymous variants with unconfirmed functional effects
+- GWAS associations without a known biochemical mechanism
+- Effects that only manifest on specialty panels (DUTCH, urinary metabolites) not standard blood work
+- Weak or contradictory biomarker associations (e.g., studies finding opposite directions of effect)
+- Variants whose pathway is already well-covered by existing SNPs (e.g., adding a third MTHFR variant when C677T and A1298C already capture the methylation story)
+- Pharmacogenomic SNPs that only matter on a specific drug (e.g., methotrexate response)
 
 **Is this a medical diagnosis?**
 No. Genetic information provides context for interpreting your lab results — it does not diagnose conditions. Always discuss significant findings with your healthcare provider.
