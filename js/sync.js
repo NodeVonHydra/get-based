@@ -442,7 +442,7 @@ async function onSyncReceived() {
         const localMeta = localStorage.getItem(`labcharts-${profileId}-sync-ts`);
         const localUpdated = localMeta ? parseInt(localMeta, 10) : 0;
 
-        if (remoteUpdated < localUpdated) continue;
+        if (remoteUpdated <= localUpdated) continue;
 
         // Remote is newer — parse payload
         const { importedData, profile, aiSettings, chatData, displayPrefs } = parseSyncPayload(row.dataJson);
@@ -496,6 +496,11 @@ async function onSyncReceived() {
         if (profileId === state.currentProfile) {
           state.importedData = importedData;
           migrateProfileData(state.importedData);
+          // Reload chat threads into memory and re-render the thread list
+          if (chatData) {
+            window.loadChatThreads?.();
+            window.renderThreadList?.();
+          }
           // Only auto-navigate if user is on the dashboard (don't interrupt other views)
           const activeNav = document.querySelector('.nav-item.active');
           if (!activeNav || activeNav.dataset.category === 'dashboard') {
