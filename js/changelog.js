@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.5', date: '2026-03-22', title: 'Cross-device sync',
+    items: [
+      'Cross-device sync — E2E encrypted via Evolu CRDT. All profiles and AI settings sync automatically across your devices',
+      'Self-hosted relay with live connectivity indicator — no third-party dependencies',
+    ]
+  },
+  {
     version: '1.9.4', date: '2026-03-20', title: 'Proportional chart timelines',
     items: [
       'Chart x-axes now use proportional time spacing — a 1-month gap looks smaller than a 6-month gap, so trends are visually accurate',

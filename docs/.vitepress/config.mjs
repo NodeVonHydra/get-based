@@ -80,6 +80,7 @@ export default defineConfig({
           text: 'Security & Backup',
           items: [
             { text: 'Encryption', link: '/guide/encryption' },
+            { text: 'Cross-Device Sync', link: '/guide/cross-device-sync' },
             { text: 'Folder Backup', link: '/guide/folder-backup' }
           ]
         }

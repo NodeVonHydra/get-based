@@ -1,10 +1,10 @@
 # Encryption
 
-getbased stores all your data locally in your browser — nothing is uploaded to any server (except what you deliberately send to an AI provider). On top of that, you can enable encryption at rest to protect your data with a passphrase.
+getbased stores all your data locally in your browser. Nothing leaves your device unless you deliberately send it to an AI provider or enable [cross-device sync](./cross-device-sync.md) (which is E2E encrypted — the relay only sees ciphertext). On top of that, you can enable encryption at rest to protect your data with a passphrase.
 
 ## Local Storage
 
-All your lab data, context cards, notes, supplements, and settings live in your browser's **localStorage** and **IndexedDB**. No account is required. No data is synced to the cloud. Clearing your browser data will erase getbased data, so use the export and backup features regularly.
+All your lab data, context cards, notes, supplements, and settings live in your browser's **localStorage** and **IndexedDB**. No account is required. Data only leaves your device if you enable [cross-device sync](./cross-device-sync.md) — and even then, the relay only stores encrypted blobs. Clearing your browser data will erase getbased data, so use the export and backup features regularly.
 
 ## Encryption at Rest
 

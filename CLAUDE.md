@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 33 ES modules loaded via `js/main.js`:
+- **`js/`** — 34 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
   - `adapters.js` — parser adapter registry for specialty labs. `ADAPTER_MARKERS` (194 entries), `detectProduct`, `normalizeWithAdapter`, `getAdapterByTestType`. Adapters: fattyAcids (29 markers, product detection), metabolomix (FA routing), oat (165 markers)
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
@@ -38,7 +38,8 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, auto image mode for scanned PDFs, direct image import (JPG/PNG/WebP). AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
-  - `settings.js` — settings modal, provider panels, privacy section
+  - `sync.js` — Evolu CRDT sync layer, push/pull, mnemonic identity, AI settings sync, debounced `onDataSaved` hook
+  - `settings.js` — settings modal, provider panels, privacy section, sync setup modal
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — guided tour (spotlight walkthrough, auto-triggers after first data import) + cycle tour
@@ -47,32 +48,24 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing, marker rename/revert, calculated marker input diagnostics
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
-- **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE). Run `./update-vendor.sh` to update
+- **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 26 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 27 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
 ### Data Flow
 
-1. `getActiveData()` is the central data pipeline: deep-clones `MARKER_SCHEMA` → collects all dates from `importedData.entries` → populates `values` arrays → calculates ratios and PhenoAge → applies unit conversion if US mode
-2. All data lives in `importedData` in `localStorage` under key `labcharts-{profileId}-imported`; structure: `{ entries, notes, diagnoses, diet, exercise, sleepRest, lightCircadian, stress, loveLife, environment, interpretiveLens, healthGoals, contextNotes, menstrualCycle, customMarkers, supplements, refOverrides, emfAssessment, markerNotes, changeHistory }`. Legacy fields auto-migrated via `migrateProfileData()`
-3. `refOverrides` stores user-customized reference/optimal ranges per marker (`{ "category.marker": { refMin, refMax, optimalMin, optimalMax, labRefMin, labRefMax, refSource } }`). Applied in `getActiveData()` after schema defaults. Set via detail modal editing or import-time range adoption toggle. Two-step revert: manual edit → lab range → schema default. `categoryLabels` and `categoryIcons` override display names/icons per category. `markerLabels` overrides individual marker display names (same dot-key format). `markerNotes` stores per-marker freeform notes (`{ "category.marker": "text" }`), shown in detail modal and included in AI context
-3b. `changeHistory` is a capped (200) array of `{ field, date, snapshot }` entries, recording timestamped snapshots of context field changes (13 fields: 9 context cards + healthGoals + interpretiveLens + contextNotes + menstrualCycle). `recordChange(field)` in context-cards.js handles dedup (same-day overwrite, identical-snapshot skip). Included in `buildLabContext()` as a diff timeline so the AI can reason about temporal correlations
-4. Marker values are arrays aligned with the `dates` array; `null` = no result for that date
-5. `singlePoint` categories have `singlePoint: true` — grid cards instead of trend charts. Fatty acids flow through the custom marker pipeline with per-product prefixes (spadiaFA, zinzinoFA, omegaquantFA) under a "Fatty Acids" sidebar group
-6. Charts use `spanGaps: true` to draw lines across dates where a marker has no data
+1. `getActiveData()` is the central pipeline: clones `MARKER_SCHEMA` → collects dates from `importedData.entries` → populates `values` arrays → calculates ratios/PhenoAge → unit conversion if US mode
+2. All data in `importedData` under `localStorage` key `labcharts-{profileId}-imported`. Legacy fields auto-migrated via `migrateProfileData()`
+3. `refOverrides` stores per-marker ref/optimal ranges. `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` stores per-marker freeform notes. `changeHistory` is a capped (200) array of timestamped context field snapshots for AI temporal reasoning
+4. Marker values are arrays aligned with `dates`; `null` = no result. `singlePoint` categories use grid cards. Charts use `spanGaps: true`
 
 ### PDF Import Pipeline
 
-1. **Text extraction** (`extractPDFText`): pdf.js extracts text items with x, y coordinates, grouped by page
-2. **PII obfuscation**: When review enabled + Local AI available, modal opens immediately and streams AI obfuscation in real-time (`sanitizeWithOllamaStreaming`). "Use regex instead" button as explicit fallback. Without review, non-streaming `sanitizeWithOllama` with silent regex fallback. Without Local AI, regex-only
-3. **AI analysis** (`parseLabPDFWithAI`): sends text + `buildMarkerReference()` to AI. AI detects `testType` (blood/OAT/DUTCH/HTMA/GI/other), maps results to `category.markerKey` format, uses test-type-prefixed categories for specialty labs. Strips specimen-type prefixes (S-, U-, USED-, F-, FW). Every numeric result must be included — unknowns become custom markers. CRP/hs-CRP distinguished by name. Below-detection-limit values (`<X`) imported as X
-4. **Import preview**: matched/unmatched/new markers shown; user confirms before saving
-5. **Custom markers**: unknown markers auto-handled — AI suggests key, name, unit, ref ranges, group. Stored in `importedData.customMarkers` with `group` field, merged into pipeline at runtime. Users can also create custom markers manually via sidebar "+" button (`openCreateMarkerModal`). Existing specialty data auto-migrated via `SPECIALTY_MARKER_DEFS` in `migrateProfileData()`
-6. **Batch import**: `handleBatchPDFs()` processes multiple PDFs sequentially with per-file confirm/skip
-7. **Sidebar grouping**: categories with `group` field (e.g., "OAT") render under collapsible sidebar headers. `toggleNavGroup()`, collapse state persisted in localStorage
-8. **Import status FAB**: pill-shaped indicator appears when progress bar scrolls out of view or user navigates away. IntersectionObserver on dashboard progress bar. Hidden when import preview modal is open. Import blocked while another is running
+1. **Text extraction** → **PII obfuscation** (Local AI streaming or regex) → **AI analysis** (`parseLabPDFWithAI`, detects testType, maps to `category.markerKey`) → **Import preview** (confirm/exclude per row) → save
+2. Unknown markers become custom markers (AI suggests key/name/unit/refs/group). Manual creation via sidebar "+" button. Specialty data auto-migrated via `SPECIALTY_MARKER_DEFS`
+3. Batch import (`handleBatchPDFs`), sidebar grouping by `group` field, import status FAB. See `pdf-import.js`
 
 ### Profile Context Cards
 
@@ -90,6 +83,10 @@ Female profiles only. Phase-aware reference ranges (`PHASE_RANGES`), cycle phase
 ### EMF Assessment
 
 Baubiologie sub-module under Environment card. Room-by-room measurements with SBM-2015 severity, source/mitigation tags, AI interpretation. See `emf.js`.
+
+### Cross-Device Sync
+
+Opt-in Evolu CRDT sync (Settings → Data). E2E encrypted — relay only sees ciphertext. Identity is a BIP-39 24-word mnemonic (256-bit CSPRNG). Setup modal: "New setup" (generate mnemonic, require acknowledgment) or "Join existing" (restore from mnemonic). Mnemonic masked in UI by default, clipboard auto-clears after 60s. `sync.js` pushes all profiles on enable, debounced `onDataSaved` hook for ongoing changes. Last-write-wins conflict resolution via `syncedAt` timestamps. AI settings (keys, models, provider) synced alongside profile data. Evolu stores its DB in OPFS (outside app encryption scope). See `sync.js`, `settings.js`.
 
 ### Calculated Markers
 
@@ -128,7 +125,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-26 browser-based test files run headlessly:
+27 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
@@ -136,7 +133,7 @@ Auto-starts server, runs all tests via Puppeteer, exits 0/1.
 
 ### Documentation Site
 
-VitePress at `/docs` (source in `docs/`). 27 user guide pages + 8 contributor pages. Build: `npm run docs:build`. Vercel deploys to `/dist-docs/`.
+VitePress at `/docs` (source in `docs/`). 28 user guide pages + 8 contributor pages. Build: `npm run docs:build`. Vercel deploys to `/dist-docs/`.
 
 ### PWA
 
