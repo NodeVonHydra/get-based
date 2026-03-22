@@ -8,7 +8,7 @@ import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, s
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
-import { isSyncEnabled, enableSync, disableSync, getMnemonic, restoreFromMnemonic, getSyncRelay, setSyncRelay, checkRelayConnection } from './sync.js';
+import { isSyncEnabled, enableSync, disableSync, getMnemonic, restoreFromMnemonic, getSyncRelay, setSyncRelay, checkRelayConnection, isMessengerEnabled, getMessengerToken, generateMessengerToken, revokeMessengerToken, pushContextToGateway } from './sync.js';
 
 
 // ═══════════════════════════════════════════════
@@ -158,6 +158,12 @@ export function openSettingsModal(tab) {
 
       <div class="settings-section" id="sync-section">
         ${renderSyncSection()}
+      </div>
+
+      <div class="settings-group-title">Messenger Access</div>
+
+      <div class="settings-section" id="messenger-section">
+        ${renderMessengerSection()}
       </div>
 
       <div class="settings-group-title">Backup &amp; Restore</div>
@@ -1427,7 +1433,97 @@ function saveSyncRelay() {
   updateRelayStatus();
 }
 
-Object.assign(window, { toggleSync, toggleMnemonicVisibility, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay, closeSyncSetup, syncSetupNew, syncSetupRestore, syncSetupBack, syncSetupDoRestore, syncSetupDone });
+// ═══════════════════════════════════════════════
+// MESSENGER ACCESS
+// ═══════════════════════════════════════════════
+
+function renderMessengerSection() {
+  const enabled = isMessengerEnabled();
+  const token = getMessengerToken();
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${enabled ? '16' : '8'}px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Messenger access</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Chat about your labs via OpenClaw</div>
+      </div>
+      <label class="chat-websearch-toggle-label" style="display:flex" aria-label="Toggle messenger access">
+        <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleMessenger(this.checked)" style="display:none">
+        <span class="chat-toggle-slider"></span>
+      </label>
+    </div>
+    ${enabled && token ? `
+      <div style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label style="font-size:12px;font-weight:600;color:var(--text-secondary)">Read-only token</label>
+          <div style="display:flex;gap:6px">
+            <button id="messenger-token-toggle" class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="toggleMessengerToken()" aria-label="Show token">Show</button>
+            <button class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="copyMessengerToken()" aria-label="Copy token">Copy</button>
+          </div>
+        </div>
+        <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Messenger token">${'\u2022'.repeat(32)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Paste this token into your OpenClaw config. It grants read-only access to your lab context.</div>
+      </div>
+      <button class="import-btn import-btn-secondary" style="font-size:12px;padding:5px 14px;width:100%" onclick="regenerateMessengerToken()">Regenerate token</button>
+    ` : `
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5">
+        Generate a read-only token so your OpenClaw agent can answer questions about your labs over any messenger. Your mnemonic is never shared — only a derived read-only view.
+      </div>
+    `}
+  `;
+}
+
+function toggleMessenger(enabled) {
+  if (enabled) {
+    generateMessengerToken();
+    pushContextToGateway();
+    showNotification('Messenger access enabled', 'success');
+  } else {
+    revokeMessengerToken();
+    showNotification('Messenger access disabled', 'success');
+  }
+  const el = document.getElementById('messenger-section');
+  if (el) el.innerHTML = renderMessengerSection();
+}
+
+function toggleMessengerToken() {
+  const el = document.getElementById('messenger-token');
+  const btn = document.getElementById('messenger-token-toggle');
+  if (!el || !btn) return;
+  const token = getMessengerToken();
+  if (!token) return;
+  const masked = el.dataset.masked === 'true';
+  if (masked) {
+    el.textContent = token;
+    el.dataset.masked = 'false';
+    el.style.userSelect = 'all';
+    btn.textContent = 'Hide';
+  } else {
+    el.textContent = '\u2022'.repeat(32);
+    el.dataset.masked = 'true';
+    el.style.userSelect = 'none';
+    btn.textContent = 'Show';
+  }
+}
+
+function copyMessengerToken() {
+  const token = getMessengerToken();
+  if (!token) return;
+  navigator.clipboard.writeText(token).then(() => {
+    showNotification('Token copied', 'success');
+  }).catch(() => {
+    showNotification('Could not access clipboard', 'error');
+  });
+}
+
+function regenerateMessengerToken() {
+  generateMessengerToken();
+  pushContextToGateway();
+  showNotification('Token regenerated — update your OpenClaw config', 'success');
+  const el = document.getElementById('messenger-section');
+  if (el) el.innerHTML = renderMessengerSection();
+}
+
+Object.assign(window, { toggleSync, toggleMnemonicVisibility, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay, closeSyncSetup, syncSetupNew, syncSetupRestore, syncSetupBack, syncSetupDoRestore, syncSetupDone, toggleMessenger, toggleMessengerToken, copyMessengerToken, regenerateMessengerToken });
 
 export function renderDataEntriesSection() {
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];

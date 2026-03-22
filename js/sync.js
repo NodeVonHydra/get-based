@@ -439,19 +439,78 @@ async function onSyncReceived() {
 // ═══════════════════════════════════════════════
 
 export function onDataSaved() {
-  if (!_syncEnabled || !evolu) return;
-  // Capture profile at schedule time, not fire time
-  const profileId = state.currentProfile;
-  const data = state.importedData;
-  clearTimeout(_debounceTimer);
-  _debounceTimer = setTimeout(() => {
-    if (_syncing) {
-      // Retry once after current push completes
-      setTimeout(() => pushProfile(profileId, data), 1000);
-    } else {
-      pushProfile(profileId, data);
+  // Evolu sync
+  if (_syncEnabled && evolu) {
+    const profileId = state.currentProfile;
+    const data = state.importedData;
+    clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(() => {
+      if (_syncing) {
+        setTimeout(() => pushProfile(profileId, data), 1000);
+      } else {
+        pushProfile(profileId, data);
+      }
+    }, 2000);
+  }
+  // Messenger context push
+  pushContextToGateway();
+}
+
+// ═══════════════════════════════════════════════
+// MESSENGER ACCESS — push lab context to gateway
+// ═══════════════════════════════════════════════
+
+const MESSENGER_TOKEN_KEY = 'labcharts-messenger-token';
+const MESSENGER_ENABLED_KEY = 'labcharts-messenger-enabled';
+
+export function isMessengerEnabled() {
+  return localStorage.getItem(MESSENGER_ENABLED_KEY) === 'true';
+}
+
+export function getMessengerToken() {
+  return localStorage.getItem(MESSENGER_TOKEN_KEY) || null;
+}
+
+export function generateMessengerToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const token = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  localStorage.setItem(MESSENGER_TOKEN_KEY, token);
+  localStorage.setItem(MESSENGER_ENABLED_KEY, 'true');
+  return token;
+}
+
+export function revokeMessengerToken() {
+  localStorage.removeItem(MESSENGER_TOKEN_KEY);
+  localStorage.setItem(MESSENGER_ENABLED_KEY, 'false');
+}
+
+let _contextPushTimer = null;
+export function pushContextToGateway() {
+  if (!isMessengerEnabled()) return;
+  const token = getMessengerToken();
+  if (!token) return;
+
+  clearTimeout(_contextPushTimer);
+  _contextPushTimer = setTimeout(async () => {
+    try {
+      const { buildLabContext } = await import('./chat.js');
+      const context = buildLabContext();
+      const profiles = getProfiles().map(p => ({ id: p.id, name: p.name }));
+      const relay = getSyncRelay().replace('wss://', 'https://').replace('ws://', 'http://');
+
+      await fetch(`${relay}/api/context`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ context, profiles }),
+      });
+      dbg('Context pushed to gateway');
+    } catch (e) {
+      console.warn('[sync] Context push failed:', e);
     }
-  }, 2000);
+  }, 5000); // 5s debounce — less urgent than sync
 }
 
 // ═══════════════════════════════════════════════
@@ -464,4 +523,8 @@ Object.assign(window, {
   getMnemonic,
   restoreFromMnemonic,
   isSyncEnabled,
+  isMessengerEnabled,
+  getMessengerToken,
+  generateMessengerToken,
+  revokeMessengerToken,
 });
