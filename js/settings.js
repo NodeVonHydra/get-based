@@ -154,11 +154,13 @@ export function openSettingsModal(tab) {
         ${renderEncryptionSection()}
       </div>
 
+      ${isDebugMode() ? `
       <div class="settings-group-title">Cross-Device Sync</div>
 
       <div class="settings-section" id="sync-section">
         ${renderSyncSection()}
       </div>
+      ` : ''}
 
       ${isDebugMode() ? `
       <div class="settings-group-title">Messenger Access</div>
