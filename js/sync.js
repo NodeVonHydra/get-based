@@ -244,7 +244,7 @@ async function collectChatData(profileId) {
     if (!Array.isArray(threads) || threads.length === 0) return null;
     const messages = {};
     for (const t of threads) {
-      const msgKey = `labcharts-${profileId}-chat-${t.id}`;
+      const msgKey = `labcharts-${profileId}-chat-t_${t.id}`;
       const msgRaw = await encryptedGetItem(msgKey) || localStorage.getItem(msgKey);
       if (msgRaw) messages[t.id] = JSON.parse(msgRaw);
     }
@@ -271,7 +271,7 @@ async function applyChatData(profileId, chatData) {
   }
   if (chatData.messages) {
     for (const [threadId, msgs] of Object.entries(chatData.messages)) {
-      const msgKey = `labcharts-${profileId}-chat-${threadId}`;
+      const msgKey = `labcharts-${profileId}-chat-t_${threadId}`;
       const msgJson = JSON.stringify(msgs);
       if (getEncryptionEnabled()) {
         await encryptedSetItem(msgKey, msgJson);

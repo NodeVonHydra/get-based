@@ -1405,7 +1405,7 @@ function showMnemonicRestore() {
   }
 }
 
-async function doMnemonicRestore() {
+function doMnemonicRestore() {
   const input = document.getElementById('sync-restore-input');
   if (!input || !input.value.trim()) return;
   const mnemonic = input.value.trim();
@@ -1414,12 +1414,12 @@ async function doMnemonicRestore() {
     showNotification('Mnemonic must be exactly 24 words', 'error');
     return;
   }
-  const ok = await showConfirmDialog('Restore from mnemonic?', 'This will replace your sync identity and reload the page. Your local data will be overwritten by data from this mnemonic.');
-  if (!ok) return;
-  const result = await restoreFromMnemonic(mnemonic);
-  if (!result) {
-    if (!isSyncEnabled()) showNotification('Sync not initialized — try disabling and re-enabling sync', 'error');
-  }
+  showConfirmDialog('Restore from mnemonic? This will replace your sync identity and reload the page.', async () => {
+    const result = await restoreFromMnemonic(mnemonic);
+    if (!result) {
+      if (!isSyncEnabled()) showNotification('Sync not initialized — try disabling and re-enabling sync', 'error');
+    }
+  });
 }
 
 function saveSyncRelay() {

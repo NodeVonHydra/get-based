@@ -172,7 +172,7 @@
   console.log('%c 11. Chat & Display Sync ', 'font-weight:bold;color:#f59e0b');
 
   assert('collectChatData reads threads', syncSrc.includes('chat-threads') && syncSrc.includes('collectChatData'));
-  assert('collectChatData reads per-thread messages', syncSrc.includes('chat-${t.id}'));
+  assert('collectChatData reads per-thread messages', syncSrc.includes('chat-t_${t.id}'));
   assert('collectChatData includes custom personalities', syncSrc.includes('chatPersonalityCustom'));
   assert('applyChatData writes threads', syncSrc.includes('applyChatData'));
   assert('Display prefs synced', syncSrc.includes('DISPLAY_PREF_SUFFIXES') && syncSrc.includes('collectDisplayPrefs'));
