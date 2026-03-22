@@ -7,10 +7,8 @@ const CHANGELOG = [
   {
     version: '1.9.5', date: '2026-03-22', title: 'Cross-device sync',
     items: [
-      'Cross-device sync via Evolu CRDT — E2E encrypted, relay server only sees ciphertext. Enable in Settings → Data',
-      'Setup wizard with two paths: generate new mnemonic (first device) or restore from existing (join another device)',
-      'Mnemonic masked by default with show/hide toggle, clipboard auto-clears after 60 seconds',
-      'All profiles synced on first enable, not just the active one. AI settings (keys, models, provider) sync too',
+      'Cross-device sync — E2E encrypted via Evolu CRDT. All profiles and AI settings sync automatically across your devices',
+      'Self-hosted relay with live connectivity indicator — no third-party dependencies',
     ]
   },
   {
