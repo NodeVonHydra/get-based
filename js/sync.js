@@ -377,8 +377,10 @@ async function pushProfile(profileId, importedData) {
         syncedAt,
       });
     }
-    // Only update sync-ts after successful push
-    localStorage.setItem(`labcharts-${profileId}-sync-ts`, String(Date.now()));
+    // Only update sync-ts after successful push.
+    // Use syncedAt (same value stored in Evolu) so the pull side sees exact equality
+    // and doesn't skip the row due to a 1ms clock drift between the two Date.now() calls.
+    localStorage.setItem(`labcharts-${profileId}-sync-ts`, String(new Date(syncedAt).getTime()));
     dbg('Pushed:', profileId);
   } catch (e) {
     console.error('[sync] Push failed:', e);
@@ -440,7 +442,7 @@ async function onSyncReceived() {
         const localMeta = localStorage.getItem(`labcharts-${profileId}-sync-ts`);
         const localUpdated = localMeta ? parseInt(localMeta, 10) : 0;
 
-        if (remoteUpdated <= localUpdated) continue;
+        if (remoteUpdated < localUpdated) continue;
 
         // Remote is newer — parse payload
         const { importedData, profile, aiSettings, chatData, displayPrefs } = parseSyncPayload(row.dataJson);

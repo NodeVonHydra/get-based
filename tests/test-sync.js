@@ -114,7 +114,7 @@
   assert('onDataSaved has 2s debounce', syncSrc.includes('}, 2000)'));
   assert('onDataSaved captures profileId at schedule time', syncSrc.includes('const profileId = state.currentProfile') && syncSrc.includes('pushProfile(profileId'));
   assert('onDataSaved retries if _syncing', syncSrc.includes('if (_syncing)') && syncSrc.includes('pushProfile(profileId, data)'));
-  assert('onSyncReceived checks remoteUpdated > localUpdated', syncSrc.includes('remoteUpdated <= localUpdated'));
+  assert('onSyncReceived checks remoteUpdated >= localUpdated', syncSrc.includes('remoteUpdated < localUpdated'));
   assert('onSyncReceived guards on _pulling', syncSrc.includes('_pulling') && syncSrc.includes('_pulling = true'));
   assert('Pull handles encryption', syncSrc.includes('getEncryptionEnabled()') && syncSrc.includes('encryptedSetItem(localKey'));
   assert('Pull merges profiles with allowlist', syncSrc.includes('PROFILE_MERGE_FIELDS') && syncSrc.includes('saveProfiles(profiles)'));
