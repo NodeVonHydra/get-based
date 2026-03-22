@@ -1100,10 +1100,13 @@ function renderSyncSection() {
       <div style="margin-bottom:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <label style="font-size:12px;font-weight:600;color:var(--text-secondary)">Your mnemonic</label>
-          <button class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="copyMnemonic()">Copy</button>
+          <div style="display:flex;gap:6px">
+            <button id="sync-mnemonic-toggle" class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="toggleMnemonicVisibility()" aria-label="Show mnemonic">Show</button>
+            <button class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="copyMnemonic()" aria-label="Copy mnemonic">Copy</button>
+          </div>
         </div>
-        <div id="sync-mnemonic" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-word;line-height:1.6;min-height:20px;cursor:pointer;user-select:all" onclick="copyMnemonic()" title="Click to copy">Loading...</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Save these 24 words to restore your data on another device. Anyone with this mnemonic can access your synced data.</div>
+        <div id="sync-mnemonic" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-word;line-height:1.6;min-height:20px;user-select:none" aria-label="Mnemonic phrase">Loading...</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">These words are your encryption key. Store them offline. Never share them.</div>
       </div>
 
       <div style="margin-bottom:16px">
@@ -1139,42 +1142,239 @@ let _syncToggling = false;
 async function toggleSync(enabled) {
   if (_syncToggling) return;
   _syncToggling = true;
+  if (enabled) {
+    showSyncSetupModal();
+    // _syncToggling cleared by closeSyncSetup or syncSetupDone
+  } else {
+    try {
+      _mnemonicCache = null;
+      _mnemonicRetries = 0;
+      clearTimeout(_mnemonicRetryTimer);
+      await disableSync();
+      const el = document.getElementById('sync-section');
+      if (el) el.innerHTML = renderSyncSection();
+    } finally {
+      _syncToggling = false;
+    }
+  }
+}
+
+function showSyncSetupModal() {
+  let overlay = document.getElementById('sync-setup-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'sync-setup-overlay';
+    overlay.className = 'confirm-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `<div class="confirm-dialog" role="dialog" aria-modal="true" aria-label="Sync setup" style="max-width:480px">
+    <h3 style="margin:0 0 6px;font-size:16px;color:var(--text-primary)">Set up sync</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 20px;line-height:1.5">Your data is encrypted with a 24-word mnemonic. The relay server only sees ciphertext.</p>
+    <div id="sync-setup-choices">
+      <button class="import-btn import-btn-primary" style="width:100%;padding:12px 16px;font-size:13px;margin-bottom:10px;text-align:left" onclick="syncSetupNew()">
+        <div style="font-weight:600">New setup</div>
+        <div style="font-weight:400;opacity:0.8;margin-top:2px;font-size:12px">First time syncing — generate a new mnemonic</div>
+      </button>
+      <button class="import-btn import-btn-secondary" style="width:100%;padding:12px 16px;font-size:13px;text-align:left" onclick="syncSetupRestore()">
+        <div style="font-weight:600">Join existing</div>
+        <div style="font-weight:400;opacity:0.8;margin-top:2px;font-size:12px">I have a mnemonic from another device</div>
+      </button>
+    </div>
+    <div id="sync-setup-new" style="display:none"></div>
+    <div id="sync-setup-restore" style="display:none">
+      <textarea id="sync-setup-restore-input" style="font-size:12px;width:100%;height:70px;resize:vertical;border-radius:8px;background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border);padding:10px 12px;font-family:var(--font-mono, monospace);box-sizing:border-box;margin-bottom:10px" placeholder="Paste your 24-word mnemonic here..."></textarea>
+      <div style="display:flex;gap:8px">
+        <button class="import-btn import-btn-primary" style="flex:1;padding:8px 16px;font-size:13px" onclick="syncSetupDoRestore()">Restore</button>
+        <button class="import-btn import-btn-secondary" style="padding:8px 16px;font-size:13px" onclick="syncSetupBack()">Back</button>
+      </div>
+    </div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="confirm-btn confirm-btn-cancel" onclick="closeSyncSetup()">Cancel</button>
+    </div>
+  </div>`;
+  overlay.classList.add('show');
+  overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
+}
+
+async function closeSyncSetup() {
+  const overlay = document.getElementById('sync-setup-overlay');
+  if (overlay) overlay.classList.remove('show');
+  // If sync was started during setup but user cancelled, clean up
+  if (isSyncEnabled()) {
+    _mnemonicCache = null;
+    _mnemonicRetries = 0;
+    clearTimeout(_mnemonicRetryTimer);
+    await disableSync();
+  }
+  const el = document.getElementById('sync-section');
+  if (el) el.innerHTML = renderSyncSection();
+  _syncToggling = false;
+}
+
+let _syncSetupInProgress = false;
+async function syncSetupNew() {
+  if (_syncSetupInProgress) return;
+  _syncSetupInProgress = true;
+  const choicesEl = document.getElementById('sync-setup-choices');
+  const newEl = document.getElementById('sync-setup-new');
+  if (choicesEl) choicesEl.style.display = 'none';
+  if (newEl) newEl.style.display = 'block';
+  newEl.innerHTML = '<div style="text-align:center;padding:16px 0;color:var(--text-muted);font-size:13px">Generating identity...</div>';
+
   try {
-    if (enabled) await enableSync();
-    else await disableSync();
-    const el = document.getElementById('sync-section');
-    if (el) el.innerHTML = renderSyncSection();
-    if (enabled) loadMnemonic();
+    await enableSync({ skipPush: false });
+
+    // Wait for mnemonic to resolve
+    let mnemonic = null;
+    for (let i = 0; i < 30; i++) {
+      if (!isSyncEnabled()) return; // cancelled during wait
+      mnemonic = getMnemonic();
+      if (mnemonic) break;
+      await new Promise(r => setTimeout(r, 500));
+    }
+
+    if (!mnemonic) {
+      newEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:8px 0">Failed to generate mnemonic. Try again.</div>';
+      return;
+    }
+
+    _mnemonicCache = mnemonic;
+    newEl.innerHTML = `
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">Your mnemonic</div>
+        <div style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-word;line-height:1.6;user-select:all">${escapeHTML(mnemonic)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">
+        Write these 24 words down and store them offline. You will need them to sync another device. Anyone with this mnemonic can access your synced data.
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--text-primary);margin-bottom:14px">
+        <input type="checkbox" id="sync-setup-ack" style="margin-top:2px" onchange="document.getElementById('sync-setup-done-btn').disabled=!this.checked">
+        I have saved my mnemonic somewhere safe
+      </label>
+      <button id="sync-setup-done-btn" class="import-btn import-btn-primary" style="width:100%;padding:8px 16px;font-size:13px;opacity:0.45;cursor:not-allowed" disabled onclick="syncSetupDone()">Done</button>
+    `;
+    // Wire up disabled style toggle on checkbox
+    const ack = document.getElementById('sync-setup-ack');
+    const doneBtn = document.getElementById('sync-setup-done-btn');
+    if (ack && doneBtn) {
+      ack.onchange = () => {
+        doneBtn.disabled = !ack.checked;
+        doneBtn.style.opacity = ack.checked ? '1' : '0.45';
+        doneBtn.style.cursor = ack.checked ? 'pointer' : 'not-allowed';
+      };
+    }
   } finally {
-    _syncToggling = false;
+    _syncSetupInProgress = false;
+  }
+}
+
+function syncSetupDone() {
+  const overlay = document.getElementById('sync-setup-overlay');
+  if (overlay) overlay.classList.remove('show');
+  _syncToggling = false;
+  const el = document.getElementById('sync-section');
+  if (el) el.innerHTML = renderSyncSection();
+  loadMnemonic();
+}
+
+function syncSetupRestore() {
+  document.getElementById('sync-setup-choices').style.display = 'none';
+  document.getElementById('sync-setup-restore').style.display = 'block';
+  const input = document.getElementById('sync-setup-restore-input');
+  if (input) input.focus();
+}
+
+function syncSetupBack() {
+  document.getElementById('sync-setup-choices').style.display = '';
+  document.getElementById('sync-setup-restore').style.display = 'none';
+  document.getElementById('sync-setup-new').style.display = 'none';
+}
+
+async function syncSetupDoRestore() {
+  if (_syncSetupInProgress) return;
+  const input = document.getElementById('sync-setup-restore-input');
+  if (!input || !input.value.trim()) return;
+  const mnemonic = input.value.trim();
+  const words = mnemonic.split(/\s+/);
+  if (words.length !== 24) {
+    showNotification('Mnemonic must be exactly 24 words', 'error');
+    return;
+  }
+
+  _syncSetupInProgress = true;
+  try {
+    // Enable sync (generates throwaway identity) then immediately restore
+    await enableSync({ skipPush: true });
+    const result = await restoreFromMnemonic(mnemonic);
+    if (!result) {
+      // Restore failed — clean up the throwaway identity
+      await disableSync();
+      const el = document.getElementById('sync-section');
+      if (el) el.innerHTML = renderSyncSection();
+      _syncToggling = false;
+      return;
+    }
+    // restoreFromMnemonic triggers reload, so nothing else needed
+  } finally {
+    _syncSetupInProgress = false;
   }
 }
 
 let _mnemonicRetries = 0;
+let _mnemonicCache = null;
+let _mnemonicRetryTimer = null;
+const MNEMONIC_MASK = '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022';
+
 function loadMnemonic() {
+  clearTimeout(_mnemonicRetryTimer);
   const el = document.getElementById('sync-mnemonic');
-  if (!el || !isSyncEnabled()) return;
+  if (!el || !isSyncEnabled()) { _mnemonicRetries = 0; return; }
   const mnemonic = getMnemonic();
   if (mnemonic) {
-    el.textContent = mnemonic;
+    _mnemonicCache = mnemonic;
+    el.dataset.masked = 'true';
+    el.textContent = MNEMONIC_MASK;
+    el.style.userSelect = 'none';
     _mnemonicRetries = 0;
   } else if (_mnemonicRetries < 30) {
     _mnemonicRetries++;
     el.textContent = 'Resolving...';
-    setTimeout(loadMnemonic, 1000);
+    _mnemonicRetryTimer = setTimeout(loadMnemonic, 1000);
   } else {
     el.textContent = 'Could not resolve mnemonic';
     _mnemonicRetries = 0;
   }
 }
 
-function copyMnemonic() {
+function toggleMnemonicVisibility() {
   const el = document.getElementById('sync-mnemonic');
-  if (!el || !el.textContent) return;
-  // Don't copy placeholder text
-  if (el.textContent === 'Loading...' || el.textContent === 'Resolving...' || el.textContent === 'Could not resolve mnemonic') return;
-  navigator.clipboard.writeText(el.textContent).then(() => {
-    showNotification('Mnemonic copied to clipboard', 'success');
+  const btn = document.getElementById('sync-mnemonic-toggle');
+  if (!el || !btn || !_mnemonicCache) return;
+  const masked = el.dataset.masked === 'true';
+  if (masked) {
+    el.textContent = _mnemonicCache;
+    el.dataset.masked = 'false';
+    el.style.userSelect = 'all';
+    btn.textContent = 'Hide';
+  } else {
+    el.textContent = MNEMONIC_MASK;
+    el.dataset.masked = 'true';
+    el.style.userSelect = 'none';
+    btn.textContent = 'Show';
+  }
+}
+
+let _clipboardClearTimer = null;
+function copyMnemonic() {
+  if (!_mnemonicCache) return;
+  navigator.clipboard.writeText(_mnemonicCache).then(() => {
+    showNotification('Mnemonic copied — clipboard will clear in 60s', 'success');
+    clearTimeout(_clipboardClearTimer);
+    _clipboardClearTimer = setTimeout(() => {
+      navigator.clipboard.writeText('').catch(() => {});
+    }, 60000);
+  }).catch(() => {
+    showNotification('Could not access clipboard', 'error');
   });
 }
 
@@ -1190,11 +1390,16 @@ function showMnemonicRestore() {
 async function doMnemonicRestore() {
   const input = document.getElementById('sync-restore-input');
   if (!input || !input.value.trim()) return;
+  const mnemonic = input.value.trim();
+  const words = mnemonic.split(/\s+/);
+  if (words.length !== 24) {
+    showNotification('Mnemonic must be exactly 24 words', 'error');
+    return;
+  }
   const ok = await showConfirmDialog('Restore from mnemonic?', 'This will replace your sync identity and reload the page. Your local data will be overwritten by data from this mnemonic.');
   if (!ok) return;
-  const result = await restoreFromMnemonic(input.value.trim());
+  const result = await restoreFromMnemonic(mnemonic);
   if (!result) {
-    // restoreFromMnemonic returns false if evolu is null (silent fail)
     if (!isSyncEnabled()) showNotification('Sync not initialized — try disabling and re-enabling sync', 'error');
   }
 }
@@ -1211,7 +1416,7 @@ function saveSyncRelay() {
   showNotification('Relay saved — restart sync to apply', 'success');
 }
 
-Object.assign(window, { toggleSync, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay });
+Object.assign(window, { toggleSync, toggleMnemonicVisibility, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay, closeSyncSetup, syncSetupNew, syncSetupRestore, syncSetupBack, syncSetupDoRestore, syncSetupDone });
 
 export function renderDataEntriesSection() {
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];

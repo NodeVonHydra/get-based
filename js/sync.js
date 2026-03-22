@@ -17,6 +17,7 @@ let _pulling = false;
 let _appOwner = null;
 let _readyPromise = null;
 let _queryLoaded = null;
+let _debounceTimer = null;
 
 // ═══════════════════════════════════════════════
 // SETTINGS
@@ -43,6 +44,9 @@ export function setSyncRelay(url) {
 export async function initSync() {
   _syncEnabled = localStorage.getItem(SYNC_STORAGE_KEY) === 'true';
   if (!_syncEnabled) return;
+
+  // Re-entrancy guard — don't create duplicate Evolu instances
+  if (evolu) return;
 
   // Defer to next microtask — SharedWorker + navigator.locks can race during DOMContentLoaded
   await new Promise(r => setTimeout(r, 0));
@@ -116,26 +120,33 @@ export async function initSync() {
 // ENABLE / DISABLE
 // ═══════════════════════════════════════════════
 
-export async function enableSync() {
+export async function enableSync({ skipPush = false } = {}) {
   localStorage.setItem(SYNC_STORAGE_KEY, 'true');
   _syncEnabled = true;
   await initSync();
   if (evolu && _readyPromise) {
     await _readyPromise;
-    // Wait for query to load so pushCurrentProfile can check for existing rows
     if (_queryLoaded) await _queryLoaded;
-    await pushCurrentProfile();
+    if (!skipPush) {
+      await pushAllProfiles();
+    }
     showNotification('Sync enabled', 'success');
   }
 }
 
 export async function disableSync() {
+  // Wait for in-flight operations to finish
+  if (_syncing || _pulling) {
+    await new Promise(r => setTimeout(r, 500));
+  }
   localStorage.setItem(SYNC_STORAGE_KEY, 'false');
   _syncEnabled = false;
   evolu = null;
   profileQuery = null;
-  // Cancel pending debounce timer
-  clearTimeout(onDataSaved._timer);
+  _appOwner = null;
+  _readyPromise = null;
+  _queryLoaded = null;
+  clearTimeout(_debounceTimer);
   showNotification('Sync disabled', 'success');
 }
 
@@ -151,12 +162,12 @@ export function getMnemonic() {
 export async function restoreFromMnemonic(mnemonic) {
   if (!evolu) return false;
   try {
-    // Clear all sync timestamps so pulled data isn't skipped
+    await evolu.restoreAppOwner(mnemonic);
+    // Clear sync timestamps only after successful restore
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (key && key.endsWith('-sync-ts')) localStorage.removeItem(key);
     }
-    await evolu.restoreAppOwner(mnemonic);
     showNotification('Restored from mnemonic — reloading...', 'success');
     return true;
   } catch (e) {
@@ -222,6 +233,9 @@ async function buildSyncPayload(profileId, importedData) {
 }
 
 function parseSyncPayload(dataJson) {
+  if (typeof dataJson !== 'string' || dataJson.length > 50_000_000) {
+    throw new Error('Invalid sync payload: bad type or too large');
+  }
   const parsed = JSON.parse(dataJson);
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('Invalid sync payload');
@@ -234,17 +248,19 @@ function parseSyncPayload(dataJson) {
   return { importedData: parsed, profile: null, aiSettings: null };
 }
 
+// Allowed fields when merging a synced profile into the local profiles list
+const PROFILE_MERGE_FIELDS = ['name', 'sex', 'dob', 'location', 'tags', 'archived', 'pinned', 'flagged', 'avatar', 'color'];
+
 // ═══════════════════════════════════════════════
 // PUSH — localStorage → Evolu
 // ═══════════════════════════════════════════════
 
-export async function pushCurrentProfile() {
+async function pushProfile(profileId, importedData) {
   if (!evolu || !_syncEnabled || _syncing) return;
-  const profileId = state.currentProfile;
   if (!profileId || typeof profileId !== 'string') return;
   _syncing = true;
   try {
-    const dataJson = await buildSyncPayload(profileId, state.importedData);
+    const dataJson = await buildSyncPayload(profileId, importedData);
     const syncedAt = new Date().toISOString();
 
     // Check if row exists for this profile
@@ -271,6 +287,33 @@ export async function pushCurrentProfile() {
     console.error('[sync] Push failed:', e);
   } finally {
     _syncing = false;
+  }
+}
+
+export async function pushCurrentProfile() {
+  await pushProfile(state.currentProfile, state.importedData);
+}
+
+// Push all profiles on first enable
+async function pushAllProfiles() {
+  const profiles = getProfiles();
+  for (const p of profiles) {
+    try {
+      const storageKey = profileStorageKey(p.id, 'imported');
+      let dataJson;
+      if (p.id === state.currentProfile) {
+        dataJson = state.importedData;
+      } else {
+        const raw = getEncryptionEnabled()
+          ? await encryptedGetItem(storageKey)
+          : localStorage.getItem(storageKey);
+        if (!raw) continue;
+        dataJson = JSON.parse(raw);
+      }
+      if (dataJson) await pushProfile(p.id, dataJson);
+    } catch (e) {
+      console.error('[sync] Push failed for profile:', p.id, e);
+    }
   }
 }
 
@@ -323,15 +366,23 @@ async function onSyncReceived() {
         }
         localStorage.setItem(`labcharts-${profileId}-sync-ts`, String(remoteUpdated));
 
-        // Merge profile into local profiles list
-        if (profile) {
+        // Merge profile into local profiles list (allowlisted fields only)
+        if (profile && typeof profile === 'object') {
           const profiles = getProfiles();
           const idx = profiles.findIndex(p => p.id === profileId);
           if (idx >= 0) {
             const local = profiles[idx];
-            profiles[idx] = { ...local, ...profile, lastUpdated: Date.now() };
+            for (const field of PROFILE_MERGE_FIELDS) {
+              if (field in profile) local[field] = profile[field];
+            }
+            local.lastUpdated = Date.now();
           } else {
-            profiles.push({ ...profile, lastUpdated: Date.now() });
+            // New profile — pick only allowed fields + id
+            const newProfile = { id: profileId, lastUpdated: Date.now() };
+            for (const field of PROFILE_MERGE_FIELDS) {
+              if (field in profile) newProfile[field] = profile[field];
+            }
+            profiles.push(newProfile);
           }
           await saveProfiles(profiles);
           profilesChanged = true;
@@ -375,13 +426,19 @@ async function onSyncReceived() {
 // ═══════════════════════════════════════════════
 
 export function onDataSaved() {
-  if (_syncEnabled && evolu && !_syncing) {
-    // Debounce — don't push on every keystroke
-    clearTimeout(onDataSaved._timer);
-    onDataSaved._timer = setTimeout(() => {
-      pushCurrentProfile(); // sync-ts is set inside pushCurrentProfile on success
-    }, 2000);
-  }
+  if (!_syncEnabled || !evolu) return;
+  // Capture profile at schedule time, not fire time
+  const profileId = state.currentProfile;
+  const data = state.importedData;
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(() => {
+    if (_syncing) {
+      // Retry once after current push completes
+      setTimeout(() => pushProfile(profileId, data), 1000);
+    } else {
+      pushProfile(profileId, data);
+    }
+  }, 2000);
 }
 
 // ═══════════════════════════════════════════════
