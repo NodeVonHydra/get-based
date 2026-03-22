@@ -200,6 +200,7 @@ const AI_SETTINGS_KEYS = [
   'labcharts-api-key',           // Anthropic key (encrypted)
   'labcharts-openrouter-key',    // OpenRouter key (encrypted)
   'labcharts-venice-key',        // Venice key (encrypted)
+  'labcharts-ollama',            // Local AI server config (encrypted)
   'labcharts-anthropic-model',
   'labcharts-openrouter-model',
   'labcharts-venice-model',
@@ -218,7 +219,7 @@ async function collectAISettings() {
   return settings;
 }
 
-const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key'];
+const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key', 'labcharts-ollama'];
 
 async function applyAISettings(settings) {
   if (!settings) return;
@@ -233,15 +234,94 @@ async function applyAISettings(settings) {
   }
 }
 
+// Per-profile chat keys to sync
+async function collectChatData(profileId) {
+  const threadsKey = `labcharts-${profileId}-chat-threads`;
+  const threadsRaw = await encryptedGetItem(threadsKey) || localStorage.getItem(threadsKey);
+  if (!threadsRaw) return null;
+  try {
+    const threads = JSON.parse(threadsRaw);
+    if (!Array.isArray(threads) || threads.length === 0) return null;
+    const messages = {};
+    for (const t of threads) {
+      const msgKey = `labcharts-${profileId}-chat-t_${t.id}`;
+      const msgRaw = await encryptedGetItem(msgKey) || localStorage.getItem(msgKey);
+      if (msgRaw) messages[t.id] = JSON.parse(msgRaw);
+    }
+    // Custom personalities
+    const customRaw = localStorage.getItem(`labcharts-${profileId}-chatPersonalityCustom`);
+    const personality = localStorage.getItem(`labcharts-${profileId}-chatPersonality`);
+    return {
+      threads,
+      messages,
+      customPersonalities: customRaw ? JSON.parse(customRaw) : undefined,
+      activePersonality: personality || undefined,
+    };
+  } catch { return null; }
+}
+
+async function applyChatData(profileId, chatData) {
+  if (!chatData || !chatData.threads) return;
+  const threadsKey = `labcharts-${profileId}-chat-threads`;
+  const threadsJson = JSON.stringify(chatData.threads);
+  if (getEncryptionEnabled()) {
+    await encryptedSetItem(threadsKey, threadsJson);
+  } else {
+    localStorage.setItem(threadsKey, threadsJson);
+  }
+  if (chatData.messages) {
+    for (const [threadId, msgs] of Object.entries(chatData.messages)) {
+      const msgKey = `labcharts-${profileId}-chat-t_${threadId}`;
+      const msgJson = JSON.stringify(msgs);
+      if (getEncryptionEnabled()) {
+        await encryptedSetItem(msgKey, msgJson);
+      } else {
+        localStorage.setItem(msgKey, msgJson);
+      }
+    }
+  }
+  if (chatData.customPersonalities) {
+    localStorage.setItem(`labcharts-${profileId}-chatPersonalityCustom`, JSON.stringify(chatData.customPersonalities));
+  }
+  if (chatData.activePersonality) {
+    localStorage.setItem(`labcharts-${profileId}-chatPersonality`, chatData.activePersonality);
+  }
+}
+
+// Per-profile display preferences to sync
+const DISPLAY_PREF_SUFFIXES = ['units', 'rangeMode', 'suppOverlay', 'noteOverlay', 'phaseOverlay'];
+
+function collectDisplayPrefs(profileId) {
+  const prefs = {};
+  for (const suffix of DISPLAY_PREF_SUFFIXES) {
+    const val = localStorage.getItem(`labcharts-${profileId}-${suffix}`);
+    if (val != null) prefs[suffix] = val;
+  }
+  return Object.keys(prefs).length > 0 ? prefs : undefined;
+}
+
+function applyDisplayPrefs(profileId, prefs) {
+  if (!prefs) return;
+  for (const suffix of DISPLAY_PREF_SUFFIXES) {
+    if (suffix in prefs) {
+      localStorage.setItem(`labcharts-${profileId}-${suffix}`, prefs[suffix]);
+    }
+  }
+}
+
 async function buildSyncPayload(profileId, importedData) {
   const profiles = getProfiles();
   const profile = profiles.find(p => p.id === profileId);
   const aiSettings = await collectAISettings();
+  const chatData = await collectChatData(profileId);
+  const displayPrefs = collectDisplayPrefs(profileId);
   return JSON.stringify({
-    _v: 2,
+    _v: 3,
     importedData,
     profile: profile || null,
     aiSettings: Object.keys(aiSettings).length > 0 ? aiSettings : undefined,
+    chatData: chatData || undefined,
+    displayPrefs: displayPrefs || undefined,
   });
 }
 
@@ -253,12 +333,16 @@ function parseSyncPayload(dataJson) {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('Invalid sync payload');
   }
-  // v2: wrapped payload with profile metadata + AI settings
-  if (parsed._v === 2) {
-    return { importedData: parsed.importedData, profile: parsed.profile, aiSettings: parsed.aiSettings };
+  // v3: includes chat data + display prefs
+  if (parsed._v === 3) {
+    return { importedData: parsed.importedData, profile: parsed.profile, aiSettings: parsed.aiSettings, chatData: parsed.chatData, displayPrefs: parsed.displayPrefs };
   }
-  // v1 compat: raw importedData (no profile metadata)
-  return { importedData: parsed, profile: null, aiSettings: null };
+  // v2 compat: no chat data
+  if (parsed._v === 2) {
+    return { importedData: parsed.importedData, profile: parsed.profile, aiSettings: parsed.aiSettings, chatData: null, displayPrefs: null };
+  }
+  // v1 compat: raw importedData only
+  return { importedData: parsed, profile: null, aiSettings: null, chatData: null, displayPrefs: null };
 }
 
 // Allowed fields when merging a synced profile into the local profiles list
@@ -359,7 +443,7 @@ async function onSyncReceived() {
         if (remoteUpdated <= localUpdated) continue;
 
         // Remote is newer — parse payload
-        const { importedData, profile, aiSettings } = parseSyncPayload(row.dataJson);
+        const { importedData, profile, aiSettings, chatData, displayPrefs } = parseSyncPayload(row.dataJson);
 
         // Track latest AI settings (apply once, from most recent row)
         if (aiSettings && remoteUpdated > latestAiTs) {
@@ -401,6 +485,10 @@ async function onSyncReceived() {
           profilesChanged = true;
           dbg('Merged profile:', profileId, profile.name);
         }
+
+        // Apply chat data and display preferences
+        if (chatData) await applyChatData(profileId, chatData);
+        if (displayPrefs) applyDisplayPrefs(profileId, displayPrefs);
 
         // If this is the active profile, update in-memory state
         if (profileId === state.currentProfile) {
@@ -456,6 +544,22 @@ export function onDataSaved() {
   pushContextToGateway();
 }
 
+// Called from chat.js when threads/messages change
+let _chatSyncTimer = null;
+export function onChatSaved() {
+  if (!_syncEnabled || !evolu) return;
+  clearTimeout(_chatSyncTimer);
+  _chatSyncTimer = setTimeout(() => {
+    const profileId = state.currentProfile;
+    const data = state.importedData;
+    if (_syncing) {
+      setTimeout(() => pushProfile(profileId, data), 1000);
+    } else {
+      pushProfile(profileId, data);
+    }
+  }, 10000); // 10s debounce — chat saves are frequent during streaming
+}
+
 // ═══════════════════════════════════════════════
 // MESSENGER ACCESS — push lab context to gateway
 // ═══════════════════════════════════════════════
@@ -496,7 +600,7 @@ export function pushContextToGateway() {
       const { buildLabContext } = await import('./chat.js');
       const context = buildLabContext();
       const profiles = getProfiles().map(p => ({ id: p.id, name: p.name }));
-      const relay = getSyncRelay().replace('wss://', 'https://').replace('ws://', 'http://');
+      const relay = getSyncRelay().replace(/^wss:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
 
       await fetch(`${relay}/api/context`, {
         method: 'POST',

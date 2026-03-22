@@ -30,12 +30,15 @@
   // ═══════════════════════════════════════
   console.log('%c 2. Sync Payload Format ', 'font-weight:bold;color:#f59e0b');
 
-  assert('buildSyncPayload includes _v: 2', syncSrc.includes('_v: 2'));
+  assert('buildSyncPayload includes _v: 3', syncSrc.includes('_v: 3'));
   assert('buildSyncPayload includes importedData', syncSrc.includes('importedData,') || syncSrc.includes('importedData:'));
   assert('buildSyncPayload includes profile metadata', syncSrc.includes('profile: profile'));
   assert('buildSyncPayload includes aiSettings', syncSrc.includes('aiSettings'));
+  assert('buildSyncPayload includes chatData', syncSrc.includes('chatData'));
+  assert('buildSyncPayload includes displayPrefs', syncSrc.includes('displayPrefs'));
 
-  assert('parseSyncPayload handles v2 format', syncSrc.includes('parsed._v === 2'));
+  assert('parseSyncPayload handles v3 format', syncSrc.includes('parsed._v === 3'));
+  assert('parseSyncPayload handles v2 compat', syncSrc.includes('parsed._v === 2'));
   assert('parseSyncPayload has v1 backward compat', syncSrc.includes('importedData: parsed, profile: null'));
   assert('parseSyncPayload validates payload size', syncSrc.includes('dataJson.length > 50_000_000'));
   assert('parseSyncPayload validates payload type', syncSrc.includes("typeof dataJson !== 'string'"));
@@ -164,11 +167,35 @@
   assert('Relay status shows connected or unreachable', settingsSrc.includes('Connected to relay') && settingsSrc.includes('Relay unreachable'));
 
   // ═══════════════════════════════════════
-  // 11. WINDOW BINDINGS
+  // 11. CHAT SYNC
   // ═══════════════════════════════════════
-  console.log('%c 11. Window Bindings ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 11. Chat & Display Sync ', 'font-weight:bold;color:#f59e0b');
 
-  const syncWindowFns = ['enableSync', 'disableSync', 'getMnemonic', 'restoreFromMnemonic', 'isSyncEnabled'];
+  assert('collectChatData reads threads', syncSrc.includes('chat-threads') && syncSrc.includes('collectChatData'));
+  assert('collectChatData reads per-thread messages', syncSrc.includes('chat-t_'));
+  assert('collectChatData includes custom personalities', syncSrc.includes('chatPersonalityCustom'));
+  assert('applyChatData writes threads', syncSrc.includes('applyChatData'));
+  assert('Display prefs synced', syncSrc.includes('DISPLAY_PREF_SUFFIXES') && syncSrc.includes('collectDisplayPrefs'));
+  assert('onChatSaved exported', syncSrc.includes('export function onChatSaved'));
+  assert('onChatSaved has debounce', syncSrc.includes('_chatSyncTimer') && syncSrc.includes('10000'));
+  assert('chat.js imports onChatSaved', await fetch('js/chat.js').then(r => r.text()).then(s => s.includes("import { onChatSaved } from './sync.js'")));
+
+  // ═══════════════════════════════════════
+  // 12. MESSENGER ACCESS
+  // ═══════════════════════════════════════
+  console.log('%c 12. Messenger Access ', 'font-weight:bold;color:#f59e0b');
+
+  assert('generateMessengerToken creates 64-char hex', syncSrc.includes('crypto.getRandomValues') && syncSrc.includes('MESSENGER_TOKEN_KEY'));
+  assert('pushContextToGateway exports', syncSrc.includes('export function pushContextToGateway'));
+  assert('Messenger section in settings', settingsSrc.includes('renderMessengerSection') && settingsSrc.includes('Messenger Access'));
+  assert('Token masked by default', settingsSrc.includes('messenger-token') && settingsSrc.includes('data-masked'));
+
+  // ═══════════════════════════════════════
+  // 13. WINDOW BINDINGS
+  // ═══════════════════════════════════════
+  console.log('%c 13. Window Bindings ', 'font-weight:bold;color:#f59e0b');
+
+  const syncWindowFns = ['enableSync', 'disableSync', 'getMnemonic', 'restoreFromMnemonic', 'isSyncEnabled', 'isMessengerEnabled', 'getMessengerToken', 'generateMessengerToken', 'revokeMessengerToken'];
   for (const fn of syncWindowFns) {
     assert(`window.${fn} exists`, typeof window[fn] === 'function');
   }
@@ -176,16 +203,17 @@
   const settingsWindowFns = [
     'toggleSync', 'toggleMnemonicVisibility', 'copyMnemonic', 'showMnemonicRestore',
     'doMnemonicRestore', 'saveSyncRelay', 'closeSyncSetup', 'syncSetupNew',
-    'syncSetupRestore', 'syncSetupBack', 'syncSetupDoRestore', 'syncSetupDone'
+    'syncSetupRestore', 'syncSetupBack', 'syncSetupDoRestore', 'syncSetupDone',
+    'toggleMessenger', 'toggleMessengerToken', 'copyMessengerToken', 'regenerateMessengerToken'
   ];
   for (const fn of settingsWindowFns) {
     assert(`window.${fn} exists`, typeof window[fn] === 'function');
   }
 
   // ═══════════════════════════════════════
-  // 12. VENDOR FILES
+  // 14. VENDOR FILES
   // ═══════════════════════════════════════
-  console.log('%c 12. Vendor Files ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 14. Vendor Files ', 'font-weight:bold;color:#f59e0b');
 
   const vendorFiles = ['vendor/evolu/evolu-bundle.js', 'vendor/evolu/Db.worker.js', 'vendor/evolu/sqlite3.wasm'];
   for (const f of vendorFiles) {

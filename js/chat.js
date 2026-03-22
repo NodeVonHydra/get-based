@@ -11,6 +11,7 @@ import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLoc
 import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
+import { onChatSaved } from './sync.js';
 
 // ═══════════════════════════════════════════════
 // ABORT CONTROLLER (stop streaming)
@@ -316,6 +317,7 @@ export function loadChatThreads() {
 
 export function saveChatThreadIndex() {
   localStorage.setItem(getChatThreadsKey(), JSON.stringify(state.chatThreads));
+  onChatSaved();
 }
 
 export function ensureActiveThread() {

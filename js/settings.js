@@ -160,11 +160,13 @@ export function openSettingsModal(tab) {
         ${renderSyncSection()}
       </div>
 
+      ${isDebugMode() ? `
       <div class="settings-group-title">Messenger Access</div>
 
       <div class="settings-section" id="messenger-section">
         ${renderMessengerSection()}
       </div>
+      ` : ''}
 
       <div class="settings-group-title">Backup &amp; Restore</div>
 
@@ -1460,7 +1462,7 @@ function renderMessengerSection() {
             <button class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="copyMessengerToken()" aria-label="Copy token">Copy</button>
           </div>
         </div>
-        <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Messenger token">${'\u2022'.repeat(32)}</div>
+        <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Messenger token">${'\u2022'.repeat(64)}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Paste this token into your OpenClaw config. It grants read-only access to your lab context.</div>
       </div>
       <button class="import-btn import-btn-secondary" style="font-size:12px;padding:5px 14px;width:100%" onclick="regenerateMessengerToken()">Regenerate token</button>
@@ -1472,17 +1474,24 @@ function renderMessengerSection() {
   `;
 }
 
+let _messengerToggling = false;
 function toggleMessenger(enabled) {
-  if (enabled) {
-    generateMessengerToken();
-    pushContextToGateway();
-    showNotification('Messenger access enabled', 'success');
-  } else {
-    revokeMessengerToken();
-    showNotification('Messenger access disabled', 'success');
+  if (_messengerToggling) return;
+  _messengerToggling = true;
+  try {
+    if (enabled) {
+      generateMessengerToken();
+      pushContextToGateway();
+      showNotification('Messenger access enabled', 'success');
+    } else {
+      revokeMessengerToken();
+      showNotification('Messenger access disabled', 'success');
+    }
+    const el = document.getElementById('messenger-section');
+    if (el) el.innerHTML = renderMessengerSection();
+  } finally {
+    _messengerToggling = false;
   }
-  const el = document.getElementById('messenger-section');
-  if (el) el.innerHTML = renderMessengerSection();
 }
 
 function toggleMessengerToken() {
@@ -1498,7 +1507,7 @@ function toggleMessengerToken() {
     el.style.userSelect = 'all';
     btn.textContent = 'Hide';
   } else {
-    el.textContent = '\u2022'.repeat(32);
+    el.textContent = '\u2022'.repeat(64);
     el.dataset.masked = 'true';
     el.style.userSelect = 'none';
     btn.textContent = 'Show';
@@ -1509,7 +1518,11 @@ function copyMessengerToken() {
   const token = getMessengerToken();
   if (!token) return;
   navigator.clipboard.writeText(token).then(() => {
-    showNotification('Token copied', 'success');
+    showNotification('Token copied — clipboard will clear in 60s', 'success');
+    clearTimeout(_clipboardClearTimer);
+    _clipboardClearTimer = setTimeout(() => {
+      navigator.clipboard.writeText('').catch(() => {});
+    }, 60000);
   }).catch(() => {
     showNotification('Could not access clipboard', 'error');
   });
