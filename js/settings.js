@@ -8,7 +8,7 @@ import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, s
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
-import { isSyncEnabled, enableSync, disableSync, getMnemonic, restoreFromMnemonic, getSyncRelay, setSyncRelay } from './sync.js';
+import { isSyncEnabled, enableSync, disableSync, getMnemonic, restoreFromMnemonic, getSyncRelay, setSyncRelay, checkRelayConnection } from './sync.js';
 
 
 // ═══════════════════════════════════════════════
@@ -177,7 +177,7 @@ export function openSettingsModal(tab) {
   initSettingsModelFetch();
   loadBackupSnapshots();
   loadSettingsCommitHash();
-  if (isSyncEnabled()) loadMnemonic();
+  if (isSyncEnabled()) { loadMnemonic(); updateRelayStatus(); }
 }
 
 function loadSettingsCommitHash() {
@@ -1092,9 +1092,9 @@ function renderSyncSection() {
       </label>
     </div>
     ${enabled ? `
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px">
-        <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span>
-        <span style="font-size:12px;color:var(--text-muted)">Connected to relay</span>
+      <div id="sync-relay-status" style="display:flex;align-items:center;gap:6px;margin-bottom:16px">
+        <span id="sync-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-muted);display:inline-block"></span>
+        <span id="sync-status-text" style="font-size:12px;color:var(--text-muted)">Checking relay...</span>
       </div>
 
       <div style="margin-bottom:16px">
@@ -1275,6 +1275,7 @@ function syncSetupDone() {
   const el = document.getElementById('sync-section');
   if (el) el.innerHTML = renderSyncSection();
   loadMnemonic();
+  updateRelayStatus();
 }
 
 function syncSetupRestore() {
@@ -1318,6 +1319,15 @@ async function syncSetupDoRestore() {
   } finally {
     _syncSetupInProgress = false;
   }
+}
+
+async function updateRelayStatus() {
+  const dot = document.getElementById('sync-status-dot');
+  const text = document.getElementById('sync-status-text');
+  if (!dot || !text) return;
+  const connected = await checkRelayConnection();
+  dot.style.background = connected ? '#22c55e' : 'var(--red)';
+  text.textContent = connected ? 'Connected to relay' : 'Relay unreachable';
 }
 
 let _mnemonicRetries = 0;
@@ -1414,6 +1424,7 @@ function saveSyncRelay() {
   }
   setSyncRelay(url);
   showNotification('Relay saved — restart sync to apply', 'success');
+  updateRelayStatus();
 }
 
 Object.assign(window, { toggleSync, toggleMnemonicVisibility, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay, closeSyncSetup, syncSetupNew, syncSetupRestore, syncSetupBack, syncSetupDoRestore, syncSetupDone });

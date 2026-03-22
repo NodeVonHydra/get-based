@@ -63,9 +63,59 @@ If you lose your mnemonic, there is no way to recover your sync identity. You ca
 
 Sync uses **last-write-wins** at the profile level, based on timestamps. This is designed for single-user, multi-device use — one person using getbased on their phone and laptop. If you edit the same profile on two devices simultaneously before they sync, the most recent push wins.
 
-## Advanced: Relay Server
+## Relay Server
 
-By default, sync connects to `wss://free.evoluhq.com` (Evolu's public relay). You can change this in **Settings → Data → Advanced** to point to your own relay if you prefer to self-host.
+The relay is a blind store-and-forward server — it holds encrypted blobs and broadcasts them to your other devices. It never sees your plaintext data.
+
+By default, sync connects to `wss://sync.getbased.health`. You can change this in **Settings → Data → Advanced** to point to your own relay. A status indicator (green/red dot) shows whether the relay is reachable.
+
+### Running Your Own Relay
+
+The relay is open source ([Evolu relay](https://github.com/evoluhq/evolu/tree/main/apps/relay)). It runs as a single Docker container with an embedded SQLite database — no external dependencies.
+
+**Requirements:** Any Linux VPS (1 CPU, 1GB RAM, $5/mo), Docker, and a domain with TLS.
+
+**1. Start the relay:**
+
+```bash
+docker run -d \
+  --name evolu-relay \
+  --network host \
+  --restart unless-stopped \
+  evoluhq/relay:latest
+```
+
+This starts the relay on port 4000 (WebSocket only, no HTTP).
+
+**2. Add TLS with Caddy:**
+
+Install [Caddy](https://caddyserver.com/) and create `/etc/caddy/Caddyfile`:
+
+```
+sync.yourdomain.com {
+    reverse_proxy 127.0.0.1:4000 {
+        transport http {
+            versions h1
+        }
+    }
+}
+```
+
+The `versions h1` directive is required — WebSocket upgrades need HTTP/1.1.
+
+```bash
+systemctl restart caddy
+```
+
+Caddy auto-provisions a TLS certificate via Let's Encrypt.
+
+**3. Point DNS:** Add an A record for `sync.yourdomain.com` → your server's IP.
+
+**4. Use it:** In getbased, go to **Settings → Data → Advanced** and enter `wss://sync.yourdomain.com`. The status dot turns green when connected.
+
+::: tip Security hardening
+For a production relay, disable SSH password auth, enable UFW firewall (allow only 22, 80, 443), and enable unattended-upgrades for automatic security patches.
+:::
 
 ## Relationship to Encryption
 

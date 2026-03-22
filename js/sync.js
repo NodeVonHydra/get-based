@@ -25,7 +25,7 @@ let _debounceTimer = null;
 
 const SYNC_STORAGE_KEY = 'labcharts-sync-enabled';
 const SYNC_RELAY_KEY = 'labcharts-sync-relay';
-const DEFAULT_RELAY = 'wss://free.evoluhq.com';
+const DEFAULT_RELAY = 'wss://sync.getbased.health';
 
 export function isSyncEnabled() { return _syncEnabled; }
 
@@ -35,6 +35,19 @@ export function getSyncRelay() {
 
 export function setSyncRelay(url) {
   localStorage.setItem(SYNC_RELAY_KEY, url);
+}
+
+// Probe relay connectivity via a test WebSocket
+export function checkRelayConnection(timeout = 4000) {
+  return new Promise(resolve => {
+    const relay = getSyncRelay();
+    try {
+      const ws = new WebSocket(relay + '/ping');
+      const timer = setTimeout(() => { ws.close(); resolve(false); }, timeout);
+      ws.onopen = () => { clearTimeout(timer); ws.close(); resolve(true); };
+      ws.onerror = () => { clearTimeout(timer); ws.close(); resolve(false); };
+    } catch { resolve(false); }
+  });
 }
 
 // ═══════════════════════════════════════════════

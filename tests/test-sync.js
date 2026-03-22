@@ -80,9 +80,10 @@
 
   assert('reloadUrl uses window.location.pathname', syncSrc.includes('reloadUrl: window.location.pathname'));
   assert('enableLogging gated on debug mode', syncSrc.includes('enableLogging: isDebugMode()'));
-  assert('Default relay is wss://free.evoluhq.com', syncSrc.includes("wss://free.evoluhq.com"));
+  assert('Default relay is wss://sync.getbased.health', syncSrc.includes("wss://sync.getbased.health"));
   assert('COOP header in dev-server', await fetch('dev-server.js').then(r => r.text()).then(s => s.includes('Cross-Origin-Opener-Policy')));
   assert('initSync has re-entrancy guard', syncSrc.includes('if (evolu) return'));
+  assert('checkRelayConnection exported', syncSrc.includes('export function checkRelayConnection'));
 
   // ═══════════════════════════════════════
   // 6. DATA.JS INTEGRATION
@@ -159,6 +160,8 @@
   assert('doMnemonicRestore validates 24 words', settingsSrc.includes("words.length !== 24"));
   assert('Clipboard auto-clear after 60s', settingsSrc.includes('60000') && settingsSrc.includes("writeText('')"));
   assert('loadMnemonic retry timer is cancellable', settingsSrc.includes('_mnemonicRetryTimer') && settingsSrc.includes('clearTimeout(_mnemonicRetryTimer)'));
+  assert('Dynamic relay status indicator', settingsSrc.includes('updateRelayStatus') && settingsSrc.includes('sync-status-dot'));
+  assert('Relay status shows connected or unreachable', settingsSrc.includes('Connected to relay') && settingsSrc.includes('Relay unreachable'));
 
   // ═══════════════════════════════════════
   // 11. WINDOW BINDINGS
