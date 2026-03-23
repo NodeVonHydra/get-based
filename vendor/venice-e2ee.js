@@ -381,6 +381,7 @@ function toHex(bytes) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 function fromHex(hex) {
+  if (hex.length % 2 !== 0) throw new Error("Invalid hex: odd length");
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
     bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
@@ -568,7 +569,10 @@ function createVeniceE2EE(options) {
     yield* decryptSSEStream(body, session.privateKey);
   }
   function clearSession() {
-    _session = null;
+    if (_session) {
+      _session.privateKey.fill(0);
+      _session = null;
+    }
   }
   return {
     createSession,
