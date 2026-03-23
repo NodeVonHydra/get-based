@@ -2750,6 +2750,7 @@ export async function sendChatMessage() {
   input.style.height = '';
   clearAttachments();
   renderChatMessages();
+  saveChatHistory(); // persist immediately so messages survive API failures
 
   if (isFirstMessage) {
     autoNameThread(state.currentThreadId, text);
