@@ -701,9 +701,14 @@ export async function callVeniceAPI(opts) {
 
   // ── E2EE path ──
   if (!crypto?.subtle) throw new Error('E2EE requires a secure context (HTTPS). Cannot encrypt on this page.');
-  const { getOrCreateE2EESession, encryptMessage, decryptChunk } = await import('./venice-e2ee.js');
+  const { createVeniceE2EE, encryptMessage, decryptChunk } = await import('../vendor/venice-e2ee.js');
+  if (!window._veniceE2EE || window._veniceE2EEKey !== key) {
+    window._veniceE2EE = createVeniceE2EE({ apiKey: key });
+    window._veniceE2EEKey = key;
+    window.clearE2EESession = () => window._veniceE2EE?.clearSession();
+  }
   let session;
-  try { session = await getOrCreateE2EESession(modelId, key); }
+  try { session = await window._veniceE2EE.createSession(modelId); }
   catch (e) { throw new Error(`Venice E2EE setup failed: ${e.message}`); }
 
   const _contentStr = (c) => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(b => b.type === 'text').map(b => b.text).join('') : String(c);
