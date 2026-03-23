@@ -83,7 +83,7 @@ export async function initSync() {
       name: SimpleName.orThrow("getbased4"),
       reloadUrl: window.location.pathname,
       enableLogging: isDebugMode(),
-      transport: { type: "WebSocket", url: relay },
+      transports: [{ type: "WebSocket", url: relay }],
     });
 
     // Query all profile data rows
@@ -154,6 +154,34 @@ export async function disableSync() {
   }
   localStorage.setItem(SYNC_STORAGE_KEY, 'false');
   _syncEnabled = false;
+
+  // Clear sync timestamps so fresh pull can happen after re-enable
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i);
+    if (key && key.endsWith('-sync-ts')) localStorage.removeItem(key);
+  }
+
+  // Reset Evolu DB and reload to kill the Worker + release OPFS locks.
+  // resetAppOwner drops all tables (including identity). The page reload
+  // terminates the SharedWorker. On next enableSync, createEvolu sees
+  // dbIsInitialized=false and generates a fresh mnemonic.
+  if (evolu) {
+    try {
+      await evolu.resetAppOwner({ reload: false });
+    } catch (e) {
+      console.warn('[sync] Evolu reset failed:', e);
+    }
+    evolu = null;
+    profileQuery = null;
+    _appOwner = null;
+    _readyPromise = null;
+    _queryLoaded = null;
+    clearTimeout(_debounceTimer);
+    showNotification('Sync disabled — reloading…', 'success');
+    setTimeout(() => window.location.reload(), 500);
+    return;
+  }
+
   evolu = null;
   profileQuery = null;
   _appOwner = null;
@@ -262,13 +290,10 @@ async function collectChatData(profileId) {
 
 async function applyChatData(profileId, chatData) {
   if (!chatData || !chatData.threads) return;
+  // Thread index: always plain localStorage (matches saveChatThreadIndex in chat.js).
+  // encryptAllSensitiveKeys handles at-rest encryption when session ends.
   const threadsKey = `labcharts-${profileId}-chat-threads`;
-  const threadsJson = JSON.stringify(chatData.threads);
-  if (getEncryptionEnabled()) {
-    await encryptedSetItem(threadsKey, threadsJson);
-  } else {
-    localStorage.setItem(threadsKey, threadsJson);
-  }
+  localStorage.setItem(threadsKey, JSON.stringify(chatData.threads));
   if (chatData.messages) {
     for (const [threadId, msgs] of Object.entries(chatData.messages)) {
       const msgKey = `labcharts-${profileId}-chat-t_${threadId}`;

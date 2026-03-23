@@ -70,11 +70,11 @@
 
   assert('restoreFromMnemonic clears sync-ts after success', syncSrc.includes("'-sync-ts'") && syncSrc.includes('localStorage.removeItem(key)'));
   assert('restoreFromMnemonic calls evolu.restoreAppOwner', syncSrc.includes('evolu.restoreAppOwner(mnemonic)'));
-  // Verify timestamps are cleared AFTER restoreAppOwner (not before)
+  // Verify timestamps are cleared AFTER restoreAppOwner within restoreFromMnemonic (not before)
   const restoreIdx = syncSrc.indexOf('evolu.restoreAppOwner(mnemonic)');
-  const clearTsIdx = syncSrc.indexOf("'-sync-ts'");
-  assert('Sync-ts cleared after restoreAppOwner (not before)', restoreIdx > 0 && clearTsIdx > restoreIdx,
-    `restoreAppOwner at ${restoreIdx}, sync-ts clear at ${clearTsIdx}`);
+  const clearTsInRestore = syncSrc.indexOf("'-sync-ts'", restoreIdx);
+  assert('Sync-ts cleared after restoreAppOwner (not before)', restoreIdx > 0 && clearTsInRestore > restoreIdx,
+    `restoreAppOwner at ${restoreIdx}, sync-ts clear at ${clearTsInRestore}`);
 
   // ═══════════════════════════════════════
   // 5. EVOLU CONFIG
@@ -84,6 +84,7 @@
   assert('reloadUrl uses window.location.pathname', syncSrc.includes('reloadUrl: window.location.pathname'));
   assert('enableLogging gated on debug mode', syncSrc.includes('enableLogging: isDebugMode()'));
   assert('Default relay is wss://sync.getbased.health', syncSrc.includes("wss://sync.getbased.health"));
+  assert('Transport uses plural "transports" array (not singular)', syncSrc.includes('transports: [{ type:') && !syncSrc.includes('transport: { type:'));
   assert('COOP header in dev-server', await fetch('dev-server.js').then(r => r.text()).then(s => s.includes('Cross-Origin-Opener-Policy')));
   assert('initSync has re-entrancy guard', syncSrc.includes('if (evolu) return'));
   assert('checkRelayConnection exported', syncSrc.includes('export function checkRelayConnection'));
@@ -123,6 +124,11 @@
   assert('pushAllProfiles pushes all profiles on first enable', syncSrc.includes('async function pushAllProfiles'));
   assert('disableSync clears _appOwner', syncSrc.includes('_appOwner = null'));
   assert('disableSync waits for in-flight ops', syncSrc.includes('if (_syncing || _pulling)'));
+  assert('disableSync resets Evolu identity for mnemonic regeneration', syncSrc.includes('evolu.resetAppOwner('));
+  assert('disableSync reloads page after reset to kill Worker', syncSrc.includes('window.location.reload()'));
+  assert('disableSync clears sync timestamps', syncSrc.includes("'-sync-ts'") && syncSrc.indexOf("'-sync-ts'") < restoreIdx);
+  assert('applyChatData uses plain localStorage for thread index (matches saveChatThreadIndex)',
+    syncSrc.includes("localStorage.setItem(threadsKey, JSON.stringify(chatData.threads)"));
 
   // ═══════════════════════════════════════
   // 9. SETTINGS UI

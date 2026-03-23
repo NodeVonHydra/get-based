@@ -91,6 +91,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip non-GET requests — Cache API only supports GET
+  if (event.request.method !== 'GET') return;
+
   // Stale-while-revalidate: local app shell files
   event.respondWith(
     caches.match(event.request).then((cached) => {

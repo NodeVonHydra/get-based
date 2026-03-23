@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.6', date: '2026-03-23', title: 'Sync fixes',
+    items: [
+      'Fixed sync relay connection — data now correctly routes to the self-hosted relay instead of the default Evolu relay',
+      'Fixed mnemonic regeneration — disabling and re-enabling sync generates a fresh identity',
+      'Fixed chat thread sync when encryption is enabled',
+      'Sync is now visible to all users (no longer requires debug mode)',
+    ]
+  },
+  {
     version: '1.9.5', date: '2026-03-22', title: 'Cross-device sync',
     items: [
       'Cross-device sync — E2E encrypted via Evolu CRDT. All profiles and AI settings sync automatically across your devices',
