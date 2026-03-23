@@ -160,13 +160,11 @@ export function openSettingsModal(tab) {
         ${renderSyncSection()}
       </div>
 
-      ${isDebugMode() ? `
-      <div class="settings-group-title">Messenger Access</div>
+      <div class="settings-group-title">OpenClaw</div>
 
       <div class="settings-section" id="messenger-section">
         ${renderMessengerSection()}
       </div>
-      ` : ''}
 
       <div class="settings-group-title">Backup &amp; Restore</div>
 
@@ -1445,10 +1443,10 @@ function renderMessengerSection() {
   return `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${enabled ? '16' : '8'}px">
       <div>
-        <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Messenger access</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Chat about your labs via OpenClaw</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary)">OpenClaw access</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Chat about your labs over any messenger</div>
       </div>
-      <label class="chat-websearch-toggle-label" style="display:flex" aria-label="Toggle messenger access">
+      <label class="chat-websearch-toggle-label" style="display:flex" aria-label="Toggle OpenClaw access">
         <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleMessenger(this.checked)" style="display:none">
         <span class="chat-toggle-slider"></span>
       </label>
@@ -1463,12 +1461,12 @@ function renderMessengerSection() {
           </div>
         </div>
         <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Messenger token">${'\u2022'.repeat(64)}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Paste this token into your OpenClaw config. It grants read-only access to your lab context.</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5"><a href="https://github.com/elkimek/getbased-openclaw" target="_blank" rel="noopener" style="color:var(--accent)">Install the plugin</a>, then run <code style="background:var(--bg-secondary);padding:1px 5px;border-radius:3px;font-size:11px">openclaw getbased-setup</code> and paste this token.</div>
       </div>
       <button class="import-btn import-btn-secondary" style="font-size:12px;padding:5px 14px;width:100%" onclick="regenerateMessengerToken()">Regenerate token</button>
     ` : `
       <div style="font-size:12px;color:var(--text-muted);line-height:1.5">
-        Generate a read-only token so your OpenClaw agent can answer questions about your labs over any messenger. Your mnemonic is never shared — only a derived read-only view.
+        Connect your <a href="https://github.com/elkimek/getbased-openclaw" target="_blank" rel="noopener" style="color:var(--accent)">OpenClaw</a> bot to answer questions about your labs over any messenger (Telegram, Signal, etc.). Only a read-only view is shared — your data stays encrypted.
       </div>
     `}
   `;
@@ -1482,10 +1480,10 @@ function toggleMessenger(enabled) {
     if (enabled) {
       generateMessengerToken();
       pushContextToGateway();
-      showNotification('Messenger access enabled', 'success');
+      showNotification('OpenClaw access enabled', 'success');
     } else {
       revokeMessengerToken();
-      showNotification('Messenger access disabled', 'success');
+      showNotification('OpenClaw access disabled', 'success');
     }
     const el = document.getElementById('messenger-section');
     if (el) el.innerHTML = renderMessengerSection();
@@ -1531,7 +1529,7 @@ function copyMessengerToken() {
 function regenerateMessengerToken() {
   generateMessengerToken();
   pushContextToGateway();
-  showNotification('Token regenerated — update your OpenClaw config', 'success');
+  showNotification('Token regenerated — run openclaw getbased-setup again', 'success');
   const el = document.getElementById('messenger-section');
   if (el) el.innerHTML = renderMessengerSection();
 }

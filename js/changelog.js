@@ -5,12 +5,18 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.7', date: '2026-03-23', title: 'OpenClaw',
+    items: [
+      'OpenClaw integration — connect your self-hosted AI bot to answer questions about your labs over any messenger (Settings → Data → OpenClaw)',
+    ]
+  },
+  {
     version: '1.9.6', date: '2026-03-23', title: 'Sync fixes',
     items: [
       'Fixed sync relay connection — data now correctly routes to the self-hosted relay instead of the default Evolu relay',
       'Fixed mnemonic regeneration — disabling and re-enabling sync generates a fresh identity',
       'Fixed chat thread sync when encryption is enabled',
-      'Sync is now visible to all users (no longer requires debug mode)',
+      'Fixed chat history loss when AI stream errors mid-response (#84, #85)',
     ]
   },
   {

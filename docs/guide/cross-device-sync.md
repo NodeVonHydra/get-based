@@ -45,7 +45,10 @@ Anyone with your mnemonic can access your synced data. Treat it like a password 
 - Profile metadata (name, sex, DOB, location, tags)
 - AI settings (provider, API keys, model selections, Venice E2EE toggle)
 
-Settings such as theme, unit system, and display preferences are device-specific and do not sync.
+- Chat threads, messages, and custom personalities
+- Display preferences (unit system, range mode, chart overlays)
+
+Settings such as theme are device-specific and do not sync.
 
 ## Mnemonic Security
 
@@ -54,6 +57,10 @@ Your mnemonic is your encryption key. getbased takes several precautions:
 - **Masked by default** — shown as bullet characters in Settings, with a Show/Hide toggle
 - **Clipboard auto-clear** — when you copy the mnemonic, the clipboard is cleared after 60 seconds
 - **No server storage** — the mnemonic is generated and stored locally by the Evolu engine, never sent to any server
+
+### Regenerating Your Mnemonic
+
+Disabling sync resets your identity — the page reloads to clean up the sync engine. Re-enabling sync generates a fresh mnemonic. Your other devices will need to join with the new mnemonic.
 
 ::: danger No recovery
 If you lose your mnemonic, there is no way to recover your sync identity. You can still access your local data, but you will need to set up sync again with a new mnemonic on all devices.

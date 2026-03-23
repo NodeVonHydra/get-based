@@ -193,7 +193,7 @@
 
   assert('generateMessengerToken creates 64-char hex', syncSrc.includes('crypto.getRandomValues') && syncSrc.includes('MESSENGER_TOKEN_KEY'));
   assert('pushContextToGateway exports', syncSrc.includes('export function pushContextToGateway'));
-  assert('Messenger section in settings', settingsSrc.includes('renderMessengerSection') && settingsSrc.includes('Messenger Access'));
+  assert('OpenClaw section in settings', settingsSrc.includes('renderMessengerSection') && settingsSrc.includes('OpenClaw'));
   assert('Token masked by default', settingsSrc.includes('messenger-token') && settingsSrc.includes('data-masked'));
 
   // ═══════════════════════════════════════
