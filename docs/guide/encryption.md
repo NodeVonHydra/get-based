@@ -83,8 +83,19 @@ When using Venice AI as your provider, you can enable **End-to-End Encryption** 
 - **HKDF-SHA256** key derivation
 - **AES-256-GCM** message encryption
 
-With E2EE enabled, your prompts are encrypted before leaving the browser and are only decrypted inside a verified Trusted Execution Environment — not even Venice can read them. Response chunks are encrypted per-chunk by the TEE and decrypted in your browser.
+With E2EE enabled, your prompts are encrypted before leaving the browser and are only decrypted inside a verified Trusted Execution Environment (Intel TDX) — not even Venice can read them. Response chunks are encrypted per-chunk by the TEE and decrypted in your browser.
+
+### TEE Attestation Verification
+
+Before establishing an encrypted session, getbased verifies the TEE attestation to ensure the signing key genuinely comes from a secure enclave:
+
+- **Nonce binding** — confirms a fresh client nonce in the TDX quote, preventing replay attacks
+- **Signing key binding** — confirms the key's Ethereum address is embedded in the TEE's REPORTDATA
+- **Debug mode rejection** — rejects TEEs running in debug mode
+- **Server cross-check** — flags inconsistencies with Venice's own verification
+
+A **🔒✓** (green checkmark) in the chat header and message footers confirms attestation passed. Hover over it for details. If attestation fails, the session is blocked and an error is shown.
 
 ::: warning E2EE trade-offs
-E2EE mode disables web search and image attachments. Only a subset of Venice models support E2EE. A lock icon (🔒) in the chat header and message footer confirms when E2EE is active.
+E2EE mode disables web search and image attachments. Only a subset of Venice models support E2EE.
 :::

@@ -710,6 +710,9 @@ export async function callVeniceAPI(opts) {
   let session;
   try { session = await window._veniceE2EE.createSession(modelId); }
   catch (e) { throw new Error(`Venice E2EE setup failed: ${e.message}`); }
+  window._veniceAttestation = session.attestation ?? window._veniceAttestation ?? null;
+  // Refresh header lock indicator now that attestation is available
+  document.querySelector('.chat-header-model')?.dispatchEvent(new CustomEvent('e2ee-attestation'));
 
   const _contentStr = (c) => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(b => b.type === 'text').map(b => b.text).join('') : String(c);
   const { system, messages, maxTokens, onStream, signal } = opts;

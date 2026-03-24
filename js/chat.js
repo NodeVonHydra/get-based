@@ -1461,13 +1461,54 @@ export function updateChatHeaderTitle() {
   updateChatHeaderModel();
 }
 
+/** Build attestation tooltip text. */
+function _attestationTooltip(attestation) {
+  const ok = attestation.nonceVerified && attestation.signingKeyBound && !attestation.debugMode;
+  const lines = [
+    `Nonce: ${attestation.nonceVerified ? '\u2713' : '\u2717'}`,
+    `Key binding: ${attestation.signingKeyBound ? '\u2713' : '\u2717'}`,
+    `Debug mode: ${attestation.debugMode ? 'YES \u2717' : 'no \u2713'}`,
+    attestation.serverTdxValid != null ? `Server TDX: ${attestation.serverTdxValid ? '\u2713' : '\u2717'}` : null,
+    attestation.dcap ? `DCAP: ${attestation.dcap.status}` : null,
+  ].filter(Boolean);
+  return (ok ? 'TEE attestation verified' : 'TEE attestation FAILED') + '\n' + lines.join('\n');
+}
+
+/** E2EE lock HTML for header: 🔒 alone, or 🔒 + colored ✓/✗ with tooltip. */
+function e2eeLockHTML(attestation) {
+  if (!attestation) return ' \uD83D\uDD12';
+  const ok = attestation.nonceVerified && attestation.signingKeyBound && !attestation.debugMode;
+  const color = ok ? '#22c55e' : '#ef4444';
+  const mark = ok ? '\u2713' : '\u2717';
+  return ` <span title="${_attestationTooltip(attestation)}">\uD83D\uDD12<span style="color:${color};font-weight:bold">${mark}</span></span>`;
+}
+
+/** E2EE lock HTML for cost footnotes. */
+function e2eeLockFootnote(attestation) {
+  if (!attestation) return ' \u00b7 \uD83D\uDD12 e2ee';
+  const ok = attestation.nonceVerified && attestation.signingKeyBound && !attestation.debugMode;
+  const color = ok ? '#22c55e' : '#ef4444';
+  const mark = ok ? '\u2713' : '\u2717';
+  return ` \u00b7 <span title="${_attestationTooltip(attestation)}">\uD83D\uDD12<span style="color:${color};font-weight:bold">${mark}</span> e2ee</span>`;
+}
+
+// Auto-refresh header when attestation becomes available
+let _headerListenerAdded = false;
 export function updateChatHeaderModel() {
   const el = document.querySelector('.chat-header-model');
   if (!el) return;
+  if (!_headerListenerAdded) {
+    el.addEventListener('e2ee-attestation', () => updateChatHeaderModel());
+    _headerListenerAdded = true;
+  }
   if (!hasAIProvider()) { el.textContent = ''; return; }
   const display = getActiveModelDisplay();
   const e2ee = getAIProvider() === 'venice' && isVeniceE2EEActive();
-  el.textContent = display + (e2ee ? ' \uD83D\uDD12' : '');
+  if (e2ee) {
+    el.innerHTML = escapeHTML(display) + e2eeLockHTML(window._veniceAttestation);
+  } else {
+    el.textContent = display;
+  }
 }
 
 export function updatePersonalityBar() {
@@ -2124,7 +2165,7 @@ export function renderChatMessages() {
         const totalTokens = (msg.usage.inputTokens || 0) + (msg.usage.outputTokens || 0);
         const mName = msg.modelDisplay || getActiveModelDisplay();
         const webTag = msg.webSearch ? ' \u00b7 \ud83c\udf10 web' : '';
-        const e2eeTag = msg.e2ee ? ' \u00b7 \ud83d\udd12 e2ee' : '';
+        const e2eeTag = msg.e2ee ? e2eeLockFootnote(msg.attestation) : '';
         html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}</div>`;
       }
       html += buildActionBar(i);
@@ -2869,17 +2910,17 @@ export async function sendChatMessage() {
       const cost = calculateCost(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
       const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
       const webTag = webSearchEnabled ? ' \u00b7 \ud83c\udf10 web' : '';
-      const e2eeTag = _msgE2EE ? ' \u00b7 \ud83d\udd12 e2ee' : '';
+      const e2eeTag = _msgE2EE ? e2eeLockFootnote(window._veniceAttestation) : '';
       const footnote = document.createElement('div');
       footnote.className = 'chat-cost-footnote';
-      footnote.textContent = `${_msgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
+      footnote.innerHTML = `${escapeHTML(_msgModelDisplay)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
       aiMsgEl.appendChild(footnote);
     }
 
     // Build assistant message object with context snapshot
     const assistantMsg = { role: 'assistant', content: fullText, context: contextSnapshot, personalityName: personality.name, personalityIcon: personality.icon, modelId: _msgModelId, modelDisplay: _msgModelDisplay };
     if (webSearchEnabled) assistantMsg.webSearch = true;
-    if (_msgE2EE) assistantMsg.e2ee = true;
+    if (_msgE2EE) { assistantMsg.e2ee = true; assistantMsg.attestation = window._veniceAttestation || null; }
     if (usage && (usage.inputTokens || usage.outputTokens)) {
       assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
       trackUsage(_msgProvider, _msgModelId, usage.inputTokens, usage.outputTokens);
@@ -3145,16 +3186,16 @@ async function runDiscussionRound(personas, steerPrompt, opts = {}) {
         const cost = calculateCost(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);
         const totalTokens = (usage.inputTokens || 0) + (usage.outputTokens || 0);
         const webTag = _dWebSearch ? ' \u00b7 \ud83c\udf10 web' : '';
-        const e2eeTag = _dMsgE2EE ? ' \u00b7 \ud83d\udd12 e2ee' : '';
+        const e2eeTag = _dMsgE2EE ? e2eeLockFootnote(window._veniceAttestation) : '';
         const footnote = document.createElement('div');
         footnote.className = 'chat-cost-footnote';
-        footnote.textContent = `${_dMsgModelDisplay} \u00b7 ${formatCost(cost)} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
+        footnote.innerHTML = `${escapeHTML(_dMsgModelDisplay)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}`;
         aiMsgEl.appendChild(footnote);
       }
 
       const assistantMsg = { role: 'assistant', content: fullText, personalityName: personality.name, personalityIcon: personality.icon, modelId: _dMsgModelId, modelDisplay: _dMsgModelDisplay };
       if (_dWebSearch) assistantMsg.webSearch = true;
-      if (_dMsgE2EE) assistantMsg.e2ee = true;
+      if (_dMsgE2EE) { assistantMsg.e2ee = true; assistantMsg.attestation = window._veniceAttestation || null; }
       if (usage && (usage.inputTokens || usage.outputTokens)) {
         assistantMsg.usage = { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
         trackUsage(_dMsgProvider, _dMsgModelId, usage.inputTokens, usage.outputTokens);

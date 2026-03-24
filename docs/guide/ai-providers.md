@@ -67,7 +67,7 @@ A privacy-focused cloud provider where your conversations and data are not store
 4. Choose a model from the dropdown
 
 ::: tip End-to-End Encryption
-Venice offers E2EE models where your prompts are encrypted in your browser and only decrypted inside a verified Trusted Execution Environment (TEE) — not even Venice can read them. Enable the **End-to-End Encryption** toggle in Venice settings to switch to E2EE models. Web search and image attachments are disabled in E2EE mode. A lock icon (🔒) appears in the chat header and message footer when E2EE is active.
+Venice offers E2EE models where your prompts are encrypted in your browser and only decrypted inside a verified Intel TDX Trusted Execution Environment — not even Venice can read them. Enable the **End-to-End Encryption** toggle in Venice settings to switch to E2EE models. The TEE attestation is verified client-side on every session (nonce binding, signing key binding, debug mode rejection). A 🔒✓ (green checkmark) in the chat header confirms verification passed. Web search and image attachments are disabled in E2EE mode.
 :::
 
 ### Local AI (Fully local)
