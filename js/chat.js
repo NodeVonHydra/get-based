@@ -906,16 +906,6 @@ export function buildLabContext() {
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
       ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}\n`;
     }
-    // Mitochondrial effect warnings
-    const mitoWarnings = [];
-    const suppWarnings = scanSupplementsForWarnings(supps);
-    for (const w of suppWarnings) {
-      mitoWarnings.push(`  \u26A0\uFE0F ${w.warning} [PubMed: ${w.pmid}]`);
-    }
-    if (mitoWarnings.length > 0) {
-      ctx += `\nMitochondrial effects (curated from published literature, PubMed-verified):\n`;
-      ctx += mitoWarnings.join('\n') + '\n';
-    }
     ctx += `[/section:supplements]\n\n`;
   }
 
