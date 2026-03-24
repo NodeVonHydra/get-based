@@ -769,7 +769,7 @@ export function buildLabContext() {
   // ── 1. Health Goals (top priority — "what are you trying to solve?") ──
   const healthGoals = state.importedData.healthGoals || [];
   if (healthGoals.length > 0) {
-    ctx += `## Health Goals (Things to Solve)\n`;
+    ctx += `[section:healthGoals]\n## Health Goals (Things to Solve)\n`;
     const byPriority = { major: [], mild: [], minor: [] };
     for (const g of healthGoals) (byPriority[g.severity] || byPriority.minor).push(g.text);
     for (const [sev, items] of Object.entries(byPriority)) {
@@ -778,24 +778,35 @@ export function buildLabContext() {
         for (const t of items) ctx += `- ${t}\n`;
       }
     }
-    ctx += '\n';
+    ctx += `[/section:healthGoals]\n\n`;
   }
 
   // ── 2. Interpretive Lens ──
   const interpretiveLens = state.importedData.interpretiveLens || '';
   if (interpretiveLens.trim()) {
-    ctx += `## Interpretive Lens\n${interpretiveLens.trim()}\n\n`;
+    ctx += `[section:interpretiveLens]\n## Interpretive Lens\n${interpretiveLens.trim()}\n[/section:interpretiveLens]\n\n`;
   }
 
   // ── 3. Lab values by category ("what do the numbers say?") ──
   if (hasLabData) {
+    // Build index of active lab categories
+    const _activeCatKeys = [];
+    for (const [_ck, _ct] of Object.entries(data.categories)) {
+      if (_ct.group && !isGroupInAIContext(_ct.group)) continue;
+      if (Object.entries(_ct.markers).some(([_, m]) => m.values.some(v => v !== null))) _activeCatKeys.push(_ck);
+    }
+    if (_activeCatKeys.length > 0) {
+      ctx += `[index]\nAvailable sections: ${_activeCatKeys.join(', ')}\n[/index]\n\n`;
+    }
+
     const rangeLabel = state.rangeMode === 'optimal' ? 'optimal' : 'reference';
     ctx += `Note: status labels below use ${rangeLabel} ranges.\n\n`;
     for (const [catKey, cat] of Object.entries(data.categories)) {
       if (cat.group && !isGroupInAIContext(cat.group)) continue;
       const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values.some(v => v !== null));
       if (markersWithData.length === 0) continue;
-      ctx += `## ${cat.label}\n`;
+      const _catDate = cat.singleDate || (() => { for (let i = data.dates.length - 1; i >= 0; i--) { if (markersWithData.some(([_, m]) => m.values[i] !== null)) return data.dates[i]; } return null; })();
+      ctx += `[section:${catKey}${_catDate ? ' updated:' + _catDate : ''}]\n## ${cat.label}\n`;
       for (const [key, m] of markersWithData) {
         const latestIdx = getLatestValueIndex(m.values);
         if (m.phaseRefRanges && m.phaseLabels) {
@@ -833,7 +844,7 @@ export function buildLabContext() {
           ctx += `⚠ Last tested ~${catMonthsAgo} months ago — values may no longer reflect current status.\n`;
         }
       }
-      ctx += '\n';
+      ctx += `[/section:${catKey}]\n\n`;
     }
 
     // ── 4. Flagged Results (quick-scan summary) ──
@@ -843,59 +854,69 @@ export function buildLabContext() {
       return !cat?.group || isGroupInAIContext(cat.group);
     });
     if (flags.length > 0) {
-      ctx += `## Flagged Results (Latest)\n`;
+      ctx += `[critical]\n## Flagged Results (Latest)\n`;
       for (const f of flags) {
         ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
       }
-      ctx += '\n';
+      ctx += `[/critical]\n\n`;
     }
   }
 
   // ── 5. User Notes ──
   const notes = (state.importedData.notes || []).slice().sort((a, b) => a.date.localeCompare(b.date));
   if (notes.length > 0) {
-    ctx += `## User Notes\n`;
+    ctx += `[section:userNotes]\n## User Notes\n`;
     for (const n of notes) {
       ctx += `- ${fmtDate(n.date)}: ${n.text}\n`;
     }
-    ctx += '\n';
+    ctx += `[/section:userNotes]\n\n`;
   }
 
   // ── 5b. Marker Notes ──
   const markerNotes = state.importedData.markerNotes || {};
   const mnKeys = Object.keys(markerNotes);
   if (mnKeys.length > 0) {
-    ctx += `## Marker Notes\n`;
+    ctx += `[section:markerNotes]\n## Marker Notes\n`;
     for (const key of mnKeys) {
       const [catKey, mKey] = key.split('.');
       const mName = data.categories[catKey]?.markers[mKey]?.name || key;
       ctx += `- ${mName}: ${markerNotes[key]}\n`;
     }
-    ctx += '\n';
+    ctx += `[/section:markerNotes]\n\n`;
   }
 
   // ── 6. Medical Conditions ("what medical context applies?") ──
   const diag = state.importedData.diagnoses;
   if (hasCardContent(diag)) {
-    ctx += `## Medical Conditions / Diagnoses\n`;
+    ctx += `[section:diagnoses]\n## Medical Conditions / Diagnoses\n`;
     if (diag.conditions && diag.conditions.length) {
       for (const c of diag.conditions) {
         ctx += `- ${c.name} (${c.severity}${c.since ? ', since ' + c.since : ''})\n`;
       }
     }
     if (diag.note) ctx += `Notes: ${diag.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:diagnoses]\n\n`;
   }
 
   // ── 7. Supplements & Medications ──
   const supps = state.importedData.supplements || [];
   if (supps.length > 0) {
-    ctx += `## Supplements & Medications\n`;
+    ctx += `[section:supplements]\n## Supplements & Medications\n`;
     for (const s of supps) {
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
       ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}\n`;
     }
-    ctx += '\n';
+    // Mitochondrial effect warnings
+    const mitoWarnings = [];
+    const suppWarnings = scanSupplementsForWarnings(supps);
+    for (const w of suppWarnings) {
+      mitoWarnings.push(`  \u26A0\uFE0F ${w.warning} [PubMed: ${w.pmid}]`);
+    }
+    if (mitoWarnings.length > 0) {
+      ctx += `\nMitochondrial effects (curated from published literature, PubMed-verified):\n`;
+      ctx += mitoWarnings.join('\n') + '\n';
+    }
+    ctx += `[/section:supplements]\n\n`;
   }
 
   // ── 8. Genetics ──
@@ -907,7 +928,7 @@ export function buildLabContext() {
     ) : [];
     const geneticsCtx = window._buildGeneticsContext ? window._buildGeneticsContext(genetics, activeMarkerKeys) : '';
     if (geneticsCtx) {
-      ctx += `${geneticsCtx}\n\n`;
+      ctx += `[section:genetics]\n${geneticsCtx}\n[/section:genetics]\n\n`;
     }
   }
 
@@ -915,7 +936,7 @@ export function buildLabContext() {
   const mc = state.importedData.menstrualCycle;
   if (mc && state.profileSex === 'female') {
     const regLabel = mc.regularity === 'very_irregular' ? 'very irregular' : mc.regularity || 'regular';
-    ctx += `## Menstrual Cycle\n`;
+    ctx += `[section:menstrualCycle]\n## Menstrual Cycle\n`;
     const statusCtx = { perimenopause: 'Status: Perimenopause (irregular/transitional).', postmenopause: 'Status: Postmenopause (no active cycle).', pregnant: 'Status: Currently pregnant.', breastfeeding: 'Status: Currently breastfeeding (postpartum).', absent: 'Status: No active menstrual cycle.' };
     if (mc.cycleStatus && statusCtx[mc.cycleStatus]) {
       ctx += statusCtx[mc.cycleStatus];
@@ -966,13 +987,13 @@ export function buildLabContext() {
       ctx += `\nIRON/FLOW ALERTS:\n`;
       for (const a of ironAlerts) ctx += `- ${a.message}\n`;
     }
-    ctx += '\n';
+    ctx += `[/section:menstrualCycle]\n\n`;
   }
 
   // ── 9. Diet & Digestion ("what lifestyle context?") ──
   const diet = state.importedData.diet;
   if (hasCardContent(diet)) {
-    ctx += `## Diet & Digestion\n`;
+    ctx += `[section:diet]\n## Diet & Digestion\n`;
     const parts = [];
     if (diet.type) parts.push(`Type: ${diet.type}`);
     if (diet.pattern) parts.push(`Pattern: ${diet.pattern}`);
@@ -995,13 +1016,13 @@ export function buildLabContext() {
     if (diet.foodSensitivities && diet.foodSensitivities.length) dParts.push(`Food sensitivities: ${diet.foodSensitivities.join(', ')}`);
     if (dParts.length) ctx += dParts.join('. ') + '\n';
     if (diet.note) ctx += `Notes: ${diet.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:diet]\n\n`;
   }
 
   // ── 10. Exercise ──
   const ex = state.importedData.exercise;
   if (hasCardContent(ex)) {
-    ctx += `## Exercise & Movement\n`;
+    ctx += `[section:exercise]\n## Exercise & Movement\n`;
     const parts = [];
     if (ex.frequency) parts.push(`Frequency: ${ex.frequency}`);
     if (ex.types && ex.types.length) parts.push(`Types: ${ex.types.join(', ')}`);
@@ -1009,13 +1030,13 @@ export function buildLabContext() {
     if (ex.dailyMovement) parts.push(`Daily movement: ${ex.dailyMovement}`);
     ctx += parts.join('. ') + '\n';
     if (ex.note) ctx += `Notes: ${ex.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:exercise]\n\n`;
   }
 
   // ── 11. Sleep & Rest ──
   const sl = state.importedData.sleepRest;
   if (hasCardContent(sl)) {
-    ctx += `## Sleep & Rest\n`;
+    ctx += `[section:sleepRest]\n## Sleep & Rest\n`;
     const parts = [];
     if (sl.duration) parts.push(`Duration: ${sl.duration}`);
     if (sl.quality) parts.push(`Quality: ${sl.quality}`);
@@ -1026,14 +1047,14 @@ export function buildLabContext() {
     if (sl.practices && sl.practices.length) parts.push(`Practices: ${sl.practices.join(', ')}`);
     ctx += parts.join('. ') + '\n';
     if (sl.note) ctx += `Notes: ${sl.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:sleepRest]\n\n`;
   }
 
   // ── 12. Light & Circadian ──
   const lc = state.importedData.lightCircadian;
   const autoLat = getLatitudeFromLocation();
   if (lc || autoLat) {
-    ctx += `## Light & Circadian\n`;
+    ctx += `[section:lightCircadian]\n## Light & Circadian\n`;
     const parts = [];
     if (lc) {
       if (lc.amLight) parts.push(`Morning light: ${lc.amLight}`);
@@ -1051,26 +1072,26 @@ export function buildLabContext() {
     if (loc.country) parts.push(`Location: ${loc.country}${loc.zip ? ' ' + loc.zip : ''}`);
     ctx += parts.join('. ') + '\n';
     if (lc && lc.note) ctx += `Notes: ${lc.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:lightCircadian]\n\n`;
   }
 
   // ── 13. Stress ──
   const st = state.importedData.stress;
   if (hasCardContent(st)) {
-    ctx += `## Stress\n`;
+    ctx += `[section:stress]\n## Stress\n`;
     const parts = [];
     if (st.level) parts.push(`Level: ${st.level}`);
     if (st.sources && st.sources.length) parts.push(`Sources: ${st.sources.join(', ')}`);
     if (st.management && st.management.length) parts.push(`Management: ${st.management.join(', ')}`);
     ctx += parts.join('. ') + '\n';
     if (st.note) ctx += `Notes: ${st.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:stress]\n\n`;
   }
 
   // ── 14. Love Life & Sexual Health ──
   const ll = state.importedData.loveLife;
   if (hasCardContent(ll)) {
-    ctx += `## Love Life & Sexual Health\n`;
+    ctx += `[section:loveLife]\n## Love Life & Sexual Health\n`;
     const parts = [];
     if (ll.status) parts.push(`Status: ${ll.status}`);
     if (ll.relationship) parts.push(`Relationship quality: ${ll.relationship}`);
@@ -1081,13 +1102,13 @@ export function buildLabContext() {
     if (ll.concerns && ll.concerns.length) parts.push(`Concerns: ${ll.concerns.join(', ')}`);
     ctx += parts.join('. ') + '\n';
     if (ll.note) ctx += `Notes: ${ll.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:loveLife]\n\n`;
   }
 
   // ── 15. Environment ──
   const env = state.importedData.environment;
   if (hasCardContent(env)) {
-    ctx += `## Environment\n`;
+    ctx += `[section:environment]\n## Environment\n`;
     const parts = [];
     if (env.setting) parts.push(`Setting: ${env.setting}`);
     if (env.climate) parts.push(`Climate: ${env.climate}`);
@@ -1101,7 +1122,7 @@ export function buildLabContext() {
     if (env.building) parts.push(`Building: ${env.building}`);
     ctx += parts.join('. ') + '\n';
     if (env.note) ctx += `Notes: ${env.note}\n`;
-    ctx += '\n';
+    ctx += `[/section:environment]\n\n`;
   }
 
   // ── 16. EMF Assessment (sub-section of Environment) ──
@@ -1153,15 +1174,15 @@ export function buildLabContext() {
       if (diff) lines.push(`- ${fmtDate(entry.date)}: ${label} — ${diff}`);
     }
     if (lines.length > 0) {
-      ctx += `## Context Change Timeline\n`;
-      ctx += lines.join('\n') + '\n\n';
+      ctx += `[section:changeTimeline]\n## Context Change Timeline\n`;
+      ctx += lines.join('\n') + '\n[/section:changeTimeline]\n\n';
     }
   }
 
   // ── 18. Additional Context Notes ──
   const ctxNotes = state.importedData.contextNotes || '';
   if (ctxNotes.trim()) {
-    ctx += `## Additional Context Notes\n${ctxNotes.trim()}\n\n`;
+    ctx += `[section:contextNotes]\n## Additional Context Notes\n${ctxNotes.trim()}\n[/section:contextNotes]\n\n`;
   }
 
   return ctx;
