@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.9.8', date: '2026-03-25', title: 'Sync reliability',
+    items: [
+      'Fixed sync relay quota — CRDT operations no longer silently fail when exceeding relay limits',
+      'Chat messages now refresh live when synced from another device',
+      'Added sync diagnostics and polling safety net for missed sync events',
+    ]
+  },
+  {
     version: '1.9.7', date: '2026-03-23', title: 'OpenClaw',
     items: [
       'OpenClaw integration — connect your self-hosted AI bot to answer questions about your labs over any messenger (Settings → Data → OpenClaw)',
