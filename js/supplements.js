@@ -3,6 +3,7 @@
 import { state } from './state.js';
 import { escapeHTML, showNotification } from './utils.js';
 import { saveImportedData } from './data.js';
+import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 
 export function renderSupplementsSection() {
   const supps = state.importedData.supplements || [];
@@ -48,6 +49,17 @@ export function renderSupplementsSection() {
       </div>`;
     }
     html += `</div>`;
+    // Mitochondrial harm warnings (only flags harmful effects, not protective)
+    const mitoWarnings = scanSupplementsForWarnings(supps);
+    if (mitoWarnings.length > 0) {
+      html += `<div class="supp-mitotox">`;
+      html += `<div class="supp-mitotox-header">Mitochondrial effects \u2014 <span class="supp-mitotox-ask" onclick="askAIMitoContext()">ask AI for context</span></div>`;
+      for (const w of mitoWarnings) {
+        const top = w.effects.slice(0, 2).map(e => humanizeEffect(e, { showContext: true })).join(' and ');
+        html += `<div class="supp-mitotox-item">\u26A0\uFE0F <strong>${escapeHTML(w.match)}</strong>: ${escapeHTML(top)} <a href="${w.url}" target="_blank" rel="noopener" class="supp-mitotox-link">primary study</a> <a href="${w.searchUrl}" target="_blank" rel="noopener" class="supp-mitotox-link">more studies</a></div>`;
+      }
+      html += `</div>`;
+    }
   } else {
     html += `<div class="supp-timeline"><div class="supp-empty">No supplements or medications tracked yet</div></div>`;
   }
@@ -163,4 +175,16 @@ export function deleteSupplement(idx) {
   showNotification(`"${name}" removed`, 'info');
 }
 
-Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement });
+function askAIMitoContext() {
+  document.querySelector('[aria-label="Ask AI"]')?.click();
+  setTimeout(() => {
+    const ta = document.querySelector('textarea.chat-input');
+    if (ta) {
+      ta.value = 'Explain the mitochondrial effects of my current supplements and medications. Which ones should I be concerned about and why?';
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      ta.focus();
+    }
+  }, 500);
+}
+
+Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext });

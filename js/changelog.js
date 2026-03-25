@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.10.2', date: '2026-03-25', title: 'Mitochondrial Warnings',
+    items: [
+      'Supplements & medications scanned against independently compiled mitochondrial effects database (PubMed-cited)',
+      'Warnings appear below the supplement timeline — only harmful effects flagged (inhibits, depletes, disrupts)',
+      '"Ask AI for context" opens the chat with a pre-filled prompt about your specific compounds',
+    ]
+  },
+  {
     version: '1.10.1', date: '2026-03-25', title: 'Chat Summaries',
     items: [
       'Summarize any conversation thread — generates structured notes with key findings, action items, and open questions',
