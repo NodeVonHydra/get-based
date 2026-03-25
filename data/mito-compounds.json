@@ -800,5 +800,402 @@
     ],
     "pmid": 32933108,
     "more": "taurine+mitochondria+tRNA"
+  },
+  {
+    "name": "Methotrexate",
+    "k": ["methotrexate", "mtx", "trexall"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Glutathione", "a": "depletes", "t": "oxidative stress cascade" },
+      { "f": "Membrane potential", "a": "disrupts", "t": "collapses ΔΨm" },
+      { "f": "Cytochrome c", "a": "increases", "t": "apoptosis induction" }
+    ],
+    "pmid": 28298149,
+    "more": "methotrexate+mitochondrial+dysfunction"
+  },
+  {
+    "name": "Dexamethasone",
+    "k": ["dexamethasone", "decadron"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "chronic exposure" },
+      { "f": "mtDNA", "a": "damages", "t": "oxidative lesions" },
+      { "f": "Muscle mitochondria", "a": "impairs", "t": "atrophy pathway" }
+    ],
+    "pmid": 26592738,
+    "more": "dexamethasone+mitochondrial+muscle+atrophy"
+  },
+  {
+    "name": "Prednisone",
+    "k": ["prednisone", "prednisolone", "deltasone"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Oxidative phosphorylation", "a": "impairs", "t": "chronic use" },
+      { "f": "mtDNA copy number", "a": "decreases", "t": "skeletal muscle" }
+    ],
+    "pmid": 12195445,
+    "more": "corticosteroids+mitochondrial+skeletal+muscle"
+  },
+  {
+    "name": "Hydroxychloroquine",
+    "k": ["hydroxychloroquine", "plaquenil", "hcq"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Autophagy/mitophagy", "a": "inhibits", "t": "lysosomal alkalinization" },
+      { "f": "Damaged mitochondria", "a": "increases", "t": "accumulation from blocked clearance" }
+    ],
+    "pmid": 30442599,
+    "more": "hydroxychloroquine+mitophagy+lysosome"
+  },
+  {
+    "name": "Morphine",
+    "k": ["morphine", "ms contin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "ROS", "a": "increases", "t": "TRPM2-mediated" },
+      { "f": "mtDNA copy number", "a": "decreases", "t": "chronic exposure" },
+      { "f": "Apoptosis", "a": "induces", "t": "neuronal" }
+    ],
+    "pmid": 32524520,
+    "more": "morphine+mitochondrial+dysfunction+neurotoxicity"
+  },
+  {
+    "name": "Tramadol",
+    "k": ["tramadol", "ultram"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "dose-dependent" },
+      { "f": "Complex III", "a": "inhibits", "t": "dose-dependent" },
+      { "f": "Complex IV", "a": "inhibits", "t": "dose-dependent" },
+      { "f": "Glutathione", "a": "depletes", "t": "hepatic" }
+    ],
+    "pmid": 34909675,
+    "more": "tramadol+mitochondrial+electron+transport+chain"
+  },
+  {
+    "name": "Codeine",
+    "k": ["codeine"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Oxidative phosphorylation", "a": "impairs", "t": "opioid class effect" },
+      { "f": "ROS", "a": "increases", "t": "metabolized to morphine" }
+    ],
+    "pmid": 32524520,
+    "more": "opioid+mitochondrial+dysfunction"
+  },
+  {
+    "name": "Metoprolol",
+    "k": ["metoprolol", "lopressor", "toprol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Fatty acid oxidation", "a": "impairs", "t": "cardiac mitochondria" },
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 28887045,
+    "more": "metoprolol+mitochondrial+cardiac"
+  },
+  {
+    "name": "Amlodipine",
+    "k": ["amlodipine", "norvasc"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mPTP opening", "a": "inhibits", "t": "cardioprotective" },
+      { "f": "Mitochondrial respiration", "a": "improves", "t": "ischemia-reperfusion" }
+    ],
+    "pmid": 24588464,
+    "more": "amlodipine+mitochondrial+permeability+transition"
+  },
+  {
+    "name": "Levothyroxine",
+    "k": ["levothyroxine", "synthroid", "t4", "euthyrox"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "physiological" },
+      { "f": "Uncoupling", "a": "increases", "t": "excess T3 conversion" }
+    ],
+    "pmid": 18279015,
+    "more": "thyroid+hormone+mitochondrial+biogenesis+uncoupling"
+  },
+  {
+    "name": "Gabapentin",
+    "k": ["gabapentin", "neurontin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial membrane potential", "a": "stabilizes", "t": "neuroprotective" },
+      { "f": "Calcium overload", "a": "decreases", "t": "via α2δ subunit" }
+    ],
+    "pmid": 30475380,
+    "more": "gabapentin+mitochondrial+neuroprotection"
+  },
+  {
+    "name": "Pregabalin",
+    "k": ["pregabalin", "lyrica"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial calcium uptake", "a": "decreases", "t": "neuroprotective" },
+      { "f": "ROS", "a": "decreases", "t": "indirect via calcium modulation" }
+    ],
+    "pmid": 30475380,
+    "more": "pregabalin+mitochondrial+calcium"
+  },
+  {
+    "name": "THC",
+    "k": ["thc", "tetrahydrocannabinol", "dronabinol", "marijuana", "cannabis"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "71% Vmax reduction via mitochondrial CB1" },
+      { "f": "Membrane potential", "a": "disrupts", "t": "dose-dependent" }
+    ],
+    "pmid": 25195527,
+    "more": "THC+mitochondrial+CB1+complex+I"
+  },
+  {
+    "name": "CBD",
+    "k": ["cbd", "cannabidiol"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high concentration" },
+      { "f": "Mitochondrial calcium", "a": "modulates", "t": "neuroprotective at low dose" }
+    ],
+    "pmid": 19228959,
+    "more": "cannabidiol+mitochondrial+calcium"
+  },
+  {
+    "name": "Amphetamine",
+    "k": ["amphetamine", "adderall", "dextroamphetamine"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "decreases", "t": "subunit expression" },
+      { "f": "Complex II", "a": "decreases", "t": "subunit expression" },
+      { "f": "Complex III", "a": "decreases", "t": "subunit expression" }
+    ],
+    "pmid": 35008791,
+    "more": "amphetamine+mitochondrial+complex+subunits"
+  },
+  {
+    "name": "Methylphenidate",
+    "k": ["methylphenidate", "ritalin", "concerta"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "dose-dependent, young more susceptible" },
+      { "f": "Complex II", "a": "inhibits", "t": "dose-dependent" },
+      { "f": "Complex III", "a": "inhibits", "t": "dose-dependent" },
+      { "f": "Complex IV", "a": "inhibits", "t": "dose-dependent" }
+    ],
+    "pmid": 19777344,
+    "more": "methylphenidate+mitochondrial+electron+transport"
+  },
+  {
+    "name": "Semaglutide",
+    "k": ["semaglutide", "ozempic", "wegovy", "rybelsus"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "via GLP-1R signaling" },
+      { "f": "Complex I", "a": "enhances", "t": "restores activity" },
+      { "f": "Mitochondrial dynamics", "a": "improves", "t": "normalizes fission/fusion" }
+    ],
+    "pmid": 37051656,
+    "more": "semaglutide+mitochondrial+biogenesis"
+  },
+  {
+    "name": "Empagliflozin",
+    "k": ["empagliflozin", "jardiance"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial fission", "a": "inhibits", "t": "via AMPK activation" },
+      { "f": "ATP production", "a": "increases", "t": "cardiac" }
+    ],
+    "pmid": 29306791,
+    "more": "empagliflozin+mitochondrial+AMPK+fission"
+  },
+  {
+    "name": "Sildenafil",
+    "k": ["sildenafil", "viagra"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mitoKATP channel", "a": "opens", "t": "cardioprotective" },
+      { "f": "Complex I", "a": "enhances", "t": "via SIRT1/PGC-1α" }
+    ],
+    "pmid": 17157308,
+    "more": "sildenafil+mitochondrial+KATP+cardioprotection"
+  },
+  {
+    "name": "Tadalafil",
+    "k": ["tadalafil", "cialis"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "via PDE5 inhibition / cGMP" },
+      { "f": "Complex I", "a": "enhances", "t": "restores activity" }
+    ],
+    "pmid": 17157308,
+    "more": "PDE5+inhibitor+mitochondrial+biogenesis"
+  },
+  {
+    "name": "Montelukast",
+    "k": ["montelukast", "singulair"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "enhances", "t": "preserves activity" },
+      { "f": "Complex II", "a": "enhances", "t": "preserves activity" },
+      { "f": "ROS", "a": "decreases", "t": "scavenging" }
+    ],
+    "pmid": 20813166,
+    "more": "montelukast+mitochondrial+neuroprotection"
+  },
+  {
+    "name": "Losartan",
+    "k": ["losartan", "cozaar"],
+    "cat": "drug",
+    "effects": [
+      { "f": "NADPH oxidase", "a": "inhibits", "t": "blocks Ang II-ROS axis" },
+      { "f": "Mitochondrial ROS", "a": "decreases", "t": "cardioprotective" }
+    ],
+    "pmid": 23771688,
+    "more": "losartan+angiotensin+mitochondrial+ROS"
+  },
+  {
+    "name": "Lisinopril",
+    "k": ["lisinopril", "prinivil", "zestril"],
+    "cat": "drug",
+    "effects": [
+      { "f": "NADPH oxidase", "a": "inhibits", "t": "ACE inhibitor class effect" },
+      { "f": "Mitochondrial ROS", "a": "decreases", "t": "cardioprotective" }
+    ],
+    "pmid": 23771688,
+    "more": "ACE+inhibitor+mitochondrial+oxidative+stress"
+  },
+  {
+    "name": "Ramipril",
+    "k": ["ramipril", "altace"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "via reduced Ang II" },
+      { "f": "ROS", "a": "decreases", "t": "ACE inhibitor class effect" }
+    ],
+    "pmid": 23771688,
+    "more": "ramipril+mitochondrial+biogenesis"
+  },
+  {
+    "name": "DHEA",
+    "k": ["dhea", "dehydroepiandrosterone"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "IC50 ~13 µM, high dose" },
+      { "f": "ROS", "a": "increases", "t": "neurotoxic at supraphysiological dose" }
+    ],
+    "pmid": 16849397,
+    "more": "DHEA+mitochondrial+complex+I+inhibition"
+  },
+  {
+    "name": "Ashwagandha",
+    "k": ["ashwagandha", "withania", "withaferin"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex III", "a": "inhibits", "t": "withaferin A, selective for cancer cells" },
+      { "f": "ROS", "a": "increases", "t": "cancer cells, spares normal cells" }
+    ],
+    "pmid": 21853114,
+    "more": "withaferin+mitochondrial+complex+III"
+  },
+  {
+    "name": "St John's Wort",
+    "k": ["st john's wort", "st johns wort", "hypericum", "hypericin"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Membrane potential", "a": "disrupts", "t": "protonophore activity" },
+      { "f": "Mitochondrial ROS", "a": "decreases", "t": "paradoxical benefit" }
+    ],
+    "pmid": 25511254,
+    "more": "hypericum+mitochondrial+protonophore"
+  },
+  {
+    "name": "Rhodiola",
+    "k": ["rhodiola", "rhodiola rosea", "salidroside"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "via PGC-1α/SIRT1" },
+      { "f": "ATP production", "a": "increases", "t": "exercise performance" }
+    ],
+    "pmid": 24868319,
+    "more": "salidroside+mitochondrial+biogenesis+PGC1a"
+  },
+  {
+    "name": "5-HTP",
+    "k": ["5-htp", "5-hydroxytryptophan"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "serotonin via SIRT1" },
+      { "f": "H2O2", "a": "increases", "t": "MAO metabolism byproduct" }
+    ],
+    "pmid": 31072928,
+    "more": "serotonin+mitochondrial+biogenesis+SIRT1"
+  },
+  {
+    "name": "Ginseng",
+    "k": ["ginseng", "panax", "ginsenoside"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "ginsenoside Rh2, cancer cells" },
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "red ginseng, protective" }
+    ],
+    "pmid": 23506615,
+    "more": "ginsenoside+mitochondrial+complex+I"
+  },
+  {
+    "name": "Silymarin",
+    "k": ["silymarin", "milk thistle", "silibinin"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "enhances", "t": "restores activity" },
+      { "f": "Complex V", "a": "enhances", "t": "optimizes ATP synthase" },
+      { "f": "Electron leakage", "a": "decreases", "t": "reduces ROS" }
+    ],
+    "pmid": 28125040,
+    "more": "silymarin+mitochondrial+electron+transport"
+  },
+  {
+    "name": "Glycine",
+    "k": ["glycine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Glutathione", "a": "replenishes", "t": "GSH substrate" },
+      { "f": "Membrane potential", "a": "stabilizes", "t": "cytoprotective" },
+      { "f": "ATP production", "a": "increases", "t": "restores in aging" }
+    ],
+    "pmid": 29136945,
+    "more": "glycine+mitochondrial+glutathione+aging"
+  },
+  {
+    "name": "SAM-e",
+    "k": ["sam-e", "same", "s-adenosylmethionine", "ademetionine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Glutathione", "a": "replenishes", "t": "GSH precursor" },
+      { "f": "Mitochondrial respiration", "a": "improves", "t": "hepatoprotective" }
+    ],
+    "pmid": 20150243,
+    "more": "SAMe+mitochondrial+glutathione+liver"
+  },
+  {
+    "name": "Spirulina",
+    "k": ["spirulina", "arthrospira"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "NADPH oxidase", "a": "inhibits", "t": "phycocyanin" },
+      { "f": "Membrane potential", "a": "stabilizes", "t": "neuroprotective" }
+    ],
+    "pmid": 24691130,
+    "more": "spirulina+phycocyanin+mitochondrial+neuroprotection"
+  },
+  {
+    "name": "Glutamine",
+    "k": ["glutamine", "l-glutamine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "enhances", "t": "substrate for glutamate → α-KG → NADH" },
+      { "f": "Glutathione", "a": "replenishes", "t": "glutamate precursor for GSH" }
+    ],
+    "pmid": 28274332,
+    "more": "glutamine+mitochondrial+anaplerosis"
   }
 ]
