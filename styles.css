@@ -824,6 +824,29 @@ body {
   border-style: dashed; opacity: 0.75;
 }
 .context-card:has(.context-card-placeholder):hover { opacity: 1; }
+/* Food contaminant warnings on diet card */
+.diet-contaminants {
+  margin-top: 4px; font-size: 11px; color: #eab308; line-height: 1.4;
+  cursor: pointer; padding: 4px 0;
+}
+.diet-contaminants:hover { text-decoration: underline; }
+@media (pointer: coarse) {
+  .diet-contaminants { min-height: 44px; display: flex; align-items: center; }
+  .contaminant-detail-item a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 8px; }
+}
+.contaminant-section { margin: 16px 0 12px; }
+.contaminant-section-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.contaminant-detail-item {
+  font-size: 13px; line-height: 1.5; padding: 8px 10px; margin-bottom: 6px;
+  background: var(--bg-card); border-radius: 6px; border-left: 3px solid #eab308;
+}
+.contaminant-detail-item a { color: var(--accent); font-size: 11px; margin-left: 4px; }
+.contaminant-section:last-of-type .contaminant-detail-item { border-left-color: #22c55e; }
+.contaminant-actions { display: flex; gap: 8px; margin-top: 20px; }
+.contaminant-attribution {
+  margin-top: 12px; font-size: 11px; color: var(--text-muted); text-align: center;
+}
+.contaminant-attribution a { color: var(--text-muted); text-decoration: underline; }
 /* Health status dots */
 .ctx-health-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;

@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.10.3', date: '2026-03-25', title: 'Food Contaminants',
+    items: [
+      'Diet card scanned for food contaminant signals — pesticide residues (EWG Dirty Dozen) and plastic chemicals (PlasticList)',
+      'Clickable warning on diet card opens detail modal with sources and "Discuss with AI" prompt',
+      'Both mito warnings and food contaminants now included in AI context for smarter analysis',
+    ]
+  },
+  {
     version: '1.10.2', date: '2026-03-25', title: 'Mitochondrial Warnings',
     items: [
       'Supplements & medications scanned against independently compiled mitochondrial effects database (PubMed-cited)',

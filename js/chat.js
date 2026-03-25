@@ -12,6 +12,8 @@ import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, g
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 import { onChatSaved } from './sync.js';
+import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
+import { scanDietForContaminants } from './food-contaminants.js';
 
 // ═══════════════════════════════════════════════
 // ABORT CONTROLLER (stop streaming)
@@ -912,6 +914,15 @@ export function buildLabContext() {
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
       ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}\n`;
     }
+    // Mitochondrial harm warnings (from curated PubMed-cited database)
+    const mitoWarnings = scanSupplementsForWarnings(supps);
+    if (mitoWarnings.length > 0) {
+      ctx += `\nMitochondrial effects detected:\n`;
+      for (const w of mitoWarnings) {
+        const effects = w.effects.slice(0, 3).map(e => humanizeEffect(e, { showContext: true })).join('; ');
+        ctx += `- ${w.match}: ${effects} (PMID: ${w.pmid})\n`;
+      }
+    }
     ctx += `[/section:supplements]\n\n`;
   }
 
@@ -1012,6 +1023,13 @@ export function buildLabContext() {
     if (diet.foodSensitivities && diet.foodSensitivities.length) dParts.push(`Food sensitivities: ${diet.foodSensitivities.join(', ')}`);
     if (dParts.length) ctx += dParts.join('. ') + '\n';
     if (diet.note) ctx += `Notes: ${diet.note}\n`;
+    // Food contaminant scan (EWG + PlasticList)
+    const foodWarnings = scanDietForContaminants(diet);
+    const flagged = foodWarnings.filter(w => w.type !== 'clean');
+    if (flagged.length > 0) {
+      ctx += `\nFood contaminant signals:\n`;
+      for (const w of flagged) ctx += `- ${w.warning} (${w.source})\n`;
+    }
     ctx += `[/section:diet]\n\n`;
   }
 

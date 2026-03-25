@@ -34,9 +34,9 @@ export function lookupMitoCompound(name) {
   const q = name.toLowerCase().trim();
   if (q.length < 3) return null;
   // Exact keyword match first
-  let match = _mitoData.find(e => e.k.some(k => k === q));
+  let match = _mitoData.find(e => e.k?.some(k => k === q));
   // Word-boundary match — both query and keyword must be 4+ chars
-  if (!match) match = _mitoData.find(e => e.k.some(k => {
+  if (!match) match = _mitoData.find(e => e.k?.some(k => {
     if (k.length < 4 || q.length < 4) return false;
     const re = new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
     return re.test(q);

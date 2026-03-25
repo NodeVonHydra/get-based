@@ -8,6 +8,7 @@ import { saveImportedData, getActiveData } from './data.js';
 import { getLatitudeFromLocation, profileStorageKey } from './profile.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId } from './api.js';
 import { getEMFSeverity, trackUsage } from './schema.js';
+import { scanDietForContaminants } from './food-contaminants.js';
 
 function getEMFSummary() {
   const emf = state.importedData.emfAssessment;
@@ -66,6 +67,14 @@ export function getDietSummary(d) {
   if (d.foodSensitivities && d.foodSensitivities.length) parts.push('sensitivities: ' + d.foodSensitivities.join(', '));
   if (d.note) parts.push(d.note);
   return parts.join(', ');
+}
+
+function _renderDietContaminants() {
+  const warnings = scanDietForContaminants(state.importedData.diet);
+  if (warnings.length === 0) return '';
+  const flagged = warnings.filter(w => w.type !== 'clean').length;
+  if (flagged === 0) return '';
+  return `<div class="diet-contaminants" onclick="event.stopPropagation(); showDietContaminantsModal()">\u26A0\uFE0F ${flagged} food contaminant signal${flagged > 1 ? 's' : ''} detected</div>`;
 }
 
 export function getExerciseSummary(d) {
@@ -207,6 +216,7 @@ export function renderProfileContextCards() {
       ${summary
         ? `<div class="context-card-body">${escapeHTML(summary)}</div>`
         : `<div class="context-card-placeholder">${c.placeholder}</div>`}
+      ${c.key === 'diet' ? _renderDietContaminants() : ''}
       <div class="ctx-ai-summary" id="ctx-ai-${c.key}"></div>
     </div>`;
   }
@@ -1143,6 +1153,48 @@ export function renderInterpretiveLensSection() {
   return `<div class="lens-section" onclick="openInterpretiveLensEditor()" title="Interpretive Lens — click to edit"><span class="lens-section-icon">&#129694;</span><span class="lens-section-body"><span class="lens-section-label">Interpretive Lens</span><span class="lens-section-text">${escapeHTML(lens)}</span></span><span class="lens-section-edit">&#9998;</span></div>`;
 }
 
+// ── Diet contaminant detail modal ──
+export function showDietContaminantsModal() {
+  const warnings = scanDietForContaminants(state.importedData.diet);
+  if (warnings.length === 0) return;
+  const modal = document.getElementById('detail-modal');
+  const overlay = document.getElementById('modal-overlay');
+  const pesticide = warnings.filter(w => w.type === 'pesticide');
+  const plastic = warnings.filter(w => w.type === 'plastic');
+  const clean = warnings.filter(w => w.type === 'clean');
+  let html = `<button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Food Contaminant Signals</h3>
+    <div class="modal-unit">Based on foods mentioned in your diet card, cross-referenced against public contaminant databases.</div>`;
+  if (pesticide.length > 0) {
+    html += `<div class="contaminant-section"><div class="contaminant-section-title">\uD83E\uDD6C Pesticide Residues</div>`;
+    for (const w of pesticide) {
+      html += `<div class="contaminant-detail-item">\u26A0\uFE0F ${escapeHTML(w.warning)} <a href="${escapeHTML(w.url)}" target="_blank" rel="noopener">${escapeHTML(w.source)}</a></div>`;
+    }
+    html += `</div>`;
+  }
+  if (plastic.length > 0) {
+    html += `<div class="contaminant-section"><div class="contaminant-section-title">\uD83E\uDDF4 Plastic Chemicals</div>`;
+    for (const w of plastic) {
+      html += `<div class="contaminant-detail-item">\u26A0\uFE0F ${escapeHTML(w.warning)} <a href="${escapeHTML(w.url)}" target="_blank" rel="noopener">${escapeHTML(w.source)}</a></div>`;
+    }
+    html += `</div>`;
+  }
+  if (clean.length > 0) {
+    html += `<div class="contaminant-section"><div class="contaminant-section-title">\u2705 Low Contamination</div>`;
+    for (const w of clean) {
+      html += `<div class="contaminant-detail-item">${escapeHTML(w.warning)} <a href="${escapeHTML(w.url)}" target="_blank" rel="noopener">${escapeHTML(w.source)}</a></div>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="contaminant-actions">
+    <button class="import-btn import-btn-primary" onclick="closeModal(); window.openChatPanel(); setTimeout(() => window.useChatPrompt('What food contaminants should I be concerned about based on my diet?'), 300)">Discuss with AI</button>
+    <button class="import-btn import-btn-secondary" onclick="closeModal()">Close</button>
+  </div>
+  <div class="contaminant-attribution">Sources: <a href="https://www.ewg.org/foodnews/" target="_blank" rel="noopener">EWG Shopper's Guide 2025</a> · <a href="https://www.plasticlist.org/report" target="_blank" rel="noopener">PlasticList</a></div>`;
+  modal.innerHTML = html;
+  overlay.classList.add('show');
+}
+
 // ── Window exports for onclick handlers ──
 Object.assign(window, {
   getConditionsSummary,
@@ -1214,4 +1266,5 @@ Object.assign(window, {
   clearInterpretiveLens,
   renderInterpretiveLensSection,
   recordChange,
+  showDietContaminantsModal,
 });
