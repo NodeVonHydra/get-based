@@ -18,6 +18,9 @@ let _appOwner = null;
 let _readyPromise = null;
 let _queryLoaded = null;
 let _debounceTimer = null;
+let _pollInterval = null;
+let _lastPollRowCount = -1;
+let _subscriptionFireCount = 0;
 
 // ═══════════════════════════════════════════════
 // SETTINGS
@@ -95,6 +98,8 @@ export async function initSync() {
 
     // Subscribe to sync updates
     evolu.subscribeQuery(profileQuery)(() => {
+      _subscriptionFireCount++;
+      dbg(`subscription fired (#${_subscriptionFireCount}), syncing: ${_syncing}, pulling: ${_pulling}`);
       if (!_syncing && !_pulling) onSyncReceived();
     });
 
@@ -113,14 +118,24 @@ export async function initSync() {
       console.warn('[sync] Owner resolution failed:', e);
     });
 
-    // Debug helper — only in debug mode
-    if (isDebugMode()) {
-      window._syncDebug = {
-        getRows: () => evolu.getQueryRows(profileQuery),
-        getOwner: () => _appOwner,
-        evolu,
-      };
-    }
+    // Always expose debug helper (sync needs visibility)
+    window._syncDebug = {
+      getRows: () => evolu.getQueryRows(profileQuery),
+      getOwner: () => _appOwner,
+      evolu,
+    };
+
+    // Poll every 30s as safety net — subscribeQuery may miss remote changes
+    _pollInterval = setInterval(() => {
+      if (!evolu || !profileQuery || _syncing || _pulling) return;
+      const rows = evolu.getQueryRows(profileQuery);
+      const count = rows?.length ?? 0;
+      if (count !== _lastPollRowCount) {
+        dbg(`poll: row count changed ${_lastPollRowCount} → ${count}, triggering onSyncReceived`);
+        _lastPollRowCount = count;
+        onSyncReceived();
+      }
+    }, 30000);
 
     dbg('Initialized, relay:', relay);
   } catch (e) {
@@ -177,6 +192,7 @@ export async function disableSync() {
     _readyPromise = null;
     _queryLoaded = null;
     clearTimeout(_debounceTimer);
+    clearInterval(_pollInterval);
     showNotification('Sync disabled — reloading…', 'success');
     setTimeout(() => window.location.reload(), 500);
     return;
@@ -188,7 +204,55 @@ export async function disableSync() {
   _readyPromise = null;
   _queryLoaded = null;
   clearTimeout(_debounceTimer);
+  clearInterval(_pollInterval);
   showNotification('Sync disabled', 'success');
+}
+
+// ═══════════════════════════════════════════════
+// DIAGNOSTICS
+// ═══════════════════════════════════════════════
+
+function _syncDiag() {
+  const info = {
+    enabled: _syncEnabled,
+    evoluReady: !!evolu,
+    relay: getSyncRelay(),
+    mnemonic: _appOwner?.mnemonic ? _appOwner.mnemonic.split(' ').slice(0, 4).join(' ') + ' …' : null,
+    subscriptionFires: _subscriptionFireCount,
+    syncing: _syncing,
+    pulling: _pulling,
+  };
+  if (evolu && profileQuery) {
+    const rows = evolu.getQueryRows(profileQuery);
+    info.evoluRows = (rows || []).map(r => ({
+      profileId: r.profileId,
+      syncedAt: r.syncedAt,
+      dataSize: r.dataJson?.length ?? 0,
+    }));
+  }
+  // Show local sync timestamps
+  const tsList = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.endsWith('-sync-ts')) {
+      tsList.push({ key, ts: parseInt(localStorage.getItem(key), 10), date: new Date(parseInt(localStorage.getItem(key), 10)).toISOString() });
+    }
+  }
+  info.localTimestamps = tsList;
+  console.table?.(info.evoluRows);
+  console.log('[sync] Diagnostics:', JSON.stringify(info, null, 2));
+  return info;
+}
+
+function _forcePull() {
+  if (!evolu || !profileQuery) {
+    console.warn('[sync] Cannot force pull — Evolu not initialized');
+    return;
+  }
+  _pulling = false;
+  console.log('[sync] Force pull triggered');
+  onSyncReceived();
+  return 'triggered';
 }
 
 // ═══════════════════════════════════════════════
@@ -446,10 +510,14 @@ async function pushAllProfiles() {
 // ═══════════════════════════════════════════════
 
 async function onSyncReceived() {
-  if (!evolu || !profileQuery || _pulling) return;
+  if (!evolu || !profileQuery || _pulling) {
+    dbg('onSyncReceived skipped:', !evolu ? 'no evolu' : !profileQuery ? 'no query' : 'already pulling');
+    return;
+  }
   _pulling = true;
   try {
     const rows = evolu.getQueryRows(profileQuery);
+    dbg(`onSyncReceived: ${rows?.length ?? 0} rows`);
     if (!rows || rows.length === 0) return;
 
     let profilesChanged = false;
@@ -467,7 +535,11 @@ async function onSyncReceived() {
         const localMeta = localStorage.getItem(`labcharts-${profileId}-sync-ts`);
         const localUpdated = localMeta ? parseInt(localMeta, 10) : 0;
 
-        if (remoteUpdated <= localUpdated) continue;
+        if (remoteUpdated <= localUpdated) {
+          dbg(`Row ${profileId}: skip (remote ${remoteUpdated} <= local ${localUpdated})`);
+          continue;
+        }
+        console.log(`[sync] Row ${profileId}: PULLING (remote ${remoteUpdated} > local ${localUpdated})`);
 
         // Remote is newer — parse payload
         const { importedData, profile, aiSettings, chatData, displayPrefs } = parseSyncPayload(row.dataJson);
@@ -521,10 +593,11 @@ async function onSyncReceived() {
         if (profileId === state.currentProfile) {
           state.importedData = importedData;
           migrateProfileData(state.importedData);
-          // Reload chat threads into memory and re-render the thread list
+          // Reload chat threads into memory and re-render
           if (chatData) {
             window.loadChatThreads?.();
             window.renderThreadList?.();
+            window.renderChatMessages?.();
           }
           // Only auto-navigate if user is on the dashboard (don't interrupt other views)
           const activeNav = document.querySelector('.nav-item.active');
@@ -659,8 +732,12 @@ Object.assign(window, {
   getMnemonic,
   restoreFromMnemonic,
   isSyncEnabled,
+  pushCurrentProfile,
+  checkRelayConnection,
   isMessengerEnabled,
   getMessengerToken,
   generateMessengerToken,
   revokeMessengerToken,
+  _syncDiag,
+  _forcePull,
 });
