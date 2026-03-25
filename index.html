@@ -110,7 +110,6 @@
       </div>
       <input type="search" class="chat-thread-search" id="chat-thread-search" placeholder="Search conversations..." aria-label="Search conversations and messages" oninput="filterThreadList(this.value)" onsearch="filterThreadList(this.value)">
       <div class="chat-thread-list" id="chat-thread-list"></div>
-      <div id="chat-saved-summaries"></div>
     </div>
     <div class="chat-panel-conversation">
       <div class="chat-header">
@@ -127,12 +126,6 @@
             <input type="checkbox" id="chat-websearch-checkbox" aria-label="Toggle web search" onchange="setChatWebSearchEnabled(this.checked)">
             <span class="chat-toggle-slider"></span>
           </label>
-          <label class="chat-sources-toggle-label" title="Include scientific paper references">
-            <span class="chat-toggle-text">Sources</span>
-            <input type="checkbox" id="chat-sources-checkbox" aria-label="Toggle chat sources" onchange="setChatSourcesEnabled(this.checked)">
-            <span class="chat-toggle-slider"></span>
-          </label>
-          <button class="chat-summary-btn" onclick="summarizeThread()" title="Summarize this conversation">Summary</button>
           <button class="chat-clear-btn" onclick="clearChatHistory()" title="Clear history">Clear</button>
           <button class="chat-close-btn" onclick="closeChatPanel()" aria-label="Close chat">&times;</button>
         </div>
