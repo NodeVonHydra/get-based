@@ -27,7 +27,7 @@
     'NOTE should instruct AI to recommend panels and push for all cards');
   assert('No-data path flags missing demographics', chatSrc.includes('missingDemo') && chatSrc.includes("urge the user to set"),
     'Should add IMPORTANT warning when sex/DOB missing');
-  assert('Lab values section gated by hasLabData', chatSrc.includes('if (hasLabData) {\n    const rangeLabel'),
+  assert('Lab values section gated by hasLabData', chatSrc.includes('if (hasLabData) {') && chatSrc.includes("const rangeLabel"),
     'Lab values + flagged results should be wrapped in if (hasLabData)');
   assert('Flagged results inside hasLabData guard', chatSrc.includes("const allFlags = getAllFlaggedMarkers(data)") && chatSrc.includes("if (flags.length > 0)"),
     'Flagged results should be inside the hasLabData block');

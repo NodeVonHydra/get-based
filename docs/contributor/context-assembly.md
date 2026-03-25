@@ -68,57 +68,83 @@ Everything the AI can know about the user comes from these sources:
 
 Sections are ordered by priority — the AI sees "what are you trying to solve?" first, then "what do the numbers say?", then medical/lifestyle context. This exploits primacy bias in LLMs.
 
+Each section is wrapped in `[section:name]...[/section:name]` tags for machine-parsable extraction (used by OpenClaw bot). Flagged results use `[critical]...[/critical]`. Lab sections include an `updated:date` attribute.
+
 ```
 Lab data for current profile (sex: female, age: 34, unit system: SI, today: 2026-02-24,
   dates: Jan 15, Feb 20, Mar 10):
 
-## Health Goals (Things to Solve)          ←── 1. GOALS (what to optimize)
+[section:healthGoals]                      ←── 1. GOALS (what to optimize)
+## Health Goals (Things to Solve)
 ### Major Priority
 - Optimize thyroid function
 ### Mild Priority
 - Improve sleep quality
+[/section:healthGoals]
 
-## Interpretive Lens                       ←── 2. LENS (analytical framework)
+[section:interpretiveLens]                 ←── 2. LENS (analytical framework)
+## Interpretive Lens
 Quantum biology, functional medicine paradigm
+[/section:interpretiveLens]
+
+[index]                                    ←── category index for selective parsing
+Available sections: biochemistry, hormones, lipidPanel
+[/index]
 
 Note: status labels below use reference ranges.
 
-## Biochemistry                            ←── 3. LAB VALUES (the data)
+[section:biochemistry updated:2026-03-10]  ←── 3. LAB VALUES (the data)
+## Biochemistry
 - Glucose: Jan 15: 5.2, Feb 20: 5.0, Mar 10: 4.9 mmol/L (ref: 3.9–5.6, status: normal)
 - Creatinine: Jan 15: 72, Feb 20: 70 µmol/L (ref: 53–97, status: normal)
+[/section:biochemistry]
 
+[section:hormones updated:2026-02-20]
 ## Hormones
 - Estradiol: Jan 15: 180 [follicular, ref 77–921], Feb 20: 95 [luteal, ref 65–380] pmol/L
   ↑ phase-aware: each value shows its cycle phase + phase-specific ref range
+[/section:hormones]
 
-## Flagged Results (Latest)                ←── 4. FLAGS (quick-scan summary)
+[critical]                                 ←── 4. FLAGS (quick-scan summary)
+## Flagged Results (Latest)
 - Ferritin: 12 µg/L (LOW, range: 15–200)
+[/critical]
 
-## User Notes                              ←── 5. NOTES (temporal context)
+[section:userNotes]                        ←── 5. NOTES (temporal context)
+## User Notes
 - Jan 10: Started new thyroid medication
 - Feb 15: Feeling much better energy-wise
+[/section:userNotes]
 
-## Medical Conditions / Diagnoses          ←── 6. MEDICAL CONTEXT
+[section:diagnoses]                        ←── 6. MEDICAL CONTEXT
+## Medical Conditions / Diagnoses
 - Hashimoto's (major, since 2020)
 Notes: On levothyroxine 50mcg
+[/section:diagnoses]
 
-## Supplements & Medications               ←── 7. SUPPLEMENTS
+[section:supplements]                      ←── 7. SUPPLEMENTS
+## Supplements & Medications
 - Vitamin D3 (5000 IU) [supplement]: Jan 1 → ongoing
 - Magnesium glycinate (400mg) [supplement]: Jan 15 → ongoing
+[/section:supplements]
 
-## Menstrual Cycle                         ←── 8. CYCLE (female only)
+[section:menstrualCycle]                   ←── 8. CYCLE (female only)
+## Menstrual Cycle
 Profile: 28-day cycle (5-day period), regular, moderate flow.
 Recent periods: Jan 3-Jan 7 (moderate) [Cramps, Fatigue], ...
 Blood draw cycle context:
 - Jan 15: Day 13 (follicular phase)
 - Feb 20: Day 18 (luteal phase)
 Next optimal blood draw window: Mar 3-5
+[/section:menstrualCycle]
 
-## Diet                                    ←── 9-15. LIFESTYLE CARDS
+[section:diet]                             ←── 9-15. LIFESTYLE CARDS
+## Diet & Digestion
 Type: Mediterranean. Pattern: 3 meals.
 Breakfast (07:00): eggs, avocado
 Lunch (12:30): salad with chicken
 Dinner (19:00): salmon, vegetables
+[/section:diet]
 
 ## Exercise & Movement
 Frequency: 4x/week. Types: weights, yoga. Intensity: moderate.
@@ -549,6 +575,17 @@ Each entry documents:
 - Enables temporal correlation: AI can connect a diet change on March 1 to a lab shift on March 15
 
 **Files modified**: `js/state.js`, `js/profile.js`, `js/context-cards.js`, `js/cycle.js`, `js/chat.js`, `js/export.js`, `tests/test-change-history.js`, `CLAUDE.md`
+
+### 2026-03b — Section Tags
+
+**Machine-parsable section tags** (`buildLabContext`)
+- Every section wrapped in `[section:name]...[/section:name]` tags for programmatic extraction (used by OpenClaw bot)
+- Flagged results wrapped in `[critical]...[/critical]`
+- Lab category sections include `updated:date` attribute with last data date
+- New `[index]` block listing available lab category keys
+- No change to content within sections — tags are additive
+
+**Files modified**: `js/chat.js`, `tests/test-prelab.js`
 
 ## Source Files
 
