@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.10.1', date: '2026-03-25', title: 'Chat Summaries',
+    items: [
+      'Summarize any conversation thread — generates structured notes with key findings, action items, and open questions',
+      'Summary modal with copy, download (.md), and print',
+      'Saved summaries persisted per-profile and listed in the thread rail',
+    ]
+  },
+  {
     version: '1.10.0', date: '2026-03-25', title: 'Context Tags',
     items: [
       'Section tags in AI context output — machine-parsable [section:name] tags for OpenClaw bot integration',

@@ -380,7 +380,8 @@ export async function exportClientJSON(profileId, includeChat = false) {
     emfAssessment: data.emfAssessment || null,
     genetics: data.genetics || null,
     markerNotes: data.markerNotes || {},
-    changeHistory: data.changeHistory || []
+    changeHistory: data.changeHistory || [],
+    chatSummaries: data.chatSummaries || []
   };
   if (includeChat) {
     const chat = await _exportChatData(profileId);
@@ -616,6 +617,16 @@ export function importDataJSON(file) {
         state.importedData.changeHistory.sort((a, b) => a.date.localeCompare(b.date));
         while (state.importedData.changeHistory.length > 200) state.importedData.changeHistory.shift();
       }
+      // Import chat summaries (merge by threadId)
+      if (Array.isArray(json.chatSummaries)) {
+        if (!state.importedData.chatSummaries) state.importedData.chatSummaries = [];
+        for (const s of json.chatSummaries) {
+          if (!s.threadId) continue;
+          const idx = state.importedData.chatSummaries.findIndex(e => e.threadId === s.threadId);
+          if (idx >= 0) { state.importedData.chatSummaries[idx] = s; }
+          else { state.importedData.chatSummaries.push(s); }
+        }
+      }
       // Import supplements
       if (json.supplements && Array.isArray(json.supplements)) {
         if (!state.importedData.supplements) state.importedData.supplements = [];
@@ -744,6 +755,16 @@ async function _importDatabaseBundle(json) {
         }
         current.changeHistory.sort((a, b) => a.date.localeCompare(b.date));
         while (current.changeHistory.length > 200) current.changeHistory.shift();
+      }
+      // Chat summaries: merge by threadId
+      if (Array.isArray(importData.chatSummaries)) {
+        if (!current.chatSummaries) current.chatSummaries = [];
+        for (const s of importData.chatSummaries) {
+          if (!s.threadId) continue;
+          const idx = current.chatSummaries.findIndex(e => e.threadId === s.threadId);
+          if (idx >= 0) { current.chatSummaries[idx] = s; }
+          else { current.chatSummaries.push(s); }
+        }
       }
       // Display overrides: merge labels/icons (don't overwrite existing)
       for (const field of ['categoryLabels', 'categoryIcons', 'markerLabels']) {

@@ -1,0 +1,4565 @@
+[
+  {
+    "slug": "abamektin",
+    "name": "abamektin",
+    "nameEn": null,
+    "cas": "71751-41-2",
+    "formula": "C95H142O28",
+    "categories": [
+      "insecticide"
+    ],
+    "effects": [
+      "Na hmyz působí abamektin tím, že narušuje nervové a nervosvalové přenosy.",
+      "Podání velmi vysoké dávky způsobilo smrt v důsledku selhání dýchacího ústrojí.",
+      "Abamektin je vysoce toxický pro ryby a bezobratlé vodní živočichy.",
+      "K hlavním zaznamenaným účinkům patřily ty plynoucí z usmrcení parazitů – tzv."
+    ],
+    "foundIn": [
+      "Jedná se o směs avermektinu B1a a B1b.",
+      "V horních vrstvách půdy podléhá fotodegradaci do 21 hodin.",
+      "Důležitou úlohu hraje i mikrobiální rozklad.",
+      "Abamektin je vysoce toxický pro vodní organizmy i savce.",
+      "Člověk je abamektinu vystaven především při nesprávné manipulaci."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/abamektin"
+  },
+  {
+    "slug": "alachlor",
+    "name": "alachlor",
+    "nameEn": null,
+    "cas": "15972-60-8",
+    "formula": "C14H20ClNO2",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated"
+    ],
+    "effects": [
+      "Byl také testovaný na reprodukční a vývojovou toxicitu a na karcinogenní účinky.",
+      "Alachlor je vysoce toxický pro vodní prostředí.",
+      "Je sledován v rámci komplexního monitoringu."
+    ],
+    "foundIn": [
+      "Riziko představuje i kontaminovaná voda a potraviny.",
+      "Alachlor je díky své rozpustnosti v prostředí velmi mobilní.",
+      "V atmosféře dochází k rozkladu alachloru přibližně do 2 hodin.",
+      "V půdě je herbicid mobilní, ale poměrně rychle biodegraduje (řády dnů).",
+      "Alachlor je klasifikován jako podezřelý lidský karcinogen."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/alachlor"
+  },
+  {
+    "slug": "aldrin",
+    "name": "aldrin",
+    "nameEn": null,
+    "cas": "309-00-2",
+    "formula": "C12H8Cl6",
+    "categories": [
+      "fungicide",
+      "insecticide",
+      "pesticide",
+      "halogenated",
+      "teratogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Poškozuje imunitní a reprodukční systém.",
+      "Zatížení obyvatelstva ČR touto látkou je sledováno od roku 1994.",
+      "Expozice není významná."
+    ],
+    "foundIn": [
+      "Aldrin je uměle vytvořený organochlorový insekticid.",
+      "Jeho použití bylo ve většině zemích světa zakázáno již v 70.",
+      "letech minulého století.",
+      "Aldrin je schopen významné bioakumulace v potravních řetězcích.",
+      "Aldrinu je člověk vystaven především konzumací zasažené potravy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/aldrin"
+  },
+  {
+    "slug": "alfa-hexachlorcyklohexan",
+    "name": "alfa hexachlorcyklohexan (alfa HCH)",
+    "nameEn": null,
+    "cas": "319-84-6",
+    "formula": "C6H6Cl6",
+    "categories": [
+      "pop",
+      "pbt",
+      "pesticide",
+      "reprotoxic",
+      "aquatic_toxin",
+      "insecticide",
+      "carcinogen"
+    ],
+    "effects": [
+      "Alfa a gama HCH jsou izomery HCH s nejvyšším neurotoxickým potenciálem.",
+      "Toxicita u potkanů (LD50) je stanovena na 177 mg/l."
+    ],
+    "foundIn": [
+      "Alfa HCH  je jedním ze šesti izomerů hexachlorcyklohexanu .",
+      "V minulosti se využíval jako insekticid.",
+      "V přostředí se díky tomu vyskytují velké zásoby alfa a beta HCH."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/alfa-hexachlorcyklohexan"
+  },
+  {
+    "slug": "alkylfenoly",
+    "name": "alkylfenoly",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Zdravotní rizika spojené s působením AP na člověka jsou stále nejasné.",
+      "Nicméně nejnovější výzkumy zkoumající přímé účinky těchto látek na člověka např.",
+      "zaznamenaly poškození DNA v lidských lymfocytech."
+    ],
+    "foundIn": [
+      "AP se bioakumulují v potravních řetězcích",
+      "pro vodní organizmy jsou vysoce toxické."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/alkylfenoly"
+  },
+  {
+    "slug": "aminoazobenzen",
+    "name": "aminoazobenzen",
+    "nameEn": null,
+    "cas": "60-09-3",
+    "formula": "C12H11N3",
+    "categories": [
+      "carcinogen"
+    ],
+    "effects": [
+      "Tato látka může u lidí vyvolat rakovinu.",
+      "S vodou tvoří toxické směsi bez ohledu na zředění."
+    ],
+    "foundIn": [
+      "Těžiště použití této látky je především jako pigment a inkoust.",
+      "V půdě je aminobenzen pevně vázán, pozvolna dochází k jeho biodegradaci.",
+      "Stále nejsou známy podrobné informace o osudu této látky v životním prostředí.",
+      "Bioakumulace aminobenzenu není popsána.",
+      "Aminoazobenzen je vysoce toxický pro vodní organizmy."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/aminoazobenzen"
+  },
+  {
+    "slug": "amoniak-cpavek",
+    "name": "amoniak (čpavek)",
+    "nameEn": null,
+    "cas": "7664-41-7",
+    "formula": "NH3",
+    "categories": [
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Při vysokých hodnotách koncentrací mohou vznikat záněty kůže, očí, hrdla a plic."
+    ],
+    "foundIn": [
+      "Amoniak a jeho sloučeniny patří v zemědělství k nejpoužívanějším hnojivům.",
+      "Jedná se o za normálních podmínek silně a typicky čpící bezbarvý plyn.",
+      "Amoniak je přirozenou součástí koloběhu dusíku.",
+      "Významným zdrojem je i nadměrné užívání dusíkatých hnojiv.",
+      "Amoniak je vysoce toxický pro vodní organizmy."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/amoniak-cpavek"
+  },
+  {
+    "slug": "anilin",
+    "name": "anilin",
+    "nameEn": null,
+    "cas": "62-53-3",
+    "formula": "C6H5NH2",
+    "categories": [
+      "aquatic_toxin"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Do prostředí se anilin dostává při výrobě, manipulaci i nevhodné likvidaci.",
+      "Je obsažen např.",
+      "v tabákovém kouři.",
+      "Z vody i půdy je možný zpětný odpar do atmosféry.",
+      "U anilinu není popsána bioakumulace v potravních řetězcích."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/anilin"
+  },
+  {
+    "slug": "anthracen",
+    "name": "anthracen",
+    "nameEn": null,
+    "cas": "120-12-7",
+    "formula": "C14",
+    "categories": [
+      "mutagen",
+      "pop"
+    ],
+    "effects": [
+      "Anthracen působí na kůži, srdcecevní systém, lymfatický a trávící systém.",
+      "Důkazy o tom, že má karcinogenní, mutagenní či teratogenní účinky nejsou.",
+      "Anthracen však může významně zvýšit mutagenní aktivitu benzo(a)pyrenu.",
+      "Anthracen je na seznamu látek toxických pro vodní prostředí."
+    ],
+    "foundIn": [
+      "Anthracen vyvolává podráždění kůže, očí, dýchacích cest a je mutagenní.",
+      "Anthracen je pod autorizací REACH."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/anthracen"
+  },
+  {
+    "slug": "antimon",
+    "name": "antimon",
+    "nameEn": null,
+    "cas": "7440-36-0",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "reprotoxic",
+      "carcinogen"
+    ],
+    "effects": [
+      "Pokusná zvířata měla poškozena játra, ledviny, plíce, srdce, oči."
+    ],
+    "foundIn": [
+      "Antimon (Sb) je stříbrolesklý polokov.",
+      "Sb je hlavní složkou řady barev a pigmentů.",
+      "Dříve se používal v tiskařství ve slitině na výrobu liter.",
+      "Sb je v malých koncentracích přirozenou součástí životního prostředí.",
+      "Na pohybu a transformaci Sb v prostředí neexistuje v současné vědě shoda."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/antimon"
+  },
+  {
+    "slug": "arsen",
+    "name": "arsen",
+    "nameEn": null,
+    "cas": "7440-38-2",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Vyšší dávky mohou organismus poškodit.",
+      "Toxicita arsenu závisí na oxidačním stupni.",
+      "Sloučeniny As III jsou asi 5x až 20x toxičtější než As V .",
+      "Patří mezi nervové kumulativní jedy (značně se kumuluje např."
+    ],
+    "foundIn": [
+      "Arsen je polokovový prvek, tzv.",
+      "Arsen v životním prostředí nedegraduje",
+      "Toxické účinky arsenu jsou známy již od Středověku.",
+      "Jde o mutagenní a karcinogenní látku (1.",
+      "kategorie IARC)."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/arsen"
+  },
+  {
+    "slug": "atrazin",
+    "name": "atrazin",
+    "nameEn": null,
+    "cas": "1912-24-9",
+    "formula": "C8H14ClN5",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "teratogen",
+      "reprotoxic",
+      "pop",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "Narušuje přirozený vývoj populací půdních organismů.",
+      "Experti se dohadují, zda je atrazin rakovinotvorný či nikoliv."
+    ],
+    "foundIn": [
+      "Atrazin je uměle vytvořený herbicid.",
+      "Člověk je atrazinu vystaven především pitím znečištěné vody.",
+      "V úvahu připadá i profesní expozice.",
+      "Atrazin není považován za lidský karcinogen.",
+      "U atrazinu není známá bioakumulace."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/atrazin"
+  },
+  {
+    "slug": "azbest",
+    "name": "azbest",
+    "nameEn": null,
+    "cas": "12001-29-5",
+    "formula": null,
+    "categories": [
+      "carcinogen"
+    ],
+    "effects": [
+      "Ale tyto výrobky neobsahují azbest vždy.",
+      "Vyšší hodnoty bývají naměřeny ve městech, kde může být 2-300 vláken na m3.",
+      "Největší riziko hrozí lidem, kteří s azbestem pracují (např.",
+      "v řádech tisíců vláken na m3 i víc - v závislosti na situaci).",
+      "Další možností expozice lidí vůči azbestu je konzumace vláken spolu s vodou.",
+      "Některá se zachytí v jiných tkáních a některá jsou vyloučena v moči."
+    ],
+    "foundIn": [
+      "Jsou bez zápachu i chuti.",
+      "Pro člověka je nebezpečná především jejich inhalace.",
+      "Asbestová vlákna mechanicky poškozují dýchací cesty",
+      "od podráždění, k fibróze až k rakovině plic.",
+      "Azbest je nerozpustný a v životním prostředí perzistentní."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/azbest"
+  },
+  {
+    "slug": "baryum",
+    "name": "baryum",
+    "nameEn": null,
+    "cas": "13494-80-9",
+    "formula": null,
+    "categories": [
+      "heavy_metal"
+    ],
+    "effects": [
+      "V lidském organismu je baryum obsaženo průměrně v 0,23 mg/kg tělesné váhy.",
+      "pravděpodobně esenciálním prvkům.",
+      "Oxid, hydroxid a chlorid barya vyvolávají vyrážky a mohou těžce poškodit oči.",
+      "Smrtelná dávka je 0,8 až 2 g.",
+      "Vdechováním prachových částic barya může dojít k zánětům průdušek a plic.",
+      "let – zdroj: Trebichavský et al."
+    ],
+    "foundIn": [
+      "Baryum (Ba) je měkký a lehký kov alkalických zemin.",
+      "V zemské kůře není vzácný (15.",
+      "místo), v čisté formě se ale přirozeně nevyskytuje.",
+      "Sloučeniny Ba nachází v lidské společnosti relativně bohaté uplatnění.",
+      "Ba je přirozenou součástí životního prostředí."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/baryum"
+  },
+  {
+    "slug": "benzen",
+    "name": "benzen",
+    "nameEn": null,
+    "cas": "71-43-2",
+    "formula": "C6H6",
+    "categories": [
+      "carcinogen",
+      "voc",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Dlouhodobá expozice benzenu má negativní vliv na krev.",
+      "Zvyšuje krvácivost a oslabuje imunitní systém člověka.",
+      "Chronická otrava vyvolává také poškození jater, ledvin a úbytek bílých krvinek.",
+      "F., Schrader, J."
+    ],
+    "foundIn": [
+      "Člověk je vystaven benzenu zejména vdechováním.",
+      "V těle zasahuje primárně hojně prokrvené orgány (kostní dřeň, játra).",
+      "Při chronickém působení zabíjejí metabolity benzenu.",
+      "Dochází k poškození plic a červených i bílých krvinek.",
+      "Hlavním zdrojem benzenu v životním prostředí je automobilová doprava"
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/benzen"
+  },
+  {
+    "slug": "benzoapyren",
+    "name": "benzo(a)pyren",
+    "nameEn": null,
+    "cas": "50-32-8",
+    "formula": "C20H12",
+    "categories": [
+      "pbt",
+      "pop",
+      "carcinogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Benzo(a)pyren je toxický, mutagenní.",
+      "Může být vdechnut, ale prostupuje do organismu i pokožkou.",
+      "Kožní onemocnění způsobuje také u zvířat."
+    ],
+    "foundIn": [
+      "Přirozeně se BaP do prostředí uvolňuje při požárech a vulkanické činnosti.",
+      "Rozkládá se vlivem slunečního záření i reakcemi s ozónem nebo NO 2 .",
+      "V půdě je pevně vázán, neprosakuje do podzemních vod.",
+      "Většina organizmů umí BaP metabolizovat.",
+      "Běžně BaP především dýcháme."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/benzoapyren"
+  },
+  {
+    "slug": "benzoghiperylen-bghip",
+    "name": "benzo(g,h,i)perylen (BghiP)",
+    "nameEn": null,
+    "cas": "191-24-2",
+    "formula": "C22H12",
+    "categories": [
+      "carcinogen",
+      "mutagen",
+      "aquatic_toxin",
+      "pop"
+    ],
+    "effects": [
+      "Pro člověka představuje benzo(g,h,i)perylen závažné riziko pro zdraví.",
+      "Do organismu může vstoupit gastrointestinálním traktem, pokožkou i plícemi.",
+      "Souhrnná toxikologická studie však nebyla provedena.",
+      "Závažná je především jeho karcinogenita a teratogenita.",
+      "Tyto vlastnosti byly prokázány v testech na zvířatech."
+    ],
+    "foundIn": [
+      "Benzo(g,h,i)perylen se běžně vyskytuje v černouhelném dehtu, naftě, asfaltu",
+      "jeho využití je však prakticky omezeno jen na laboratorní praxi.",
+      "Důležitým zdrojem je i doprava.",
+      "Benzo(g,h,i)perylen je řazen mezi teratogenní látky (poškozujíící lidský plod).",
+      "Do organizmu se nejčastěji dostává vdechnutím, pozřením, nebo kožním kontaktem."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/benzoghiperylen-bghip"
+  },
+  {
+    "slug": "beta-hexachlorcyklohexan",
+    "name": "beta hexachlorcyklohexan (beta HCH)",
+    "nameEn": null,
+    "cas": "319-85-7",
+    "formula": "C6H6Cl6",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "aquatic_toxin",
+      "reprotoxic",
+      "pbt",
+      "pop",
+      "carcinogen"
+    ],
+    "effects": [
+      "Toxicita u potkanů (LD50) je stanovena na 3089,5 mg/l."
+    ],
+    "foundIn": [
+      "Beta HCH  je jedním ze šesti izomerů hexachlorcyklohexanu .",
+      "V minulosti se využíval jako insekticid.",
+      "V přostředí se díky tomu vyskytují velké zásoby alfa a beta HCH.",
+      "Hromadí se v tkánich živočichů a stává se tak součástí potravního řetězce."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/beta-hexachlorcyklohexan"
+  },
+  {
+    "slug": "bis2-ethylhexyladipat-deha",
+    "name": "bis(2-ethylhexyl) adipát (DEHA)",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C22H42O4",
+    "categories": [],
+    "effects": [
+      "Vliv DEHA na vznik vývojových abnormalit dle studie ICI byl již popsán dříve."
+    ],
+    "foundIn": [
+      "DEHA dobře biodegraduje, není známá výrazná akumulace v organických tkáních.",
+      "Člověk je nejčastěji DEHA vystaven v kontaminované stravě",
+      "Veškeré studie toxicity DEHA pochází pouze z laboratorních pokusů na zvířatech.",
+      "Akutní expozice vedla jen ke krátkodobému podráždění kůže.",
+      "Pouze u myší byl prokázán výskyt rakoviny jater."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bis2-ethylhexyladipat-deha"
+  },
+  {
+    "slug": "bis-2-etylhexyl-isoftalat",
+    "name": "bis(2-etylhexyl) isoftalát (DOIP)",
+    "nameEn": null,
+    "cas": "137-89-3",
+    "formula": null,
+    "categories": [
+      "reprotoxic",
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "DOIP je dle platné evropské legislativy (Nařízení Evropské komise č.",
+      "1272/2008) klasifikován jako látka toxická pro reprodukci, kategorie 1B.",
+      "Jedná se o druhý nejvyšší stupeň rizika toxicity pro reprodukci.",
+      "Důsledkem je tzv.demaskulinizace populace.",
+      "Současně je to látka akutně toxická pro vodní organismy."
+    ],
+    "foundIn": [
+      "DOIP může představovat až 40% finálního výrobku.",
+      "DOIP je akutně toxický pro vodní organizmy.",
+      "DOIP je dle platné evropské legislativy (Nařízení Evropské komise č.",
+      "1272/2008) klasifikován jako látka toxická pro reprodukci, kategorie 1B.",
+      "Důsledkem je tzv."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bis-2-etylhexyl-isoftalat"
+  },
+  {
+    "slug": "dotp",
+    "name": "bis-2-ethylhexyltereftalát (DOTP, DEHT)",
+    "nameEn": null,
+    "cas": "6422-86-2",
+    "formula": "C24H38O4",
+    "categories": [],
+    "effects": [
+      "Působení této látky jsou vystaveni především lidé pracující s DOTP.",
+      "Množství studií, které zkoumají působení DOTP na organismus je velmi málo.",
+      "Vesměs se jedná o laboratorní výzkumy prováděné na zvířatech."
+    ],
+    "foundIn": [],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dotp"
+  },
+  {
+    "slug": "bisfenol-a",
+    "name": "bisfenol A",
+    "nameEn": null,
+    "cas": "80-05-7",
+    "formula": "C15H16O2",
+    "categories": [
+      "aquatic_toxin",
+      "reprotoxic",
+      "teratogen",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "BPA je charakterizován jako reprodukční toxická látka kategorie 1B.",
+      "Může ohrozit vývoj plodu, miminek i dětí.",
+      "BPA zvyšuje i odolnost karcinomu proti případné chemoterapii.",
+      "Studie ukázaly i problémy s oběhovým systémem.",
+      "BPA je schopen feminizovat samce obojživelníků a ryb.",
+      "Může také přispívat k výskytu intersexu např."
+    ],
+    "foundIn": [],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bisfenol-a"
+  },
+  {
+    "slug": "bismut",
+    "name": "bismut",
+    "nameEn": null,
+    "cas": "7440-69-9",
+    "formula": null,
+    "categories": [
+      "heavy_metal"
+    ],
+    "effects": [
+      "Projevy akutní otravy bismutem se podobají akutní otravě olovem či rtutí.",
+      "Časté jsou vyrážky a pigmentace kůže.",
+      "Chronická otrava u lidí není známa."
+    ],
+    "foundIn": [
+      "Bismut je velmi toxický pro rostliny.",
+      "Typická je tzv bizmutová linie, tmavě fialový lem zubů."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bismut"
+  },
+  {
+    "slug": "bitertanol",
+    "name": "bitertanol",
+    "nameEn": null,
+    "cas": "55179-31-2",
+    "formula": "C20H23N3O2",
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "Bitertanol je mírně toxický pro žížaly.",
+      "pro savce nízká toxicita (krysy: orální LD 50> 5000 mg/kg tělesné hmotnosti",
+      "dermální LD 50> 5000 mg/kg tělesné hmotnosti).",
+      "Bitertanol není toxický pro včely.",
+      "Bitertanol je dráždivý pro oči.",
+      "Požití velkého množství může vyvolat malátnost a nevolnost."
+    ],
+    "foundIn": [
+      "Bitertanol patří do skupiny triazolových fungicidů.",
+      "Bitertanol je toxický pro vodní organizmy a zachovává si svůj pesticidní účinek.",
+      "V půdě je relativně málo mobilní, je možný průsak do spodních vod.",
+      "Pro člověka je bitrtanol jen mírně akutně toxický.",
+      "Možný je přenos přes pokožku, vdechnutím i pozřením."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bitertanol"
+  },
+  {
+    "slug": "bromovane-dioxiny",
+    "name": "bromované dioxiny (PBDD/PBDF)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pop",
+      "pbt",
+      "teratogen",
+      "halogenated",
+      "reprotoxic"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Pro člověka je riziková především konzumace kontaminované potravy."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bromovane-dioxiny"
+  },
+  {
+    "slug": "bfr",
+    "name": "bromované zpomalovače hoření (BFRs)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "BFRs jsou velmi účinné a oblíbené především v textiliích, nábytku a elektronice.",
+      "Mezi zpomalovači hoření patří ty s bromem mezi nejoblíbenější.",
+      "Většina BFRs je toxických.",
+      "BFRs poškozují imunitní, endokrinní a reprodukční systém.",
+      "Mají negativní vliv správný vývoj plodu."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bfr"
+  },
+  {
+    "slug": "bromuconazol",
+    "name": "bromuconazol",
+    "nameEn": null,
+    "cas": "116255-48-2",
+    "formula": "C13H12BrCl2N3O",
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "Tato látka se do lidského těla může dostat vdechnutím nebo požitím.",
+      "Bromuconazol nezvyšuje citlivost pokožky."
+    ],
+    "foundIn": [
+      "Bromuconazol je uměle vytvořená organická sloučenina používaná jako fungicid.",
+      "Z půdy ani vody nedochází k  zpětnému odparu do ovzduší.",
+      "V EU je tato látka povolena."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/bromuconazol"
+  },
+  {
+    "slug": "butyl-hydroxytoluen",
+    "name": "butyl-hydroxytoluen",
+    "nameEn": null,
+    "cas": "128-37-0",
+    "formula": "C15H24O",
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "Běžně je BHT vyráběn uměle, syntézy jsou ale schopny i některé řasy a sinice.",
+      "používá se především proti zpomalení žluknutí tuků, olejů a aromat.",
+      "Uplatnění nalézá také v kosmetickém průmyslu (rtěnky, řasenky, parfémy).",
+      "Může vyvolat podráždění kůže, očí i horních cest dýchacích.",
+      "Po požití způsobuje bolesti, nevolnost, zvracení a průjmy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/butyl-hydroxytoluen"
+  },
+  {
+    "slug": "butyl-benzyl-ftalat-bbp",
+    "name": "butyl benzyl ftalát (BBP)",
+    "nameEn": null,
+    "cas": "85-68-7",
+    "formula": "C19H20O4",
+    "categories": [
+      "aquatic_toxin",
+      "reprotoxic"
+    ],
+    "effects": [
+      "BBP je dle platné evropské legislativy (Nařízení Evropské komise č.",
+      "Jedná se o druhý nejvyšší stupeň rizika toxicity pro reprodukci.",
+      "Několik studí potvrzenuje toxicutu BBP pro vývoj plodu a reprodukční orgány.",
+      "To je považováno za jeden ze znaků mužského pohlaví."
+    ],
+    "foundIn": [
+      "Jedná se o změkčovadlo především pro PVC ale i jiné polymery.",
+      "Vstupní branou do prostředí jsou jeho emise do odpadních vod a atmosféry.",
+      "BBP je vysoce toxický pro vodní organizmy s dlouhou dobou účinku."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/butyl-benzyl-ftalat-bbp"
+  },
+  {
+    "slug": "celkovy-dusik",
+    "name": "celkový dusík",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [],
+    "effects": [
+      "Zvýšený obsah dusičnanů ve vodě může po jejím vypití vést k vzniku tzv.",
+      "methemoglobinemie, při které krev není schopna vázat a přenášet kyslík.",
+      "Na methemoglobinemii jsou citlivý především kojenci do 3.",
+      "Proces vzniku methemoglobinu je reverzibilní."
+    ],
+    "foundIn": [
+      "Zvýšený obsah dusičnanů ve vodě může po jejím vypití vést k vzniku tzv.",
+      "methemoglobinémie, při které krev není schopna vázat a přenášet kyslík.",
+      "Ohrožení jsou především kojenci do 3 měsíců."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/celkovy-dusik"
+  },
+  {
+    "slug": "celkovy-fosfor",
+    "name": "celkový fosfor",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [],
+    "effects": [],
+    "foundIn": [],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/celkovy-fosfor"
+  },
+  {
+    "slug": "celkovy-organicky-uhlik-toc",
+    "name": "celkový organický uhlík (TOC)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "Využitelný je taktéž pro sledovaní emisí vypouštěných do vod.",
+      "Hlavní uplatnění však již od 70.",
+      "let minulého století nalézá při kontrole kvality čištění pitných vod.",
+      "TOC může označovat i celkové organické látky vypouštěné v emisích do ovzduší.",
+      "Zařadit mezi ně např."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/celkovy-organicky-uhlik-toc"
+  },
+  {
+    "slug": "cypermethrin",
+    "name": "cypermethrin",
+    "nameEn": null,
+    "cas": "52315-07-8",
+    "formula": "C22H19Cl2NO3",
+    "categories": [
+      "insecticide",
+      "pesticide"
+    ],
+    "effects": [
+      "Nicméně u některých myších samic se objevily benigní (nezhoubné) nádory plic.",
+      "Cypermethrin je vysoce toxický pro ryby, včely a vodní hmyz.",
+      "Podle některých studií se cypermethrin u lidí rychle vylučuje z těla.",
+      "To ovšem nesnižuje jeho rizikovost v jiných směrech.",
+      "US EPA klasifikuje cypermethrin jako možný lidský karcinogen (skupina C)."
+    ],
+    "foundIn": [
+      "v přípravku Raid.",
+      "Expozice slunečnímu záření, vodě a kyslíku urychluje jeho rozklad.",
+      "Díky jeho širokému účinku vůči hmyzu, je jeho plošné použití problémové.",
+      "Cypermethrin je vysoce toxický pro vodní organizmy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/cypermethrin"
+  },
+  {
+    "slug": "cyprodinil",
+    "name": "cyprodinil",
+    "nameEn": null,
+    "cas": "121552-61-2",
+    "formula": "C14H15N3",
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "Přípravky obsahující cyprodinil mohou vyvolat alergické reakce.",
+      "Je dráždivý pro pokožku, dýchací cesty a oči.",
+      "Toxický pro vodní organismy, pro bezobratlé.",
+      "Pro ptáky, drobné savce, žížaly a včely je prakticky netoxický.",
+      "Středně toxický je pro ryby.",
+      "Cyprodinil není mutagenní ani teratogenní."
+    ],
+    "foundIn": [
+      "Cyprodinil je aplikován ve formě vodného roztoku přímo na listy rostlin.",
+      "V ČR bylo v roce použito bezmála 8 tun této látky.",
+      "Ve vodě sedimentuje navázán především na organické částice.",
+      "Potenciál bioakumulace cyprodinilu je u vodních organizmů relativně vysoký.",
+      "Člověk může být této látce vystaven vdechnutím, pozřením i kožním kontaktem."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/cyprodinil"
+  },
+  {
+    "slug": "dekabromdifenylether-dekabde",
+    "name": "dekabromdifenylether (dekaBDE)",
+    "nameEn": null,
+    "cas": "1163-19-5",
+    "formula": null,
+    "categories": [
+      "aquatic_toxin",
+      "pbt",
+      "pop",
+      "halogenated",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Je toxický pro vodní organismy.",
+      "Jeho negativní zdravotní dopady jsou doloženy převážně ze studií na zvířatech.",
+      "Právě štítná žláza ovlivňuje zdravý vývoj mozku na mnoha frontách.",
+      "Je též charakterizován jako reprodukční toxická látka.",
+      "Proto je zařazen do skupiny tzv."
+    ],
+    "foundIn": [
+      "V surovém stavu je bílý prášek bez zápachu."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dekabromdifenylether-dekabde"
+  },
+  {
+    "slug": "deltamethrin",
+    "name": "deltamethrin",
+    "nameEn": null,
+    "cas": "52918-63-5",
+    "formula": "C22",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "carcinogen"
+    ],
+    "effects": [
+      "Tento pesticid může ovlivnit nervovou soustavu.",
+      "Požití 100 - 250 mg/kg vyvolává kóma.",
+      "K projevům otravy může dojít už při požití 2 mg/kg.",
+      "To samozřejmě v místech jeho aplikace.",
+      "Dá se mu předejít důsledným používáním ochranných oděvů.",
+      "Další projevy chronického působení nebyly zatím pozorovány."
+    ],
+    "foundIn": [
+      "Deltamethrin patří do skupiny pyrethroidů.",
+      "Účinný je zvláště proti mravencům, klíšťatům, blechám, švábům a štěnicím.",
+      "Nepředpokládá se jeho bioakumulace v rostlinách.",
+      "Deltamethrin podléhá rozkladu světlem, vzduchem i mikroorganizmy.",
+      "Deltamethrin je toxický pro vodní organizmy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/deltamethrin"
+  },
+  {
+    "slug": "di2-ethylhexyl-ftalat-dehp",
+    "name": "di(2-ethylhexyl) ftalát (DEHP)",
+    "nameEn": null,
+    "cas": "117-81-7",
+    "formula": "C24H38O4",
+    "categories": [
+      "teratogen",
+      "reprotoxic",
+      "carcinogen",
+      "pop"
+    ],
+    "effects": [
+      "DEHP je dle platné evropské legislativy (Nařízení Evropské komise č.",
+      "Jedná se o druhý nejvyšší stupeň rizika toxicity pro reprodukci.",
+      "Důsledkem je tzv.demaskulinizace populace.",
+      "To je považováno za jeden ze znaků mužského pohlaví.",
+      "DEHP rovněž poškozuje ledviny a játra, kde se hromadí."
+    ],
+    "foundIn": [
+      "90% veškeré spotřeby DEHP v Evropské unii je použito k výrobě měkčeného PVC.",
+      "DEHP má schopnost bioakumulace v potravních řetězcích",
+      "vazba na tukovou tkáň.",
+      "Pozření je nejnebezpečnější cestou expozice.",
+      "Do prostředí DEHP uniká především při vlastní výrobě, zpracování a skladování."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/di2-ethylhexyl-ftalat-dehp"
+  },
+  {
+    "slug": "diisodecylftalat",
+    "name": "di(isodecyl)-ftalát (DIDP)",
+    "nameEn": null,
+    "cas": "26761-40-0",
+    "formula": "C28H46O4",
+    "categories": [],
+    "effects": [
+      "V případě vdechnutí se kolem 70 % DIDP absorbuje v plicích.",
+      "Pro akutní působení DIDP na respirační systém nejsou dostupná data.",
+      "Byl zaznamenán jediný případ alergické reakce na kožní podráždění u člověka."
+    ],
+    "foundIn": [
+      "Až 95% světové produkce DIDP je použito při výrobě PVC.",
+      "Určité množství DIDP je spotřebováváno v gumárenském průmyslu.",
+      "V půdě je DIDP pevně vázán, je málo mobilní, podléhá biodegradaci.",
+      "Ve vodě je vázán na pevné částice a sedimentuje.",
+      "Bioakumulace ve vodních organizmech je nízká."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/diisodecylftalat"
+  },
+  {
+    "slug": "di-isononyl-ftalat-dinp",
+    "name": "di-isononyl ftalát (DINP)",
+    "nameEn": null,
+    "cas": "28553-12-0",
+    "formula": "C26H4204",
+    "categories": [
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "Do lidského organismus se DINP může dostat inhalací, orální či dermální cestou.",
+      "Je spojován se vznikem novotvarů."
+    ],
+    "foundIn": [
+      "Di-isononyl ftalát (DINP) je směsí izomerů kyseliny ftalové.",
+      "Jeho hlavní použití je jako změkčovadlo ve výrobcích z PVC.",
+      "DINP nalezneme ale i v lepidlech, nátěrech a různých těsnících hmotách.",
+      "Byla sledována bioakumulace u vodních organizmů.",
+      "Člověk může být DINP vystaven vdechnutí, pozřením, nebo kožním kontakem."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/di-isononyl-ftalat-dinp"
+  },
+  {
+    "slug": "di-n-oktyl-ftalat-dnop",
+    "name": "di-n-oktyl ftalát (DNOP)",
+    "nameEn": null,
+    "cas": "117-84-0",
+    "formula": "C24H38O4",
+    "categories": [],
+    "effects": [
+      "O účincích na člověka se zatím ví jen málo.",
+      "O DNOP není známo, že by mohl mít karcinogenní účinky.",
+      "U zvířat při orální expozici byla zjištěna jen nízká toxicita.",
+      "DNOP také vyvolal jen minimální podráždění očí a kůže u zvířat.",
+      "Několik studií poukázalo na toxické působení DNOP na játra.",
+      "Reprotoxicita nebo teretogenita DNOP je nejasná."
+    ],
+    "foundIn": [
+      "V půdě je pevně vázán, málo mobilní a relativně rychle rozkládán mikroorganizmy.",
+      "Bioakumulace je v některých vodních organizmech velmi vysoká (ryby, hlavonožci).",
+      "Člověk může být DNOP vystaven vdechováním, pozřením i kožním kontaktem.",
+      "U zvířat byl popsán negativní vliv DNOP na správnou funkci jater a varlat.",
+      "DNOP není považován za lidský karcinogen."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/di-n-oktyl-ftalat-dnop"
+  },
+  {
+    "slug": "diazinon",
+    "name": "diazinon",
+    "nameEn": null,
+    "cas": "333-41-5",
+    "formula": "C12H21N2O3PS",
+    "categories": [
+      "insecticide",
+      "pesticide",
+      "pop",
+      "carcinogen"
+    ],
+    "effects": [
+      "Pravděpodobně není karcinogenní."
+    ],
+    "foundIn": [
+      "Diazinon je organofosfátový insekticid s neurotoxickým účinkem.",
+      "V domácnostech byl masivně používán v 70.",
+      "letech minulého století.",
+      "Diazinon je v prostředí velice mobilní, dobře se rozpouští ve vodě.",
+      "Na vzduchu, v půdě, vodě i živých organizmech relativně rychle degraduje."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/diazinon"
+  },
+  {
+    "slug": "dibutylftalat-dbp",
+    "name": "dibutylftalát (DBP)",
+    "nameEn": null,
+    "cas": "84-74-2",
+    "formula": "C16H22O4",
+    "categories": [
+      "reprotoxic"
+    ],
+    "effects": [
+      "Hlavní expoziční cestou pro DBP je vdechování nebo požití.",
+      "DBP může dráždit oční sliznice a horní cesty dýchací.",
+      "Dlouhodobé testy na zvířatech odhalily celkový pokles tělesné hmotnosti.",
+      "Oproti tomu došlo k nárůstu hmotnosti plic.",
+      "Pozorováno bylo i negativní působení na játra.",
+      "To je také hlavní důvod proč je v EU, ale i jinde, legislativně omezován."
+    ],
+    "foundIn": [
+      "Člověk může být DBP vystaven vdechováním, pozřením i kožním přenosem.",
+      "V EU je použití DBP silně regulováno nařízením REACH."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dibutylftalat-dbp"
+  },
+  {
+    "slug": "dieldrin",
+    "name": "dieldrin",
+    "nameEn": null,
+    "cas": "60-57-1",
+    "formula": "C12H8OCl6",
+    "categories": [
+      "fungicide",
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Poškozuje imunitní a reprodukční systém.",
+      "Zatížení obyvatelstva dieldrinem se v ČR sleduje od roku 1994.",
+      "Expozice není významná.",
+      "Kontaminované jsou nejvíce ryby a rybí výrobky."
+    ],
+    "foundIn": [
+      "Aldrin se v prostředí i v organizmu okamžitě mění na dieldrin.",
+      "Dieldrin má vysoký bioakumulační potenciál.",
+      "Člověk může být dieldrinu vystaven vdechováním, pozřením i kožním kontaktem.",
+      "V organizmu dochází k jeho akumulaci v tukové tkáni, velmi pomalu metabolizuje.",
+      "IARC řadí dieldrin do 3."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dieldrin"
+  },
+  {
+    "slug": "diflubenzuron",
+    "name": "diflubenzuron",
+    "nameEn": null,
+    "cas": "35367-38-5",
+    "formula": "C14H9ClF2N2O2",
+    "categories": [
+      "insecticide"
+    ],
+    "effects": [
+      "Nejsou hlášeny žádné zprávy o lidských otravách  diflubenzuronem.",
+      "Není toxický pro včely, ale je mírně toxický pro vodní bezobratlé.",
+      "Po kontaktu s pokožkou, je třeba kůži umýt mýdlem a vodou.",
+      "Po vniknutí látky do očí, by měly  být propláchnuty velkým množstvím vody."
+    ],
+    "foundIn": [
+      "Účinkuje především na larvy motýlů, brouků a dvoukřídlého hmyzu.",
+      "Degraduje maximálně do několika dnů.",
+      "Nepodléhá fotolýze ani hydrolýze.",
+      "Prozatímní data neukazují na kontaminaci povrchových nebo podpovrchových vod.",
+      "Diflubenzuron není toxický pro savce, ptáky, sladkovodní ryby ani včely."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/diflubenzuron"
+  },
+  {
+    "slug": "dichlordifenyltrichloretan-ddt",
+    "name": "dichlordifenyltrichloretan (DDT)",
+    "nameEn": null,
+    "cas": "50-29-3",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "reprotoxic",
+      "aquatic_toxin",
+      "pbt",
+      "pop",
+      "teratogen"
+    ],
+    "effects": [
+      "Objevila se u něj tzv.",
+      "DDT se do těla české populace dostává převážně potravou.",
+      "Kojenci mohou DDT do svého těla dostávat prostřednictvím mateřského mléka.",
+      "DDT je pravděpodobný lidský karcinogen.",
+      "Poškozuje játra a může zapříčinit jejich rakovinu.",
+      "Způsobuje dočasné poškození nervového systému."
+    ],
+    "foundIn": [
+      "letech minulého století.",
+      "Jediným producentem DDT je v současnosti Indie.",
+      "Člověk je DDT vystaven především kontaminovanou potravou.",
+      "Během sedmdesátých let 20.",
+      "DDT je zakázáno Stockholmskou úmluvou."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dichlordifenyltrichloretan-ddt"
+  },
+  {
+    "slug": "dichlormethan-dcm",
+    "name": "dichlormethan (DCM)",
+    "nameEn": null,
+    "cas": "75-09-2",
+    "formula": "CH2Cl2",
+    "categories": [
+      "herbicide",
+      "halogenated",
+      "insecticide",
+      "pesticide",
+      "carcinogen",
+      "voc"
+    ],
+    "effects": [
+      "století pohyboval mezi 33 až 309 ug/den na osobu.",
+      "Zde se setkáváme s koncentracemi o řád vyššími ve srovnání s venkovním ovzduším.",
+      "Asi poloviční množství dichlormethanu se dostane z krve za 40 minut.",
+      "Příjem pokožkou a žaludkem nebyl změřen.",
+      "3-4 hodiny) může dojít k poruše sluchu a zraku.",
+      "Tyto účinky většinou odezní po skončení vystavení člověka dichlormethanu."
+    ],
+    "foundIn": [
+      "Do prostředí se DCM uvolňuje při výrobě, použití a nevhodné manipulaci.",
+      "Člověk může být DCM vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Expozice vyšším dávkám může způsobit bezvědomí, kóma i smrt.",
+      "U zvířat byl prokázán výskyt rakoviny plic, jater a slinivky břišní.",
+      "V minulosti se používal jako pesticid a také při extrakci kofeinu z kávy."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dichlormethan-dcm"
+  },
+  {
+    "slug": "dichlorvos",
+    "name": "dichlorvos",
+    "nameEn": null,
+    "cas": "62-73-7",
+    "formula": "C4H7Cl2O4P",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen"
+    ],
+    "effects": [
+      "Protože se snadno odpařuje, jeho vdechnutí je nejčastější možností expozice.",
+      "Jak už bylo uvedeno dříve, inhibuje zejména cholinoesterázu.",
+      "To je dáno hlavně tím, že je v těle rychle metabolizován a následně vyloučen.",
+      "Často se chronická otrava projevuje podobnými symptomy jako chřipka.",
+      "Dichlorvos nepůsobí reprodukčně toxicky, ani teratogenně.",
+      "Ta však nebyla prokázána u živých zvířat."
+    ],
+    "foundIn": [
+      "Dichlorvos je v těle rychle metabolizován a následně vyloučen.",
+      "Při akutní otravě se objevují bolesti hlavy, nevolnosti, třes, křeče apod.",
+      "Vysoké dávky mohou být až smrtelné.",
+      "Dichlorvos je považován za potencionální lidský karcinogen.",
+      "V EU není k ochraně rostlin v současnosti povolen."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dichlorvos"
+  },
+  {
+    "slug": "dikofol",
+    "name": "dikofol",
+    "nameEn": null,
+    "cas": "115-32-2",
+    "formula": "C14H9Cl5O",
+    "categories": [
+      "pop",
+      "pbt",
+      "pesticide",
+      "aquatic_toxin",
+      "reprotoxic",
+      "insecticide",
+      "halogenated"
+    ],
+    "effects": [
+      "Dikofol se do organismu může dostat s potravou, vděchnutím, přes kůži.",
+      "Akutní toxicita: nevolnost, závratě, slabost, zvracení.",
+      "Otrava může mít vliv na játra, ledviny nebo centrální nervový systém.",
+      "Při zasažení může způsobit zánět spojivek.",
+      "U ptactva může snížit kvalitu skořápky.",
+      "Dikofol a jeho metabolity jsou toxické především ve vodním prostředí."
+    ],
+    "foundIn": [
+      "Dikofol je organochlorový pesticid podobný svou chemickou strukturou DDT.",
+      "V závislosti na výrobních postupech může dikofol DDT v podstatě obsahovat.",
+      "Dikofol patří mezi akaricidy, skupinu pesticide určených k hubení roztočů.",
+      "Působí jako neurotoxin.",
+      "V ČR se používal především při pěstovaní chmele a v sadech."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dikofol"
+  },
+  {
+    "slug": "dimethylfumarat-dmf",
+    "name": "dimethylfumarát (DMF)",
+    "nameEn": null,
+    "cas": "624-49-7",
+    "formula": "C6H8O4",
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "09 je zakázán i dovoz výrobků s obsahem vyšším než 0,1 mg/kg.",
+      "V atmosféře se rychle rozkládá vlivem světla i reakcí s hydroxylovými radikály.",
+      "Schopnost bioakumulace DMF je velmi nízká.",
+      "Člověk může být DMF vystaven především kožním kontaktem, popřípadě vdechováním.",
+      "DMF je v EU regulován nařízením REACH."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dimethylfumarat-dmf"
+  },
+  {
+    "slug": "dioxiny-pcdd-pcdf",
+    "name": "dioxiny (PCDD/PCDF)",
+    "nameEn": null,
+    "cas": "1746-01-6",
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Typickým příkladem jsou případy dětí ze severoitalského Sevesa či z Vietnamu.",
+      "Z poslední doby je znám případ otravy ukrajinského prezidenta Viktora Juščenka.",
+      "Ostatní látky řazené do skupiny dioxinů byly IARC zařazeny do kategorie 3 .",
+      "Zpřísnění bylo doporučeno vzhledem k toxicitě dioxinů pro lidské sperma."
+    ],
+    "foundIn": [
+      "Dioxiny nemají žádný užitek a nebyly nikdy cíleně vyráběny.",
+      "Pro člověka je riziková především konzumace kontaminované potravy.",
+      "Otrava vysokými dávkami se projevuje jako tzv.",
+      "Přirozeně mohou dioxiny vznikat při lesních požárech nebo sopečných erupcích.",
+      "Některé dioxiny jsou silně karcinogenní, teratogenní a reprotoxické."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dioxiny-pcdd-pcdf"
+  },
+  {
+    "slug": "diuron",
+    "name": "diuron",
+    "nameEn": null,
+    "cas": "330-54-1",
+    "formula": "C9H10Cl2N2O",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "pop"
+    ],
+    "effects": [
+      "Pro savce a ptáky je diuron slabě toxický.",
+      "Středně toxický je pro ryby, silně toxický pro vodní bezobratlé (např.",
+      "bentos, plankton).",
+      "EU zařadila diuron mezi karcinogen kategorie 3 (směrnice 2001/59/ES)."
+    ],
+    "foundIn": [
+      "Bioakumulace diuronu je nízká.",
+      "Člověk může být diuronu vystaven vdechnutím, pozřením i kožním kontaktem.",
+      "Akutní toxicita je nízká.",
+      "Může docházet k podráždění očí, kůže a horních cest dýchacích.",
+      "Mechanizmus účinku diuronu je faktické zastavení fotosyntézy zasažené rostliny."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/diuron"
+  },
+  {
+    "slug": "driny-aldrin-dieldrin-eldrin",
+    "name": "driny (aldrin, dieldrin, eldrin)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "teratogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Driny způsobují mutace a jsou zařazeny mezi možné lidské karcinogeny."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/driny-aldrin-dieldrin-eldrin"
+  },
+  {
+    "slug": "endosulfan",
+    "name": "endosulfan",
+    "nameEn": null,
+    "cas": "115-29-7",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "pbt",
+      "pop",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "Je toxičtější než DDT.",
+      "Mladá zvířata jsou citlivější než zvířata dospělá.",
+      "Ryby jsou citlivější než savci a ptáci naopak odolnější.",
+      "U ryb i obojživelníků byly pozorovány negativní vlivy na reprodukční systém.",
+      "Je difúzním stimulantem centrálního nervového systému.",
+      "Jde o látku vysoce toxickou pro vodní zvířenu, především pro ryby."
+    ],
+    "foundIn": [
+      "V organizmu se váže na tukovou tkáň.",
+      "Ve vysokých dávkách může být smrtelný.",
+      "Endosulfan není považován za lidský karcinogen.",
+      "V půdě je omezeně pohyblivý, pevně navázán na pevné částice.",
+      "Ve vodě dochází taktéž k silné vazbě na pevné částice a následné sedimentaci."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/endosulfan"
+  },
+  {
+    "slug": "endrin",
+    "name": "endrin",
+    "nameEn": null,
+    "cas": "72-20-8",
+    "formula": "C12H8Cl6O",
+    "categories": [
+      "fungicide",
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "aquatic_toxin",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Poškozuje imunitní a reprodukční systém.",
+      "Zatížení obyvatelstva dieldrinem se v ČR sleduje od roku 1994.",
+      "Zatížení obyvatelstva je sledováno od roku 1994.",
+      "Expozice obyvatel je zanedbatelná.",
+      "Nelze vyloučit nahodilou expozici.",
+      "Zdrojem jsou převážně potraviny živočišného původu."
+    ],
+    "foundIn": [
+      "Endrin je organochloridový pesticid, blízký příbuzný aldrinu a dieldrinu.",
+      "Akutní otrava endrinem způsobuje poškození nervové soustavy.",
+      "U savců byla zjištěna snížená plodnost.",
+      "Ve většině zemí je Endrin zakázán, spadá pod Stockholmskou úmluvu.",
+      "V ovzduší se ve větších koncentracích vyskytuje prakticky jen při aplikaci."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/endrin"
+  },
+  {
+    "slug": "epichlorhydrin",
+    "name": "epichlorhydrin",
+    "nameEn": null,
+    "cas": "106-89-8",
+    "formula": "C3H5ClO",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Je to látka rychle a široce absorbovaná vdechnutím či prostřednictvím kůže.",
+      "Snadno proniká buněčnými membránami.",
+      "Při kontaktu s kůží způsobuje senzibilizaci a poleptání."
+    ],
+    "foundIn": [
+      "Schopnost bioakumulace je u epichlorhydrinu nízká.",
+      "Možný je i přenos do potravin a vody z obalových materiálů."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/epichlorhydrin"
+  },
+  {
+    "slug": "ethylazinfos",
+    "name": "ethylazinfos",
+    "nameEn": null,
+    "cas": "2642-71-9",
+    "formula": "C12H16N3O3PS2",
+    "categories": [
+      "pesticide",
+      "insecticide"
+    ],
+    "effects": [
+      "Ethylazinfos nemá sklony ke kumulaci v živých tkáních."
+    ],
+    "foundIn": [
+      "Ethylazinfos působí na principu přerušení nervových spojů.",
+      "V půdě je taktéž silně vázán, podléhá hydrolýze i biodegradaci.",
+      "U tohoto pesticidu nebyla prokázána bioakumulativní schopnost.",
+      "Pro savce je Ethylazinfos vysoce toxickou látkou",
+      "Dle hodnocení WHO se jedná o vysoce toxickou látku kategorie 1B."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/ethylazinfos"
+  },
+  {
+    "slug": "ethylbenzen",
+    "name": "ethylbenzen",
+    "nameEn": null,
+    "cas": "100-41-4",
+    "formula": "C8H10",
+    "categories": [
+      "carcinogen",
+      "voc"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Přirozeně se vyskytuje v uhelném dehtu a ropě.",
+      "Schopnost bioakumulace je u ethylbenzenu omezená.",
+      "Člověk může být ehylbenzenu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Ethylbenzen je považován za možný lidský karcinogen (2B IARC).",
+      "Ve vodě rychle degraduje, dochází k odparu do atmosféry i částečné sedimentaci."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/ethylbenzen"
+  },
+  {
+    "slug": "fenitrotion",
+    "name": "fenitrotion",
+    "nameEn": null,
+    "cas": "122-14-5",
+    "formula": "C9H12NO5PS",
+    "categories": [
+      "pesticide"
+    ],
+    "effects": [
+      "Akutní toxicita fenitrotionu pro savce je poměrně nízká.",
+      "Fenitrotion také nepříznivě ovlivňuje tvorbu enzymu cholinesterázy.",
+      "Reprodukční toxicita fenitrotionu je do značné míry závislá na velikosti dávky.",
+      "Mutagenní, teratogenní ani karcinogenní účinky fenitrition nebyly prokázány.",
+      "Expozice fenitrotionu vede ke snížení obranyschopnosti organismu.",
+      "Účinky na ptactvo do značně závisí na druhu."
+    ],
+    "foundIn": [
+      "Do prostředí se dostává především při samotné aplikaci.",
+      "Schopnost bioakumulace je u některých vodních organizmů vysoká.",
+      "Akutní toxicita je poměrně nízká",
+      "může docházet k podráždění kůže, očí a horních cest dýchacích."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fenitrotion"
+  },
+  {
+    "slug": "fenoly",
+    "name": "fenoly",
+    "nameEn": null,
+    "cas": "108-95-2",
+    "formula": "C6H6O",
+    "categories": [
+      "voc",
+      "mutagen",
+      "teratogen"
+    ],
+    "effects": [
+      "Fenol může také způsobit genetické poruchy.",
+      "Fenol je mírně toxický pro vodní živočichy (ryby jsou obecně nejvíce citlivé).",
+      "Chlorované fenoly jsou toxické zejména pro vodní organizmy.",
+      "Fenol se také velmi dobře dostává do těla stykem s pokožkou.",
+      "Lidé mohou být fenolu vystaveni také dýcháním vzduchu na skládkách.",
+      "Většina fenolu se nicméně nachází v půdě a do vzduchu se příliš nevypařuje."
+    ],
+    "foundIn": [
+      "Člověk může být fenolům vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Toxické projevy závisí na konkrétním fenolu.",
+      "Mohou se dostavit poruchy dechu, bezvědomí i smrt.",
+      "Fenoly způsobují srdeční arytmii a mají mutagenní účinky.",
+      "Některé přirozené fenoly jsou příčinou chuti a barvy potravin."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fenoly"
+  },
+  {
+    "slug": "fenson",
+    "name": "fenson",
+    "nameEn": null,
+    "cas": "80-38-6",
+    "formula": "C12H9ClO3S",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide"
+    ],
+    "effects": [
+      "Účinky na člověka nebyly sledovány."
+    ],
+    "foundIn": [],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fenson"
+  },
+  {
+    "slug": "fenthion",
+    "name": "fenthion",
+    "nameEn": null,
+    "cas": "55-38-9",
+    "formula": "C10H15O3PS2",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Pokud jde o vdechování, pak je fenthion pouze mírně toxický.",
+      "Laboratorně zjištěné hodnoty LD50 naleznete v sekci limity.",
+      "Fenthion svými účinky patří mezi inhibitory enzymu cholinoesterázy.",
+      "Teratogenní působení fenthionu nebylo prokázáno.",
+      "V úvodu již bylo zmíněno, že fenthion je značně toxický pro ptáky.",
+      "Hodnoty LD50 jsou uvedeny v sekci limity."
+    ],
+    "foundIn": [
+      "Fenthion patří do rodiny organofosfátových pesticidů.",
+      "V atmosféře rychle reaguje s hydroxylovým radikálem a degraduje v řádech hodin.",
+      "Ve vodním prostředí se rozkládá v horizontu desítek dnů (nejčastěji fotolýza).",
+      "Člověk je fenthionu nejčastěji vystaven vdechnutím, popřípadě kožním kontaktem.",
+      "Při chronické otravě se dostavují obdobné příznaky."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fenthion"
+  },
+  {
+    "slug": "fluor",
+    "name": "fluor",
+    "nameEn": null,
+    "cas": "7782-41-4",
+    "formula": "F2",
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "Přímý proud fluoru působí v desetinách sekundy na kůži obdobně jako plamen.",
+      "Při nižších koncentracích dojde k překrvení kůže, otoku a zblednutí.",
+      "Zasažené místo velmi silně bolí a vytvoří se špatně se hojící vředy.",
+      "Účinky fluoridů naleznete zde.",
+      "Účinky fluorovodíku naleznete zde."
+    ],
+    "foundIn": [
+      "F nachází díky své reaktivnosti uplatnění v mnoha průmyslových procesech.",
+      "F je vysoce toxický plyn.",
+      "Člověk je F (nebo spíše HF) nejčastěji vystaven vdechováním.",
+      "V prostředí se elementární F prakticky nevyskytuje.",
+      "V zemské kůře je F co do četnosti 13."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluor"
+  },
+  {
+    "slug": "fluoranthen",
+    "name": "fluoranthen",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C16H10",
+    "categories": [
+      "carcinogen",
+      "teratogen",
+      "pop"
+    ],
+    "effects": [
+      "Fluoranthen představuje závažné zdravotní riziko pro člověka.",
+      "Rizikové je jeho hoření, při kterém mohou vznikat dráždivé a toxické produkty."
+    ],
+    "foundIn": [
+      "Fluoranthem je polycyklický aromatický uhlovodík (PAU).",
+      "Spolu s ostatními PAU se jedná o produkt spalování organického materiálu.",
+      "Fluoranthen se považuje za ukazatel nedokonalého hoření.",
+      "Jde o látku pravděpodobně narušující hormonální systém.",
+      "Název fluoranthen pochází z fluorescence této látky pod UV zářením."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluoranthen"
+  },
+  {
+    "slug": "fluorid-sirovy",
+    "name": "fluorid sírový",
+    "nameEn": null,
+    "cas": "2551-62-4",
+    "formula": "SF6",
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "Fluorid sírový působí při vyšších koncentracích dusivě.",
+      "Není ale klasifikován jako nebezpečná látka."
+    ],
+    "foundIn": [
+      "SF6 je považován za nejúčinnější skleníkový plyn (22 800x účinnější než C02).",
+      "Bioakumulace ve vodních organizmech je nízká.",
+      "Člověk je SF6 vystaven především vdechováním.",
+      "Při dlouhodobé expozici může docházet k zvýšenému ukládání fluoridů v kostech.",
+      "Při rozkladu slunečním zářením je poločas rozpadu odhadován na 800–3200 let."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluorid-sirovy"
+  },
+  {
+    "slug": "fluoridy",
+    "name": "fluoridy",
+    "nameEn": null,
+    "cas": "16984-48-8",
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "teratogen"
+    ],
+    "effects": [
+      "Požitím ve vodě rozpustných fluoridů (např.",
+      "Toxický účinek těchto solí se vysvětluje tím, že fluoridy váží kationty vápníku.",
+      "Kromě poškození jater může dojít i k poškození ledvin.",
+      "Existuje také tzv.",
+      "Fluoridy se nacházejí všude v životním prostředí ve velmi malých koncentracích."
+    ],
+    "foundIn": [
+      "Fluoridy jsou soli kyseliny fluorovodíkové (HF).",
+      "V malých koncentracích jsou fluoridy všudypřítomné.",
+      "Z hlediska účinků na životní prostředí jsou významnější fluoridy anorganické.",
+      "Fluoridy patří mezi látky s významným průmyslovým využitím.",
+      "Většina anorganických fluoridů pochází z lidské činnosti."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluoridy"
+  },
+  {
+    "slug": "fluorotelomerni-alkoholy-ftohs",
+    "name": "fluorotelomerní alkoholy (FTOHs)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pfas"
+    ],
+    "effects": [
+      "Fluorotelomerní alkoholy 6:2 a 8:2 byly shledány estrogenními."
+    ],
+    "foundIn": [
+      "Hlavním zdrojem FTOHs v prostředí je především chemický průmysl.",
+      "FTOHs mohou vznikat i prostým rozpadem materiálů, v kterých jsou obsaženy.",
+      "V prostředí jsou v malých koncentracích v podstatě všudypřítomné.",
+      "V atmosféře jsou schopné přenosu na velké vzdálenosti.",
+      "V půdě je poločas rozpadu odhadován na 10 až 17 let."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluorotelomerni-alkoholy-ftohs"
+  },
+  {
+    "slug": "fluorovodik",
+    "name": "fluorovodík",
+    "nameEn": null,
+    "cas": "7664-39-3",
+    "formula": null,
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "To je dáno především kvůli agresivnímu pronikání fluoridového iontu tkáněmi.",
+      "Pozření již malého množství kyseliny fluorovodíkové může působit fatálně.",
+      "Tím dochází k destrukci buněk nebo například k lokální demineralizaci kostí.",
+      "Důsledkem bývá kašel, zánět nebo zužování průdušek.",
+      "K poškození plic může dojít i prostřednictvím dermální expozice.",
+      "Závažnost účinků při kontaktu s kůží závisí na koncentraci a délce expozice."
+    ],
+    "foundIn": [
+      "Často je používán v kapalné formě jako kyselina fluorovodíková.",
+      "Slouží jako prekurzor řady polymerů (např.",
+      "teflon), k výrobě tzv.",
+      "Do prostředí uniká HF vesměs jen díky lidské činnosti",
+      "Rizikové jsou vysokoteplotní provozy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluorovodik"
+  },
+  {
+    "slug": "fluoruhlovodiky-hfc",
+    "name": "fluoruhlovodíky (HFC)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "voc"
+    ],
+    "effects": [],
+    "foundIn": [
+      "U zvířat byl při akutní expozici HFC sledován dočasný jakoby narkotický účinek.",
+      "Zvířata byla unavená, málo pohyblivá se špatnou koordinací.",
+      "U psů byl sledován negativní vliv na srdeční činnost."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/fluoruhlovodiky-hfc"
+  },
+  {
+    "slug": "formaldehyd",
+    "name": "formaldehyd",
+    "nameEn": null,
+    "cas": "50-00-0",
+    "formula": "H2CO",
+    "categories": [
+      "carcinogen",
+      "voc",
+      "mutagen",
+      "teratogen"
+    ],
+    "effects": [
+      "Při vyšších koncentracích se pak dostavuje silné slzení, otoky, zánět plic.",
+      "Koncentrace 60 - 125 mg/m3 (tj.",
+      "60.000 - 125.000 µg/m3 ) může způsobit smrt.",
+      "Experimentální studie prokázaly, že způsobuje rakovinu nasální sliznice u krys.",
+      "Není karcinogenní při požití, ale jeho inhalace způsobuje rakovinu.",
+      "Má karcinogenní a mutagenní účinky."
+    ],
+    "foundIn": [
+      "Formaldehyd je vysoce toxický pro všechny živočichy.",
+      "Jedná se o mutagenní a karcinogenní látku (1.",
+      "kategorie IARC).",
+      "Člověk může být formaldehydu vystaven vdecznutím, pozřením a kožním kontaktem.",
+      "Seznamte se s kampaní Česko bez jedů."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/formaldehyd"
+  },
+  {
+    "slug": "ftalaty",
+    "name": "ftaláty",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "reprotoxic",
+      "endocrine_disruptor",
+      "phthalate"
+    ],
+    "effects": [
+      "Důsledkem je tzv.demaskulinizace populace.",
+      "To je považováno za jeden ze znaků mužského pohlaví.",
+      "Vědci měřili množství ftalátů a jejich metabolitů v moči matky ve 3.trimestru.",
+      "(Hannas, Furr et al."
+    ],
+    "foundIn": [
+      "S ftaláty se může setkat v kosmetice, adhezivech, barvách i pesticidech.",
+      "Globálním cílem je snaha o používání jiných než ftalátových změkčovadel.",
+      "V materiálech nejsou pevně vázány a unikají do okolního prostředí.",
+      "Chování v prostředí je závislé na typu ftalátu.",
+      "Často se jedná o perzistentní látky schopné bioakumulace."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/ftalaty"
+  },
+  {
+    "slug": "glyfosat",
+    "name": "glyfosát",
+    "nameEn": null,
+    "cas": "1071-83-6",
+    "formula": "C3H8NO5P",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "carcinogen",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "O toxicitě glyfosátu je vedeno mnoho vědeckých i politických sporů.",
+      "Při pokusech na zvířatech pak působí jako endokrinní disruptor.",
+      "Tato látka tedy může vyvolat dlouhodobé nepříznivé účinky ve vodním prostředí."
+    ],
+    "foundIn": [
+      "Společnost Monsanto během let „vyrobila“ několik tzv.",
+      "Roundup patří historicky mezi globálně nejpoužívanější herbicidy.",
+      "Do prostředí se glyfosát dostává především vlastní aplikací.",
+      "Ve vodním prostředí degraduje oproti půdě pomaleji (průměrně 91 dnů).",
+      "Produkty s glyfosátem jsou nebezpečné pro vodní prostředí."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/glyfosat"
+  },
+  {
+    "slug": "halogenovane-organicke-slouceniny-aox",
+    "name": "halogenované organické sloučeniny (AOX)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "Neexistuje žádný přímý vztah mezi hodnotou AOX a toxicitou."
+    ],
+    "foundIn": [
+      "AOX označuje adsorbovatelné, organicky vázané halogeny.",
+      "Jedná se o mezinárodně uznávaný parametr pro sledování těchto látek ve vodě",
+      "souhrnně popsat negativní účinek AOX je prakticky nemožné.",
+      "Převážná část AOX uniká do prostředí prostřednictvím odpadních vod.",
+      "Řada AOX jsou těkavé látky."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/halogenovane-organicke-slouceniny-aox"
+  },
+  {
+    "slug": "halony",
+    "name": "halony",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "ozone_depleting"
+    ],
+    "effects": [
+      "Z hlediska potenciální toxicity je halon 1211 nebezpečnější halon 1301.",
+      "Nebezpečnost halonů spočívá však především v narušování ozónové vrstvy Země.",
+      "Toto záření také odbarvuje fytoplankton a zabraňuje tak u něj fotosyntéze."
+    ],
+    "foundIn": [
+      "Halony se až do 70.",
+      "Halony mají jen velmi nízkou toxicitu.",
+      "Při vdechování může docházet k podráždění sliznic očí a horních cest dýchacích.",
+      "Objevuje se i podráždění kůže, případně poruchy srdeční činnosti.",
+      "Označují se písmenem H a čtyřmístným číselným kódem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/halony"
+  },
+  {
+    "slug": "heptachlor",
+    "name": "heptachlor",
+    "nameEn": null,
+    "cas": "76-44-8",
+    "formula": "C10H5Cl7",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "aquatic_toxin",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Tato chemikálie může způsobovat mírné změny na játrech.",
+      "Při dlouhodobé expozici poškozuje imunitní a hormonální systém.",
+      "Je zařazen mezi látky potenciálně karcinogenní pro člověka.",
+      "Zatížení obyvatelstva je sledováno od roku 1994.",
+      "Významnější expozici jsou vystaveny děti ve věku 4-6 let.",
+      "Zdrojem mohou být především potraviny živočišného původu."
+    ],
+    "foundIn": [
+      "Heptachlor je člověkem vytvořený a v minulosti hojně používaný insekticid.",
+      "Heptachlor je schopen bioakumulace v potravních řetězcích.",
+      "V těle metabolizuje na heptachlorepoxid, který se ukládá v tukové tkáni.",
+      "U zvířat byl popsán negativní vliv na imunitní systém a jaterní tkáň.",
+      "Dlouhodobá expozice vedla u potkanů k zvýšenému výskytu rakoviny."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/heptachlor"
+  },
+  {
+    "slug": "hexabrombifenyl-hbb",
+    "name": "hexabrombifenyl (HBB)",
+    "nameEn": null,
+    "cas": "59536-65-1",
+    "formula": "C12H4Br6",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Údaje o toxickém působení hexabrombifenylu na člověka nejsou dostatečné."
+    ],
+    "foundIn": [
+      "bromovancýh zpomalovačů hoření.",
+      "Člověk je nejčastěji HBB vystaven vdechnutím, nebo pozřením.",
+      "Toxické účinky HBB nejsou zatím přesně známé.",
+      "HBB je považován za možný lidský karcinogen (2B IARC).",
+      "Obecně PBB způsobují poškození štítné žlázy, trávicího traktu, jater i ledvin."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hexabrombifenyl-hbb"
+  },
+  {
+    "slug": "hbcd-hexabromcyklododekan",
+    "name": "hexabromcyklododekan (HBCD)",
+    "nameEn": null,
+    "cas": "25637-99-4",
+    "formula": "C12H18Br6",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Do lidského organismu se HBCD dostává především prachem a potravou.",
+      "NOAEL (No Observed Adverse Efect Level)."
+    ],
+    "foundIn": [
+      "Hexabromcyklododekan (HBCD) patří do skupiny bromovaných zpomalovačů hoření.",
+      "Jedná se o látku používanou především v izolačních polystyrenových pěnách.",
+      "Nepodléhá rozkladu slunečním světlem.",
+      "Ve vodě je pevně vázán na pevné částice, sedimentuje, nepodléhá hydrolýze.",
+      "Pro vodní organizmy je vysoce toxický."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hbcd-hexabromcyklododekan"
+  },
+  {
+    "slug": "hexachlorbenzen-hcb",
+    "name": "hexachlorbenzen (HCB)",
+    "nameEn": null,
+    "cas": "118-74-1",
+    "formula": "C6Cl6",
+    "categories": [
+      "fungicide",
+      "pesticide",
+      "halogenated",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Kojenci mohou tuto látku konzumovat v mateřském mléce.",
+      "Poškozuje především játra a ledviny a působí negativně na činnost štítné žlázy.",
+      "U asi 3 - 4 tisíc osob se vyskytla porphyrie a poruchy syntézy hemu.",
+      "Mortalita dosahovala 14 %.",
+      "Nejméné 95 % dětí zemřelo do 1 roku po narození.",
+      "IARC klasifikovala HCB jako možný karcinogen pro člověka."
+    ],
+    "foundIn": [
+      "Do prostředí je uvolňován chemickým a metalurgickým průmyslem.",
+      "Na emisích HCB se podílítaké spalovací procesy a nesprávné nakládání s odpady.",
+      "HCB je klasifikován jako možný lidský karcinogen (2B IARC).",
+      "HCB je těkavý a schopný transportu na velké vzdálenosti.",
+      "Stopové množství HCB je změřitelné prakticky v každé složce životního prostředí."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hexachlorbenzen-hcb"
+  },
+  {
+    "slug": "hexachlorbutadien-hcbd",
+    "name": "hexachlorbutadien (HCBD)",
+    "nameEn": null,
+    "cas": "87-68-3",
+    "formula": "C4Cl6",
+    "categories": [
+      "teratogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Hexachlorbutadien je prokázaným nefrotoxinem (poškozuje ledviny a játra).",
+      "Ukázaly to studie krys, kterým byly podávány nízké dávky látky ve vodě.",
+      "Nebyly prokázány vlivy na reprodukční systém.",
+      "Rakovinotvorný účinek byl prokázán studiemi na zvířatech.",
+      "Podobně byl prokázán genotoxický účinek."
+    ],
+    "foundIn": [
+      "HCBD je toxický pro vodní organizmy.",
+      "HCBD schopen významné bioakumulace v potravních řetězcích.",
+      "Člověk může být této látce vystaven vdechnutím, pozřením i kožním kontaktem.",
+      "Toxické účinky HCBD nejsou u člověka doposud přesně popsány.",
+      "IARC považuje HCBD za pro člověka nekarcinogenní látku."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hexachlorbutadien-hcbd"
+  },
+  {
+    "slug": "hexachlorcyklohexan-hch",
+    "name": "hexachlorcyklohexan (HCH)",
+    "nameEn": null,
+    "cas": "608-73-1",
+    "formula": "C6H6Cl6",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "aquatic_toxin",
+      "reprotoxic",
+      "pbt",
+      "pop",
+      "carcinogen"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Člověk může být HCH vytaven kožním kontaktem, vdechnutím a pozřením.",
+      "HCH existuje v 6 chemickýchvariantách, izomerech.",
+      "Lindan byl často používán ve směsi s DDT",
+      "po jehož zákazu se i nadále několik let používal k moření osiva.",
+      "Je vysoce toxický pro vodní organizmy."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hexachlorcyklohexan-hch"
+  },
+  {
+    "slug": "hydrochinon",
+    "name": "hydrochinon",
+    "nameEn": null,
+    "cas": "123-31-9",
+    "formula": "C6H6O2",
+    "categories": [
+      "mutagen",
+      "carcinogen"
+    ],
+    "effects": [
+      "Data u lidí byla zjišťována např.",
+      "od pracovníků ve fotoprůmyslu.",
+      "Jeho působení na DNA spočívá ve tvorbě DNA aduktů.",
+      "V jedné studii byl nalezen výskyt hepatocelulárního adenomu u samic.",
+      "Ve dvou studiích byly u samců potkanů zjištěny nádory na ledvinových kanálcích.",
+      "Ve většině testů však nádory po působení hydrochinonu nalezeny nebyly."
+    ],
+    "foundIn": [
+      "Hydrochinon je organická látka ze skupiny fenolů.",
+      "Jako meziprodukt vzniká při výrobě barviv, laků, motorových paliv a olejů.",
+      "Vzniká při hoření organického materiálů, byl stanoven v tabákovém kouři.",
+      "Ve vodě dochází k jeho vazbě na pevné částice a sedimentaci.",
+      "Schopnost bioakumulace této látky je nízká."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hydrochinon"
+  },
+  {
+    "slug": "hydrochlorofluorouhlovodiky-hcfc",
+    "name": "hydrochlorofluorouhlovodíky (HCFC)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "ozone_depleting"
+    ],
+    "effects": [
+      "Jejich nebezpečnost spočívá v narušování ozónové vrstvy Země.",
+      "Toto záření také odbarvuje fytoplankton a zabraňuje tak u něj fotosyntéze."
+    ],
+    "foundIn": [
+      "HCFH nejsou pro život přímo toxické."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/hydrochlorofluorouhlovodiky-hcfc"
+  },
+  {
+    "slug": "chloralkany-c10-13-sccp",
+    "name": "chloralkany (C10 - 13; SCCP)",
+    "nameEn": null,
+    "cas": "85535-84-8",
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "aquatic_toxin",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Mají vysoký bioakumulační potenciál.",
+      "Zatížení obyvatel těmito látkami se zatím nemonitoruje.",
+      "Rozbory nabízí Národní referenční laboratoř pro POPs ve Frýdku Místku."
+    ],
+    "foundIn": [
+      "Při akutní intoxikaci může dojít k lokálnímu podráždění kůže, popřípadě kůže.",
+      "Byl zaznamenán výskyt rakoviny jater a štítné žlázy.",
+      "SCCP jsou řazeny do kategorie 2B IARC (možný lidský karcinogen).",
+      "V půdě jsou pevně vázány, netěkají, neprosakují do podzemních vod.",
+      "Ve vodě se nerozpouští, váží se na pevné částice a sedimentují."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chloralkany-c10-13-sccp"
+  },
+  {
+    "slug": "chlordan",
+    "name": "chlordan",
+    "nameEn": null,
+    "cas": "57-74-9",
+    "formula": "C10H6Cl8",
+    "categories": [
+      "insecticide",
+      "pesticide",
+      "halogenated",
+      "carcinogen",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Může poškodit vyvíjející se plod a rozmnožování u mužů i žen.",
+      "Dále poškozuje játra a ledviny a při kontaktu s kůží může vyvolat chlorakné.",
+      "Kontakt s roztokem může dráždit oči a kůži, vyvolat vyrážku či pocity pálení",
+      "expozice výparům dráždí oči, nos a jícen.",
+      "Zatížení obyvatelstva ČR chlordanem je sledováno od roku 2002.",
+      "Expozice není významná."
+    ],
+    "foundIn": [
+      "Chlordan je karcinogen narušující hormonální systém.",
+      "Kožní kontakt vede ke křečím, bezvědomí, nebo i smrti.",
+      "Jako perzistentní látka je chlordan regulován Stockholmskou úmluvou.",
+      "Do podzemních vod proniká jen velmi pomalu."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlordan"
+  },
+  {
+    "slug": "chlordekon",
+    "name": "chlordekon",
+    "nameEn": null,
+    "cas": "143-50-0",
+    "formula": "C10Cl10O",
+    "categories": [
+      "insecticide",
+      "pesticide",
+      "halogenated",
+      "reprotoxic",
+      "pbt",
+      "pop",
+      "carcinogen"
+    ],
+    "effects": [
+      "Poškozuje imunitní a reprodukční systém.",
+      "Je zařazen mezi potenciálně rakovinotvorné látky.",
+      "Studie na zvířatech prokázaly stejný efekt, jaký byl popsán u lidí."
+    ],
+    "foundIn": [
+      "Akutně způsobuje podráždění kůže a sliznic.",
+      "U zvířat byl popsán výskyt rakoviny jater, ledvin a nadledvin.",
+      "Chlordekon je řazen do 2B kategorie IARC (možný lidský karcinogen).",
+      "Jedná se o uměle vytvořenou látku, na trh poprvé uvedenou v USA v roce 1958.",
+      "Do roku 1975 bylo jen v USA vyrobeno přes 1,5 milionu kg této látky."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlordekon"
+  },
+  {
+    "slug": "chlorfenvinfos",
+    "name": "chlorfenvinfos",
+    "nameEn": null,
+    "cas": "470-90-6",
+    "formula": "C12H14Cl3O4P",
+    "categories": [
+      "pesticide",
+      "halogenated"
+    ],
+    "effects": [
+      "Poškozuje nervový systém."
+    ],
+    "foundIn": [
+      "brambor, kukuřice, nebo citrusů.",
+      "Chlorfenvinfos byl používán tatktéž při plošném hubení komářích larev.",
+      "Karcinogenita chlorfenvinfosu nebyla prokázána.",
+      "V ČR není tento pesticid registrován k použití."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlorfenvinfos"
+  },
+  {
+    "slug": "chloridy",
+    "name": "chloridy",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "Pokud jde o člověka, chlorid sodný – sůl, je běžnou součástí stravy.",
+      "Velmi toxický je například chlorid kademnatý, ten je však poměrně vzácný.",
+      "Cd nebo Pb) může uvolňovat ze struktury chloridů velmi snadno."
+    ],
+    "foundIn": [
+      "Chloridy jsou soli kyseliny chlorovodíkové.",
+      "Chloridy jsou přirozenou součástí životního prostředí.",
+      "Mezi ty nejběžnější patří chlorid sodný (NaCl) a chlorid draselný (KCl).",
+      "V půdě nejsou pevně vázány, migrují do povrchových i podzemních vod.",
+      "Zasolení půdy a vody je vážný celosvětový problém."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chloridy"
+  },
+  {
+    "slug": "chlorofluorouhlovodiky-cfc",
+    "name": "chlorofluorouhlovodíky (CFC)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "ozone_depleting"
+    ],
+    "effects": [
+      "Freony samotné přímo nepředstavují přímé riziko pro zdraví lidí či zvířat.",
+      "Jejich nebezpečnost spočívá v narušování ozónové vrstvy Země.",
+      "Toto záření také odbarvuje fytoplankton a zabraňuje tak u něj fotosyntéze.",
+      "Některé chlorofluorouhlovodíky jsou podezřelé z mutagenního působení."
+    ],
+    "foundIn": [
+      "Jako freony jsou známy díky stejnojmennému obchodnímu názvu společnosti DuPont.",
+      "Dnes se tato skupina látek nazývá spíše tzv.",
+      "V roce 1989 vešel v platnost tzv.",
+      "Ale i zde se najdou výjimky, ať již z důvodů technologických, či vědeckých.",
+      "Problémem stále představují rozvojové země."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlorofluorouhlovodiky-cfc"
+  },
+  {
+    "slug": "chlorovane-parafiny-se-stredne-dlouhym-retezcem-mccp",
+    "name": "Chlorované parafíny se středně dlouhým řetězcem (MCCP)",
+    "nameEn": null,
+    "cas": "85535-85-9",
+    "formula": null,
+    "categories": [
+      "flame_retardant"
+    ],
+    "effects": [
+      "Jejich nepříznivé účinky byly pozorovány např."
+    ],
+    "foundIn": [
+      "Chlorované parafíny se středně dlouhým řetězcem (MCCP, z angl.",
+      "Stupeň chlorace bývá 45 a víc hmotnostních %."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlorovane-parafiny-se-stredne-dlouhym-retezcem-mccp"
+  },
+  {
+    "slug": "chlorovodik",
+    "name": "chlorovodík",
+    "nameEn": null,
+    "cas": "7647-01-0",
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "aquatic_toxin"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Přirozeně se do prostředí dostává např.",
+      "U HCl nedochází k bioakumulaci v potravních řetězcích.",
+      "Akutně je HCl toxický pro vodní organizmy včetně rostlin."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlorovodik"
+  },
+  {
+    "slug": "chlorpyrifos",
+    "name": "chlorpyrifos",
+    "nameEn": null,
+    "cas": "2921-88-2",
+    "formula": "C9H11Cl3NO3PS",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "halogenated",
+      "pbt",
+      "pop",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "Narušuje funkci hormonů v těle různých živočichů včetně člověka (tzv.",
+      "endokrinní disruptor).",
+      "Organofosfátové pesticidy jsou pro savce mírně toxické.",
+      "Chlorpyrifos je toxický pro mořské kraby a ryby.",
+      "Není fytotoxický v koncentracích doporučených k užití."
+    ],
+    "foundIn": [
+      "Chloropyrifos je krystalický, organofosfátový insekticid.",
+      "Vyvinut byl v 60.",
+      "letech minulého století společností Dow Chemical.",
+      "Nejčastěji se odpařuje do ovzduší, kde do několika hodin degraduje."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlorpyrifos"
+  },
+  {
+    "slug": "chlor",
+    "name": "chlór",
+    "nameEn": null,
+    "cas": "7782-50-5",
+    "formula": "Cl2",
+    "categories": [
+      "halogenated",
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Ve své elementární podobě ani jednoduchých sloučeninách se nehromadí v těle.",
+      "Projevuje se od kašle, přes bolest na hrudi až po vodu na plicích.",
+      "Chlor dráždí kůži, oči a dýchací ústrojí.",
+      "Plynný chlor narušuje oxidací tkáně živočichů i rostlin.",
+      "Je speciálně nebezpečný pro organismy žijící ve vodě a v půdě.",
+      "Plynný chlor se používal jako jedovatý plyn v první světové válce."
+    ],
+    "foundIn": [
+      "Chlór je přírodní, vysoce reaktivní plyn s typickým štiplavým zápachem.",
+      "Pro současnou průmyslovou společnost je chlor nenahraditelný.",
+      "Pro živé organizmy je nebezpečný především jako akutní ohrožení.",
+      "S chlórem se setkáváme tatktéž v dezinfekčních a bělících prostředcích.",
+      "U chlóru nedochází k jeho akumulaci v půdě ani v živých organizmech."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chlor"
+  },
+  {
+    "slug": "chrom",
+    "name": "chrom",
+    "nameEn": null,
+    "cas": "7440-47-3",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "To se však nedá říci o šestimocné formě chromu.",
+      "Dospělým je doporučován příjem 50 až 200 ug CrIII denně.",
+      "Zdravotní dopady působení CrIII a CrVI jsou v literatuře slušně popsány.",
+      "Vdechnutí vysokého množství chromu (tj.",
+      "Rakovina plic se může objevit až dlouho poté, kdy k působení látky došlo.",
+      "Vdechnutí CrIII nezpůsobuje u většiny lidí podráždění nosu ani úst."
+    ],
+    "foundIn": [
+      "CrIII je do určitého množství pro metabolizmus savců nezbytný.",
+      "Dlouhodobá expozice CrVI vede k rozboji nádorů plic a horních cest dýchacích.",
+      "CrVI je klasifikován jako lidský karcinogen (1.",
+      "kategorie IARC).",
+      "V atmosféře je Cr navázán na pevné částice a do 10 dnů klesá k zemi."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/chrom"
+  },
+  {
+    "slug": "isobutylnitrit",
+    "name": "isobutylnitrit",
+    "nameEn": null,
+    "cas": "542-56-3",
+    "formula": "C4H9NO3",
+    "categories": [
+      "carcinogen"
+    ],
+    "effects": [
+      "Při kontaktu s pokožkou mohou vzniknout kontaktní dermatitidy, popáleniny.",
+      "Požití vede k rozvoji methemoglobinemie.",
+      "Zvyšuje se tak riziko infarktu myokardu či cévní mozkové příhody.",
+      "Při dlouhodobém užívání poškozují nosní sliznici a plíce.",
+      "V Kalifornii je tato látka hodnocena jako karcinogen.",
+      "V Evropské unii je od roku 2005 klasifikován jako karcinogen kategorie 2."
+    ],
+    "foundIn": [
+      "Isobutylnitrit je organická sloučenina, ester butanolu a kyseliny dusičné.",
+      "Bývá součástí některých osvěžovačů vzduchu.",
+      "Je běžně používán jako legální tzv.",
+      "rekreační droga.",
+      "Při kontaktu s pokožkou mohou vzniknout kontaktní dermatitidy, popáleniny."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/isobutylnitrit"
+  },
+  {
+    "slug": "isodrin",
+    "name": "isodrin",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C12H8Cl6",
+    "categories": [
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "aquatic_toxin",
+      "pesticide",
+      "pbt"
+    ],
+    "effects": [
+      "Při velmi vysoké dávce může nastat poškození CNS a kóma.",
+      "Při chronickém působení je podezření z přispívání ke vzniku rakoviny jater.",
+      "Jeho zvýšený obsah může narušit rovnováhu ekosystému."
+    ],
+    "foundIn": [
+      "Isodrin je schopen bioakumulace v portravních řetězcích.",
+      "Člověk může být isodrinu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "letech minulého století.",
+      "V Evropě vrcholila spotřeba isodrinu v 70.",
+      "letech, začátkem let 90."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/isodrin"
+  },
+  {
+    "slug": "isoproturon",
+    "name": "isoproturon",
+    "nameEn": null,
+    "cas": "34123-59-6",
+    "formula": "C12H18N2O",
+    "categories": [
+      "herbicide",
+      "pesticide"
+    ],
+    "effects": [
+      "Pro člověka je isoproturon slabě toxický.",
+      "Je na seznamu nebezpečných a zvlášť nebezpečných látek pro vodní prostředí.",
+      "Je sledován v rámci komplexního monitoringu https://hydro.chmi.cz/hpps/ ."
+    ],
+    "foundIn": [
+      "Isoproturon je pro vodní organizmy vysoce toxický.",
+      "Bioakumulace není známa.",
+      "Člověk může být isproturonu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Pro savce je tato látka obecně jen málo toxická.",
+      "U lidí nejsou známy žádné případy otrav."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/isoproturon"
+  },
+  {
+    "slug": "kadmium",
+    "name": "kadmium",
+    "nameEn": null,
+    "cas": "7440-43-9",
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "heavy_metal"
+    ],
+    "effects": [
+      "Kadmium se do našeho těla může dostat několika cestami.",
+      "S malými částicemi prachu dýchacími cestami.",
+      "Zažívacím traktem při polykání hlenů.",
+      "Denní příjem kadmia se u lidí pohybuje na úrovni 50 µg (Jesenák, K.",
+      "Eliminace kadmia v organismu živočichů je velmi pomalá.",
+      "S věkem zatížení organismu kadmiem roste, u kuřáků až dvojnásobně (Holoubek, I."
+    ],
+    "foundIn": [
+      "Cd je měkký, tažný kov, odolný proti korozi velmi podobný zinku.",
+      "Cd je vysoce bioakumulativní v potravních řetězcích.",
+      "Člověk je Cd vystaven vdechnutím, nebo pozřením.",
+      "Cd je lidský karcinogen s teratogenními účinky (poškození plodu).",
+      "Cd podléhá REACH autorizaci."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kadmium"
+  },
+  {
+    "slug": "kelevan",
+    "name": "kelevan",
+    "nameEn": null,
+    "cas": "4234-79-1",
+    "formula": "C17H12Cl10O4",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "pbt",
+      "pop"
+    ],
+    "effects": [],
+    "foundIn": [
+      "V prostředí dochází přeměně kelevanu na v prostředí perzistentní chlordekon.",
+      "Podléhá jen pomalé biotransformaci.",
+      "Ve vodě je hydrolyzován na více rozpustné látky.",
+      "Pro vodní prostředí je zařazen mezi nebezpečné látky.",
+      "Do organizmu může kelevan proniknout vdechnutím, pozřením i kožním kontakem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kelevan"
+  },
+  {
+    "slug": "kobalt",
+    "name": "kobalt",
+    "nameEn": null,
+    "cas": "7440-48-4",
+    "formula": null,
+    "categories": [
+      "heavy_metal"
+    ],
+    "effects": [
+      "Nicméně příliš vysoká koncentrace kobaltu poškozuje lidské zdraví.",
+      "Aktivuje zvětšení štítné žlázy blokováním příjmu jodu, zvláště u dětí.",
+      "U hospodářských zvířat kobalt snižuje dostupnost mědi, železa a manganu.",
+      "Pro skot byla stanovena toxická hodnota 24 ppm.",
+      "Skot při kontaminaci kobaltem trpí slabou kondicí, anorexií, sliněním, průjmem.",
+      "Kobalt způsobuje polycythemii u králíků, kachen, mladých krys a psů."
+    ],
+    "foundIn": [
+      "Přirozeným zdrojem kobaltu je eroze, vulkanická činnost a požáry.",
+      "Kobalt je jako součást vitaminu B12 pro člověka v stopovém množství nezbytný.",
+      "Vysoké dávky kobaltu ale mohou být i smrtelné."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kobalt"
+  },
+  {
+    "slug": "kyanidy",
+    "name": "kyanidy",
+    "nameEn": null,
+    "cas": "57-12-5",
+    "formula": null,
+    "categories": [
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Proto taková otrava většinou poukazuje na úmyslné požití.",
+      "V takových případech přichází smrt během několika málo minut.",
+      "Zejména havarijní úniky větších množství kyanidů představují největší riziko."
+    ],
+    "foundIn": [
+      "Kyanidy je skupina látek obsahující kyanidovou skupinu (C≡N).",
+      "Vysoce toxické jsou zejména ve vodním prostředí.",
+      "Člověk může být kyanidům vystaven vdechnutím, pozřením i kožním kontaktem.",
+      "Při vyšších dávkách přichází kóma a smrt.",
+      "V atmosféře je kyanid přítomen nejčastěji jako plynný kyanovodík."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kyanidy"
+  },
+  {
+    "slug": "kyanovodik",
+    "name": "kyanovodík",
+    "nameEn": null,
+    "cas": "74-90-8",
+    "formula": null,
+    "categories": [
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Kyanovodík je velmi silný jed.",
+      "Přerušuje přívod kyslíku a oxidační procesy v buňkách.",
+      "Vdechnutí vysokých koncentrací způsobuje bezprostředně smrt.",
+      "Projevuje se slabostí paží a dolních končetin."
+    ],
+    "foundIn": [
+      "Člověk může být HCN vystaven vdechnutím, pozřením akožním kontakem.",
+      "HCN patří k nejrychlejším jedům",
+      "po inhalaci nastává smrt do několika sekund.",
+      "Po nevolnosti, křečích, pálení nosohltanu vše končí smrtí udušením.",
+      "HCN byl poprvé popsán na sklonku 18."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kyanovodik"
+  },
+  {
+    "slug": "kyselina-4-chlor-2-methylfenoxyoctova-mcpa",
+    "name": "kyselina (4-chlor-2-methylfenoxy)octová (MCPA)",
+    "nameEn": null,
+    "cas": "94-74-6",
+    "formula": "C9H9ClO3",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "reprotoxic",
+      "pop"
+    ],
+    "effects": [
+      "U člověka může být příčinou silného podráždění očí.",
+      "Pro ryby je mírně toxickým pesticidem, ale toxický pro včely.",
+      "MCPA se v organismu zvířat výrazněji nekumuluje.",
+      "Narušuje přirozený vývoj populací půdních organismů."
+    ],
+    "foundIn": [
+      "MCPA podléhá rychlému mikrobiálnímu rozkladu.",
+      "Poločas rozpadu je v průměru odhadován na 14 až 30 dní.",
+      "Ve vodě je MCPA nerozpustná, do dvou týdnů podléhá mikrobiálnímu rozkladu.",
+      "Člověk může být MCPA vystaven vdechnutím, pozřením i kožním kontaktem.",
+      "MCPA dráždí kůži, oči a sliznice horních cest dýchacích."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/kyselina-4-chlor-2-methylfenoxyoctova-mcpa"
+  },
+  {
+    "slug": "lindan-gama-hch",
+    "name": "lindan (gama-HCH)",
+    "nameEn": null,
+    "cas": "58-89-9",
+    "formula": "C6H6Cl6",
+    "categories": [
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "aquatic_toxin",
+      "pesticide",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Lindan vykazuje řadu akutních i trvalých účinků na lidské zdraví.",
+      "Dle nařízení vlády č.",
+      "je lindan klasifikován jako toxická látka, nebezpečná pro životní prostředí.",
+      "R-vět je toxický při vdechování, styku s kůží i při požití.",
+      "Dráždí oči a kůži.",
+      "Jeho symptomy jsou průjem a zvracení, které provázejí křeče."
+    ],
+    "foundIn": [
+      "Do prostředí unikal především při výrobě a vlastním použití.",
+      "Člověk může být lindanu vystaven kožním kontaktem, vdechnutím, nebo pozřením.",
+      "Lindan je klasifikován jako podezřelý lidský karcinogen (2B, IARC).",
+      "V ČR je lindan zakázán, od roku 2009 je na černé listině Stockholmské úmluvy.",
+      "Lindan je chlorovaný cyklický uhlovodík, gama izomer hexachlorhexanu."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/lindan-gama-hch"
+  },
+  {
+    "slug": "malation",
+    "name": "malation",
+    "nameEn": null,
+    "cas": "121-75-5",
+    "formula": "C10H10O6PS2",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Pro pstruha obecného je taková koncentrace o něco vyšší, zhruba 0,1 mg/L.",
+      "Poměrně odolný je karas stříbřitý, u nějž je 96-hodinová LC50 \"pouze\" 10,7 mg/L.",
+      "LC50 = Koncentrace účinné látky, která způsobí úhyn 50% exponované populace."
+    ],
+    "foundIn": [
+      "Slouží k regulaci komárů a jiného krev sajícího hmyzu.",
+      "Malation je účinnou látkou prostředků proti vším, blechám i svrabu.",
+      "Do prostředí se dostává při aplikaci, nevhodném skladování i likvidaci.",
+      "Ve vodě je vázán na pevné částice, sedimentuje a v řádech dnů degraduje.",
+      "Člověk může být malationu vystaven vdechnutím, pozřením i kožním kontaktem."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/malation"
+  },
+  {
+    "slug": "mangan",
+    "name": "mangan",
+    "nameEn": null,
+    "cas": "7439-96-5",
+    "formula": null,
+    "categories": [
+      "heavy_metal"
+    ],
+    "effects": [
+      "V lidském těle je mangan přítomen v koncentraci kolem 0,65 mg/kg.",
+      "Pomáhá také hlídat hladinu cholesterolu v krvi.",
+      "V údajích o příjmu manganu potravou se značně různí.",
+      "Zatímco některé zdroje uvádějí rozmezí 2 – 9 mg, Bencko et al.",
+      "Po inhalaci prachu MnO 2 nebo FeMn dochází u exponovaných lidí k zánětům plic.",
+      "Dlouhé vdechování prachu s obsahem manganu vyvolává onemocnění podobné silikóze."
+    ],
+    "foundIn": [
+      "Mangan (Mn) je stříbrošedý kov velmi podobný železu.",
+      "V zemské kůře je Mn 12 nejrozšířenějším prvkem.",
+      "Mn nachází široké uplatnění především v ocelářství",
+      "při výrobě na sebe váže síru a kyslík, prvky pro kvalitní ocel nevhodné.",
+      "Mn se taktéž používá ve sklářství, či keramice."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/mangan"
+  },
+  {
+    "slug": "melamin",
+    "name": "melamin",
+    "nameEn": null,
+    "cas": "108-78-1",
+    "formula": "C3H6N6",
+    "categories": [
+      "flame_retardant"
+    ],
+    "effects": [
+      "Způsobuje u nich akutní selhání ledvin (Puschner et al.",
+      "2007), které bývá často příčinou uhynutí.",
+      "V podstatě podobně působil melamin přidaný do mléčného prášku pro děti v Číně."
+    ],
+    "foundIn": [
+      "Melamin je jednou z hlavních složek žlutého pigmentu 150.",
+      "Člověk může být melaminu vystaven kožních kontaktem, vdechnutím i pozřením.",
+      "Při akutním vystavení dochází k podráždění očí a kůže.",
+      "kategorie, neklasifikovaný jako lidský karcinogen."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/melamin"
+  },
+  {
+    "slug": "methan",
+    "name": "methan",
+    "nameEn": null,
+    "cas": "74-82-8",
+    "formula": "CH4",
+    "categories": [
+      "voc"
+    ],
+    "effects": [
+      "Ve vysokých koncentracích může způsobit udušení."
+    ],
+    "foundIn": [
+      "Methan (CH4) je přirozeně se vyskytujícím, bezbarvým plynem bez zápachu.",
+      "Methan je hlavní složkou zemního plynu.",
+      "Až 80 % emisí methanu je připisováno biologickým procesům.",
+      "Při kontaktu tekutého methanu s kůží dochází k vzniku vážných omrzlin.",
+      "Vysoké riziko představuje výbušnost methanu již při 5 až 15% směsi se vzduchem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/methan"
+  },
+  {
+    "slug": "methylazinfos",
+    "name": "methylazinfos",
+    "nameEn": null,
+    "cas": "86-50-0",
+    "formula": "C10H12N3O3PS2",
+    "categories": [
+      "insecticide",
+      "pop",
+      "pesticide"
+    ],
+    "effects": [
+      "Je silně toxický při vdechování, kožním kontaktu i při náhodném požití.",
+      "Reprotoxické působení dle laboratorních studií do velké míry závisí na dávce.",
+      "Podobné je to i s teratogenním působením této látky.",
+      "Mutagenita u této látky nebyla prokázána.",
+      "Pro ptactvo je methylazinfos mírně až středně toxický.",
+      "Pro sladkovodní druhy ryb je methylazinfos středně až silně toxický."
+    ],
+    "foundIn": [
+      "Aplikuje se především na povrch listů, kde hubí škůdce, kteří se listy živí.",
+      "V EU je od roku 2006 zakázán.",
+      "V atmosféře degraduje v řádech hodin.",
+      "Nepředpokládá se jeho průsak do podzemních vod.",
+      "Methylazinfos je vysoce toxický pro vodní organizmy a svace, méně pro ptáky."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/methylazinfos"
+  },
+  {
+    "slug": "methylbromid",
+    "name": "methylbromid",
+    "nameEn": null,
+    "cas": "74-83-9",
+    "formula": "CH3Br",
+    "categories": [
+      "fungicide",
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "ozone_depleting"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Methylbromid je v minulosti hojně používaným všestranným pesticidem.",
+      "Uvolněný atomární bróm silně poškozuje ozónovou vrstvu.",
+      "V půdě je velmi mobnilní, snadno těká zpět do ovzduší.",
+      "Ve vodě není vázán na pevné částice, opět těká do ovzduší (v řekách do 6 hodin).",
+      "Bioakumulace ve vodních organizmech je nízká."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/methylbromid"
+  },
+  {
+    "slug": "med",
+    "name": "měď",
+    "nameEn": null,
+    "cas": "7440-50-8",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "heavy_metal",
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Měď je ve stopové koncentraci pro živé organismy nesmírně důležitá.",
+      "Doporučená denní dávka je pro člověka přibližně 1-2 mg.",
+      "Extrémně vysoké dávky mědi mohou způsobit i smrt.",
+      "Měď se může vedle požití v potravě nebo ve vodě do těla dostávat také dýcháním.",
+      "Pokud jde o negativní dopady mědi, je velmi toxická pro mnohé viry a bakterie.",
+      "Podle míry jeho zastoupení mohou hrozit problémy akutního nebo chronického rázu."
+    ],
+    "foundIn": [
+      "Měď (Cu) je měkký a tažný kov s výbornou elektrickou a tepelnou vodivostí.",
+      "V nadměrném množství je vysoce toxická pro vodní organizmy.",
+      "Člověk může Cu přijímat potravou, vzduchem, možný je i kožní kontakt.",
+      "Po požití nadměrného množství Cu se objevují bolesti břicha, zvracení, křeče.",
+      "Extrémní dávky vedou k poškození jater, ledvin, anémii i smrti."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/med"
+  },
+  {
+    "slug": "mirex",
+    "name": "mirex",
+    "nameEn": null,
+    "cas": "2385-85-5",
+    "formula": "C10Cl12",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "reprotoxic",
+      "pbt",
+      "pop",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Poškozuje imunitní a reprodukční systém.",
+      "Je zařazen mezi potenciálně rakovinotvorné látky.",
+      "Zatížení obyvatelstva je sledováno od roku 2002.",
+      "Míra expozice je ale velmi nízká."
+    ],
+    "foundIn": [
+      "Toxický účinek mirexu na člověka není doposud zcela objasněn.",
+      "Mirex je zakázán Stockholmskou úmluvou.",
+      "Mirex je jen málo ve vodě rozpustný, v podstatě se neodpařuje.",
+      "Ve vodním a půdním prostředí je vázán na pevné částice.",
+      "V půdě je nemobilní, naopak ve vodě velmi mobilní."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/mirex"
+  },
+  {
+    "slug": "molybden",
+    "name": "molybden",
+    "nameEn": null,
+    "cas": "7439-98-7",
+    "formula": null,
+    "categories": [],
+    "effects": [
+      "Organismy jej potřebují také například pro správné hospodaření s dusíkem.",
+      "Vepřové, jehněčí a hovězí játra mají každá přibližně 1,5 ppm molybdenu.",
+      "Přímého vdechnutí nebo požití molybdenu je třeba se vyhnout."
+    ],
+    "foundIn": [
+      "Molybden (Mo) je stříbřitě bílý a velmi tvrdý kov.",
+      "V zemské kůře je relativně vzácný.",
+      "Ve stavebnictví jsou dobrým příkladem mostní konstrukce.",
+      "V atmosféře je vázán na pevné částice a dopadá zpět na zemský povrch.",
+      "Pro půdní mirkoorganizmy je důležitou součástí enzymů pro fixaci dusíku."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/molybden"
+  },
+  {
+    "slug": "naftalen",
+    "name": "naftalen",
+    "nameEn": null,
+    "cas": "91-20-3",
+    "formula": "C10H8",
+    "categories": [
+      "carcinogen",
+      "voc",
+      "aquatic_toxin",
+      "pop"
+    ],
+    "effects": [
+      "Může poškodit játra a ledviny.",
+      "Dráždí oči, při kontaktu hrozí riziko zákalu rohovky nebo zánětu spojivek.",
+      "Při požití dráždí trávicí trakt, vyvolává zvracení a průjem.",
+      "Kromě toho může způsobit chvění, křeče, respirační paralýzu.",
+      "Prach a výpary mohou dráždit dýchací cesty.",
+      "Naftalen může u těhotných matek poškodit plod."
+    ],
+    "foundIn": [
+      "Přirozeným zdrojem naftalenu je hoření organického materiálu.",
+      "Naftalen je vysoce toxický pro vodní organizmy.",
+      "Člověk může být naftalenu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Naftalen je silně těkavý, v atmosféře rychle degraduje.",
+      "V rámci potravních řetězců nedochází k jeho bioakumulaci."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/naftalen"
+  },
+  {
+    "slug": "nemethanove-tekave-organicke-latky-nmvoc",
+    "name": "nemethanové těkavé organické látky (NMVOC)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "voc"
+    ],
+    "effects": [],
+    "foundIn": [
+      "NMVOC znečišťují především atmosféru, podmiňují vznik přízemního ozónu.",
+      "NMVOC jsou schopny kontaminovat půdu, podzemní i povrchové vody.",
+      "Toxické účinky jsou u této skupiny různorodé.",
+      "Některé z NMVOC jsou podezřelé, jiné již prokázané lidské karcinogeny.",
+      "Riziko představuje často výbušnost a vysoká hořlavost těchto látek."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/nemethanove-tekave-organicke-latky-nmvoc"
+  },
+  {
+    "slug": "nikl",
+    "name": "nikl",
+    "nameEn": null,
+    "cas": "7440-02-0",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "aquatic_toxin",
+      "reprotoxic",
+      "carcinogen"
+    ],
+    "effects": [
+      "Soli niklu mohou podobně jako čistý kov vyvolat také řadu zdravotních problémů.",
+      "Požití těchto solí vyvolává zvracení.",
+      "Niklový prach pro změnu způsobuje podráždění očí, nosu a krku."
+    ],
+    "foundIn": [
+      "Nikl (Ni) je stříbrošedý, tvrdý, ale kujný kov.",
+      "Ni je dobrým vodičem elektrického proudu odolávající korozi.",
+      "až 65 % světové produkce niklu pak na výrobu nerez oceli.",
+      "V nadměrných množstvích je však toxický.",
+      "Při kožním kontaktu může vyvolat lokální alergickou reakci."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/nikl"
+  },
+  {
+    "slug": "nitrofen",
+    "name": "nitrofen",
+    "nameEn": null,
+    "cas": "1836-75-5",
+    "formula": "C12H7Cl2NO3",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "carcinogen"
+    ],
+    "effects": [
+      "U psů vyvolávalo dlouhodobé působení nitrofenu zvětšení jater.",
+      "Jde o látku toxickou pro ryby."
+    ],
+    "foundIn": [
+      "Ve vysokých dávkách působí jako totální herbicid.",
+      "Navázán na pevné částice postupně klesá zpět k zemi.",
+      "V půdě je nepohyblivý, podléhá pozvolnému biologickému rozkladu.",
+      "Ve vodě je vázán na pevné částice a sedimentuje.",
+      "Nitrofen je náchylný k rozkladu slunečním zářením."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/nitrofen"
+  },
+  {
+    "slug": "nonylfenol-ethoxylaty-npe",
+    "name": "nonylfenol ethoxyláty (NPE)",
+    "nameEn": null,
+    "cas": "9016-45-9",
+    "formula": "C15H24O(C2H4O)na",
+    "categories": [
+      "pesticide",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Jsou výrazně toxické pro vodní organismy.",
+      "Odhadovaný (EC JRC 2002).",
+      "Mohou negativně působit na ledviny a játra.",
+      "Nonylfenoly se vážou na tuky."
+    ],
+    "foundIn": [
+      "NP jsou schopné bioakumulace v potravních řetězcích.",
+      "Své uplatnění nalézají také kosmetických, barvivech i pesticidech.",
+      "NPE kontaminují všechny složky životního prostředí, včetně podzemní vody.",
+      "Průmyslové i domácí použití NPE je zakázáno pouze v EU (REACH)."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/nonylfenol-ethoxylaty-npe"
+  },
+  {
+    "slug": "nove-bromovane-zpomalovace-horeni-nbfr",
+    "name": "nové bromované zpomalovače hoření (nBFR)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "aquatic_toxin",
+      "pbt",
+      "teratogen",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Dermální aplikace u králíka stanovila letální dávku na větší než 10 g/kg.",
+      "BTBPE nezpůsobil žádnou pozitivní reakci u kteréhokoliv mutagenního testu.",
+      "TBPA (v dávkách od 0,1 do 10,000 μg/test) neprokázal žádnou mutagenní aktivitu.",
+      "Rovněž byla tato látka testována na mutagenitu.",
+      "Žádná mutagenní aktivita nebyla pozorována ani při nejvyšších koncentracích.",
+      "NOAEL byla stanovena na 0,35 mg/kg váhy na den."
+    ],
+    "foundIn": [
+      "Látky ze skupiny tzv.",
+      "Ne vždy se jedná o nově objevené látky",
+      "Největším konzumentem nBFR je bezesporu elektronický průmysl.",
+      "Očekává se stejný modus rozšíření jako u BFR.",
+      "Mají vysoký bioakumulační potenciál, často jsou toxické pro vodní organizmy."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/nove-bromovane-zpomalovace-horeni-nbfr"
+  },
+  {
+    "slug": "oktachlorstyren-ocs",
+    "name": "oktachlorstyren (OCS)",
+    "nameEn": null,
+    "cas": "29082-74-4",
+    "formula": "C8Cl8",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "aquatic_toxin",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "V pracovním prostředí se přidává možná inhalace prachu a vstřebávání látky kůží.",
+      "Vliv oktachlorstyrenu na lidské zdraví zatím není dostatečně prozkoumán."
+    ],
+    "foundIn": [
+      "Toxické účinky OCS nejsou doposud u člověka příliš známy.",
+      "Akutní intoxikace zvířat se projevuje změnami jaterní a ledvinové tkáně."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oktachlorstyren-ocs"
+  },
+  {
+    "slug": "oktylfenol-op-a-oktylfenol-ethoxylaty-ope",
+    "name": "oktylfenol (OP) a oktylfenol ethoxyláty (OPE)",
+    "nameEn": null,
+    "cas": "1806-26-4",
+    "formula": "C4H22O",
+    "categories": [
+      "mutagen",
+      "endocrine_disruptor"
+    ],
+    "effects": [
+      "Oktylfenol je endokrinní disruptor, tj.",
+      "látka, která má negativní účinek na endokrinní (hormonální) systém.",
+      "V těle tyto látky působí jako umělé hormony.",
+      "Nejvyšší estrogenní účinek je pak připisován 4-terc.",
+      "OP pravděpodobně způsobuje u člověka pokles počtu spermií."
+    ],
+    "foundIn": [
+      "OP slouží jako výchozí surovina řady dalších látek včetně OPE.",
+      "Člověk může být OP a OPE vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Studie o toxickém účinku na člověka nejsou příliš časté.",
+      "U zvířat byl sledován u OP sledován silný estrogenní účinek.",
+      "Do prostředí se OP a OPE dostávají při výrobě, použití a likvidaci."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oktylfenol-op-a-oktylfenol-ethoxylaty-ope"
+  },
+  {
+    "slug": "olovo",
+    "name": "olovo",
+    "nameEn": null,
+    "cas": "7439-92-1",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt"
+    ],
+    "effects": [
+      "Negativní vlivy olova na zdraví jsou dlouhodobě sledovány.",
+      "Olovo se při vyšších dávkách hromadí v kostech, játrech a ledvinách.",
+      "k hyperaktivitě.",
+      "Práh ale nebyl dokázán.",
+      "Vývoj expozice dětí v ČR ukazuje tento graf.",
+      "IARC v roce 2004 přehodnotila karcinogenitu olova a jeho sloučenin."
+    ],
+    "foundIn": [
+      "V organizmu je ukládáno především v kostní, ledvinové a jaterní tkáni.",
+      "Chronické vystavení nízkým dávkám Pb může vést k poruchám chování.",
+      "Pb je považován za možný lidský karcinogen (2B dle IARC).",
+      "Množství olova v zemské kůře stále narůstá",
+      "je konečným stádiem radioaktivního rozpadu uranu a thoria."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/olovo"
+  },
+  {
+    "slug": "organicke-slouceniny-cinu",
+    "name": "organické sloučeniny cínu",
+    "nameEn": null,
+    "cas": "56-35-9",
+    "formula": null,
+    "categories": [
+      "aquatic_toxin",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Organické sloučeniny cínu poškozují ledviny.",
+      "Dochází k bolestem hlavy a poruchám vidění, zřídka ke konvulzím a kómatu."
+    ],
+    "foundIn": [
+      "Sloučeniny cínu s uhlíkem nazýváme organickými sloučeninami cínu.",
+      "Do prostředí jsou organocíny uvolňovány při výrobě, použití a likvidaci.",
+      "Organocíny mají významnou schopnost bioakumulace.",
+      "Člověk může být organocínům vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Toxické účinky organocínů závisí na konkrétní sloučenině."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/organicke-slouceniny-cinu"
+  },
+  {
+    "slug": "oxid-dusny",
+    "name": "oxid dusný",
+    "nameEn": null,
+    "cas": "10024-97-2",
+    "formula": "N2O",
+    "categories": [
+      "ozone_depleting",
+      "teratogen"
+    ],
+    "effects": [
+      "Oxid dusný je podezřelý též z toho, že může poškodit plod (teratogenita)."
+    ],
+    "foundIn": [
+      "Oxid dusný je podezřelý z možných nežádoucích účinků na plod (teratogenita)."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oxid-dusny"
+  },
+  {
+    "slug": "oxid-uhelnaty",
+    "name": "oxid uhelnatý",
+    "nameEn": null,
+    "cas": "630-08-0",
+    "formula": null,
+    "categories": [
+      "teratogen",
+      "reprotoxic",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Oxid uhelnatý působí na srdce, cévní a nervový systém.",
+      "Přijímáme ho pouze vdechováním.",
+      "Velmi vysoké koncentrace jsou smrtelné."
+    ],
+    "foundIn": [
+      "Oxid uhelnatý (CO) je bezbarvý, hořlavý plyn bez chuti a bez zápachu.",
+      "CO vzniká nedokonalým spalováním všech uhlíkatých materiálů.",
+      "Člověk je CO běžně vystaven vdechováním.",
+      "Otrava CO se projevuje ztmavnutím kůžemi, křečemi, kómatem a nakonec smrtí.",
+      "Konečným produktem rozkladu CO je oxid uhličitý."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oxid-uhelnaty"
+  },
+  {
+    "slug": "oxid-uhlicity",
+    "name": "oxid uhličitý",
+    "nameEn": null,
+    "cas": "124-38-9",
+    "formula": "CO2",
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "skleníkového efektu.",
+      "Vyšší expozice pak může způsobit křeče, kóma a smrt.",
+      "Oxid uhličitý je v podstatě jediným přirozeným zdrojem uhlíku pro veškerý život",
+      "producenti jsou schopni utvářet složité uhlovodíky z oxidu uhličitého a vody."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oxid-uhlicity"
+  },
+  {
+    "slug": "oxidy-dusiku",
+    "name": "oxidy dusíku",
+    "nameEn": null,
+    "cas": "10102-44-0",
+    "formula": null,
+    "categories": [],
+    "effects": [
+      "Ten totiž velice snadno proniká do plic, kde je ho téměř 60 % pohlceno v krvi.",
+      "Proto byl limit pro krátkodobou koncentraci stanoven na 200 µg/m3.",
+      "Hlavním toxickým účinkem oxidu dusičitého je dráždění sliznice."
+    ],
+    "foundIn": [
+      "Mezi nejběžnější oxidy dusíku patří oxid dusnatý (NO) a oxid dusičitý (NO 2 ).",
+      "Oxidy dusíku se podílejí na vzniku kyselých dešťů a přízemního ozónu.",
+      "NO je významným skleníkovým plynem.",
+      "Dusík patří mezi biogenní prvky.",
+      "Toxicita je ale relativní pojem a vždy závisí na velikosti přijaté dávky."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oxidy-dusiku"
+  },
+  {
+    "slug": "oxidy-siry",
+    "name": "oxidy síry",
+    "nameEn": null,
+    "cas": "7446-09-5",
+    "formula": null,
+    "categories": [],
+    "effects": [
+      "s mlhou vytvářejí hustý aerosol, který při vdechnutí poškozuje sliznice."
+    ],
+    "foundIn": [
+      "Mezi oxidy síry patří oxid siřičitý (SO2) a oxid sírový (SO3).",
+      "Oxidy síry v ovzduší mohou způsobovat kyselé deště.",
+      "Na oxidy síry jsou primárně citlivější starší a chronicky nemocní jedinci.",
+      "Při nadměrném množství kys.",
+      "sírové dochází k poklesu pH pod 4 a vzniku tzv."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/oxidy-siry"
+  },
+  {
+    "slug": "parabeny",
+    "name": "parabeny",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "V současné době se zkoumá možná spojitost parabenů s výskytem rakoviny prsu.",
+      "Jak známo, zvýšené estrogenní působení by mohlo podněcovat rakovinné bujení.",
+      "V souvislosti s parabeny je také známo, že mohou způsobovat kožní alergie.",
+      "Alergická reakce je vzhledem k rozšíření parabenů v kosmetice poměrně běžná."
+    ],
+    "foundIn": [
+      "Mezi nejběžnější patří methylparaben, buthylparaben a propylparaben.",
+      "Do prostředí se parabeny mohou uvolňovat při výrobě, spotřebě a likvidaci.",
+      "Jejich chování v prostředí je závislé na konkrétní látce.",
+      "V půdě je středně pohyblivý, dobře podléhá biologickému rozkladu.",
+      "Ve vodě není vázán na pevné částice, nesedimentuje."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/parabeny"
+  },
+  {
+    "slug": "paraquat",
+    "name": "paraquat",
+    "nameEn": null,
+    "cas": "1910-42-5",
+    "formula": "C12H14N2Cl2",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Paraquat je neblaze známý svou vysokou toxicitou.",
+      "K nejvážnějším otravám dochází zejména při jeho požití.",
+      "Z tohoto důvodu jsou např.",
+      "Velkou roli zde hrají často naprosto nevyhovující pracovní podmínky.",
+      "Za takových podmínek pak může docházet k enormní expozici.",
+      "Při kožním kontaktu se mohou objevit popáleniny 2."
+    ],
+    "foundIn": [
+      "paraquat reaguje jako příjemce elektronu.",
+      "Tyto příznaky se mohou dostavit i dny po akutní expozici.",
+      "Tato látka je agenturou APA považována za možný lidský karcinogen (skupina C).",
+      "Při chronické expozici byla zjištěna spojitost s rozvojem Parkinsonovy nemoci.",
+      "V EU je od roku 2007 zakázán, v rozvojových zemích i USA se stále používá."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/paraquat"
+  },
+  {
+    "slug": "parathion",
+    "name": "parathion",
+    "nameEn": null,
+    "cas": "56-38-2",
+    "formula": "C10H14NO5PS",
+    "categories": [
+      "pesticide",
+      "insecticide",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Do těla může pronikat pokožkou, sliznicemi, orálně nebo inhalací.",
+      "Jako protijed se běžně podává atropin.",
+      "Pro své silně toxické účinky bývá parathion používán k páchání sebevražd.",
+      "Některé studie odhalily, že parathion je embrio-toxický pro hlodavce.",
+      "Pro ryby a vodní bezobratlé je středně toxický.",
+      "Po uvolnění z tukových zásob je velmi rychle metabolizován."
+    ],
+    "foundIn": [
+      "Na cílové a bohužel i necílové organizmy působí jako nervový jed.",
+      "Do prostředí může být uvolňován při výrobě, spotřebě a likvidaci.",
+      "V atmosféře existuje jak v plynné, tak i v pevné fázi.",
+      "V půdě je jen omezeně pohyblivý, degraduje v řádech týdnů.",
+      "Ve vodě je vázán na pevné částice a sedimenty."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/parathion"
+  },
+  {
+    "slug": "parathion-methyl",
+    "name": "parathion-methyl",
+    "nameEn": null,
+    "cas": "298-00-0",
+    "formula": "C8H10NO5PS",
+    "categories": [
+      "pesticide",
+      "insecticide"
+    ],
+    "effects": [
+      "Je silně toxický pokud dojde k jeho vdechnutí nebo požití.",
+      "V případě dermální expozice je středně toxický.",
+      "Hodnoty LD50 jsou uvedeny v sekci limity.",
+      "Jeho vdechování způsobuje krvácení z nosu, kašel a obtížné dýchání.",
+      "Při smrtelných otravách dochází k selhání dýchání nebo zástavě srdce.",
+      "O karcinogenním vlivu na člověka neexistují žádné informace."
+    ],
+    "foundIn": [
+      "Ve vodním prostředí je degradován většinou do jednoho měsíce.",
+      "Parathion-methyl je vysoce toxický pro vodní bezobratlé, včely a ptáky.",
+      "U této látky nedochází k bioakumulaci v organických tkáních.",
+      "Parathion-methyl působí především na nervový systém.",
+      "V EU je užití parathion-methylu zakázáno."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/parathion-methyl"
+  },
+  {
+    "slug": "pentachlorbenzen",
+    "name": "pentachlorbenzen",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C6HCl5",
+    "categories": [
+      "halogenated",
+      "voc",
+      "aquatic_toxin",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Krátkodobá expozice pentachlorbenzenu může mít vliv na centrální nervový systém.",
+      "Dlouhodobá expozice může ovlivňovat játra, ledviny a způsobovat vznik lézí.",
+      "Má schopnost se bioakumulovat v rybách a savcích."
+    ],
+    "foundIn": [
+      "Jako těkavá látka (VOP) existuje v atmosféře téměř výlučně v plynné fázi.",
+      "Poločas rozpadu reakcí s hydroxylovými radikály je odhadován na 277 dní.",
+      "V půdě je pevně vázán, je jen omezeně pohyblivý.",
+      "Průměrný poločas rozpadu je přibližně 6 let.",
+      "Ve vodě je spíše vázán v sedimentech."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/pentachlorbenzen"
+  },
+  {
+    "slug": "pentachlorfenol-pecp",
+    "name": "pentachlorfenol (PeCP)",
+    "nameEn": null,
+    "cas": "87-86-5",
+    "formula": "C6HCl5O",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Prokázáno bylo rovněž ukládání PeCP v tukových tkáních.",
+      "Pentachlorfenol je též značně perzistentní látka."
+    ],
+    "foundIn": [
+      "Do prostředí se PeCP dostává především při výrobě, manipulaci a likvidaci.",
+      "Na trh byla uvedena v 30.",
+      "letech minulého století a přes určitá omezení je stále používaná.",
+      "V obou případech musí být zamezen styk s lidskou nebo živočišnou potravou."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/pentachlorfenol-pecp"
+  },
+  {
+    "slug": "perfluorkarboxylove-kyseliny-pfcas",
+    "name": "perfluorkarboxylové kyseliny (PFCAs)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "pbt",
+      "teratogen",
+      "pfas"
+    ],
+    "effects": [
+      "Původ těchto látek v lidském těle však není dosud dobře prozkoumán.",
+      "Byly prokázány nepříznivé účinky perfluorkarboxylových kyselin na lidské zdraví.",
+      "Jsou spojovány s imunitními problémy, onemocněním štítné žlázy či neplodností.",
+      "Jsou to rovněž potencionální karcinogeny."
+    ],
+    "foundIn": [
+      "PFCAs jsou také meziproduktem výroby jiných fluorovaných látek (teflon apod.).",
+      "Byly změřeny ve vzduchu, půdě, vodě, rostlinách i v živočiších včetně člověka.",
+      "Mají vysokou schopnost bioakumulace.",
+      "Člověk je PFCAs nejčastěji vystaven pozřením.",
+      "V organizmu jsou vázány na tukovou tkáň."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/perfluorkarboxylove-kyseliny-pfcas"
+  },
+  {
+    "slug": "perfluorooktanova-kyselina-pfoa",
+    "name": "perfluorooktanová kyselina (PFOA)",
+    "nameEn": null,
+    "cas": "335-67-1",
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "pbt",
+      "endocrine_disruptor",
+      "pfas"
+    ],
+    "effects": [
+      "Člověk je nejčastěji PFOA vystaven prostřednictvím kontaminované potravy a vody.",
+      "U žen s vyšší hladinou PFOA v krvi bylo poukázáno na zvýšené riziko potratů.",
+      "PFC mohou do životního prostředí unikat např."
+    ],
+    "foundIn": [
+      "Výjimku ze zákazu udělily strany Stockholmské úmluvy farmaceutickému průmyslu.",
+      "Problematické se ukázaly především lokality v blízkosti chemických závodů.",
+      "PFOA je vyrobena, aby byla odolná",
+      "nepodléhá hydrolýze, fotolýze, biodegradaci ani se nemetabolizuje.",
+      "Člověk je nejčastěji PFOA vystaven prostřednictvím kontaminované potravy a vody."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/perfluorooktanova-kyselina-pfoa"
+  },
+  {
+    "slug": "perfluorooktansulfonamid-fosa",
+    "name": "perfluorooktansulfonamid (FOSA)",
+    "nameEn": null,
+    "cas": "754-91-6",
+    "formula": null,
+    "categories": [
+      "halogenated"
+    ],
+    "effects": [
+      "PFC mohou do životního prostředí unikat např.",
+      "hm./den pro PFOS a 1,5 µg/kg těl.",
+      "hm./den pro PFOA 1, ."
+    ],
+    "foundIn": [
+      "V atmosféře může existovat v podobě páry i navázán na pevné částice.",
+      "V půdě je pravděpodobně jen omezeně pohyblivý.",
+      "Obecně je u těchto látek popsán vysoký bioakumulační potenciál",
+      "tradičně nejvyšší koncentrace jsou měřeny v mořských rybách.",
+      "Člověk může být FOSA vystaven vdechnutím, pozřením a kožním kontaktem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/perfluorooktansulfonamid-fosa"
+  },
+  {
+    "slug": "perfluorooktansulfonat-pfos",
+    "name": "perfluorooktansulfonát (PFOS)",
+    "nameEn": null,
+    "cas": "1763-23-1",
+    "formula": null,
+    "categories": [
+      "insecticide",
+      "pbt",
+      "pop",
+      "pfas"
+    ],
+    "effects": [
+      "PFOS mohou do životního prostředí unikat např."
+    ],
+    "foundIn": [
+      "PFOS patří mezi perfluorované sloučeniny ( PFAS ).",
+      "Do prostředí se PFOS uvolňuje při výrobě, manipulaci a likvidaci.",
+      "Kontaminuje i velmi vzdálené lokality, jako je například Arktida.",
+      "PFOS je schopen významné bioakumulace v rámci potravních řetězců.",
+      "Možný je i kožní přenos."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/perfluorooktansulfonat-pfos"
+  },
+  {
+    "slug": "perfluorovane-a-polyfluorovane-latky-pfas",
+    "name": "perfluorované a polyfluorované látky (PFAS)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pfas",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Některé PFAS jsou považovány za podezřelé lidské karcinogeny.",
+      "PFAS mohou poškozovat imunitní a endokrinní systém."
+    ],
+    "foundIn": [
+      "Většina zástupců PFAS je perzistentních (odolných vůči rozkladu).",
+      "Známy jsou především díky použití v teflonu a gore-texu.",
+      "Člověk PFAS přijímá především v potravě a vodě."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/perfluorovane-a-polyfluorovane-latky-pfas"
+  },
+  {
+    "slug": "poletavy-prach-pm",
+    "name": "polétavý prach - PM",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "mutagen"
+    ],
+    "effects": [
+      "V případě nanočástic můžeme hovořit o pronikání až do krevního řečiště.",
+      "Tyto změny omezují přirozené obranné mechanismy a usnadňují vznik infekce.",
+      "U prašného aerosolu nebyla zjištěna prahová hranice jeho působení.",
+      "Ve zprávě lze najít další podrobnosti o vlivu prašnosti na lidské zdraví."
+    ],
+    "foundIn": [
+      "Mezi antropogenní zdroje pak patří především spalovací procesy.",
+      "K nejvýznamnějším primárním zdrojům prašnosti patří domácí topeniště a doprava.",
+      "Velikost a tvar částic se mění.",
+      "Významný zdrojem je tzv.",
+      "Prachové částice jsou palčivý problém současnosti."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/poletavy-prach-pm"
+  },
+  {
+    "slug": "pbde-polybromovane-difenylethery",
+    "name": "polybromované difenylethery (PBDE)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "aquatic_toxin",
+      "pbt",
+      "pop",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Navíc tyto látky patří do skupiny tzv.",
+      "Hodnota LOAEL (myši) v rozmezí 0,6 – 0,8 mg/kg těl.",
+      "LOAEL (Lowest Observed Adverse Effect Level).",
+      "Hodnota LOAEL (králíci) 2 mg/kg těl.",
+      "Hodnota LOAEL (krysy) 80 mg/kg těl.",
+      "hm./den (negativní účinky na štítnou žlázu, játra a ledviny)."
+    ],
+    "foundIn": [
+      "Do prostředí se PBDE mohou uvolňovat při výrobě, spotřebě a likvidaci.",
+      "Člověk může být PBDE vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "V organizmu se váží na tukovou tkáň.",
+      "Chování v prostředí je závislé na konkrétní sloučenině.",
+      "Ve vodním prostředí jsou vázány především na sedimenty."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/pbde-polybromovane-difenylethery"
+  },
+  {
+    "slug": "polycyklicke-aromaticke-uhlovodiky-pahs",
+    "name": "polycyklické aromatické uhlovodíky (PAHs)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "carcinogen",
+      "mutagen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Studie na zvířatech prokázaly vliv na snížení plodnosti a vývojové vady potomků.",
+      "K nejzávažnějším vlivům PAHs patří jejich karcinogenita.",
+      "Rakovinotvornost PAHs na člověka byla prokázána u cigeretového kouře či sazí.",
+      "Přítomnost PAHs je hlavní příčinou vzniku rakoviny plic.",
+      "Tyto hodnoty ukazují karcinogenní potenciál látky vztažený k benzo(a)pyrenu."
+    ],
+    "foundIn": [
+      "PAHs jsou běžnou součástí životního prostředí.",
+      "Některé PAH mají vysoký bioakumulační potenciál.",
+      "Člověk může být PAHs vystaven vdechnutím, pozřením i kožním kontaktem.",
+      "Při expozici dochází k podráždění kůže a očí.",
+      "PAHs poškozují ledvinovou a jaterní tkáň."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/polycyklicke-aromaticke-uhlovodiky-pahs"
+  },
+  {
+    "slug": "polychlorovane-bifenyly-pcb",
+    "name": "polychlorované bifenyly (PCB)",
+    "nameEn": null,
+    "cas": "1336-36-3",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Akutní otravy způsobené PCB jsou zatím vzácné.",
+      "Projevila se únavou, zvracením, lehkou žloutenkou a kolikou.",
+      "„Yu-Cheng“ otrava).",
+      "Zvýšení toxicity PCB vyvolávají stopy dibenzofuranů a dibenzodioxinů.",
+      "Smrtelné otravy zatím nebyly zaznamenány.",
+      "Varovným signálem jsou i mutagenní účinky PCB na baktréie."
+    ],
+    "foundIn": [
+      "lety minulého století.",
+      "PCB jsou odolné látky s výraznou schopností bioakumulace v potravních řetězcích.",
+      "Člověk může být PCB vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Akutní otravy nejsou příliš časté a projevují se např.",
+      "únavou, bolestí hlavy, ztrátou vlasů, nebo bronchitidou."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/polychlorovane-bifenyly-pcb"
+  },
+  {
+    "slug": "polychlorovane-dibenzothiofeny-pcdt",
+    "name": "polychlorované dibenzothiofeny (PCDT)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "halogenated",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Nemají však tak vysoký potenciál jako jejich okysličené obdoby (PCDF).",
+      "1993, Kopponen et al."
+    ],
+    "foundIn": [
+      "Toxicita PCTD je nižší než u nejnebezpečnějších PCB."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/polychlorovane-dibenzothiofeny-pcdt"
+  },
+  {
+    "slug": "polychlorovane-naftaleny-pcns",
+    "name": "polychlorované naftaleny (PCNs)",
+    "nameEn": null,
+    "cas": null,
+    "formula": null,
+    "categories": [
+      "pop",
+      "carcinogen",
+      "reprotoxic",
+      "aquatic_toxin",
+      "halogenated",
+      "teratogen"
+    ],
+    "effects": [
+      "Polychlorované naftaleny vykazují toxické účinky.",
+      "Zejména hexachlorované naftaleny jsou vysoce hepatotoxické.",
+      "Řada polychlorovaných naftalenů vykazuje toxicitu dioxinového typu.",
+      "Některé účinky mohou přetrvávat i poměrně dlouho po expozici.",
+      "Polychlorované naftaleny jsou toxické také pro vodní organismy."
+    ],
+    "foundIn": [
+      "Vyráběny byly od počátku minulého století, koncem 30.",
+      "let byly poprvé popsány jejich toxické účinky, ale až koncem 70.",
+      "let započala regulace jejich produkce a spotřeby.",
+      "Dochází k jejich bioakumulaci v rámci potravních řetězců.",
+      "Nejběžnější projevy akutní i chronické otravy jsou chlórakné, a poškození jater."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/polychlorovane-naftaleny-pcns"
+  },
+  {
+    "slug": "propiconazole",
+    "name": "propiconazole",
+    "nameEn": null,
+    "cas": "60207-90-1",
+    "formula": "C15H17Cl2N3O",
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "Propikonazol má nízkou akutní toxicitu.",
+      "Akutní orální LD50 pro krysy je 1517 mg/kg.",
+      "Při styku s očima způsobuje zakalení rohovky, které však odezní do 72 hodin.",
+      "Propikonazol může být mírně až vysoce toxický pro ryby.",
+      "Akutní LC50 je 850 ppb pro pstruha duhového, a 4800 ppb pro Daphnia magna.",
+      "Má relativně nízkou toxicitu pro ptáky."
+    ],
+    "foundIn": [
+      "Propiconazole je fungicid a antimikrobiální látka patřící do skupiny triazolů.",
+      "Poprvé byl registrován v roce 1981.",
+      "Do prostředí se propiconazole dostává při výrobě, použití i likvidaci.",
+      "V sedimentech a za nepřístupu vzduchu je velmi perzistentní.",
+      "Není známa jeho bioakumulace."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/propiconazole"
+  },
+  {
+    "slug": "propineb",
+    "name": "propineb",
+    "nameEn": null,
+    "cas": "12071-83-9",
+    "formula": null,
+    "categories": [
+      "fungicide"
+    ],
+    "effects": [
+      "Propineb může dráždit kůži a vyvolávat alergické reakce.",
+      "Propineb je toxický pro vodní organismy, netoxický pro ptáky a včely.",
+      "Dafnie: LC 50 (48 h) 4,7 mg / l.",
+      "ptáci - akutní LD50 (mg kg -1) > 5000.",
+      "Mírná toxicita pro ryby stejně jako vodní bezobratlé živočichy, žížaly a včely.",
+      "Neškodný pro ostatní členovce."
+    ],
+    "foundIn": [
+      "Do prostředí se může uvolňovat při výrobě, skladování a likvidaci.",
+      "Jeho hlavním zdrojem je samozřejmě samotné použití.",
+      "Člověk může být propinebu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Při akutní expozici dráždí kůži a oči.",
+      "Jako prostředek na ochranu rostlin je v EU povolen."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/propineb"
+  },
+  {
+    "slug": "mercury",
+    "name": "rtuť",
+    "nameEn": "m, mercury",
+    "cas": "7439-97-6",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "heavy_metal",
+      "carcinogen",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic",
+      "pbt"
+    ],
+    "effects": [
+      "Tato schopnost byla příčinou hromadných otrav, ke kterým došlo např.",
+      "v zátoce Minamata (Japonsko), v prefektuře Niigata (Japonsko), či v Iráku.",
+      "Z těla se vylučuje až několik let.",
+      "Játra rychle kumulují rtuť a vylučují ji žlučí do střev.",
+      "Dimethylrtuť je z 1/3 vyloučena z organismu a ze 2/3 vstřebána zpět do krve",
+      "Při požití je smrtelná dávka 1 g rtuti."
+    ],
+    "foundIn": [
+      "Rtuť (Hg) je jediný kov, který je za normální teploty a tlaku kapalný.",
+      "Člověk je Hg vystaven vdechováním, přes trávicí trakt i pokožku.",
+      "V těle dochází k hromadění Hg především v játrech, ledvinách a slezině.",
+      "Akutní vystavení Hg vede např.",
+      "Smrtelné je pozření 1 g Hg."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/mercury"
+  },
+  {
+    "slug": "selen",
+    "name": "selen",
+    "nameEn": null,
+    "cas": "7782-49-2",
+    "formula": null,
+    "categories": [
+      "carcinogen"
+    ],
+    "effects": [
+      "Až do poloviny 70.",
+      "let se považoval pouze za stopový prvek, který je při předávkování toxický.",
+      "Působí přitom synergicky s vitaminem E.",
+      "Při vyšším příjmu působí selen toxicky.",
+      "Obsah selenu v potravinách značně záleží na jeho obsahu v půdě.",
+      "Při velké koncentraci selenu v půdě muže být jeho obsah v tzv."
+    ],
+    "foundIn": [
+      "Selen (Se) je přirozeně se vyskytující nekovový prvek ze skupiny chalkogenů.",
+      "V zemské kůře je Se vzácným, ale všudypřítomným.",
+      "Se je taktéž součástí některých farma výrobků a kosmetiky.",
+      "Se jako takový nedegraduje, jen mění formu.",
+      "Z atmosféry postupně klesá zpět na zemský povrch."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/selen"
+  },
+  {
+    "slug": "simazin",
+    "name": "simazin",
+    "nameEn": null,
+    "cas": "122-34-9",
+    "formula": "C7H12ClN5",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "halogenated",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Akutní toxicita simazinu je poměrně nízká.",
+      "Vliv simazinu na ekosystémy závisí na druhu prostředí ve kterém působí.",
+      "Simazin je téměř netoxický pro ptactvo (např.",
+      "LC50* pro kachnu divokou je více než 4600 mg/kg).",
+      "Také působení na savce se liší druh od druhu."
+    ],
+    "foundIn": [
+      "Do prostředí se simazin dostává při použití, manipulaci, popřípadě likvidaci.",
+      "U zvířat se po pozření mohou objevit otravy.",
+      "Profesní intoxikace mohou způsobit vyrážky a záněty kůže.",
+      "Simazin je v prostředí středně stálý s průměrným poločasem rozpadu 60 dnů.",
+      "Většinou kontaminuje jen svrchní vrstvy půdy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/simazin"
+  },
+  {
+    "slug": "styren",
+    "name": "styren",
+    "nameEn": null,
+    "cas": "100-42-5",
+    "formula": "C8H8",
+    "categories": [
+      "carcinogen",
+      "voc",
+      "teratogen"
+    ],
+    "effects": [
+      "Z akutních projevů bylo dále pozorováno podráždění očí a sliznic nosu a krku.",
+      "Výsledky výzkumů o vlivu styrenu na embryonální vývoj se různí.",
+      "Z dermálních účinků bylo zaznamenáno podráždění očí a kůže u pokusných králíků."
+    ],
+    "foundIn": [
+      "Styren je bezbarvá, těkavá kapalina s charakteristickým sladkým zápachem.",
+      "Bioakumulační potenciál styrenu je nízký.",
+      "Člověk může být styrenu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Při akutní expozici styren dráždí oči, dýchací cesty i trávicí soustavu.",
+      "Styren má negativní vliv na nervový systém."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/styren"
+  },
+  {
+    "slug": "terbutryn",
+    "name": "terbutryn",
+    "nameEn": null,
+    "cas": "886-50-0",
+    "formula": "C10H19N5S",
+    "categories": [
+      "herbicide",
+      "pesticide"
+    ],
+    "effects": [
+      "Je mírně toxický a u zvířat ovlivňuje především nervovou soustavu.",
+      "Způsobuje zhoršenou koordinaci, křeče a nevyrovnané dýchání.",
+      "US EPA ho hodnotí jako možný karcinogen pro lidi."
+    ],
+    "foundIn": [
+      "Terbutryn je neselektivní herbicid ze skupiny triazinových pesticidů.",
+      "Uplatnění nachází i v likvidaci vodních rostlin.",
+      "Mechanizmem účinku je zastavení fotosyntézy.",
+      "Do prostředí se dostává při samotném použití, nebo nevhodné manipulaci.",
+      "V půdě je relativně nemobilní, navázaný na organické složky a jíly."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/terbutryn"
+  },
+  {
+    "slug": "tbbpa-tetrabrombisfenol-a",
+    "name": "tetrabrombisfenol A (TBBPA)",
+    "nameEn": null,
+    "cas": "79-94-7",
+    "formula": "C15H12Br4O2",
+    "categories": [
+      "flame_retardant"
+    ],
+    "effects": [
+      "Současné vědecké studie zatím neprokázaly zdravotní riziko pro člověka.",
+      "TBBPA je částečně strukturně podobné thyroidnímu hormonu thyroxinu.",
+      "Tato skutečnost zatím nebyla prokázána v  in vivo studiích.",
+      "Největší nebezpečí přináší pracovní expozice 2 .",
+      "hm., dermální dávka (králíci) LD 50 >2 g/kg těl."
+    ],
+    "foundIn": [
+      "V atmosféře může existovat v plynné i pevné fázi.",
+      "TBBPA podléhá rozkladu UV zářením.",
+      "Ve vodě navázán na pevné částice sedimentuje, nepodléhá hydrolýze.",
+      "Bioakumulační potenciál TBBPA je střední.",
+      "Člověk může být TBBPA vystaven vdechnutím, pozřením a kožním kontaktem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tbbpa-tetrabrombisfenol-a"
+  },
+  {
+    "slug": "tetrachlorethylen-perchlor",
+    "name": "tetrachlorethylen (perchlor)",
+    "nameEn": null,
+    "cas": "127-18-4",
+    "formula": "C2Cl4",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "voc",
+      "aquatic_toxin",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Zdrojem emisí jsou také skládky odpadu.",
+      "PER je zařazen do kategorie 2A (IARC) jako možný lidský karcinogen.",
+      "Přírodní zdroje PER neexistují.",
+      "PER kontaminuje všechny složky životního prostředí.",
+      "Většina PER je vypuštěna do atmosféry, kde podléhá jen pomalému rozkladu."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tetrachlorethylen-perchlor"
+  },
+  {
+    "slug": "tetrachlormethan-tcm",
+    "name": "tetrachlormethan (TCM)",
+    "nameEn": null,
+    "cas": "56-23-5",
+    "formula": "CCl4",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "voc",
+      "ozone_depleting",
+      "aquatic_toxin",
+      "teratogen"
+    ],
+    "effects": [
+      "Orgánem zvláště citlivým na tetrachlormethan jsou játra.",
+      "Také ledviny jsou na tetrachlormethan velmi citlivé.",
+      "Působení tetrachlormethan poškozuje také nervový systém včetně mozku.",
+      "Takové působení pak může být fatální.",
+      "Tyto příznaky zmizí většinou den nebo dva po vystavení.",
+      "Předpokládá se však, že tetrachlormethan může k výskytu rakoviny vést."
+    ],
+    "foundIn": [
+      "Od roku 1996 je TCM zakázán Montrealským protokolem o ochraně ozónové vrstvy.",
+      "Člověk může být TCM vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Cílovými orgány chronické expozice TCM jsou játra, ledviny a mozek.",
+      "U zvířat byl sledován zvýšený výskyt rakoviny jater.",
+      "IARC považuje TCM za možný lidský karcinogen (2B)."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tetrachlormethan-tcm"
+  },
+  {
+    "slug": "thalium",
+    "name": "thalium",
+    "nameEn": null,
+    "cas": "7440-28-0",
+    "formula": null,
+    "categories": [
+      "pesticide",
+      "heavy_metal"
+    ],
+    "effects": [
+      "Otravy jimi jsou poměrně časté.",
+      "Jedy na krysy byly v minulosti také častým zdrojem otravy u lidí.",
+      "Váže se na thiolové skupiny (cysteinové zbytky) enzymů.",
+      "Je též antagonistou draslíku.",
+      "Akutní otrava thaliem se projevuje zvracením a průjmy, často krvavými.",
+      "Vysoké dávky vyvolávají křeče, delirium, hluboké bezvědomí až smrt."
+    ],
+    "foundIn": [
+      "Thalium se získává především z odpadních prachů z výroby olova a zinku.",
+      "Riziko představuje i elektrošrot, popřípadě staré ekologické zátěže.",
+      "V půdě i vodě je díky své rozpustnosti Tl velmi mobilní.",
+      "Člověk je Tl vystaven kožním kontaktem, vdechnutím i pozřením.",
+      "Akutní otrava se projevuje zvracením a krvavými průjmy."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/thalium"
+  },
+  {
+    "slug": "toluen",
+    "name": "toluen",
+    "nameEn": null,
+    "cas": "108-88-3",
+    "formula": "C7H8",
+    "categories": [
+      "voc",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Toluen místně odmašťuje a dráždí pokožku, kterou se také vstřebává.",
+      "Působení na kůži závisí na době trvání a intensitě expozice.",
+      "Vysoké koncentrace par nebo styk s kapalinou silně dráždí sliznici očí.",
+      "Při požití dráždí sliznice trávicího ústrojí.",
+      "Čichový práh je 1 mg/m 3 ."
+    ],
+    "foundIn": [
+      "Člověk může být toluenu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Toluen dráždí kůži, oči a horní cesty dýchací.",
+      "Působí narkoticky, způsobují bolesti hlavy, žaludeční nevolnost.",
+      "Často příznaky po ukončení expozice sami odeznějí.",
+      "Toluen přechází placentou, byl změřen v mateřském mléce."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/toluen"
+  },
+  {
+    "slug": "toxafen",
+    "name": "toxafen",
+    "nameEn": null,
+    "cas": "8001-35-2",
+    "formula": "C10H10Cl8",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "insecticide",
+      "carcinogen",
+      "reprotoxic",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Poškozuje imunitní, hormonální a reprodukční systém."
+    ],
+    "foundIn": [
+      "Od roku 1986 je jeho použití v České republice zakázáno.",
+      "Člověk může být toxafenu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Chronická expozice vede především k poškození dýchacích cest.",
+      "Toxafen je možný lidský karcinogen (2B IARC).",
+      "Toxafen se uplatňoval při ošetření bavlny, obilí, kukuřice a sóji."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/toxafen"
+  },
+  {
+    "slug": "tributylcin-tbt-a-jeho-slouceniny",
+    "name": "tributylcín (TBT) a jeho sloučeniny",
+    "nameEn": null,
+    "cas": "36643-28-4",
+    "formula": null,
+    "categories": [
+      "aquatic_toxin",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Tributylcín také poškozuje imunitní systém.",
+      "Při expozici některých měkkýšů tributylcínem se vyvíjí tzv.",
+      "pseudohermafroditismus nebo imposex.",
+      "Tributylcín totiž blokuje konverzi testosteronu v estrogeny.",
+      "U předožábrých plžů je účinná koncentrace již 2ng/l.",
+      "V extrémních případech to vede k neplodnosti."
+    ],
+    "foundIn": [
+      "Krátce po objevení v 50.",
+      "TBT patří mezi silně toxické sloučeniny mající vysoký bioakumulační potenciál.",
+      "Člověk může být TBT vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Při expozici dráždí kůži, sliznice očí a dýchacích cest.",
+      "V EU je použití TBT od roku 2010 silně regulováno nařízením REACH (1907/2006)."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tributylcin-tbt-a-jeho-slouceniny"
+  },
+  {
+    "slug": "triclosan",
+    "name": "triclosan",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C12H7Cl3O2",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "pbt",
+      "pop"
+    ],
+    "effects": [],
+    "foundIn": [
+      "Běžně bývá součástí řady plastových a textilních výrobků denní spotřeby.",
+      "Ve vodě je vázán na sedimenty, kde podléhá biologickému rozkladu.",
+      "Bioakumulace ve vodních organizmech je nízká až střední.",
+      "Triclosan je významný kontaminant odpadních vod.",
+      "Člověk může být triclosanu vystaven pozřením a kožním kontaktem."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/triclosan"
+  },
+  {
+    "slug": "trifenylcin-tpt-a-jeho-slouceniny",
+    "name": "trifenylcín (TPT) a jeho sloučeniny",
+    "nameEn": null,
+    "cas": "76-87-9",
+    "formula": "C18H16OSn",
+    "categories": [
+      "insecticide",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Trifenylcín se do organismu dostává kůží.",
+      "Expozice trifenylcínem vyvolává poškození celé řady orgánových soustav.",
+      "Cílovým orgánem je pravděpodobně nervový systém.",
+      "Chronická epozice trifenylcínem může vést k rakovině jater, hypofýzy a varlat.",
+      "Trifenylcín-acdetát je endokrinním disruptorem (tj.",
+      "nahrazuje svými účinky působení některých hormonů)."
+    ],
+    "foundIn": [
+      "TPT byly častou součástí ochranných nátěrů ponořených objektů.",
+      "Do prostředí se TPT dostávají především při výrobě, použití a likvidaci.",
+      "Přenos do vyšších potravních tříd nebyl doposud popsán.",
+      "Obecně mají TPT neurotoxické účinky.",
+      "Nepřekvapí, že většina TPT kontaminuje mořské ekosystémy."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trifenylcin-tpt-a-jeho-slouceniny"
+  },
+  {
+    "slug": "trifluralin",
+    "name": "trifluralin",
+    "nameEn": null,
+    "cas": "1582-09-8",
+    "formula": "C13H16F3N3O4",
+    "categories": [
+      "herbicide",
+      "pesticide",
+      "carcinogen",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Dlouhodobé působení tohoho pesticidu může vést k podráždění pokožky.",
+      "Endokrinní působení lze přitom zaznamenat již při velmi nízkých koncentracích.",
+      "Dávka, která usmrtí 50% pokusných zvířat."
+    ],
+    "foundIn": [
+      "Uplatnění nachází jak u zemědělských, tak okrasných rostlin.",
+      "Člověk může být trifluralinu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "EU (nařízení 1272/2008) považuje trifluralin za podezřelý lidský karcinogen.",
+      "Od roku 2008 je jeho použití v zemích EU zakázáno.",
+      "Do prostředí je trifluralin uvolňován především při použití."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trifluralin"
+  },
+  {
+    "slug": "trichlorbenzeny",
+    "name": "trichlorbenzeny",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C6H3Cl3",
+    "categories": [
+      "halogenated",
+      "insecticide",
+      "voc",
+      "aquatic_toxin",
+      "pbt",
+      "pop"
+    ],
+    "effects": [
+      "Trichlorbenzeny jsou látky nebezpečné pro zdraví člověka.",
+      "Do organismu mohou být vdechnuty a prostupují i pokožkou.",
+      "dráždění nosu, dýchacích cest a plic s následným kašlem a dušností",
+      "poškození jater a ledvin",
+      "poškození krevních buněk (anémie)."
+    ],
+    "foundIn": [
+      "Trichlorbenzeny jsou různé směsi tří izomerů trichlorbenzenu.",
+      "v textilním průmyslu.",
+      "Trichlorbenzeny mají schopnost bioakumulace v potravních řetězcích.",
+      "Existuje podezření na teratogenitu.",
+      "V půdách jsou pevně vázány, ve vodě sedimentují."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trichlorbenzeny"
+  },
+  {
+    "slug": "trichlorethylen",
+    "name": "trichlorethylen",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C2HCl3",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "voc",
+      "mutagen",
+      "aquatic_toxin",
+      "teratogen"
+    ],
+    "effects": [
+      "Větší počet takových dětí se rodil také se srdečními vadami.",
+      "V případě většího požitého množství může následovat smrt.",
+      "Také v případě vypití této látky je jí většina absorbována krví."
+    ],
+    "foundIn": [
+      "Člověk může být této látce vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Trichlorethylen působí zejména na nervový systém.",
+      "Může docházet k poškození zraku, sluchu, oběhové soustavy, ledvin, jater.",
+      "Dráždí kůži, oči i sliznice horních cest dýchacích.",
+      "Po delší expozici dochází k poškození imunity a schopnosti reprodukce."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trichlorethylen"
+  },
+  {
+    "slug": "trichlormethan-chloroform",
+    "name": "trichlormethan (chloroform)",
+    "nameEn": null,
+    "cas": "67-66-3",
+    "formula": "CHCl3",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "voc",
+      "teratogen"
+    ],
+    "effects": [
+      "Kontakt většího množství chloroformu s pokožkou může způsobit vznik boláků.",
+      "ppm = parts per million (česky dílů či částic na jeden milion)"
+    ],
+    "foundIn": [
+      "Do prostředí se chloroform může uvolňovat při výrobě, použití a likvidaci.",
+      "Chloroform se v živých tkáních akumuluje jen omezeně.",
+      "Člověk může být chloroformu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Chloroform působí na centrální nervový systém, játra a ledviny.",
+      "Chloroform je klasifikován jako možný lidský karcinogen (2B dle IARC)."
+    ],
+    "iarc": "2A",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trichlormethan-chloroform"
+  },
+  {
+    "slug": "tris2-chlor-1-methylethyl-fosfat-tcpp",
+    "name": "tris(2-chlor-1-methylethyl)-fosfát (TCPP)",
+    "nameEn": null,
+    "cas": "13674-84-5",
+    "formula": "C9H18Cl3O4P",
+    "categories": [
+      "halogenated",
+      "pop",
+      "flame_retardant"
+    ],
+    "effects": [
+      "O vlivu TCPP na lidské zdraví a na živočichy toho víme velice málo.",
+      "O působení této látky na lidi neexistují žádné informace.",
+      "Z pokusů na králících vyplynulo, že TCPP nulově až středně dráždí oči."
+    ],
+    "foundIn": [
+      "TCPP je v prostředí jen obtížně rozložitelný",
+      "stopové koncentrace byly naměřeny v jeho různých složkách.",
+      "Problematické jsou především vnitřní prostory.",
+      "Limit obsahu všech těchto látek je stanoven na 5 mg/kg."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tris2-chlor-1-methylethyl-fosfat-tcpp"
+  },
+  {
+    "slug": "uv-328",
+    "name": "UV-328",
+    "nameEn": null,
+    "cas": "25973-55-1",
+    "formula": null,
+    "categories": [],
+    "effects": [
+      "UV-328 je toxický pro játra.",
+      "UV-328 je spojován s nepříznivými účinky na ryby a vodní organismy."
+    ],
+    "foundIn": [
+      "UV-328 je syntetická organická látka řadící se mezi tzv.",
+      "benzotriazolové UV stabilizátory."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/uv-328"
+  },
+  {
+    "slug": "uv-stabilizatory",
+    "name": "UV-stabilizátory",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C22H29N3O",
+    "categories": [
+      "endocrine_disruptor",
+      "flame_retardant"
+    ],
+    "effects": [
+      "Narušení pak může vést k vývojové toxicitě vyvolané chemickými látkami.",
+      "UV-P a UV-328 také vykázaly antiandrogenní účinky v metabolických biotestech.",
+      "Benzotriazol navíc vyvolává estrogenní účinky u samců i samic hřebenatek."
+    ],
+    "foundIn": [
+      "Často bývají součástí plastu, ale také kosmetiky (např.",
+      "opalovacích krémů), nátěrových hmot, lepidel a tmelů.",
+      "Rozlišujeme několik typů BUV: UV-P, UV-234, UV 320, UV-326, UV-327, UV-328, atd.",
+      "Všechny jsou si strukturně velmi podobné, mají společný tzv.",
+      "benzotriazolový základ, odlišují se však postranními řetězci molekuly."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/uv-stabilizatory"
+  },
+  {
+    "slug": "vinylchlorid",
+    "name": "vinylchlorid",
+    "nameEn": null,
+    "cas": "75-01-4",
+    "formula": "C2H3Cl",
+    "categories": [
+      "halogenated",
+      "carcinogen",
+      "voc",
+      "mutagen",
+      "teratogen"
+    ],
+    "effects": [
+      "Za normálních okolností se nicméně s touto látkou v prostředí nesetkáme.",
+      "Jinou možností expozice je požití vody z kontaminovaného zdroje.",
+      "Podobně tomu bylo i u potravin, které byly baleny do PVC.",
+      "Současná kriteria by ale toto již neměla umožňovat.",
+      "Další možností příjmu je pracovní expozice.",
+      "Vdechnutý nebo polknutý vinylchorid velmi rychle přechází do krevního oběhu."
+    ],
+    "foundIn": [
+      "Člověk může být vinylchloridu vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "V půdě je velmi pohyblivý, rychle těká zpět do ovzduší.",
+      "Může podléhat rozkladu mikrobiální činností.",
+      "Jako těkavá látka se podílí na vzniku přízemního ozónu.",
+      "Bioakumulační potenciál vinylchloridu je nízký."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/vinylchlorid"
+  },
+  {
+    "slug": "vizmut",
+    "name": "vizmut",
+    "nameEn": null,
+    "cas": "7440-69-9",
+    "formula": null,
+    "categories": [],
+    "effects": [],
+    "foundIn": [
+      "Jedná se pouze o občas používané synonymum těžkého kovu bismutu .",
+      "Chemické látky 28.",
+      "2011 , aktualizováno: 22.",
+      "var defVal = null",
+      "var urlDarujme = \"0\""
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/vizmut"
+  },
+  {
+    "slug": "xyleny",
+    "name": "xyleny",
+    "nameEn": null,
+    "cas": "1330-20-7",
+    "formula": "C8H10",
+    "categories": [
+      "voc",
+      "teratogen",
+      "reprotoxic"
+    ],
+    "effects": [
+      "Zdraví škodlivé při vdechování, při požití, dráždí pokožku.",
+      "Vysoké koncentrace par nebo styk s kapalinou silně dráždí sliznici očí.",
+      "Při požití dráždí sliznice trávicího ústrojí.",
+      "Při 390 mg/m 3 už dochází k poruchám rovnováhy, reakčního času a EEG."
+    ],
+    "foundIn": [
+      "Důležitým zdrojem xylenů v prostředí je petrochemický průmysl a doprava.",
+      "Člověk může být xylenům vystaven vdechnutím, pozřením a kožním kontaktem.",
+      "Xyleny dráždí kůží, oči a horní cesty dýchací.",
+      "Xyleny působí toxicky zejména na nervovou soustavu.",
+      "Při vysokých dávkách může nastat zástava dýchání, ztráta vědomí i smrt."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/xyleny"
+  },
+  {
+    "slug": "zinek",
+    "name": "zinek",
+    "nameEn": null,
+    "cas": "7440-66-6",
+    "formula": null,
+    "categories": [
+      "heavy_metal",
+      "aquatic_toxin"
+    ],
+    "effects": [
+      "Při expozici člověka ZnO dochází k tzv.",
+      "Dávka 1 až 2 g ZnSO 4 vyvolává zvracení.",
+      "Při dávkách 135 mg Zn/den po dobu až půl roku nebyly zjištěny toxické příznaky.",
+      "Chronická otrava Zn u člověka nebyla popsána."
+    ],
+    "foundIn": [
+      "Zinek (Zn) je středně tvrdý, křehký kov, 24.",
+      "nejčastější prvek zemské kůry.",
+      "Zn je čtvrtým nejběžněji používáním kovem.",
+      "Zn je schopen bioakumulace v rámci potravních řetězců.",
+      "Riziko představuje nedostatek Zn, ale i jeho nadbytek."
+    ],
+    "iarc": null,
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/zinek"
+  },
+  {
+    "slug": "trichlorethan-methylchloroform",
+    "name": "1,1,1-trichlorethan (methylchloroform)",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C2H3Cl3",
+    "categories": [
+      "halogenated",
+      "voc",
+      "ozone_depleting",
+      "teratogen"
+    ],
+    "effects": [
+      "Další cestou je konzumace vody nebo jídla s jeho obsahem.",
+      "Tyto účinky zmizí, když člověk přestane kontaminovaný vzduch dýchat."
+    ],
+    "foundIn": [
+      "U zvířat byl prokázán negativní vliv této látky na vývoj plodu."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/trichlorethan-methylchloroform"
+  },
+  {
+    "slug": "tetrachlorethan",
+    "name": "1,1,2,2-tetrachlorethan",
+    "nameEn": null,
+    "cas": null,
+    "formula": "C2H2Cl4",
+    "categories": [
+      "halogenated",
+      "voc",
+      "aquatic_toxin",
+      "carcinogen"
+    ],
+    "effects": [
+      "Většina lidí se začne cítit lépe, když se dostane na čerstvý vzduch."
+    ],
+    "foundIn": [
+      "Do prostředí se tetrachlorethan dostává především díky chemickému průmyslu.",
+      "V EU spadá pod regulaci nařízení REACH.",
+      "let minulého století byl tetrachlorethan rovněž používán jako pesticid.",
+      "Jde o silně těkavou látku",
+      "V atmosféře degraduje v řádech desítek dnů."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/tetrachlorethan"
+  },
+  {
+    "slug": "dichlorethan",
+    "name": "1,2-dichlorethan (DCE)",
+    "nameEn": null,
+    "cas": "107-06-2",
+    "formula": "C2H4Cl2",
+    "categories": [
+      "pesticide",
+      "halogenated",
+      "carcinogen",
+      "mutagen",
+      "voc"
+    ],
+    "effects": [
+      "Takoví lidé často zemřeli na selhání srdce.",
+      "Není známo, jak velké koncentrace 1,2-dichloroethanu vedly k těmto následkům.",
+      "Podle údajů z pasportu látky na stránkách ČHMÚ je 1,2-dichlorethan mutagenní.",
+      "Rakovinu může u zvířat způsobovat také příjem 1,2-dichloroethanu dýcháním.",
+      "Případně může být ohrožen kontaminovanými zdroji pitné vody."
+    ],
+    "foundIn": [
+      "1,2-dichlorethan je syntetická, v přírodě se přirozeně nevyskytující látka.",
+      "Kontaminuje atmosféru, půdu i vodu.",
+      "Riziko představuje takéi pití kontaminované vody a přímý kožní kontak.",
+      "V neposlední řadě může dojít k rozvoji rakoviny.",
+      "Za normálních podmínek jde o čirou kapalinu s příjemnou vůní a sladkou chutí."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/dichlorethan"
+  },
+  {
+    "slug": "2378-tetrachlordibenzo-p-dioxin-2378-tcdd",
+    "name": "2,3,7,8 tetrachlordibenzo-p-dioxin (2,3,7,8-TCDD)",
+    "nameEn": null,
+    "cas": "1746-01-6",
+    "formula": "C12H4Cl4O2",
+    "categories": [
+      "carcinogen",
+      "pbt"
+    ],
+    "effects": [
+      "Expozice lidí dioxinům je primárně konzumací masa, ryb a mléčných výrobků."
+    ],
+    "foundIn": [
+      "Při akutní otravě se na těle exponovaných lidí objevuje tzv."
+    ],
+    "iarc": "1",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/2378-tetrachlordibenzo-p-dioxin-2378-tcdd"
+  },
+  {
+    "slug": "2-fenoxyethanol",
+    "name": "2-fenoxyethanol",
+    "nameEn": null,
+    "cas": "122-99-6",
+    "formula": "C8H10O2",
+    "categories": [],
+    "effects": [
+      "Lze očekávat těžké záněty s bolestí.",
+      "Expozice může taktéž narušit  plodnost jedince."
+    ],
+    "foundIn": [
+      "V atmosféře dochází do 12 hodin k jeho rozpadu.",
+      "V laboratorních podmínkách podléhá biodegradaci v řádech dnů.",
+      "Bioakumulace v potravních řetězcích není popsána.",
+      "Člověk může být 2-PE vystaven vdechováním, požitím a kožním kontaktem.",
+      "Při vdechování může dojít k výskytu respiračních potíží."
+    ],
+    "iarc": "3",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/2-fenoxyethanol"
+  },
+  {
+    "slug": "44-methylendianilin",
+    "name": "4,4'- methylendianilin (MDA)",
+    "nameEn": null,
+    "cas": "101-77-9",
+    "formula": "C13H14N2",
+    "categories": [
+      "carcinogen"
+    ],
+    "effects": [
+      "MDA do organismu proniká prostřednictvím kůže, zažívacího traktu, inhalací.",
+      "U lidí je pak na tuto látku velice citlivá kůže.",
+      "Testy prokázaly vliv MDA  na vznik karcinogenu.",
+      "U krys a myší podávání MDA vyvolalo nádor v játrech a štítné žláze.",
+      "Podle nařízení komise EU č."
+    ],
+    "foundIn": [
+      "Do prostředí se MDA dostává především při výrobě, kde následně biodegraduje.",
+      "V atmosféře je MDA přítomen v pevné a plynné fázi.",
+      "Předpokládá se, že může docházet i k přímé fotolýze.",
+      "MDA jsou vystaveni především pracovníci v chemických provozech.",
+      "Rizikové je vdechování prachu s MDA a kožní kontakt."
+    ],
+    "iarc": "2B",
+    "url": "https://arnika.org/toxicke-latky/databaze-latek/44-methylendianilin"
+  }
+]
