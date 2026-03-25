@@ -1280,6 +1280,17 @@ body {
 .supp-form-field select:focus { border-color: var(--accent); }
 .supp-form-field select { cursor: pointer; }
 .supp-form-field select option { background: var(--bg-secondary); }
+.supp-mitotox {
+  margin-top: 8px; padding: 8px 12px; border-radius: 8px;
+  background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.15);
+  font-size: 12px; color: var(--text-secondary);
+}
+.supp-mitotox-header { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.supp-mitotox-ask { color: var(--accent); cursor: pointer; }
+.supp-mitotox-ask:hover { text-decoration: underline; }
+.supp-mitotox-item { margin-bottom: 4px; line-height: 1.5; }
+.supp-mitotox-link { color: var(--accent); text-decoration: none; margin-left: 4px; white-space: nowrap; }
+.supp-mitotox-link:hover { text-decoration: underline; }
 @media (max-width: 768px) {
   .supp-bar-label { width: 100px; font-size: 12px; }
   .supp-form-row { flex-direction: column; gap: 8px; }

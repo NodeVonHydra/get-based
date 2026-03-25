@@ -1,0 +1,801 @@
+[
+  {
+    "name": "Metformin",
+    "k": ["metformin", "glucophage"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "primary mechanism of action" },
+      { "f": "AMPK", "a": "activates", "t": "secondary to Complex I inhibition" }
+    ],
+    "pmid": 39693440,
+    "more": "metformin+mitochondrial+complex+I"
+  },
+  {
+    "name": "Simvastatin",
+    "k": ["simvastatin", "zocor"],
+    "cat": "drug",
+    "effects": [
+      { "f": "CoQ10 biosynthesis", "a": "depletes", "t": "chronic use" },
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 39126062,
+    "more": "simvastatin+mitochondria+toxicity"
+  },
+  {
+    "name": "Atorvastatin",
+    "k": ["atorvastatin", "lipitor"],
+    "cat": "drug",
+    "effects": [
+      { "f": "CoQ10 biosynthesis", "a": "depletes", "t": "chronic use" },
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 39126062,
+    "more": "atorvastatin+mitochondria"
+  },
+  {
+    "name": "Rosuvastatin",
+    "k": ["rosuvastatin", "crestor"],
+    "cat": "drug",
+    "effects": [
+      { "f": "CoQ10 biosynthesis", "a": "depletes", "t": "chronic use" }
+    ],
+    "pmid": 18957876,
+    "more": "rosuvastatin+coenzyme+Q10+depletion"
+  },
+  {
+    "name": "Pravastatin",
+    "k": ["pravastatin", "pravachol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "CoQ10 biosynthesis", "a": "depletes", "t": "mild, less lipophilic" }
+    ],
+    "pmid": 18957876,
+    "more": "pravastatin+coenzyme+Q10"
+  },
+  {
+    "name": "Acetaminophen",
+    "k": ["acetaminophen", "paracetamol", "tylenol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "overdose" },
+      { "f": "Glutathione", "a": "depletes", "t": "overdose" },
+      { "f": "MPT pore", "a": "opens", "t": "overdose, hepatotoxicity" }
+    ],
+    "pmid": 31307587,
+    "more": "acetaminophen+mitochondrial+toxicity+hepatotoxicity"
+  },
+  {
+    "name": "Ibuprofen",
+    "k": ["ibuprofen", "advil", "motrin", "brufen"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Membrane permeability transition", "a": "induces", "t": "high dose" },
+      { "f": "Mitochondrial apoptosis", "a": "induces", "t": "high dose" }
+    ],
+    "pmid": 10643865,
+    "more": "ibuprofen+mitochondria+toxicity"
+  },
+  {
+    "name": "Diclofenac",
+    "k": ["diclofenac", "voltaren"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Oxidative phosphorylation", "a": "inhibits", "t": "hepatotoxicity risk" },
+      { "f": "Uncoupling", "a": "induces", "t": "therapeutic to high dose" }
+    ],
+    "pmid": 26627130,
+    "more": "diclofenac+mitochondrial+toxicity"
+  },
+  {
+    "name": "Aspirin",
+    "k": ["aspirin", "acetylsalicylic acid"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Oxidative phosphorylation", "a": "uncouples", "t": "high dose" }
+    ],
+    "pmid": 9048975,
+    "more": "aspirin+mitochondria+uncoupling"
+  },
+  {
+    "name": "Naproxen",
+    "k": ["naproxen", "aleve", "naprosyn"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" },
+      { "f": "ROS", "a": "increases", "t": "high dose" }
+    ],
+    "pmid": 26627130,
+    "more": "naproxen+mitochondria"
+  },
+  {
+    "name": "Indomethacin",
+    "k": ["indomethacin", "indocin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Oxidative phosphorylation", "a": "uncouples", "t": "therapeutic dose" }
+    ],
+    "pmid": 9048975,
+    "more": "indomethacin+mitochondria+uncoupling"
+  },
+  {
+    "name": "Celecoxib",
+    "k": ["celecoxib", "celebrex"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "supratherapeutic dose" }
+    ],
+    "pmid": 26627130,
+    "more": "celecoxib+mitochondria"
+  },
+  {
+    "name": "Omeprazole",
+    "k": ["omeprazole", "prilosec", "losec"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial function (kidney)", "a": "disrupts", "t": "chronic use, nephrotoxicity" },
+      { "f": "Magnesium", "a": "depletes", "t": "chronic use, indirect" }
+    ],
+    "pmid": 32092686,
+    "more": "omeprazole+mitochondria+toxicity"
+  },
+  {
+    "name": "Esomeprazole",
+    "k": ["esomeprazole", "nexium"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Magnesium", "a": "depletes", "t": "chronic use, indirect mito effect" }
+    ],
+    "pmid": 32092686,
+    "more": "esomeprazole+mitochondria"
+  },
+  {
+    "name": "Lansoprazole",
+    "k": ["lansoprazole", "prevacid"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Magnesium", "a": "depletes", "t": "chronic use, indirect mito effect" }
+    ],
+    "pmid": 32092686,
+    "more": "lansoprazole+mitochondria"
+  },
+  {
+    "name": "Valproic acid",
+    "k": ["valproic acid", "valproate", "depakote", "depakene", "epilim", "divalproex"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Beta-oxidation", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Carnitine", "a": "depletes", "t": "chronic use" },
+      { "f": "Complex IV", "a": "inhibits", "t": "chronic use" }
+    ],
+    "pmid": 37235285,
+    "more": "valproic+acid+mitochondrial+toxicity"
+  },
+  {
+    "name": "Phenytoin",
+    "k": ["phenytoin", "dilantin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial function", "a": "disrupts", "t": "chronic use" },
+      { "f": "CoQ10", "a": "depletes", "t": "chronic use" }
+    ],
+    "pmid": 27590225,
+    "more": "phenytoin+mitochondria+toxicity"
+  },
+  {
+    "name": "Carbamazepine",
+    "k": ["carbamazepine", "tegretol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Bioenergetics", "a": "disrupts", "t": "blood-brain barrier" }
+    ],
+    "pmid": 32805338,
+    "more": "carbamazepine+mitochondria"
+  },
+  {
+    "name": "Ciprofloxacin",
+    "k": ["ciprofloxacin", "cipro"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mtDNA", "a": "disrupts", "t": "topoisomerase II inhibition" },
+      { "f": "ROS", "a": "increases", "t": "therapeutic dose" }
+    ],
+    "pmid": 39964703,
+    "more": "ciprofloxacin+mitochondrial+toxicity"
+  },
+  {
+    "name": "Levofloxacin",
+    "k": ["levofloxacin", "levaquin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mtDNA", "a": "disrupts", "t": "therapeutic dose" },
+      { "f": "ROS", "a": "increases", "t": "therapeutic dose" }
+    ],
+    "pmid": 39964703,
+    "more": "fluoroquinolone+mitochondrial+toxicity"
+  },
+  {
+    "name": "Moxifloxacin",
+    "k": ["moxifloxacin", "avelox"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mtDNA", "a": "disrupts", "t": "therapeutic dose" },
+      { "f": "Membrane potential", "a": "decreases", "t": "therapeutic dose" }
+    ],
+    "pmid": 39964703,
+    "more": "fluoroquinolone+mitochondrial+toxicity"
+  },
+  {
+    "name": "Doxycycline",
+    "k": ["doxycycline", "vibramycin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial translation", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Cardiac mitochondria", "a": "impairs", "t": "chronic use" }
+    ],
+    "pmid": 33921053,
+    "more": "doxycycline+mitochondrial+translation"
+  },
+  {
+    "name": "Linezolid",
+    "k": ["linezolid", "zyvox"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial ribosome", "a": "inhibits", "t": "chronic use" },
+      { "f": "Lactic acidosis", "a": "induces", "t": "chronic use" }
+    ],
+    "pmid": 15909253,
+    "more": "linezolid+mitochondrial+toxicity+lactic+acidosis"
+  },
+  {
+    "name": "Gentamicin",
+    "k": ["gentamicin", "garamycin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial ribosome", "a": "disrupts", "t": "therapeutic dose" },
+      { "f": "ROS", "a": "increases", "t": "ototoxicity, nephrotoxicity" }
+    ],
+    "pmid": 40513684,
+    "more": "gentamicin+mitochondria+ototoxicity"
+  },
+  {
+    "name": "Amiodarone",
+    "k": ["amiodarone", "cordarone", "pacerone"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Complex II", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Beta-oxidation", "a": "inhibits", "t": "hepatotoxicity" }
+    ],
+    "pmid": 34769217,
+    "more": "amiodarone+mitochondrial+toxicity"
+  },
+  {
+    "name": "Doxorubicin",
+    "k": ["doxorubicin", "adriamycin"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "cardiotoxicity" },
+      { "f": "ROS", "a": "increases", "t": "therapeutic dose" },
+      { "f": "mtDNA", "a": "damages", "t": "therapeutic dose" }
+    ],
+    "pmid": 39921259,
+    "more": "doxorubicin+mitochondrial+cardiotoxicity"
+  },
+  {
+    "name": "Cisplatin",
+    "k": ["cisplatin", "platinol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "mtDNA", "a": "crosslinks", "t": "therapeutic dose" },
+      { "f": "ROS", "a": "increases", "t": "nephro/ototoxicity" }
+    ],
+    "pmid": 36923942,
+    "more": "cisplatin+mitochondria+nephrotoxicity"
+  },
+  {
+    "name": "Tamoxifen",
+    "k": ["tamoxifen", "nolvadex"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Uncoupling", "a": "induces", "t": "therapeutic dose" },
+      { "f": "MPT pore", "a": "opens", "t": "hepatotoxicity" }
+    ],
+    "pmid": 34896079,
+    "more": "tamoxifen+mitochondria+hepatotoxicity"
+  },
+  {
+    "name": "Fluoxetine",
+    "k": ["fluoxetine", "prozac"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" },
+      { "f": "Membrane potential", "a": "decreases", "t": "supratherapeutic" }
+    ],
+    "pmid": 27392437,
+    "more": "fluoxetine+mitochondria+toxicity"
+  },
+  {
+    "name": "Sertraline",
+    "k": ["sertraline", "zoloft"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "most mitotoxic SSRI" },
+      { "f": "Membrane potential", "a": "decreases", "t": "supratherapeutic" }
+    ],
+    "pmid": 27392437,
+    "more": "sertraline+mitochondria"
+  },
+  {
+    "name": "Paroxetine",
+    "k": ["paroxetine", "paxil"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 27392437,
+    "more": "paroxetine+mitochondria"
+  },
+  {
+    "name": "Amitriptyline",
+    "k": ["amitriptyline", "elavil"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic to high dose" },
+      { "f": "Mitophagy", "a": "induces", "t": "precedes apoptosis" }
+    ],
+    "pmid": 27738496,
+    "more": "amitriptyline+mitochondria"
+  },
+  {
+    "name": "Haloperidol",
+    "k": ["haloperidol", "haldol"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose" }
+    ],
+    "pmid": 10221760,
+    "more": "haloperidol+complex+I+mitochondria"
+  },
+  {
+    "name": "Chlorpromazine",
+    "k": ["chlorpromazine", "thorazine"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose" },
+      { "f": "Oxidative phosphorylation", "a": "uncouples", "t": "therapeutic dose" }
+    ],
+    "pmid": 31104106,
+    "more": "chlorpromazine+mitochondria"
+  },
+  {
+    "name": "Quetiapine",
+    "k": ["quetiapine", "seroquel"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial respiration", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 31104106,
+    "more": "quetiapine+mitochondria"
+  },
+  {
+    "name": "Propranolol",
+    "k": ["propranolol", "inderal"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose, lipophilic" },
+      { "f": "Membrane potential", "a": "decreases", "t": "high dose" }
+    ],
+    "pmid": 32120430,
+    "more": "propranolol+mitochondria"
+  },
+  {
+    "name": "Diazepam",
+    "k": ["diazepam", "valium"],
+    "cat": "drug",
+    "effects": [
+      { "f": "TSPO (mitochondrial translocator protein)", "a": "binds", "t": "therapeutic dose" }
+    ],
+    "pmid": 29211020,
+    "more": "diazepam+TSPO+mitochondria"
+  },
+  {
+    "name": "Ketoconazole",
+    "k": ["ketoconazole", "nizoral"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Mitochondrial apoptosis", "a": "induces", "t": "hepatotoxicity" },
+      { "f": "GSH", "a": "depletes", "t": "therapeutic dose" }
+    ],
+    "pmid": 35628239,
+    "more": "ketoconazole+mitochondrial+toxicity"
+  },
+  {
+    "name": "Nefazodone",
+    "k": ["nefazodone", "serzone"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "therapeutic dose, withdrawn" },
+      { "f": "MPT pore", "a": "opens", "t": "hepatotoxicity" }
+    ],
+    "pmid": 27288927,
+    "more": "nefazodone+mitochondrial+hepatotoxicity"
+  },
+  {
+    "name": "Propofol",
+    "k": ["propofol", "diprivan"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "prolonged infusion" },
+      { "f": "CoQ10", "a": "depletes", "t": "propofol infusion syndrome" }
+    ],
+    "pmid": 25296107,
+    "more": "propofol+infusion+syndrome+mitochondria"
+  },
+  {
+    "name": "Bupivacaine",
+    "k": ["bupivacaine", "marcaine"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose, myotoxicity" },
+      { "f": "Uncoupling", "a": "induces", "t": "cardiotoxicity" }
+    ],
+    "pmid": 32275945,
+    "more": "bupivacaine+mitochondrial+toxicity"
+  },
+  {
+    "name": "Berberine",
+    "k": ["berberine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "similar to metformin" },
+      { "f": "AMPK", "a": "activates", "t": "via Complex I inhibition" }
+    ],
+    "pmid": 18285556,
+    "more": "berberine+complex+I+AMPK+mitochondria"
+  },
+  {
+    "name": "Coenzyme Q10",
+    "k": ["coenzyme q10", "coq10", "ubiquinone", "ubiquinol"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I-III electron transport", "a": "enhances", "t": "supplemental dose" },
+      { "f": "ROS", "a": "decreases", "t": "antioxidant" }
+    ],
+    "pmid": 32933108,
+    "more": "coenzyme+Q10+mitochondrial+function"
+  },
+  {
+    "name": "N-Acetylcysteine",
+    "k": ["n-acetylcysteine", "nac", "n-acetyl cysteine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Glutathione", "a": "replenishes", "t": "GSH precursor" },
+      { "f": "Mitochondrial function", "a": "improves", "t": "aging, oxidative stress" }
+    ],
+    "pmid": 35975308,
+    "more": "N-acetylcysteine+mitochondria+glutathione"
+  },
+  {
+    "name": "Alpha-Lipoic Acid",
+    "k": ["alpha-lipoic acid", "alpha lipoic acid", "ala", "lipoic acid", "thioctic acid"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I cofactor", "a": "enhances", "t": "mitochondrial redox" },
+      { "f": "ROS", "a": "decreases", "t": "antioxidant" },
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "PGC-1alpha" }
+    ],
+    "pmid": 29191830,
+    "more": "alpha+lipoic+acid+mitochondria"
+  },
+  {
+    "name": "Nicotinamide Riboside",
+    "k": ["nicotinamide riboside", "nr", "niagen", "tru niagen"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "NAD+ biosynthesis", "a": "replenishes", "t": "supplemental dose" },
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "via SIRT1/PGC-1alpha" }
+    ],
+    "pmid": 22682224,
+    "more": "nicotinamide+riboside+NAD+mitochondria"
+  },
+  {
+    "name": "NMN",
+    "k": ["nmn", "nicotinamide mononucleotide"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "NAD+ biosynthesis", "a": "replenishes", "t": "supplemental dose" },
+      { "f": "Mitochondrial stress response", "a": "improves", "t": "UPR activation" }
+    ],
+    "pmid": 39394148,
+    "more": "nicotinamide+mononucleotide+NMN+mitochondria"
+  },
+  {
+    "name": "PQQ",
+    "k": ["pqq", "pyrroloquinoline quinone"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "AMPK/PGC-1alpha" },
+      { "f": "ROS", "a": "decreases", "t": "antioxidant" }
+    ],
+    "pmid": 32860006,
+    "more": "PQQ+pyrroloquinoline+quinone+mitochondrial+biogenesis"
+  },
+  {
+    "name": "Melatonin",
+    "k": ["melatonin"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I, III, IV", "a": "enhances", "t": "protective" },
+      { "f": "ROS", "a": "decreases", "t": "antioxidant, transported into mitochondria" },
+      { "f": "MPT pore", "a": "prevents opening", "t": "neuroprotective" }
+    ],
+    "pmid": 28828619,
+    "more": "melatonin+mitochondria+protective"
+  },
+  {
+    "name": "L-Carnitine",
+    "k": ["l-carnitine", "carnitine", "acetyl-l-carnitine", "alcar", "acetylcarnitine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Beta-oxidation", "a": "enhances", "t": "fatty acid transport into matrix" }
+    ],
+    "pmid": 28508995,
+    "more": "L-carnitine+mitochondria+beta+oxidation"
+  },
+  {
+    "name": "Resveratrol",
+    "k": ["resveratrol", "trans-resveratrol"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "SIRT1/PGC-1alpha, low dose" },
+      { "f": "Complex I", "a": "inhibits", "t": "very high dose only" }
+    ],
+    "pmid": 17112576,
+    "more": "resveratrol+SIRT1+mitochondrial+biogenesis"
+  },
+  {
+    "name": "Curcumin",
+    "k": ["curcumin", "turmeric extract"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitophagy", "a": "promotes", "t": "AMPK/PINK1/Parkin" },
+      { "f": "Complex I", "a": "inhibits", "t": "high dose, biphasic" }
+    ],
+    "pmid": 31580521,
+    "more": "curcumin+mitochondria"
+  },
+  {
+    "name": "Quercetin",
+    "k": ["quercetin"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" },
+      { "f": "ROS", "a": "decreases", "t": "low dose, antioxidant" },
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "low dose" }
+    ],
+    "pmid": 31580521,
+    "more": "quercetin+mitochondria"
+  },
+  {
+    "name": "Vitamin B2",
+    "k": ["riboflavin", "vitamin b2", "b-complex", "b complex"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Complex I (FMN)", "a": "cofactor", "t": "essential" },
+      { "f": "Complex II (FAD)", "a": "cofactor", "t": "essential" }
+    ],
+    "pmid": 32933108,
+    "more": "riboflavin+mitochondria+complex+I"
+  },
+  {
+    "name": "Vitamin B3",
+    "k": ["niacin", "niacinamide", "nicotinamide", "vitamin b3"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "NAD+ (Complex I substrate)", "a": "replenishes", "t": "precursor" }
+    ],
+    "pmid": 22682224,
+    "more": "niacin+NAD+mitochondria"
+  },
+  {
+    "name": "Creatine",
+    "k": ["creatine", "creatine monohydrate"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Phosphocreatine shuttle", "a": "enhances", "t": "energy buffering" }
+    ],
+    "pmid": 12044443,
+    "more": "creatine+mitochondria+neuroprotection"
+  },
+  {
+    "name": "Omega-3",
+    "k": ["omega-3", "omega 3", "fish oil", "epa", "dha", "eicosapentaenoic", "docosahexaenoic"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Membrane fluidity", "a": "improves", "t": "cardiolipin composition" },
+      { "f": "ROS", "a": "decreases", "t": "anti-inflammatory" }
+    ],
+    "pmid": 32933108,
+    "more": "omega-3+mitochondria+membrane"
+  },
+  {
+    "name": "Magnesium",
+    "k": ["magnesium", "magnesium glycinate", "magnesium citrate", "magnesium threonate", "magnesium bisglycinate", "magnesium oxide", "magnesium taurate", "magnesium malate", "magnesium l-threonate"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "ATP synthase", "a": "cofactor", "t": "ATP-Mg complex essential" }
+    ],
+    "pmid": 26404370,
+    "more": "magnesium+mitochondria+ATP"
+  },
+  {
+    "name": "Glyphosate",
+    "k": ["glyphosate", "roundup"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex II", "a": "inhibits", "t": "environmental exposure" },
+      { "f": "Complex III", "a": "inhibits", "t": "environmental exposure" },
+      { "f": "ROS", "a": "increases", "t": "oxidative stress" }
+    ],
+    "pmid": 40423452,
+    "more": "glyphosate+mitochondrial+toxicity"
+  },
+  {
+    "name": "BPA",
+    "k": ["bpa", "bisphenol a", "bisphenol"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Mitochondrial apoptosis", "a": "induces", "t": "neuronal cells" },
+      { "f": "ROS", "a": "increases", "t": "environmental exposure" }
+    ],
+    "pmid": 32927158,
+    "more": "bisphenol+A+BPA+mitochondria+toxicity"
+  },
+  {
+    "name": "Lead",
+    "k": ["lead", "pb"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex I, III, IV", "a": "inhibits", "t": "chronic exposure" },
+      { "f": "ROS", "a": "increases", "t": "chronic exposure" },
+      { "f": "mtDNA", "a": "damages", "t": "chronic exposure" }
+    ],
+    "pmid": 39056765,
+    "more": "lead+mitochondrial+toxicity"
+  },
+  {
+    "name": "Mercury",
+    "k": ["mercury", "methylmercury", "hg"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex I, III", "a": "inhibits", "t": "thiol binding" },
+      { "f": "ROS", "a": "increases", "t": "chronic exposure" },
+      { "f": "MPT pore", "a": "opens", "t": "neurotoxicity" }
+    ],
+    "pmid": 38703851,
+    "more": "methylmercury+mitochondria+toxicity"
+  },
+  {
+    "name": "Cadmium",
+    "k": ["cadmium", "cd"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex II, III", "a": "inhibits", "t": "chronic exposure" },
+      { "f": "ROS", "a": "increases", "t": "ferroptosis" },
+      { "f": "MPT pore", "a": "opens", "t": "apoptosis" }
+    ],
+    "pmid": 38733909,
+    "more": "cadmium+mitochondrial+toxicity"
+  },
+  {
+    "name": "Arsenic",
+    "k": ["arsenic", "arsenite"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "PDH complex", "a": "inhibits", "t": "binds lipoic acid" },
+      { "f": "Complex I, IV", "a": "inhibits", "t": "chronic exposure" },
+      { "f": "ROS", "a": "increases", "t": "ferroptosis" }
+    ],
+    "pmid": 31735470,
+    "more": "arsenic+mitochondria+toxicity"
+  },
+  {
+    "name": "Rotenone",
+    "k": ["rotenone"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "potent, reference inhibitor" },
+      { "f": "ROS", "a": "increases", "t": "Parkinsonism" }
+    ],
+    "pmid": 12496265,
+    "more": "rotenone+complex+I+mitochondria"
+  },
+  {
+    "name": "Paraquat",
+    "k": ["paraquat"],
+    "cat": "toxin",
+    "effects": [
+      { "f": "Complex I", "a": "redox cycles", "t": "massive superoxide generation" },
+      { "f": "ROS", "a": "increases", "t": "Parkinsonism" }
+    ],
+    "pmid": 32604037,
+    "more": "paraquat+mitochondria+superoxide"
+  },
+  {
+    "name": "Escitalopram",
+    "k": ["escitalopram", "lexapro", "cipralex"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 27392437,
+    "more": "escitalopram+mitochondria"
+  },
+  {
+    "name": "Citalopram",
+    "k": ["citalopram", "celexa"],
+    "cat": "drug",
+    "effects": [
+      { "f": "Complex I", "a": "inhibits", "t": "high dose" }
+    ],
+    "pmid": 27392437,
+    "more": "citalopram+mitochondria"
+  },
+  {
+    "name": "Vitamin D",
+    "k": ["vitamin d", "vitamin d3", "cholecalciferol", "calcitriol", "ergocalciferol"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial biogenesis", "a": "increases", "t": "VDR-mediated" },
+      { "f": "ROS", "a": "decreases", "t": "adequate levels" }
+    ],
+    "pmid": 33546607,
+    "more": "vitamin+D+mitochondrial+biogenesis"
+  },
+  {
+    "name": "Iron",
+    "k": ["iron", "ferrous sulfate", "ferrous fumarate", "ferrous gluconate", "iron bisglycinate"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "ETC iron-sulfur clusters", "a": "cofactor", "t": "essential for Complex I-III" },
+      { "f": "ROS (Fenton reaction)", "a": "increases", "t": "excess/overload" }
+    ],
+    "pmid": 33546607,
+    "more": "iron+mitochondria+electron+transport"
+  },
+  {
+    "name": "Zinc",
+    "k": ["zinc", "zinc picolinate", "zinc citrate", "zinc gluconate", "zinc carnosine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial membrane potential", "a": "modulates", "t": "dose-dependent" },
+      { "f": "Complex III", "a": "inhibits", "t": "excess" }
+    ],
+    "pmid": 32933108,
+    "more": "zinc+mitochondria"
+  },
+  {
+    "name": "Selenium",
+    "k": ["selenium", "selenomethionine", "sodium selenite"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "GPX4 (mitochondrial)", "a": "cofactor", "t": "essential for antioxidant defense" },
+      { "f": "ROS", "a": "decreases", "t": "adequate levels" }
+    ],
+    "pmid": 32933108,
+    "more": "selenium+mitochondria+GPX4"
+  },
+  {
+    "name": "Taurine",
+    "k": ["taurine"],
+    "cat": "supplement",
+    "effects": [
+      { "f": "Mitochondrial tRNA modification", "a": "enhances", "t": "essential for translation" },
+      { "f": "Membrane potential", "a": "stabilizes", "t": "cardioprotective" }
+    ],
+    "pmid": 32933108,
+    "more": "taurine+mitochondria+tRNA"
+  }
+]
