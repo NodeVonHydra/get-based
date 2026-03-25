@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.10.0', date: '2026-03-25', title: 'Context Tags',
+    items: [
+      'Section tags in AI context output — machine-parsable [section:name] tags for OpenClaw bot integration',
+      'Lab categories include updated:date attributes and an [index] block for selective parsing',
+    ]
+  },
+  {
     version: '1.9.9', date: '2026-03-25', title: 'Sync reliability',
     items: [
       'Fixed sync relay quota — CRDT operations no longer silently fail when exceeding relay limits',
