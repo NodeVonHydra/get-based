@@ -5,7 +5,7 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.9.8', date: '2026-03-25', title: 'Sync reliability',
+    version: '1.9.9', date: '2026-03-25', title: 'Sync reliability',
     items: [
       'Fixed sync relay quota — CRDT operations no longer silently fail when exceeding relay limits',
       'Chat messages now refresh live when synced from another device',

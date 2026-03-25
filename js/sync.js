@@ -593,11 +593,11 @@ async function onSyncReceived() {
         if (profileId === state.currentProfile) {
           state.importedData = importedData;
           migrateProfileData(state.importedData);
-          // Reload chat threads into memory and re-render
+          // Reload chat threads + active thread messages into memory and re-render
           if (chatData) {
             window.loadChatThreads?.();
             window.renderThreadList?.();
-            window.renderChatMessages?.();
+            window.loadChatHistory?.(); // reloads state.chatHistory from localStorage + renders
           }
           // Only auto-navigate if user is on the dashboard (don't interrupt other views)
           const activeNav = document.querySelector('.nav-item.active');
