@@ -2442,9 +2442,10 @@ export function renderChatMessages() {
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Press + or Enter to add. You can always edit these later on the dashboard.</div>
           </div>`;
       const genetics = state.importedData.genetics;
-      const hasGenetics = genetics && Object.keys(genetics.snps || {}).length > 0;
-      let dnaSection;
-      if (hasGenetics) {
+      const hasSnps = genetics && Object.keys(genetics.snps || {}).length > 0;
+      const hasMtdna = genetics && genetics.mtdna;
+      let dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">`;
+      if (hasSnps) {
         const fx = genetics.effects || {};
         const dots = [];
         if (genetics.apoe) dots.push(`APOE: <strong>${escapeHTML(genetics.apoe)}</strong>`);
@@ -2452,21 +2453,29 @@ export function renderChatMessages() {
         if (fx.moderate > 0) dots.push(`\uD83D\uDFE1 ${fx.moderate} moderate`);
         if (fx.normal > 0) dots.push(`\uD83D\uDFE2 ${fx.normal} normal`);
         const dotsHtml = dots.length > 0 ? `<div style="font-size:13px;line-height:1.8">${dots.join(' &nbsp;\u00B7&nbsp; ')}</div>` : '';
-        dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-            <p style="margin:0 0 6px">\uD83E\uDDEC <strong>${Object.keys(genetics.snps).length} SNPs imported</strong> from ${escapeHTML(genetics.source)}</p>
-            ${dotsHtml}
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>
-          </div>`;
-      } else {
-        dnaSection = `<div class="chat-onboard-dna" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-            <p style="margin:0 0 8px">\uD83E\uDDEC Have you ever done a DNA test? If you have the raw data file, it helps me understand <em>why</em> your labs look the way they do \u2014 even when your lifestyle is dialed in.</p>
-            <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
-              <button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>
-            </div>
-            <input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">
-            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Supports Ancestry, 23andMe, MyHeritage, FTDNA, Living DNA.<br>Processed locally \u2014 your DNA file never leaves your device.</div>
-          </div>`;
+        dnaSection += `<p style="margin:0 0 6px">\uD83E\uDDEC <strong>${Object.keys(genetics.snps).length} SNPs imported</strong> from ${escapeHTML(genetics.source)}</p>${dotsHtml}`;
       }
+      if (hasMtdna) {
+        const mt = genetics.mtdna;
+        dnaSection += `<p style="margin:${hasSnps ? '8' : '0'}px 0 6px">\uD83E\uDDEC mtDNA Haplogroup: <strong>${escapeHTML(mt.haplogroup)}</strong>${mt.coupling ? ` \u2014 ${escapeHTML(mt.coupling.shortLabel)}` : ''}</p>`;
+      }
+      if (hasSnps || hasMtdna) {
+        dnaSection += `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">I'll factor these into all your lab interpretations.</div>`;
+      }
+      if (!hasSnps || !hasMtdna) {
+        const prompts = [];
+        if (!hasSnps) prompts.push('autosomal raw data (23andMe, Ancestry, etc.)');
+        if (!hasMtdna) prompts.push('mtDNA mutation file (maternal haplogroup)');
+        dnaSection += `<p style="margin:${hasSnps || hasMtdna ? '8' : '0'}px 0 8px">\uD83E\uDDEC ${hasSnps || hasMtdna ? 'You can also add' : 'Have you ever done a DNA test? Upload'} ${prompts.join(' or ')}${hasSnps || hasMtdna ? '.' : ' \u2014 it helps me understand <em>why</em> your labs look the way they do.'}</p>
+            <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
+              ${!hasSnps ? `<button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>` : ''}
+              ${!hasMtdna ? `<button class="ctx-btn-option" onclick="document.getElementById('mtdna-onboard-input').click()">Upload mtDNA file</button>` : ''}
+            </div>
+            ${!hasSnps ? `<input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">` : ''}
+            ${!hasMtdna ? `<input type="file" id="mtdna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleMtDNAFile(this.files[0]);this.value=''}">` : ''}
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Processed locally \u2014 your DNA files never leave your device.</div>`;
+      }
+      dnaSection += `</div>`;
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai" style="width:88%">
           <p>${hasAIProvider() ? 'Great, we\'re connected! 🎉' : 'Nice!'} A couple of quick things that help me give better advice:</p>
