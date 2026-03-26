@@ -431,7 +431,6 @@ export function renderGeneticsSection() {
     html += `</div>`;
   }
 
-  // Y-DNA — simple line
   if (apoe) {
     html += `<div class="genetics-apoe">APOE: <strong>${escapeHTML(apoe)}</strong></div>`;
   }
@@ -688,7 +687,7 @@ function getRelevantSNPs(dotKey) {
 }
 
 // ═══════════════════════════════════════════════
-// mtDNA / Y-DNA HAPLOGROUP SUPPORT
+// mtDNA HAPLOGROUP SUPPORT
 // ═══════════════════════════════════════════════
 
 let _haplogroupTable = null;
