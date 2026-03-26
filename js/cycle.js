@@ -386,7 +386,7 @@ export function openMenstrualCycleEditor() {
         <div class="supp-form-field" style="flex:2">
           <label>Symptoms</label>
           <div class="ctx-tags" id="mc-period-symptoms">
-            ${PERIOD_SYMPTOMS.map(s => `<span class="ctx-tag" data-value="${s}" onclick="this.classList.toggle('selected')">${s}</span>`).join('')}
+            ${PERIOD_SYMPTOMS.map(s => `<span class="ctx-tag" data-value="${s}" onclick="this.classList.toggle('active')">${s}</span>`).join('')}
           </div>
         </div>
       </div>
@@ -411,6 +411,21 @@ export function openMenstrualCycleEditor() {
 
 export function saveMenstrualCycle() {
   syncMenstrualCycleProfileFromForm();
+  // Auto-add pending period if form has data that hasn't been added yet
+  const pendingStart = document.getElementById('mc-period-start')?.value;
+  const pendingEnd = document.getElementById('mc-period-end')?.value;
+  if (pendingStart && pendingEnd && pendingEnd >= pendingStart) {
+    const periods = state.importedData.menstrualCycle?.periods || [];
+    const exists = periods.some(p => p.startDate === pendingStart);
+    const overlaps = periods.some(p => pendingStart <= (p.endDate || p.startDate) && pendingEnd >= p.startDate);
+    if (!exists && !overlaps) {
+      const flow = document.getElementById('mc-period-flow')?.value || 'moderate';
+      const symptomTags = document.querySelectorAll('#mc-period-symptoms .ctx-tag.active');
+      const symptoms = Array.from(symptomTags).map(t => t.dataset.value);
+      const notes = document.getElementById('mc-period-notes')?.value?.trim() || '';
+      state.importedData.menstrualCycle.periods.push({ startDate: pendingStart, endDate: pendingEnd, flow, symptoms, notes });
+    }
+  }
   window.recordChange('menstrualCycle');
   saveImportedData();
   window.closeModal();
@@ -467,7 +482,7 @@ export function addPeriodEntry() {
   const startDate = document.getElementById('mc-period-start').value;
   const endDate = document.getElementById('mc-period-end').value;
   const flow = document.getElementById('mc-period-flow').value;
-  const symptomTags = document.querySelectorAll('#mc-period-symptoms .ctx-tag.selected');
+  const symptomTags = document.querySelectorAll('#mc-period-symptoms .ctx-tag.active');
   const symptoms = Array.from(symptomTags).map(t => t.dataset.value);
   const notes = document.getElementById('mc-period-notes').value.trim();
   if (!startDate) { showNotification('Start date is required', 'error'); return; }
