@@ -167,6 +167,3 @@ The AI uses this to contextualize your lab results, light exposure, cold toleran
 The coupling classification follows Wallace's mitochondrial paradigm — supported by cybrid studies and population data, but not universally accepted as clinical standard. Individual variation within haplogroups is significant.
 :::
 
-## Y-DNA Import
-
-Y-DNA marker files (paternal haplogroup data) can also be imported. These are stored as ancestry context — no health coupling analysis is performed for Y-DNA. The file format is one marker name per line (e.g., `CTS10149/PF6490/V3993`).

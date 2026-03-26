@@ -619,7 +619,7 @@ export function importDataJSON(file) {
         }
       }
       // Import genetics
-      if (json.genetics && (json.genetics.snps || json.genetics.mtdna || json.genetics.ydna)) {
+      if (json.genetics && (json.genetics.snps || json.genetics.mtdna)) {
         state.importedData.genetics = json.genetics;
       }
       // Import biometrics

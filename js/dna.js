@@ -27,8 +27,6 @@ export function detectDNAFile(text) {
   if (dataLines.length > 0 && /^rs\d+\t\d+\t\d+\t[ACGT\-]{1,2}$/i.test(dataLines[0].trim())) return '23andme';
   // mtDNA CSV: short files with position+allele lines like "263G", "10398G"
   if (dataLines.length > 0 && dataLines.length < 200 && dataLines.filter(l => /^\d+[ACGT]$/i.test(l.trim())).length >= dataLines.length * 0.8) return 'mtdna';
-  // Y-DNA CSV: longer files with marker names like "A702", "CTS10149/PF6490/V3993"
-  if (dataLines.length > 20 && dataLines.filter(l => /^[A-Z][A-Z0-9]+(\/[A-Z0-9]+)*$/i.test(l.trim())).length >= dataLines.length * 0.7) return 'ydna';
   return null;
 }
 
@@ -44,7 +42,6 @@ export function isDNAFile(file) {
   if (name.includes('livingdna') || name.includes('living_dna')) return true;
   if (name.includes('genome') || name.includes('genotype') || name.includes('raw_dna') || name.includes('rawdna')) return true;
   if (name.includes('mtdna') || name.includes('mt-dna') || name.includes('mt_dna')) return true;
-  if (name.includes('ydna') || name.includes('y-dna') || name.includes('y_dna')) return true;
   return false;
 }
 
@@ -281,7 +278,7 @@ export function deleteGeneticsData(profileData) {
 // Build genetics context string for AI — only non-"none" effects, relevant to current markers
 export function buildGeneticsContext(genetics, activeMarkerKeys) {
   if (!genetics) return '';
-  if (!genetics.snps && !genetics.mtdna && !genetics.ydna) return '';
+  if (!genetics.snps && !genetics.mtdna) return '';
 
   const lines = [];
 
@@ -301,11 +298,6 @@ export function buildGeneticsContext(genetics, activeMarkerKeys) {
     }
   }
 
-  // Y-DNA — brief mention
-  if (genetics.ydna) {
-    lines.push(`Y-DNA: ${genetics.ydna.markerCount} markers imported (ancestry — no health coupling analysis)`);
-  }
-
   // APOE haplotype — always include
   if (genetics.apoe) {
     lines.push(`APOE: ${genetics.apoe}`);
@@ -316,7 +308,6 @@ export function buildGeneticsContext(genetics, activeMarkerKeys) {
     if (lines.length === 0) return '';
     const parts = [];
     if (genetics.mtdna) parts.push(`mtDNA ${genetics.mtdna.haplogroup}`);
-    if (genetics.ydna) parts.push(`${genetics.ydna.markerCount} Y-DNA markers`);
     if (genetics.source) parts.push(genetics.source);
     return `GENETICS (${parts.join(', ')}):\n${lines.map(l => '- ' + l).join('\n')}`;
   }
@@ -352,7 +343,6 @@ export function buildGeneticsContext(genetics, activeMarkerKeys) {
   if (genetics.source) headerParts.push(genetics.source);
   if (genetics.snps) headerParts.push(`${Object.keys(genetics.snps).length} SNPs`);
   if (genetics.mtdna) headerParts.push(`mtDNA ${genetics.mtdna.haplogroup}`);
-  if (genetics.ydna) headerParts.push(`${genetics.ydna.markerCount} Y-DNA`);
   return `GENETICS (${headerParts.join(', ')}):\n${lines.map(l => '- ' + l).join('\n')}`;
 }
 
@@ -369,8 +359,7 @@ export function renderGeneticsSection() {
   const genetics = state.importedData.genetics;
   const hasSnps = genetics && genetics.snps && Object.keys(genetics.snps).length > 0;
   const hasMtdna = genetics && genetics.mtdna;
-  const hasYdna = genetics && genetics.ydna;
-  if (!hasSnps && !hasMtdna && !hasYdna) return '';
+  if (!hasSnps && !hasMtdna) return '';
   if (hasSnps && !_snpTable) {
     loadSNPTable().then(() => { if (window.navigate) window.navigate('dashboard'); });
     return '';
@@ -410,9 +399,8 @@ export function renderGeneticsSection() {
   if (genetics.source) metaParts.push(escapeHTML(genetics.source));
   if (hasSnps) metaParts.push(`${snpCount} SNPs`);
   if (hasMtdna) metaParts.push(`mtDNA ${escapeHTML(genetics.mtdna.haplogroup)}`);
-  if (hasYdna) metaParts.push(`${genetics.ydna.markerCount} Y-DNA`);
   if (totalFindings > 0) metaParts.push(`${totalFindings} findings`);
-  const latestDate = [genetics.importDate, genetics.mtdna?.importDate, genetics.ydna?.importDate].filter(Boolean).sort().pop();
+  const latestDate = [genetics.importDate, genetics.mtdna?.importDate].filter(Boolean).sort().pop();
   if (latestDate) metaParts.push(latestDate);
 
   let html = `<div class="dashboard-section genetics-section" id="genetics-section">
@@ -444,11 +432,6 @@ export function renderGeneticsSection() {
   }
 
   // Y-DNA — simple line
-  if (hasYdna) {
-    html += `<div class="genetics-ydna">${genetics.ydna.markerCount} Y-DNA markers (ancestry data)
-      \u00B7 <a href="#" onclick="window.deleteYDNAData();return false" style="color:var(--text-muted);font-size:10px">remove</a></div>`;
-  }
-
   if (apoe) {
     html += `<div class="genetics-apoe">APOE: <strong>${escapeHTML(apoe)}</strong></div>`;
   }
@@ -918,46 +901,12 @@ export function confirmMtDNAImport() {
   if (window.navigate) window.navigate('dashboard');
 }
 
-export async function handleYDNAFile(file) {
-  try {
-    const text = await file.text();
-    const markers = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && /^[A-Z]/i.test(l));
-    if (markers.length === 0) { showNotification('No Y-DNA markers found in this file', 'error'); return; }
-
-    // Store directly (no resolution needed — ancestry only)
-    if (!state.importedData.genetics) {
-      state.importedData.genetics = { source: null, importDate: null, coverage: { found: 0, total: 0 }, effects: {}, snps: {} };
-    }
-    state.importedData.genetics.ydna = {
-      markers,
-      markerCount: markers.length,
-      source: 'Y-DNA CSV',
-      importDate: new Date().toISOString().slice(0, 10)
-    };
-    saveImportedData();
-    showNotification(`${markers.length} Y-DNA markers imported`, 'success');
-    if (window.navigate) window.navigate('dashboard');
-  } catch (e) {
-    console.error('Y-DNA import error:', e);
-    showNotification(e.message || 'Failed to parse Y-DNA file', 'error');
-  }
-}
-
 export function deleteMtDNAData() {
   if (state.importedData.genetics) {
     delete state.importedData.genetics.mtdna;
     saveImportedData();
     if (window.navigate) window.navigate('dashboard');
     showNotification('mtDNA haplogroup removed', 'info');
-  }
-}
-
-export function deleteYDNAData() {
-  if (state.importedData.genetics) {
-    delete state.importedData.genetics.ydna;
-    saveImportedData();
-    if (window.navigate) window.navigate('dashboard');
-    showNotification('Y-DNA data removed', 'info');
   }
 }
 
@@ -976,11 +925,9 @@ Object.assign(window, {
   toggleGeneticsExpand,
   reimportDNA,
   handleMtDNAFile,
-  handleYDNAFile,
   closeMtDNAPreview,
   confirmMtDNAImport,
   deleteMtDNAData,
-  deleteYDNAData,
   detectMtDNAMismatch,
   ensureHaplogroupTable,
   _buildGeneticsContext: buildGeneticsContext,

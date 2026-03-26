@@ -955,7 +955,6 @@ export function setupDropZone() {
         const header = await f.slice(0, 500).text();
         const fmt = window.detectDNAFile ? window.detectDNAFile(header) : null;
         if (fmt === 'mtdna' && window.handleMtDNAFile) await window.handleMtDNAFile(f);
-        else if (fmt === 'ydna' && window.handleYDNAFile) await window.handleYDNAFile(f);
         else await window.handleDNAFile(f);
       }
     }

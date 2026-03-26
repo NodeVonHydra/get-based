@@ -10,7 +10,6 @@ const CHANGELOG = [
       'Import mtDNA mutation files (CSV) — resolves maternal haplogroup from diagnostic mutations',
       'Mitochondrial coupling classification based on Doug Wallace\'s framework (coupled → uncoupled)',
       'Environment mismatch detection — compares your haplotype\'s climate adaptation against your latitude',
-      'Y-DNA marker import for ancestry context',
     ]
   },
   {

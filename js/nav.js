@@ -37,7 +37,7 @@ export function buildSidebar(data) {
 
   // Genetics sidebar link (only when data exists)
   const genetics = state.importedData?.genetics;
-  const hasGeneticsData = genetics && ((genetics.snps && Object.keys(genetics.snps).length > 0) || genetics.mtdna || genetics.ydna);
+  const hasGeneticsData = genetics && ((genetics.snps && Object.keys(genetics.snps).length > 0) || genetics.mtdna);
   if (hasGeneticsData) {
     const gParts = [];
     if (genetics.snps && Object.keys(genetics.snps).length > 0) gParts.push(Object.keys(genetics.snps).length);
