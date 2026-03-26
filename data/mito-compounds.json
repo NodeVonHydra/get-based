@@ -213,7 +213,7 @@
         "t": "high dose"
       }
     ],
-    "pmid": 26627130,
+    "pmid": 31342476,
     "more": "naproxen+mitochondria"
   },
   {
@@ -230,7 +230,7 @@
         "t": "therapeutic dose"
       }
     ],
-    "pmid": 9048975,
+    "pmid": 36868495,
     "more": "indomethacin+mitochondria+uncoupling"
   },
   {
@@ -247,7 +247,7 @@
         "t": "supratherapeutic dose"
       }
     ],
-    "pmid": 26627130,
+    "pmid": 38334825,
     "more": "celecoxib+mitochondria"
   },
   {
@@ -287,7 +287,7 @@
         "t": "chronic use, indirect mito effect"
       }
     ],
-    "pmid": 32092686,
+    "pmid": 40785690,
     "more": "esomeprazole+mitochondria"
   },
   {
@@ -304,7 +304,7 @@
         "t": "chronic use, indirect mito effect"
       }
     ],
-    "pmid": 32092686,
+    "pmid": 21765603,
     "more": "lansoprazole+mitochondria"
   },
   {
@@ -445,7 +445,7 @@
         "t": "therapeutic dose"
       }
     ],
-    "pmid": 39964703,
+    "pmid": 24284031,
     "more": "fluoroquinolone+mitochondrial+toxicity"
   },
   {
@@ -511,7 +511,7 @@
         "t": "ototoxicity, nephrotoxicity"
       }
     ],
-    "pmid": 40513684,
+    "pmid": 41654647,
     "more": "gentamicin+mitochondria+ototoxicity"
   },
   {
@@ -659,7 +659,7 @@
         "t": "supratherapeutic"
       }
     ],
-    "pmid": 27392437,
+    "pmid": 39586906,
     "more": "sertraline+mitochondria"
   },
   {
@@ -676,7 +676,7 @@
         "t": "high dose"
       }
     ],
-    "pmid": 27392437,
+    "pmid": 25404050,
     "more": "paroxetine+mitochondria"
   },
   {
@@ -1163,7 +1163,7 @@
         "t": "low dose"
       }
     ],
-    "pmid": 31580521,
+    "pmid": 41752502,
     "more": "quercetin+mitochondria"
   },
   {
@@ -1274,7 +1274,7 @@
         "t": "ATP-Mg complex essential"
       }
     ],
-    "pmid": 26404370,
+    "pmid": 41859661,
     "more": "magnesium+mitochondria+ATP"
   },
   {
@@ -1493,7 +1493,7 @@
         "t": "high dose"
       }
     ],
-    "pmid": 27392437,
+    "pmid": 41806632,
     "more": "escitalopram+mitochondria"
   },
   {
@@ -1510,7 +1510,7 @@
         "t": "high dose"
       }
     ],
-    "pmid": 27392437,
+    "pmid": 33791799,
     "more": "citalopram+mitochondria"
   },
   {
@@ -1535,7 +1535,7 @@
         "t": "adequate levels"
       }
     ],
-    "pmid": 33546607,
+    "pmid": 41856333,
     "more": "vitamin+D+mitochondrial+biogenesis"
   },
   {
@@ -1560,7 +1560,7 @@
         "t": "excess/overload"
       }
     ],
-    "pmid": 33546607,
+    "pmid": 41828457,
     "more": "iron+mitochondria+electron+transport"
   },
   {
@@ -1629,7 +1629,7 @@
         "t": "cardioprotective"
       }
     ],
-    "pmid": 32933108,
+    "pmid": 41877804,
     "more": "taurine+mitochondria+tRNA"
   },
   {
@@ -1707,7 +1707,7 @@
         "t": "skeletal muscle"
       }
     ],
-    "pmid": 12195445,
+    "pmid": 39180608,
     "more": "corticosteroids+mitochondrial+skeletal+muscle"
   },
   {
@@ -1730,7 +1730,7 @@
         "t": "accumulation from blocked clearance"
       }
     ],
-    "pmid": 30442599,
+    "pmid": 37085872,
     "more": "hydroxychloroquine+mitophagy+lysosome"
   },
   {
@@ -1810,7 +1810,7 @@
         "t": "metabolized to morphine"
       }
     ],
-    "pmid": 32524520,
+    "pmid": 35829998,
     "more": "opioid+mitochondrial+dysfunction"
   },
   {
@@ -1833,7 +1833,7 @@
         "t": "high dose"
       }
     ],
-    "pmid": 28887045,
+    "pmid": 40759985,
     "more": "metoprolol+mitochondrial+cardiac"
   },
   {
@@ -1879,7 +1879,7 @@
         "t": "excess T3 conversion"
       }
     ],
-    "pmid": 18279015,
+    "pmid": 41654685,
     "more": "thyroid+hormone+mitochondrial+biogenesis+uncoupling"
   },
   {
@@ -1901,7 +1901,7 @@
         "t": "via \u03b12\u03b4 subunit"
       }
     ],
-    "pmid": 30475380,
+    "pmid": 41075634,
     "more": "gabapentin+mitochondrial+neuroprotection"
   },
   {
@@ -1923,7 +1923,7 @@
         "t": "indirect via calcium modulation"
       }
     ],
-    "pmid": 30475380,
+    "pmid": 37239154,
     "more": "pregabalin+mitochondrial+calcium"
   },
   {
@@ -2126,7 +2126,7 @@
         "t": "restores activity"
       }
     ],
-    "pmid": 17157308,
+    "pmid": 24727492,
     "more": "PDE5+inhibitor+mitochondrial+biogenesis"
   },
   {
@@ -2175,7 +2175,7 @@
         "t": "cardioprotective"
       }
     ],
-    "pmid": 23771688,
+    "pmid": 39838394,
     "more": "losartan+angiotensin+mitochondrial+ROS"
   },
   {
@@ -2198,7 +2198,7 @@
         "t": "cardioprotective"
       }
     ],
-    "pmid": 23771688,
+    "pmid": 30373167,
     "more": "ACE+inhibitor+mitochondrial+oxidative+stress"
   },
   {
@@ -2220,7 +2220,7 @@
         "t": "ACE inhibitor class effect"
       }
     ],
-    "pmid": 23771688,
+    "pmid": 29123192,
     "more": "ramipril+mitochondrial+biogenesis"
   },
   {
@@ -2289,7 +2289,7 @@
         "t": "paradoxical benefit"
       }
     ],
-    "pmid": 25511254,
+    "pmid": 36674794,
     "more": "hypericum+mitochondrial+protonophore"
   },
   {
@@ -2334,7 +2334,7 @@
         "t": "MAO metabolism byproduct"
       }
     ],
-    "pmid": 31072928,
+    "pmid": 38462693,
     "more": "serotonin+mitochondrial+biogenesis+SIRT1"
   },
   {
@@ -2457,7 +2457,7 @@
         "t": "neuroprotective"
       }
     ],
-    "pmid": 24691130,
+    "pmid": 37416477,
     "more": "spirulina+phycocyanin+mitochondrial+neuroprotection"
   },
   {
@@ -2479,7 +2479,7 @@
         "t": "glutamate precursor for GSH"
       }
     ],
-    "pmid": 28274332,
+    "pmid": 41435838,
     "more": "glutamine+mitochondrial+anaplerosis"
   }
 ]
