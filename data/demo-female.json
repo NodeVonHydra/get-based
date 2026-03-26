@@ -5,7 +5,7 @@
     {
       "date": "2025-04-10",
       "markers": {
-        "biochemistry.glucose": 4.50,
+        "biochemistry.glucose": 4.5,
         "biochemistry.urea": 4.8,
         "biochemistry.creatinine": 58,
         "biochemistry.egfr": 1.82,
@@ -15,14 +15,14 @@
         "biochemistry.alt": 0.25,
         "biochemistry.alp": 0.95,
         "biochemistry.ggt": 0.28,
-        "biochemistry.ldh": 2.50,
-        "biochemistry.creatineKinase": 1.20,
+        "biochemistry.ldh": 2.5,
+        "biochemistry.creatineKinase": 1.2,
         "hormones.testosterone": 1.15,
         "hormones.shbg": 62.0,
-        "hormones.dheaS": 5.80,
+        "hormones.dheaS": 5.8,
         "hormones.estradiol": 285.0,
-        "hormones.progesterone": 0.350,
-        "hormones.insulin": 6.00,
+        "hormones.progesterone": 0.35,
+        "hormones.insulin": 6.0,
         "hormones.lh": 4.8,
         "hormones.fsh": 6.2,
         "hormones.prolactin": 12.5,
@@ -30,7 +30,7 @@
         "electrolytes.potassium": 4.1,
         "electrolytes.chloride": 104,
         "electrolytes.calciumTotal": 2.38,
-        "electrolytes.phosphorus": 1.20,
+        "electrolytes.phosphorus": 1.2,
         "electrolytes.magnesium": 0.82,
         "lipids.cholesterol": 4.55,
         "lipids.triglycerides": 0.78,
@@ -38,7 +38,7 @@
         "lipids.ldl": 2.48,
         "lipids.nonHdl": 2.83,
         "lipids.cholHdlRatio": 2.6,
-        "iron.iron": 12.50,
+        "iron.iron": 12.5,
         "iron.ferritin": 28,
         "iron.transferrin": 3.2,
         "iron.tibc": 55.8,
@@ -46,15 +46,15 @@
         "proteins.hsCRP": 0.45,
         "proteins.totalProtein": 70.2,
         "proteins.albumin": 43.8,
-        "thyroid.tsh": 2.100,
-        "thyroid.ft4": 16.50,
-        "thyroid.ft3": 4.80,
+        "thyroid.tsh": 2.1,
+        "thyroid.ft4": 16.5,
+        "thyroid.ft3": 4.8,
         "vitamins.vitaminD": 48.0,
         "diabetes.hba1c": 29.0,
-        "diabetes.insulin_d": 6.00,
-        "diabetes.homaIR": 1.20,
-        "coagulation.homocysteine": 7.20,
-        "hematology.wbc": 5.40,
+        "diabetes.insulin_d": 6.0,
+        "diabetes.homaIR": 1.2,
+        "coagulation.homocysteine": 7.2,
+        "hematology.wbc": 5.4,
         "hematology.rbc": 4.15,
         "hematology.hemoglobin": 128,
         "hematology.hematocrit": 0.385,
@@ -64,23 +64,23 @@
         "hematology.rdwcv": 13.5,
         "hematology.platelets": 265,
         "hematology.mpv": 9.8,
-        "differential.neutrophils": 3.10,
+        "differential.neutrophils": 3.1,
         "differential.lymphocytes": 1.72,
         "differential.monocytes": 0.38,
         "differential.eosinophils": 0.15,
         "differential.basophils": 0.05,
         "differential.neutrophilsPct": 0.574,
         "differential.lymphocytesPct": 0.319,
-        "differential.monocytesPct": 0.070
+        "differential.monocytesPct": 0.07
       }
     },
     {
       "date": "2025-08-05",
       "markers": {
-        "biochemistry.glucose": 4.60,
+        "biochemistry.glucose": 4.6,
         "biochemistry.urea": 5.0,
         "biochemistry.creatinine": 55,
-        "biochemistry.egfr": 1.90,
+        "biochemistry.egfr": 1.9,
         "biochemistry.uricAcid": 218,
         "biochemistry.bilirubinTotal": 7.5,
         "biochemistry.ast": 0.24,
@@ -91,10 +91,10 @@
         "biochemistry.creatineKinase": 1.05,
         "hormones.testosterone": 1.08,
         "hormones.shbg": 58.5,
-        "hormones.dheaS": 5.50,
+        "hormones.dheaS": 5.5,
         "hormones.estradiol": 310.0,
-        "hormones.progesterone": 12.50,
-        "hormones.insulin": 5.50,
+        "hormones.progesterone": 12.5,
+        "hormones.insulin": 5.5,
         "hormones.lh": 2.8,
         "hormones.fsh": 3.1,
         "hormones.prolactin": 14.2,
@@ -115,7 +115,7 @@
         "lipids.cholHdlRatio": 2.6,
         "lipids.apoAI": 1.52,
         "lipids.apoB": 0.68,
-        "iron.iron": 10.20,
+        "iron.iron": 10.2,
         "iron.ferritin": 22,
         "iron.transferrin": 3.4,
         "iron.tibc": 58.2,
@@ -124,17 +124,17 @@
         "proteins.totalProtein": 71.0,
         "proteins.albumin": 44.2,
         "proteins.ceruloplasmin": 0.25,
-        "thyroid.tsh": 2.800,
-        "thyroid.ft4": 15.20,
-        "thyroid.ft3": 4.50,
+        "thyroid.tsh": 2.8,
+        "thyroid.ft4": 15.2,
+        "thyroid.ft3": 4.5,
         "thyroid.t3total": 1.85,
         "vitamins.vitaminD": 55.0,
         "vitamins.vitaminA": 1.62,
         "diabetes.hba1c": 30.0,
-        "diabetes.insulin_d": 5.50,
+        "diabetes.insulin_d": 5.5,
         "diabetes.homaIR": 1.12,
-        "coagulation.homocysteine": 7.50,
-        "hematology.wbc": 5.20,
+        "coagulation.homocysteine": 7.5,
+        "hematology.wbc": 5.2,
         "hematology.rbc": 4.05,
         "hematology.hemoglobin": 124,
         "hematology.hematocrit": 0.375,
@@ -158,7 +158,7 @@
     {
       "date": "2025-12-15",
       "markers": {
-        "biochemistry.glucose": 4.70,
+        "biochemistry.glucose": 4.7,
         "biochemistry.urea": 4.5,
         "biochemistry.creatinine": 56,
         "biochemistry.egfr": 1.88,
@@ -173,10 +173,10 @@
         "biochemistry.cystatinC": 0.68,
         "hormones.testosterone": 1.22,
         "hormones.shbg": 65.0,
-        "hormones.dheaS": 5.90,
+        "hormones.dheaS": 5.9,
         "hormones.estradiol": 195.0,
-        "hormones.progesterone": 0.280,
-        "hormones.insulin": 6.20,
+        "hormones.progesterone": 0.28,
+        "hormones.insulin": 6.2,
         "hormones.lh": 5.4,
         "hormones.fsh": 7.8,
         "hormones.prolactin": 11.8,
@@ -184,21 +184,21 @@
         "electrolytes.sodium": 139,
         "electrolytes.potassium": 4.2,
         "electrolytes.chloride": 103,
-        "electrolytes.calciumTotal": 2.40,
+        "electrolytes.calciumTotal": 2.4,
         "electrolytes.phosphorus": 1.22,
         "electrolytes.magnesium": 0.88,
         "electrolytes.magnesiumRBC": 1.95,
         "electrolytes.copper": 17.8,
         "electrolytes.zinc": 11.8,
-        "lipids.cholesterol": 4.70,
+        "lipids.cholesterol": 4.7,
         "lipids.triglycerides": 0.75,
         "lipids.hdl": 1.82,
         "lipids.ldl": 2.54,
         "lipids.nonHdl": 2.88,
         "lipids.cholHdlRatio": 2.6,
         "lipids.apoAI": 1.55,
-        "lipids.apoB": 0.70,
-        "iron.iron": 8.50,
+        "lipids.apoB": 0.7,
+        "iron.iron": 8.5,
         "iron.ferritin": 18,
         "iron.transferrin": 3.5,
         "iron.tibc": 60.5,
@@ -207,17 +207,17 @@
         "proteins.totalProtein": 69.8,
         "proteins.albumin": 43.5,
         "proteins.ceruloplasmin": 0.24,
-        "thyroid.tsh": 3.400,
-        "thyroid.ft4": 13.80,
-        "thyroid.ft3": 4.20,
+        "thyroid.tsh": 3.4,
+        "thyroid.ft4": 13.8,
+        "thyroid.ft3": 4.2,
         "thyroid.t3total": 1.72,
         "vitamins.vitaminD": 72.0,
         "vitamins.vitaminD3": 62.0,
         "diabetes.hba1c": 30.0,
-        "diabetes.insulin_d": 6.20,
+        "diabetes.insulin_d": 6.2,
         "diabetes.homaIR": 1.29,
-        "coagulation.homocysteine": 6.80,
-        "hematology.wbc": 5.60,
+        "coagulation.homocysteine": 6.8,
+        "hematology.wbc": 5.6,
         "hematology.rbc": 3.92,
         "hematology.hemoglobin": 121,
         "hematology.hematocrit": 0.362,
@@ -228,8 +228,8 @@
         "hematology.platelets": 280,
         "hematology.mpv": 9.5,
         "hematology.pdw": 13.0,
-        "differential.neutrophils": 3.20,
-        "differential.lymphocytes": 1.80,
+        "differential.neutrophils": 3.2,
+        "differential.lymphocytes": 1.8,
         "differential.monocytes": 0.38,
         "differential.eosinophils": 0.16,
         "differential.basophils": 0.06,
@@ -242,7 +242,7 @@
     {
       "date": "2026-01-25",
       "markers": {
-        "biochemistry.glucose": 4.50,
+        "biochemistry.glucose": 4.5,
         "biochemistry.urea": 4.6,
         "biochemistry.creatinine": 54,
         "biochemistry.egfr": 1.95,
@@ -250,19 +250,19 @@
         "biochemistry.bilirubinTotal": 7.0,
         "biochemistry.ast": 0.23,
         "biochemistry.alt": 0.26,
-        "biochemistry.alp": 0.90,
+        "biochemistry.alp": 0.9,
         "biochemistry.ggt": 0.24,
         "biochemistry.ldh": 2.52,
-        "biochemistry.creatineKinase": 1.10,
+        "biochemistry.creatineKinase": 1.1,
         "biochemistry.cystatinC": 0.65,
         "biochemistry.gfrCystatin": 2.15,
         "hormones.testosterone": 1.18,
-        "hormones.freeTestosterone": 4.80,
+        "hormones.freeTestosterone": 4.8,
         "hormones.shbg": 60.5,
-        "hormones.dheaS": 6.10,
+        "hormones.dheaS": 6.1,
         "hormones.estradiol": 425.0,
-        "hormones.progesterone": 0.420,
-        "hormones.insulin": 5.80,
+        "hormones.progesterone": 0.42,
+        "hormones.insulin": 5.8,
         "hormones.lh": 8.2,
         "hormones.fsh": 9.5,
         "hormones.prolactin": 13.0,
@@ -273,19 +273,19 @@
         "electrolytes.chloride": 104,
         "electrolytes.calciumTotal": 2.39,
         "electrolytes.phosphorus": 1.18,
-        "electrolytes.magnesium": 0.90,
+        "electrolytes.magnesium": 0.9,
         "electrolytes.magnesiumRBC": 2.05,
         "electrolytes.copper": 17.2,
         "electrolytes.zinc": 12.5,
         "lipids.cholesterol": 4.58,
-        "lipids.triglycerides": 0.70,
+        "lipids.triglycerides": 0.7,
         "lipids.hdl": 1.85,
         "lipids.ldl": 2.41,
         "lipids.nonHdl": 2.73,
         "lipids.cholHdlRatio": 2.5,
         "lipids.apoAI": 1.58,
         "lipids.apoB": 0.65,
-        "iron.iron": 14.00,
+        "iron.iron": 14.0,
         "iron.ferritin": 25,
         "iron.transferrin": 3.3,
         "iron.tibc": 56.8,
@@ -294,18 +294,18 @@
         "proteins.totalProtein": 71.5,
         "proteins.albumin": 44.5,
         "proteins.ceruloplasmin": 0.23,
-        "thyroid.tsh": 3.800,
-        "thyroid.ft4": 12.50,
-        "thyroid.ft3": 4.00,
+        "thyroid.tsh": 3.8,
+        "thyroid.ft4": 12.5,
+        "thyroid.ft3": 4.0,
         "thyroid.t4total": 82.0,
         "thyroid.t3total": 1.58,
         "vitamins.vitaminD": 88.0,
         "vitamins.vitaminD3": 78.0,
         "vitamins.vitaminA": 1.75,
         "diabetes.hba1c": 28.0,
-        "diabetes.insulin_d": 5.80,
+        "diabetes.insulin_d": 5.8,
         "diabetes.homaIR": 1.16,
-        "coagulation.homocysteine": 6.50,
+        "coagulation.homocysteine": 6.5,
         "hematology.wbc": 5.35,
         "hematology.rbc": 4.22,
         "hematology.hemoglobin": 130,
@@ -322,7 +322,7 @@
         "differential.monocytes": 0.35,
         "differential.eosinophils": 0.14,
         "differential.basophils": 0.06,
-        "differential.neutrophilsPct": 0.570,
+        "differential.neutrophilsPct": 0.57,
         "differential.lymphocytesPct": 0.327,
         "differential.monocytesPct": 0.065,
         "boneMetabolism.osteocalcin": 26.5
@@ -336,12 +336,12 @@
         "fattyAcids.oleicC18_1": 21.8,
         "fattyAcids.linoleicC18_2": 19.5,
         "fattyAcids.glaC18_3": 0.18,
-        "fattyAcids.arachidonicC20_4": 7.20,
+        "fattyAcids.arachidonicC20_4": 7.2,
         "fattyAcids.dglaC20_3": 1.05,
         "fattyAcids.alaC18_3": 0.75,
-        "fattyAcids.epaC20_5": 2.80,
+        "fattyAcids.epaC20_5": 2.8,
         "fattyAcids.dpaC22_5": 1.82,
-        "fattyAcids.dhaC22_6": 3.50,
+        "fattyAcids.dhaC22_6": 3.5,
         "fattyAcids.omega3Index": 6.3,
         "fattyAcids.omega6to3Ratio": 2.8,
         "fattyAcids.membraneFluidity": 5.2,
@@ -355,45 +355,110 @@
         "fattyAcids.stearicC18": 12.5,
         "fattyAcids.oleicC18_1": 22.5,
         "fattyAcids.linoleicC18_2": 18.2,
-        "fattyAcids.glaC18_3": 0.20,
-        "fattyAcids.arachidonicC20_4": 6.50,
+        "fattyAcids.glaC18_3": 0.2,
+        "fattyAcids.arachidonicC20_4": 6.5,
         "fattyAcids.dglaC20_3": 1.12,
         "fattyAcids.alaC18_3": 0.82,
-        "fattyAcids.epaC20_5": 3.50,
-        "fattyAcids.dpaC22_5": 2.10,
-        "fattyAcids.dhaC22_6": 4.20,
+        "fattyAcids.epaC20_5": 3.5,
+        "fattyAcids.dpaC22_5": 2.1,
+        "fattyAcids.dhaC22_6": 4.2,
         "fattyAcids.omega3Index": 7.7,
         "fattyAcids.omega6to3Ratio": 2.2,
         "fattyAcids.membraneFluidity": 4.5,
-        "fattyAcids.mentalResilience": 0.80
+        "fattyAcids.mentalResilience": 0.8
       }
     }
   ],
   "notes": [
-    { "date": "2025-04-10", "text": "Baseline panel. Blood draw on day 7 of cycle (early follicular). Ferritin already borderline low — doctor recommended iron supplementation. Feeling fatigued, especially around periods." },
-    { "date": "2025-08-05", "text": "Mid-luteal draw (day 22). Progesterone elevated as expected for this phase. Ferritin dropped further despite 25mg iron. Switching to iron bisglycinate 36mg with vitamin C. TSH creeping up — monitoring." },
-    { "date": "2025-12-15", "text": "Early follicular draw (day 5). Hemoglobin lowest yet — almost at lower reference limit. Iron saturation below range. Increased iron dose. TSH continues rising, fT4 dropping. GP ordered thyroid antibodies for next visit." },
-    { "date": "2026-01-25", "text": "Day 10 (late follicular). Iron and hemoglobin finally improving! Two months of consistent high-dose iron bisglycinate working. But TSH still climbing — fT4 now near lower boundary. Endocrinology referral pending." }
+    {
+      "date": "2025-04-10",
+      "text": "Baseline panel. Blood draw on day 7 of cycle (early follicular). Ferritin already borderline low — doctor recommended iron supplementation. Feeling fatigued, especially around periods."
+    },
+    {
+      "date": "2025-08-05",
+      "text": "Mid-luteal draw (day 22). Progesterone elevated as expected for this phase. Ferritin dropped further despite 25mg iron. Switching to iron bisglycinate 36mg with vitamin C. TSH creeping up — monitoring."
+    },
+    {
+      "date": "2025-12-15",
+      "text": "Early follicular draw (day 5). Hemoglobin lowest yet — almost at lower reference limit. Iron saturation below range. Increased iron dose. TSH continues rising, fT4 dropping. GP ordered thyroid antibodies for next visit."
+    },
+    {
+      "date": "2026-01-25",
+      "text": "Day 10 (late follicular). Iron and hemoglobin finally improving! Two months of consistent high-dose iron bisglycinate working. But TSH still climbing — fT4 now near lower boundary. Endocrinology referral pending."
+    }
   ],
   "supplements": [
-    { "name": "Iron Bisglycinate", "dosage": "36 mg with vitamin C", "startDate": "2025-08-10", "endDate": "", "type": "supplement" },
-    { "name": "Vitamin D3", "dosage": "2000 IU/day", "startDate": "2025-04-15", "endDate": "", "type": "supplement" },
-    { "name": "B-Complex with Folate", "dosage": "1 capsule/day", "startDate": "2025-04-15", "endDate": "", "type": "supplement" },
-    { "name": "Magnesium Bisglycinate", "dosage": "300 mg before bed", "startDate": "2025-06-01", "endDate": "", "type": "supplement" },
-    { "name": "Omega-3 (EPA/DHA)", "dosage": "1000 mg/day", "startDate": "2025-09-01", "endDate": "", "type": "supplement" },
-    { "name": "Iron Fumarate", "dosage": "25 mg/day", "startDate": "2025-04-15", "endDate": "2025-08-05", "type": "supplement" },
-    { "name": "Levothyroxine", "dosage": "under discussion", "startDate": "", "endDate": "", "type": "medication" }
+    {
+      "name": "Iron Bisglycinate",
+      "dosage": "36 mg with vitamin C",
+      "startDate": "2025-08-10",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Vitamin D3",
+      "dosage": "2000 IU/day",
+      "startDate": "2025-04-15",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "B-Complex with Folate",
+      "dosage": "1 capsule/day",
+      "startDate": "2025-04-15",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Magnesium Bisglycinate",
+      "dosage": "300 mg before bed",
+      "startDate": "2025-06-01",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Omega-3 (EPA/DHA)",
+      "dosage": "1000 mg/day",
+      "startDate": "2025-09-01",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Iron Fumarate",
+      "dosage": "25 mg/day",
+      "startDate": "2025-04-15",
+      "endDate": "2025-08-05",
+      "type": "supplement"
+    },
+    {
+      "name": "Levothyroxine",
+      "dosage": "under discussion",
+      "startDate": "",
+      "endDate": "",
+      "type": "medication"
+    }
   ],
   "diagnoses": {
     "conditions": [
-      { "name": "Iron deficiency", "severity": "mild", "since": "2025" },
-      { "name": "Subclinical hypothyroidism", "severity": "mild", "since": "2025" }
+      {
+        "name": "Iron deficiency",
+        "severity": "mild",
+        "since": "2025"
+      },
+      {
+        "name": "Subclinical hypothyroidism",
+        "severity": "mild",
+        "since": "2025"
+      }
     ],
     "note": "Family history: Hashimoto's thyroiditis (mother), osteoporosis (maternal grandmother). No other chronic conditions. Pending thyroid antibody testing (TPO, Tg)."
   },
   "diet": {
     "type": "omnivore",
-    "restrictions": ["dairy-free", "seed oil-free"],
+    "restrictions": [
+      "dairy-free",
+      "seed oil-free"
+    ],
     "pattern": "3 meals/day",
     "breakfast": "Eggs with spinach, sourdough toast, berries",
     "breakfastTime": "07:30",
@@ -413,11 +478,19 @@
     "nausea": "occasional",
     "appetite": "normal",
     "abdominalPain": "occasional",
-    "foodSensitivities": ["dairy", "raw onion"]
+    "foodSensitivities": [
+      "dairy",
+      "raw onion"
+    ]
   },
   "exercise": {
     "frequency": "5-6x/week",
-    "types": ["yoga/mobility", "cardio/running", "strength", "walking"],
+    "types": [
+      "yoga/mobility",
+      "cardio/running",
+      "strength",
+      "walking"
+    ],
     "intensity": "moderate",
     "dailyMovement": "some walking",
     "note": "Yoga 3x/week (vinyasa + yin). Running 2x/week (5-8 km easy pace). Light resistance training 2x/week since Nov 2025 for bone health. Rest days aligned with heavier period days. Daily 6000+ steps."
@@ -427,27 +500,51 @@
     "quality": "good",
     "schedule": "consistent",
     "roomTemp": "cool (18-20°C / 65-68°F)",
-    "issues": ["trouble falling asleep"],
-    "environment": ["blackout curtains", "earplugs"],
-    "practices": ["evening magnesium", "no food 3h before bed"],
+    "issues": [
+      "trouble falling asleep"
+    ],
+    "environment": [
+      "blackout curtains",
+      "earplugs"
+    ],
+    "practices": [
+      "evening magnesium",
+      "no food 3h before bed"
+    ],
     "note": "22:30-05:30 typical schedule. Occasional insomnia during luteal phase (3-4 nights/month). Melatonin 0.5mg occasionally."
   },
   "lightCircadian": {
     "amLight": "morning outdoor (after sunrise)",
     "daytime": "1-2h outdoor",
     "uvExposure": "midday sun when possible",
-    "evening": ["dim lights after sunset", "f.lux / night shift on devices"],
+    "evening": [
+      "dim lights after sunset",
+      "f.lux / night shift on devices"
+    ],
     "screenTime": "4-8h",
-    "techEnv": ["multiple monitors at work", "e-reader before bed"],
+    "techEnv": [
+      "multiple monitors at work",
+      "e-reader before bed"
+    ],
     "cold": "cold shower",
     "grounding": "barefoot occasionally",
-    "mealTiming": ["eat within daylight only"],
+    "mealTiming": [
+      "eat within daylight only"
+    ],
     "note": "Morning sunlight walk 15 min. Works from office with large windows. No shift work history."
   },
   "stress": {
     "level": "moderate",
-    "sources": ["work", "health"],
-    "management": ["exercise", "nature", "social support", "journaling"],
+    "sources": [
+      "work",
+      "health"
+    ],
+    "management": [
+      "exercise",
+      "nature",
+      "social support",
+      "journaling"
+    ],
     "note": "Work deadlines can be intense but manageable. Health anxiety around thyroid diagnosis and iron issues."
   },
   "loveLife": {
@@ -457,30 +554,61 @@
     "libido": "variable",
     "frequency": "few times/week",
     "orgasm": "usually",
-    "concerns": ["hormonal changes"],
+    "concerns": [
+      "hormonal changes"
+    ],
     "note": "Libido fluctuates with cycle — lowest during late luteal/early menstrual. Partner supportive."
   },
   "environment": {
     "setting": "urban residential",
     "climate": "temperate",
     "water": "filtered (carbon)",
-    "waterConcerns": ["chlorinated", "hard water"],
-    "emf": ["WiFi router nearby", "Bluetooth always on"],
-    "emfMitigation": ["WiFi off at night", "airplane mode sleep"],
+    "waterConcerns": [
+      "chlorinated",
+      "hard water"
+    ],
+    "emf": [
+      "WiFi router nearby",
+      "Bluetooth always on"
+    ],
+    "emfMitigation": [
+      "WiFi off at night",
+      "airplane mode sleep"
+    ],
     "homeLight": "mixed lighting",
-    "air": ["open windows daily", "houseplants"],
-    "toxins": ["organic food mostly"],
+    "air": [
+      "open windows daily",
+      "houseplants"
+    ],
+    "toxins": [
+      "organic food mostly"
+    ],
     "building": "old building (pre-1970)",
     "note": "Lives in a quiet residential area of Prague. Building renovated 2018 — new windows, old structure."
   },
   "interpretiveLens": "Interested in functional medicine approach to thyroid and iron. Follows a Hashimoto's prevention strategy focused on optimizing ferritin to 50+ µg/L (functional range), not just above lab minimum. Concerned about thyroid trajectory given family history.",
   "contextNotes": "Proactive about health and prefers functional/optimal reference ranges over standard lab ranges. Particularly concerned about thyroid trajectory given family history of Hashimoto's diagnosis.",
   "healthGoals": [
-    { "text": "Build ferritin to 50+ µg/L and maintain stable iron status", "severity": "major" },
-    { "text": "Clarify thyroid status — determine if subclinical hypothyroidism or early Hashimoto's", "severity": "major" },
-    { "text": "Improve energy and reduce fatigue, especially premenstrual", "severity": "mild" },
-    { "text": "Maintain vitamin D above 75 nmol/L year-round", "severity": "mild" },
-    { "text": "Support bone density (family history of osteoporosis)", "severity": "minor" }
+    {
+      "text": "Build ferritin to 50+ µg/L and maintain stable iron status",
+      "severity": "major"
+    },
+    {
+      "text": "Clarify thyroid status — determine if subclinical hypothyroidism or early Hashimoto's",
+      "severity": "major"
+    },
+    {
+      "text": "Improve energy and reduce fatigue, especially premenstrual",
+      "severity": "mild"
+    },
+    {
+      "text": "Maintain vitamin D above 75 nmol/L year-round",
+      "severity": "mild"
+    },
+    {
+      "text": "Support bone density (family history of osteoporosis)",
+      "severity": "minor"
+    }
   ],
   "menstrualCycle": {
     "cycleStatus": "regular",
@@ -491,12 +619,68 @@
     "contraceptive": "",
     "conditions": "",
     "periods": [
-      { "startDate": "2026-01-16", "endDate": "2026-01-20", "flow": "moderate", "symptoms": ["Cramps", "Fatigue"], "notes": "Normal flow, less fatigue than usual — iron helping?" },
-      { "startDate": "2025-12-18", "endDate": "2025-12-23", "flow": "heavy", "symptoms": ["Cramps", "Fatigue", "Bloating", "Clots"], "notes": "Heavier than usual, 6 days. Extra fatigued." },
-      { "startDate": "2025-11-19", "endDate": "2025-11-23", "flow": "moderate", "symptoms": ["Cramps", "Back pain"], "notes": "" },
-      { "startDate": "2025-10-21", "endDate": "2025-10-25", "flow": "moderate", "symptoms": ["Bloating"], "notes": "" },
-      { "startDate": "2025-09-22", "endDate": "2025-09-26", "flow": "heavy", "symptoms": ["Cramps", "Fatigue", "Mood swings", "Clots"], "notes": "Heavy flow, mild cramps day 1-2" },
-      { "startDate": "2025-08-24", "endDate": "2025-08-28", "flow": "moderate", "symptoms": ["Breast tenderness"], "notes": "" }
+      {
+        "startDate": "2026-01-16",
+        "endDate": "2026-01-20",
+        "flow": "moderate",
+        "symptoms": [
+          "Cramps",
+          "Fatigue"
+        ],
+        "notes": "Normal flow, less fatigue than usual — iron helping?"
+      },
+      {
+        "startDate": "2025-12-18",
+        "endDate": "2025-12-23",
+        "flow": "heavy",
+        "symptoms": [
+          "Cramps",
+          "Fatigue",
+          "Bloating",
+          "Clots"
+        ],
+        "notes": "Heavier than usual, 6 days. Extra fatigued."
+      },
+      {
+        "startDate": "2025-11-19",
+        "endDate": "2025-11-23",
+        "flow": "moderate",
+        "symptoms": [
+          "Cramps",
+          "Back pain"
+        ],
+        "notes": ""
+      },
+      {
+        "startDate": "2025-10-21",
+        "endDate": "2025-10-25",
+        "flow": "moderate",
+        "symptoms": [
+          "Bloating"
+        ],
+        "notes": ""
+      },
+      {
+        "startDate": "2025-09-22",
+        "endDate": "2025-09-26",
+        "flow": "heavy",
+        "symptoms": [
+          "Cramps",
+          "Fatigue",
+          "Mood swings",
+          "Clots"
+        ],
+        "notes": "Heavy flow, mild cramps day 1-2"
+      },
+      {
+        "startDate": "2025-08-24",
+        "endDate": "2025-08-28",
+        "flow": "moderate",
+        "symptoms": [
+          "Breast tenderness"
+        ],
+        "notes": ""
+      }
     ]
   },
   "emfAssessment": {
@@ -512,12 +696,30 @@
             "location": "3rd floor, courtyard side",
             "sleeping": true,
             "measurements": {
-              "acElectric": { "value": 3.2, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 25, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 8.5, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+              "acElectric": {
+                "value": 3.2,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 25,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 8.5,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              }
             },
-            "sources": ["WiFi router", "neighboring apartments"],
-            "mitigations": ["WiFi off at night", "phone airplane mode at night"],
+            "sources": [
+              "WiFi router",
+              "neighboring apartments"
+            ],
+            "mitigations": [
+              "WiFi off at night",
+              "phone airplane mode at night"
+            ],
             "note": "Courtyard-facing — shielded from cell towers by building mass. Low RF. AC electric slightly elevated from unshielded wiring in renovated walls."
           },
           {
@@ -525,12 +727,31 @@
             "location": "3rd floor, street side",
             "sleeping": false,
             "measurements": {
-              "acElectric": { "value": 5.8, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 65, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 180, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+              "acElectric": {
+                "value": 5.8,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 65,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 180,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              }
             },
-            "sources": ["cell tower", "neighboring apartments", "WiFi router", "Bluetooth devices"],
-            "mitigations": ["wired ethernet"],
+            "sources": [
+              "cell tower",
+              "neighboring apartments",
+              "WiFi router",
+              "Bluetooth devices"
+            ],
+            "mitigations": [
+              "wired ethernet"
+            ],
             "note": "Street-facing windows — cell tower on building across the street (approx 80m). RF notably higher on this side. Multiple neighbor WiFi networks visible."
           }
         ],
@@ -538,5 +759,155 @@
       }
     ]
   },
-  "customMarkers": {}
+  "customMarkers": {},
+  "biometrics": {
+    "weight": [
+      {
+        "date": "2025-04-10",
+        "value": 62,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2025-08-05",
+        "value": 61,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2025-12-15",
+        "value": 60.5,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2026-01-25",
+        "value": 60,
+        "unit": "kg",
+        "source": "manual"
+      }
+    ],
+    "bp": [
+      {
+        "date": "2025-04-10",
+        "sys": 110,
+        "dia": 72,
+        "source": "manual"
+      },
+      {
+        "date": "2025-12-15",
+        "sys": 108,
+        "dia": 70,
+        "source": "manual"
+      },
+      {
+        "date": "2026-01-25",
+        "sys": 112,
+        "dia": 74,
+        "source": "manual"
+      }
+    ],
+    "pulse": [
+      {
+        "date": "2025-04-10",
+        "value": 68,
+        "source": "manual"
+      },
+      {
+        "date": "2025-12-15",
+        "value": 64,
+        "source": "manual"
+      },
+      {
+        "date": "2026-01-25",
+        "value": 66,
+        "source": "manual"
+      }
+    ]
+  },
+  "genetics": {
+    "source": "23andMe",
+    "importDate": "2025-04-05",
+    "coverage": {
+      "found": 32,
+      "total": 42
+    },
+    "effects": {
+      "significant": 3,
+      "moderate": 6,
+      "normal": 23
+    },
+    "apoe": "ε3/ε3",
+    "snps": {
+      "rs429358": {
+        "genotype": "TT",
+        "gene": "APOE",
+        "variant": "ε3"
+      },
+      "rs7412": {
+        "genotype": "CC",
+        "gene": "APOE",
+        "variant": "ε3"
+      },
+      "rs1801133": {
+        "genotype": "AG",
+        "gene": "MTHFR",
+        "variant": "C677T"
+      },
+      "rs1801131": {
+        "genotype": "AC",
+        "gene": "MTHFR",
+        "variant": "A1298C"
+      },
+      "rs1800562": {
+        "genotype": "GA",
+        "gene": "HFE",
+        "variant": "C282Y"
+      },
+      "rs1799945": {
+        "genotype": "CG",
+        "gene": "HFE",
+        "variant": "H63D"
+      },
+      "rs1544410": {
+        "genotype": "TT",
+        "gene": "VDR",
+        "variant": "BsmI"
+      },
+      "rs225014": {
+        "genotype": "CT",
+        "gene": "DIO2",
+        "variant": "Thr92Ala"
+      }
+    },
+    "mtdna": {
+      "haplogroup": "J",
+      "confidence": 0.78,
+      "coupling": {
+        "level": "uncoupled",
+        "label": "Uncoupled (more heat, less ATP)",
+        "shortLabel": "uncoupled",
+        "climate": "Cold (Northern European)",
+        "matchedLatBands": [
+          3,
+          4
+        ]
+      },
+      "mutations": [
+        "295T",
+        "489C",
+        "4216C",
+        "10398G",
+        "11251G",
+        "12612G",
+        "13708A",
+        "16069T",
+        "16126C"
+      ],
+      "source": "mtDNA CSV",
+      "importDate": "2025-04-05"
+    }
+  },
+  "changeHistory": [],
+  "markerNotes": {}
 }

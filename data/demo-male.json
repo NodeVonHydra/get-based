@@ -5,7 +5,7 @@
     {
       "date": "2025-03-15",
       "markers": {
-        "biochemistry.glucose": 4.80,
+        "biochemistry.glucose": 4.8,
         "biochemistry.urea": 5.9,
         "biochemistry.creatinine": 82,
         "biochemistry.egfr": 1.65,
@@ -16,40 +16,40 @@
         "biochemistry.alp": 1.15,
         "biochemistry.ggt": 0.42,
         "biochemistry.ldh": 2.85,
-        "biochemistry.creatineKinase": 2.10,
-        "hormones.testosterone": 18.50,
-        "hormones.freeTestosterone": 68.20,
+        "biochemistry.creatineKinase": 2.1,
+        "hormones.testosterone": 18.5,
+        "hormones.freeTestosterone": 68.2,
         "hormones.shbg": 28.5,
-        "hormones.dheaS": 8.40,
-        "hormones.insulin": 5.20,
+        "hormones.dheaS": 8.4,
+        "hormones.insulin": 5.2,
         "electrolytes.sodium": 141,
         "electrolytes.potassium": 4.3,
         "electrolytes.chloride": 103,
         "electrolytes.calciumTotal": 2.38,
         "electrolytes.phosphorus": 1.12,
         "electrolytes.magnesium": 0.78,
-        "lipids.cholesterol": 4.80,
+        "lipids.cholesterol": 4.8,
         "lipids.triglycerides": 0.92,
         "lipids.hdl": 1.35,
-        "lipids.ldl": 3.10,
+        "lipids.ldl": 3.1,
         "lipids.nonHdl": 3.45,
         "lipids.cholHdlRatio": 3.6,
         "iron.iron": 18.5,
         "iron.ferritin": 180,
         "iron.transferrin": 2.5,
         "iron.transferrinSat": 33.2,
-        "proteins.hsCRP": 0.80,
+        "proteins.hsCRP": 0.8,
         "proteins.totalProtein": 71.5,
         "proteins.albumin": 45.2,
-        "thyroid.tsh": 1.500,
+        "thyroid.tsh": 1.5,
         "thyroid.ft4": 16.8,
         "thyroid.ft3": 4.5,
         "vitamins.vitaminD": 42.0,
         "diabetes.hba1c": 31.0,
-        "diabetes.insulin_d": 5.20,
+        "diabetes.insulin_d": 5.2,
         "diabetes.homaIR": 1.11,
-        "coagulation.homocysteine": 11.50,
-        "hematology.wbc": 5.80,
+        "coagulation.homocysteine": 11.5,
+        "hematology.wbc": 5.8,
         "hematology.rbc": 5.12,
         "hematology.hemoglobin": 152,
         "hematology.hematocrit": 0.455,
@@ -72,7 +72,7 @@
     {
       "date": "2025-07-20",
       "markers": {
-        "biochemistry.glucose": 5.10,
+        "biochemistry.glucose": 5.1,
         "biochemistry.urea": 6.2,
         "biochemistry.creatinine": 85,
         "biochemistry.egfr": 1.58,
@@ -80,16 +80,16 @@
         "biochemistry.bilirubinTotal": 11.8,
         "biochemistry.ast": 0.35,
         "biochemistry.alt": 0.42,
-        "biochemistry.alp": 1.20,
+        "biochemistry.alp": 1.2,
         "biochemistry.ggt": 0.55,
         "biochemistry.ldh": 2.92,
         "biochemistry.creatineKinase": 2.45,
-        "hormones.testosterone": 16.20,
-        "hormones.freeTestosterone": 58.40,
+        "hormones.testosterone": 16.2,
+        "hormones.freeTestosterone": 58.4,
         "hormones.shbg": 26.8,
-        "hormones.dheaS": 7.80,
+        "hormones.dheaS": 7.8,
         "hormones.estradiol": 72.5,
-        "hormones.insulin": 7.80,
+        "hormones.insulin": 7.8,
         "electrolytes.sodium": 140,
         "electrolytes.potassium": 4.5,
         "electrolytes.chloride": 102,
@@ -98,11 +98,11 @@
         "electrolytes.magnesium": 0.82,
         "electrolytes.copper": 14.2,
         "electrolytes.zinc": 13.5,
-        "lipids.cholesterol": 5.00,
+        "lipids.cholesterol": 5.0,
         "lipids.triglycerides": 1.05,
-        "lipids.hdl": 1.30,
+        "lipids.hdl": 1.3,
         "lipids.ldl": 3.22,
-        "lipids.nonHdl": 3.70,
+        "lipids.nonHdl": 3.7,
         "lipids.cholHdlRatio": 3.8,
         "lipids.apoAI": 1.25,
         "lipids.apoB": 0.88,
@@ -110,22 +110,22 @@
         "iron.ferritin": 165,
         "iron.transferrin": 2.4,
         "iron.transferrinSat": 35.8,
-        "proteins.hsCRP": 1.20,
+        "proteins.hsCRP": 1.2,
         "proteins.totalProtein": 72.8,
         "proteins.albumin": 44.8,
         "proteins.ceruloplasmin": 0.21,
-        "thyroid.tsh": 1.800,
+        "thyroid.tsh": 1.8,
         "thyroid.ft4": 15.9,
         "thyroid.ft3": 4.3,
         "vitamins.vitaminD": 68.0,
         "vitamins.vitaminA": 1.85,
         "diabetes.hba1c": 33.0,
-        "diabetes.insulin_d": 7.80,
+        "diabetes.insulin_d": 7.8,
         "diabetes.homaIR": 1.77,
-        "tumorMarkers.psa": 0.320,
-        "coagulation.homocysteine": 12.80,
-        "hematology.wbc": 6.10,
-        "hematology.rbc": 5.20,
+        "tumorMarkers.psa": 0.32,
+        "coagulation.homocysteine": 12.8,
+        "hematology.wbc": 6.1,
+        "hematology.rbc": 5.2,
         "hematology.hemoglobin": 155,
         "hematology.hematocrit": 0.462,
         "hematology.mcv": 88.8,
@@ -134,12 +134,12 @@
         "hematology.rdwcv": 12.9,
         "hematology.platelets": 235,
         "hematology.mpv": 10.5,
-        "differential.neutrophils": 3.60,
+        "differential.neutrophils": 3.6,
         "differential.lymphocytes": 1.82,
         "differential.monocytes": 0.45,
         "differential.eosinophils": 0.18,
         "differential.basophils": 0.05,
-        "differential.neutrophilsPct": 0.590,
+        "differential.neutrophilsPct": 0.59,
         "differential.lymphocytesPct": 0.298,
         "differential.monocytesPct": 0.074
       }
@@ -147,25 +147,25 @@
     {
       "date": "2025-11-10",
       "markers": {
-        "biochemistry.glucose": 5.30,
+        "biochemistry.glucose": 5.3,
         "biochemistry.urea": 6.5,
         "biochemistry.creatinine": 84,
-        "biochemistry.egfr": 1.60,
+        "biochemistry.egfr": 1.6,
         "biochemistry.uricAcid": 388,
         "biochemistry.bilirubinTotal": 10.2,
-        "biochemistry.ast": 0.40,
+        "biochemistry.ast": 0.4,
         "biochemistry.alt": 0.52,
         "biochemistry.alp": 1.18,
         "biochemistry.ggt": 0.68,
         "biochemistry.ldh": 3.05,
-        "biochemistry.creatineKinase": 2.80,
+        "biochemistry.creatineKinase": 2.8,
         "biochemistry.cystatinC": 0.79,
-        "hormones.testosterone": 14.80,
-        "hormones.freeTestosterone": 48.90,
+        "hormones.testosterone": 14.8,
+        "hormones.freeTestosterone": 48.9,
         "hormones.shbg": 25.2,
-        "hormones.dheaS": 7.10,
+        "hormones.dheaS": 7.1,
         "hormones.estradiol": 85.3,
-        "hormones.insulin": 11.50,
+        "hormones.insulin": 11.5,
         "hormones.igf1": 195.0,
         "electrolytes.sodium": 139,
         "electrolytes.potassium": 4.6,
@@ -176,10 +176,10 @@
         "electrolytes.magnesiumRBC": 2.18,
         "electrolytes.copper": 15.0,
         "electrolytes.zinc": 12.8,
-        "lipids.cholesterol": 5.20,
+        "lipids.cholesterol": 5.2,
         "lipids.triglycerides": 1.18,
         "lipids.hdl": 1.25,
-        "lipids.ldl": 3.40,
+        "lipids.ldl": 3.4,
         "lipids.nonHdl": 3.95,
         "lipids.cholHdlRatio": 4.2,
         "lipids.apoAI": 1.18,
@@ -187,25 +187,25 @@
         "iron.iron": 19.2,
         "iron.ferritin": 155,
         "iron.transferrin": 2.6,
-        "proteins.hsCRP": 0.90,
+        "proteins.hsCRP": 0.9,
         "proteins.totalProtein": 70.5,
         "proteins.albumin": 44.0,
         "proteins.ceruloplasmin": 0.22,
-        "thyroid.tsh": 2.000,
+        "thyroid.tsh": 2.0,
         "thyroid.ft4": 15.5,
         "thyroid.ft3": 4.4,
         "thyroid.t3total": 1.72,
         "vitamins.vitaminD": 95.0,
         "vitamins.vitaminD3": 82.0,
         "diabetes.hba1c": 35.0,
-        "diabetes.insulin_d": 11.50,
+        "diabetes.insulin_d": 11.5,
         "diabetes.homaIR": 2.71,
-        "tumorMarkers.psa": 0.350,
-        "coagulation.homocysteine": 13.50,
+        "tumorMarkers.psa": 0.35,
+        "coagulation.homocysteine": 13.5,
         "hematology.wbc": 5.95,
         "hematology.rbc": 5.28,
         "hematology.hemoglobin": 158,
-        "hematology.hematocrit": 0.470,
+        "hematology.hematocrit": 0.47,
         "hematology.mcv": 89.0,
         "hematology.mch": 29.9,
         "hematology.mchc": 336,
@@ -218,7 +218,7 @@
         "differential.monocytes": 0.42,
         "differential.eosinophils": 0.16,
         "differential.basophils": 0.07,
-        "differential.neutrophilsPct": 0.580,
+        "differential.neutrophilsPct": 0.58,
         "differential.lymphocytesPct": 0.311,
         "differential.monocytesPct": 0.071,
         "boneMetabolism.osteocalcin": 22.5
@@ -227,7 +227,7 @@
     {
       "date": "2026-02-01",
       "markers": {
-        "biochemistry.glucose": 5.50,
+        "biochemistry.glucose": 5.5,
         "biochemistry.urea": 5.5,
         "biochemistry.creatinine": 86,
         "biochemistry.egfr": 1.55,
@@ -241,27 +241,27 @@
         "biochemistry.creatineKinase": 3.15,
         "biochemistry.cystatinC": 0.82,
         "biochemistry.gfrCystatin": 1.95,
-        "hormones.testosterone": 13.50,
-        "hormones.freeTestosterone": 42.10,
+        "hormones.testosterone": 13.5,
+        "hormones.freeTestosterone": 42.1,
         "hormones.shbg": 24.0,
-        "hormones.dheaS": 6.50,
+        "hormones.dheaS": 6.5,
         "hormones.estradiol": 90.8,
-        "hormones.progesterone": 0.280,
-        "hormones.insulin": 14.20,
+        "hormones.progesterone": 0.28,
+        "hormones.insulin": 14.2,
         "hormones.igf1": 188.0,
         "hormones.dht": 1.65,
         "electrolytes.sodium": 138,
         "electrolytes.potassium": 4.7,
         "electrolytes.chloride": 100,
         "electrolytes.calciumTotal": 2.32,
-        "electrolytes.phosphorus": 1.20,
+        "electrolytes.phosphorus": 1.2,
         "electrolytes.magnesium": 0.92,
         "electrolytes.magnesiumRBC": 2.28,
         "electrolytes.copper": 15.8,
         "electrolytes.zinc": 11.9,
         "lipids.cholesterol": 5.35,
         "lipids.triglycerides": 1.32,
-        "lipids.hdl": 1.20,
+        "lipids.hdl": 1.2,
         "lipids.ldl": 3.55,
         "lipids.nonHdl": 4.15,
         "lipids.cholHdlRatio": 4.5,
@@ -271,23 +271,23 @@
         "iron.ferritin": 145,
         "iron.transferrin": 2.7,
         "iron.transferrinSat": 30.5,
-        "proteins.hsCRP": 1.50,
+        "proteins.hsCRP": 1.5,
         "proteins.totalProtein": 73.0,
         "proteins.albumin": 43.5,
         "proteins.ceruloplasmin": 0.23,
-        "thyroid.tsh": 2.200,
+        "thyroid.tsh": 2.2,
         "thyroid.ft4": 15.2,
         "thyroid.ft3": 4.2,
         "thyroid.t4total": 98.0,
         "thyroid.t3total": 1.65,
         "vitamins.vitaminD": 118.0,
         "vitamins.vitaminD3": 105.0,
-        "vitamins.vitaminA": 2.10,
+        "vitamins.vitaminA": 2.1,
         "diabetes.hba1c": 37.0,
-        "diabetes.insulin_d": 14.20,
+        "diabetes.insulin_d": 14.2,
         "diabetes.homaIR": 3.47,
-        "tumorMarkers.psa": 0.380,
-        "coagulation.homocysteine": 14.20,
+        "tumorMarkers.psa": 0.38,
+        "coagulation.homocysteine": 14.2,
         "hematology.wbc": 6.25,
         "hematology.rbc": 5.35,
         "hematology.hemoglobin": 160,
@@ -301,12 +301,12 @@
         "hematology.pdw": 14.2,
         "differential.neutrophils": 3.55,
         "differential.lymphocytes": 1.95,
-        "differential.monocytes": 0.50,
+        "differential.monocytes": 0.5,
         "differential.eosinophils": 0.19,
         "differential.basophils": 0.06,
         "differential.neutrophilsPct": 0.568,
         "differential.lymphocytesPct": 0.312,
-        "differential.monocytesPct": 0.080,
+        "differential.monocytesPct": 0.08,
         "boneMetabolism.osteocalcin": 21.0
       }
     },
@@ -318,12 +318,12 @@
         "fattyAcids.oleicC18_1": 22.5,
         "fattyAcids.linoleicC18_2": 20.1,
         "fattyAcids.glaC18_3": 0.15,
-        "fattyAcids.arachidonicC20_4": 6.80,
+        "fattyAcids.arachidonicC20_4": 6.8,
         "fattyAcids.dglaC20_3": 1.02,
         "fattyAcids.alaC18_3": 0.72,
         "fattyAcids.epaC20_5": 1.85,
-        "fattyAcids.dpaC22_5": 1.50,
-        "fattyAcids.dhaC22_6": 2.80,
+        "fattyAcids.dpaC22_5": 1.5,
+        "fattyAcids.dhaC22_6": 2.8,
         "fattyAcids.omega3Index": 4.8,
         "fattyAcids.omega6to3Ratio": 3.2,
         "fattyAcids.membraneFluidity": 8.5,
@@ -338,12 +338,12 @@
         "fattyAcids.oleicC18_1": 23.2,
         "fattyAcids.linoleicC18_2": 18.5,
         "fattyAcids.glaC18_3": 0.18,
-        "fattyAcids.arachidonicC20_4": 5.90,
+        "fattyAcids.arachidonicC20_4": 5.9,
         "fattyAcids.dglaC20_3": 1.15,
         "fattyAcids.alaC18_3": 0.85,
-        "fattyAcids.epaC20_5": 3.20,
+        "fattyAcids.epaC20_5": 3.2,
         "fattyAcids.dpaC22_5": 1.95,
-        "fattyAcids.dhaC22_6": 4.50,
+        "fattyAcids.dhaC22_6": 4.5,
         "fattyAcids.omega3Index": 7.8,
         "fattyAcids.omega6to3Ratio": 2.1,
         "fattyAcids.membraneFluidity": 5.8,
@@ -352,29 +352,87 @@
     }
   ],
   "notes": [
-    { "date": "2025-03-15", "text": "First comprehensive blood panel. Vitamin D quite low — starting 4000 IU/day supplementation. Fasting 14 hours before draw." },
-    { "date": "2025-07-20", "text": "Summer recheck. Vitamin D improving but still below optimal. Added magnesium glycinate 400mg before bed. Noticed increased thirst and urination — worth monitoring glucose." },
-    { "date": "2025-11-10", "text": "Glucose and insulin continuing to climb. Reduced refined carbs and started zone 2 cardio 3x/week. Vitamin D finally in good range." },
-    { "date": "2026-02-01", "text": "HOMA-IR now above reference range. Doctor discussed potential pre-diabetic trajectory. Testosterone still declining. Starting creatine 5g/day and B-complex for homocysteine." }
+    {
+      "date": "2025-03-15",
+      "text": "First comprehensive blood panel. Vitamin D quite low — starting 4000 IU/day supplementation. Fasting 14 hours before draw."
+    },
+    {
+      "date": "2025-07-20",
+      "text": "Summer recheck. Vitamin D improving but still below optimal. Added magnesium glycinate 400mg before bed. Noticed increased thirst and urination — worth monitoring glucose."
+    },
+    {
+      "date": "2025-11-10",
+      "text": "Glucose and insulin continuing to climb. Reduced refined carbs and started zone 2 cardio 3x/week. Vitamin D finally in good range."
+    },
+    {
+      "date": "2026-02-01",
+      "text": "HOMA-IR now above reference range. Doctor discussed potential pre-diabetic trajectory. Testosterone still declining. Starting creatine 5g/day and B-complex for homocysteine."
+    }
   ],
   "supplements": [
-    { "name": "Vitamin D3", "dosage": "4000 IU/day", "startDate": "2025-03-20", "endDate": "", "type": "supplement" },
-    { "name": "Magnesium Glycinate", "dosage": "400 mg before bed", "startDate": "2025-07-25", "endDate": "", "type": "supplement" },
-    { "name": "Omega-3 Fish Oil", "dosage": "2000 mg EPA/DHA", "startDate": "2025-04-01", "endDate": "", "type": "supplement" },
-    { "name": "Creatine Monohydrate", "dosage": "5 g/day", "startDate": "2026-02-05", "endDate": "", "type": "supplement" },
-    { "name": "B-Complex", "dosage": "1 capsule/day", "startDate": "2026-02-05", "endDate": "", "type": "supplement" },
-    { "name": "Zinc Picolinate", "dosage": "30 mg/day", "startDate": "2025-08-01", "endDate": "2025-12-01", "type": "supplement" }
+    {
+      "name": "Vitamin D3",
+      "dosage": "4000 IU/day",
+      "startDate": "2025-03-20",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Magnesium Glycinate",
+      "dosage": "400 mg before bed",
+      "startDate": "2025-07-25",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Omega-3 Fish Oil",
+      "dosage": "2000 mg EPA/DHA",
+      "startDate": "2025-04-01",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Creatine Monohydrate",
+      "dosage": "5 g/day",
+      "startDate": "2026-02-05",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "B-Complex",
+      "dosage": "1 capsule/day",
+      "startDate": "2026-02-05",
+      "endDate": "",
+      "type": "supplement"
+    },
+    {
+      "name": "Zinc Picolinate",
+      "dosage": "30 mg/day",
+      "startDate": "2025-08-01",
+      "endDate": "2025-12-01",
+      "type": "supplement"
+    }
   ],
   "diagnoses": {
     "conditions": [
-      { "name": "Insulin resistance", "severity": "mild", "since": "2025" },
-      { "name": "Vitamin D deficiency", "severity": "minor", "since": "2025" }
+      {
+        "name": "Insulin resistance",
+        "severity": "mild",
+        "since": "2025"
+      },
+      {
+        "name": "Vitamin D deficiency",
+        "severity": "minor",
+        "since": "2025"
+      }
     ],
     "note": "Family history: Type 2 diabetes (father, diagnosed at 55), hypertension (paternal grandmother). Occasional lower back pain from desk work. No chronic medications."
   },
   "diet": {
     "type": "mediterranean",
-    "restrictions": ["seed oil-free"],
+    "restrictions": [
+      "seed oil-free"
+    ],
     "pattern": "IF 16:8",
     "breakfast": "",
     "breakfastTime": "",
@@ -394,11 +452,17 @@
     "nausea": "none",
     "appetite": "strong",
     "abdominalPain": "none",
-    "foodSensitivities": ["gluten (mild)"]
+    "foodSensitivities": [
+      "gluten (mild)"
+    ]
   },
   "exercise": {
     "frequency": "5-6x/week",
-    "types": ["strength", "cycling", "walking"],
+    "types": [
+      "strength",
+      "cycling",
+      "walking"
+    ],
     "intensity": "mixed",
     "dailyMovement": "sedentary desk job",
     "note": "Strength training 3x/week (push-pull-legs, progressive overload). Zone 2 cycling added Nov 2025 (30-45 min, 3x/week). Daily step goal 8000+. Uses standing desk intermittently."
@@ -408,27 +472,53 @@
     "quality": "fair",
     "schedule": "somewhat variable",
     "roomTemp": "cool (18-20°C / 65-68°F)",
-    "issues": ["trouble falling asleep", "waking at night"],
-    "environment": ["blackout curtains"],
-    "practices": ["evening magnesium", "no food 3h before bed"],
+    "issues": [
+      "trouble falling asleep",
+      "waking at night"
+    ],
+    "environment": [
+      "blackout curtains"
+    ],
+    "practices": [
+      "evening magnesium",
+      "no food 3h before bed"
+    ],
     "note": "Usually 23:00-06:30. Blue light glasses after sunset. Some difficulty falling asleep on training days. Previously worked rotating shifts (2020-2023) — may have residual circadian disruption."
   },
   "lightCircadian": {
     "amLight": "morning outdoor (after sunrise)",
     "daytime": "<1h outdoor",
     "uvExposure": "midday sun when possible",
-    "evening": ["blue blockers after sunset", "f.lux / night shift on devices"],
+    "evening": [
+      "blue blockers after sunset",
+      "f.lux / night shift on devices"
+    ],
     "screenTime": "8-12h",
-    "techEnv": ["multiple monitors at work", "work from home (all day screens)", "phone in bedroom"],
+    "techEnv": [
+      "multiple monitors at work",
+      "work from home (all day screens)",
+      "phone in bedroom"
+    ],
     "cold": "cold shower",
     "grounding": "barefoot occasionally",
-    "mealTiming": ["skip breakfast", "time-restricted eating"],
+    "mealTiming": [
+      "skip breakfast",
+      "time-restricted eating"
+    ],
     "note": "Software developer — heavy screen time. Morning sunlight walk 10-15 min. Works from home most days."
   },
   "stress": {
     "level": "moderate",
-    "sources": ["work", "health", "financial"],
-    "management": ["exercise", "nature", "breathing exercises"],
+    "sources": [
+      "work",
+      "health",
+      "financial"
+    ],
+    "management": [
+      "exercise",
+      "nature",
+      "breathing exercises"
+    ],
     "note": "Startup pressure with tight deadlines. Concerned about metabolic trajectory after seeing HOMA-IR trends. Exercise is primary stress relief."
   },
   "loveLife": {
@@ -438,29 +528,59 @@
     "libido": "normal",
     "frequency": "weekly",
     "orgasm": "consistently",
-    "concerns": ["mismatched libido"],
+    "concerns": [
+      "mismatched libido"
+    ],
     "note": "Married 5 years. Overall good relationship. Noticed slight decline in drive over past year — correlates with testosterone trend."
   },
   "environment": {
     "setting": "suburban",
     "climate": "temperate",
     "water": "reverse osmosis",
-    "waterConcerns": ["fluoridated"],
-    "emf": ["WiFi router nearby", "smart meter on home", "Bluetooth always on", "smart home devices"],
-    "emfMitigation": ["wired ethernet", "WiFi off at night"],
+    "waterConcerns": [
+      "fluoridated"
+    ],
+    "emf": [
+      "WiFi router nearby",
+      "smart meter on home",
+      "Bluetooth always on",
+      "smart home devices"
+    ],
+    "emfMitigation": [
+      "wired ethernet",
+      "WiFi off at night"
+    ],
     "homeLight": "mostly LED lighting",
-    "air": ["HEPA air purifier", "open windows daily"],
-    "toxins": ["non-stick cookware (PFAS)", "plastic containers for food"],
+    "air": [
+      "HEPA air purifier",
+      "open windows daily"
+    ],
+    "toxins": [
+      "non-stick cookware (PFAS)",
+      "plastic containers for food"
+    ],
     "building": "new construction (<5yr)",
     "note": "New development suburb. Good air quality area. Recently switched from non-stick to cast iron cookware."
   },
   "interpretiveLens": "Interested in longevity and metabolic health optimization. Follows a metabolic health framework focused on early insulin resistance detection. Family history of T2D. Values functional/optimal ranges over just reference ranges.",
   "contextNotes": "Data-driven and tracks metrics closely. Wants to understand the relationship between declining testosterone, rising insulin, and lifestyle factors. Prefers evidence-based interventions.",
   "healthGoals": [
-    { "text": "Reverse insulin resistance trend — get HOMA-IR back below 2.0", "severity": "major" },
-    { "text": "Support testosterone levels naturally through lifestyle", "severity": "mild" },
-    { "text": "Reduce homocysteine below 10 µmol/L", "severity": "minor" },
-    { "text": "Maintain vitamin D between 100-150 nmol/L year-round", "severity": "mild" }
+    {
+      "text": "Reverse insulin resistance trend — get HOMA-IR back below 2.0",
+      "severity": "major"
+    },
+    {
+      "text": "Support testosterone levels naturally through lifestyle",
+      "severity": "mild"
+    },
+    {
+      "text": "Reduce homocysteine below 10 µmol/L",
+      "severity": "minor"
+    },
+    {
+      "text": "Maintain vitamin D between 100-150 nmol/L year-round",
+      "severity": "mild"
+    }
   ],
   "emfAssessment": {
     "assessments": [
@@ -475,12 +595,32 @@
             "location": "2nd floor, east side",
             "sleeping": true,
             "measurements": {
-              "acElectric": { "value": 28, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 45, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 85, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
-              "dirtyElectricity": { "value": 180, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+              "acElectric": {
+                "value": 28,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 45,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 85,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              },
+              "dirtyElectricity": {
+                "value": 180,
+                "unit": "GS",
+                "meter": "Stetzerizer Microsurge Meter"
+              }
             },
-            "sources": ["ungrounded wiring", "WiFi router", "smart meter"],
+            "sources": [
+              "ungrounded wiring",
+              "WiFi router",
+              "smart meter"
+            ],
             "mitigations": [],
             "note": "High AC electric from ungrounded Romex in walls. WiFi router in adjacent room. Smart meter on exterior wall directly below bedroom."
           },
@@ -489,13 +629,37 @@
             "location": "2nd floor, west side",
             "sleeping": false,
             "measurements": {
-              "acElectric": { "value": 42, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 120, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 250, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
-              "dirtyElectricity": { "value": 320, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+              "acElectric": {
+                "value": 42,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 120,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 250,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              },
+              "dirtyElectricity": {
+                "value": 320,
+                "unit": "GS",
+                "meter": "Stetzerizer Microsurge Meter"
+              }
             },
-            "sources": ["multiple monitors at work", "WiFi router", "Bluetooth devices", "LED driver", "dimmer switch"],
-            "mitigations": ["wired ethernet"],
+            "sources": [
+              "multiple monitors at work",
+              "WiFi router",
+              "Bluetooth devices",
+              "LED driver",
+              "dimmer switch"
+            ],
+            "mitigations": [
+              "wired ethernet"
+            ],
             "note": "Triple monitor setup, WiFi router in same room, LED desk lamp with noisy driver. Already using wired ethernet for desktop."
           },
           {
@@ -503,11 +667,26 @@
             "location": "1st floor, open plan",
             "sleeping": false,
             "measurements": {
-              "acElectric": { "value": 8, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 35, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 150, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+              "acElectric": {
+                "value": 8,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 35,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 150,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              }
             },
-            "sources": ["smart TV", "WiFi router"],
+            "sources": [
+              "smart TV",
+              "WiFi router"
+            ],
             "mitigations": [],
             "note": "Lower electric fields on ground floor. RF elevated from neighbor's WiFi and nearby cell tower."
           }
@@ -525,13 +704,37 @@
             "location": "2nd floor, east side",
             "sleeping": true,
             "measurements": {
-              "acElectric": { "value": 0.5, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 42, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 12, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
-              "dirtyElectricity": { "value": 35, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+              "acElectric": {
+                "value": 0.5,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 42,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 12,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              },
+              "dirtyElectricity": {
+                "value": 35,
+                "unit": "GS",
+                "meter": "Stetzerizer Microsurge Meter"
+              }
             },
-            "sources": ["smart meter"],
-            "mitigations": ["demand switch (Netzfreischalter)", "WiFi off at night", "router relocated", "Stetzerizer filters", "phone airplane mode at night"],
+            "sources": [
+              "smart meter"
+            ],
+            "mitigations": [
+              "demand switch (Netzfreischalter)",
+              "WiFi off at night",
+              "router relocated",
+              "Stetzerizer filters",
+              "phone airplane mode at night"
+            ],
             "note": "Demand switch installed on bedroom circuit — AC electric now in green range. WiFi router relocated to ground floor. Stetzerizer filters on bedroom outlets. Smart meter RF still detectable but reduced."
           },
           {
@@ -539,13 +742,37 @@
             "location": "2nd floor, west side",
             "sleeping": false,
             "measurements": {
-              "acElectric": { "value": 15, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 85, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 45, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" },
-              "dirtyElectricity": { "value": 95, "unit": "GS", "meter": "Stetzerizer Microsurge Meter" }
+              "acElectric": {
+                "value": 15,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 85,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 45,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              },
+              "dirtyElectricity": {
+                "value": 95,
+                "unit": "GS",
+                "meter": "Stetzerizer Microsurge Meter"
+              }
             },
-            "sources": ["multiple monitors at work", "LED driver"],
-            "mitigations": ["wired ethernet", "Stetzerizer filters", "shielded cables", "router relocated"],
+            "sources": [
+              "multiple monitors at work",
+              "LED driver"
+            ],
+            "mitigations": [
+              "wired ethernet",
+              "Stetzerizer filters",
+              "shielded cables",
+              "router relocated"
+            ],
             "note": "Replaced LED desk lamp with incandescent. Shielded monitor cables. Stetzerizer filters on outlet strip. WiFi now downstairs — using wired only in office."
           },
           {
@@ -553,12 +780,30 @@
             "location": "1st floor, open plan",
             "sleeping": false,
             "measurements": {
-              "acElectric": { "value": 6, "unit": "V/m", "meter": "Gigahertz NFA1000" },
-              "acMagnetic": { "value": 30, "unit": "nT", "meter": "Gigahertz NFA1000" },
-              "rfMicrowave": { "value": 120, "unit": "µW/m²", "meter": "Safe Living Technologies Safe and Sound Pro II" }
+              "acElectric": {
+                "value": 6,
+                "unit": "V/m",
+                "meter": "Gigahertz NFA1000"
+              },
+              "acMagnetic": {
+                "value": 30,
+                "unit": "nT",
+                "meter": "Gigahertz NFA1000"
+              },
+              "rfMicrowave": {
+                "value": 120,
+                "unit": "µW/m²",
+                "meter": "Safe Living Technologies Safe and Sound Pro II"
+              }
             },
-            "sources": ["WiFi router", "cell tower"],
-            "mitigations": ["WiFi off at night", "distance from source"],
+            "sources": [
+              "WiFi router",
+              "cell tower"
+            ],
+            "mitigations": [
+              "WiFi off at night",
+              "distance from source"
+            ],
             "note": "WiFi router now in this room (relocated from upstairs). RF from external cell tower unchanged."
           }
         ],
@@ -566,5 +811,147 @@
       }
     ]
   },
-  "customMarkers": {}
+  "customMarkers": {},
+  "biometrics": {
+    "weight": [
+      {
+        "date": "2025-03-15",
+        "value": 88,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2025-07-20",
+        "value": 86.5,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2025-11-10",
+        "value": 85,
+        "unit": "kg",
+        "source": "manual"
+      },
+      {
+        "date": "2026-02-01",
+        "value": 83.2,
+        "unit": "kg",
+        "source": "manual"
+      }
+    ],
+    "bp": [
+      {
+        "date": "2025-03-15",
+        "sys": 135,
+        "dia": 88,
+        "source": "manual"
+      },
+      {
+        "date": "2025-11-10",
+        "sys": 128,
+        "dia": 82,
+        "source": "manual"
+      },
+      {
+        "date": "2026-02-01",
+        "sys": 125,
+        "dia": 80,
+        "source": "manual"
+      }
+    ],
+    "pulse": [
+      {
+        "date": "2025-03-15",
+        "value": 72,
+        "source": "manual"
+      },
+      {
+        "date": "2025-11-10",
+        "value": 68,
+        "source": "manual"
+      },
+      {
+        "date": "2026-02-01",
+        "value": 65,
+        "source": "manual"
+      }
+    ]
+  },
+  "genetics": {
+    "source": "AncestryDNA",
+    "importDate": "2025-03-10",
+    "coverage": {
+      "found": 35,
+      "total": 42
+    },
+    "effects": {
+      "significant": 2,
+      "moderate": 5,
+      "normal": 28
+    },
+    "apoe": "ε3/ε4",
+    "snps": {
+      "rs429358": {
+        "genotype": "CT",
+        "gene": "APOE",
+        "variant": "ε4"
+      },
+      "rs7412": {
+        "genotype": "CC",
+        "gene": "APOE",
+        "variant": "ε3"
+      },
+      "rs1801133": {
+        "genotype": "AG",
+        "gene": "MTHFR",
+        "variant": "C677T"
+      },
+      "rs1801131": {
+        "genotype": "AC",
+        "gene": "MTHFR",
+        "variant": "A1298C"
+      },
+      "rs1544410": {
+        "genotype": "CT",
+        "gene": "VDR",
+        "variant": "BsmI"
+      },
+      "rs7041": {
+        "genotype": "TT",
+        "gene": "GC",
+        "variant": "VDBP"
+      },
+      "rs1800562": {
+        "genotype": "GG",
+        "gene": "HFE",
+        "variant": "C282Y"
+      }
+    },
+    "mtdna": {
+      "haplogroup": "H",
+      "confidence": 0.7,
+      "coupling": {
+        "level": "mildly_uncoupled",
+        "label": "Mildly uncoupled",
+        "shortLabel": "mildly uncoupled",
+        "climate": "Temperate",
+        "matchedLatBands": [
+          2,
+          3
+        ]
+      },
+      "mutations": [
+        "263G",
+        "750G",
+        "1438G",
+        "4769G",
+        "8860G",
+        "15326G"
+      ],
+      "source": "mtDNA CSV",
+      "importDate": "2025-03-10"
+    }
+  },
+  "changeHistory": [],
+  "markerNotes": {}
 }
