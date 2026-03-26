@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.11.0', date: '2026-03-26', title: 'mtDNA Haplogroup',
+    items: [
+      'Import mtDNA mutation files (CSV) — resolves maternal haplogroup from diagnostic mutations',
+      'Mitochondrial coupling classification based on Doug Wallace\'s framework (coupled → uncoupled)',
+      'Environment mismatch detection — compares your haplotype\'s climate adaptation against your latitude',
+      'Y-DNA marker import for ancestry context',
+    ]
+  },
+  {
     version: '1.10.4', date: '2026-03-26', title: 'Biometrics',
     items: [
       'Track height, weight, blood pressure, and resting pulse in the Edit Client form',

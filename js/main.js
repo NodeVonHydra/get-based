@@ -21,7 +21,7 @@ for (const fn of _emfFns) {
   window[fn] = async function(...args) { const mod = await import('./emf.js'); for (const f of _emfFns) window[f] = mod[f]; return mod[fn](...args); };
 }
 import './pdf-import.js';
-import { ensureSNPTable } from './dna.js';
+import { ensureSNPTable, ensureHaplogroupTable } from './dna.js';
 import './export.js';
 import './chat.js';
 import './image-utils.js';
@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize Evolu sync after profile is loaded (needs state.currentProfile)
   await initSync();
   ensureSNPTable(); // Eagerly load SNP table if genetics data exists (e.g. after JSON import)
+  ensureHaplogroupTable(); // Eagerly load haplogroup table if mtDNA data exists
   const savedUnits = localStorage.getItem(profileStorageKey(state.currentProfile, 'units'));
   if (savedUnits === 'US') state.unitSystem = 'US';
   const savedRange = localStorage.getItem(profileStorageKey(state.currentProfile, 'rangeMode'));
@@ -152,7 +153,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         else if (f.name.endsWith('.txt')) textFiles.push(f);
       }
       for (const f of jsonFiles) window.importDataJSON(f);
-      if (dnaFiles.length > 0) { for (const f of dnaFiles) await window.handleDNAFile(f); }
+      if (dnaFiles.length > 0) {
+        for (const f of dnaFiles) {
+          const header = await f.slice(0, 500).text();
+          const fmt = window.detectDNAFile ? window.detectDNAFile(header) : null;
+          if (fmt === 'mtdna' && window.handleMtDNAFile) await window.handleMtDNAFile(f);
+          else if (fmt === 'ydna' && window.handleYDNAFile) await window.handleYDNAFile(f);
+          else await window.handleDNAFile(f);
+        }
+      }
       else if (textFiles.length > 0) { for (const f of textFiles) await window.handleTextFile(f); }
       else if (imageFiles.length > 0) { for (const f of imageFiles) await window.handleImageFile(f); }
       else {

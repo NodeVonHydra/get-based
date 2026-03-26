@@ -25,6 +25,10 @@ export function detectDNAFile(text) {
   // Headerless: lines starting with rs followed by tab-separated fields (rsid\tchr\tpos\tAA)
   const dataLines = first.split(/\r?\n/).filter(l => l.trim() && !l.startsWith('#'));
   if (dataLines.length > 0 && /^rs\d+\t\d+\t\d+\t[ACGT\-]{1,2}$/i.test(dataLines[0].trim())) return '23andme';
+  // mtDNA CSV: short files with position+allele lines like "263G", "10398G"
+  if (dataLines.length > 0 && dataLines.length < 200 && dataLines.filter(l => /^\d+[ACGT]$/i.test(l.trim())).length >= dataLines.length * 0.8) return 'mtdna';
+  // Y-DNA CSV: longer files with marker names like "A702", "CTS10149/PF6490/V3993"
+  if (dataLines.length > 20 && dataLines.filter(l => /^[A-Z][A-Z0-9]+(\/[A-Z0-9]+)*$/i.test(l.trim())).length >= dataLines.length * 0.7) return 'ydna';
   return null;
 }
 
@@ -39,6 +43,8 @@ export function isDNAFile(file) {
   if (name.includes('family_finder')) return true;
   if (name.includes('livingdna') || name.includes('living_dna')) return true;
   if (name.includes('genome') || name.includes('genotype') || name.includes('raw_dna') || name.includes('rawdna')) return true;
+  if (name.includes('mtdna') || name.includes('mt-dna') || name.includes('mt_dna')) return true;
+  if (name.includes('ydna') || name.includes('y-dna') || name.includes('y_dna')) return true;
   return false;
 }
 
@@ -274,15 +280,45 @@ export function deleteGeneticsData(profileData) {
 
 // Build genetics context string for AI — only non-"none" effects, relevant to current markers
 export function buildGeneticsContext(genetics, activeMarkerKeys) {
-  if (!genetics || !genetics.snps) return '';
-  const snpTable = _snpTable; // already loaded by parseDNAFile or loadSNPTable
-  if (!snpTable) return '';
+  if (!genetics) return '';
+  if (!genetics.snps && !genetics.mtdna && !genetics.ydna) return '';
 
   const lines = [];
+
+  // mtDNA haplogroup — always include when present
+  if (genetics.mtdna) {
+    const mt = genetics.mtdna;
+    const cLabel = mt.coupling ? mt.coupling.label : 'coupling unknown';
+    lines.push(`mtDNA Haplogroup: ${mt.haplogroup} (${cLabel})`);
+    if (mt.coupling) {
+      const mismatch = detectMtDNAMismatch(genetics);
+      if (mismatch && mismatch.mismatch) {
+        lines.push(`ENVIRONMENT MISMATCH: ${mismatch.message}`);
+        if (mismatch.implications) lines.push(`Implications: ${mismatch.implications}`);
+      } else if (mismatch && !mismatch.mismatch) {
+        lines.push(mismatch.message);
+      }
+    }
+  }
+
+  // Y-DNA — brief mention
+  if (genetics.ydna) {
+    lines.push(`Y-DNA: ${genetics.ydna.markerCount} markers imported (ancestry — no health coupling analysis)`);
+  }
 
   // APOE haplotype — always include
   if (genetics.apoe) {
     lines.push(`APOE: ${genetics.apoe}`);
+  }
+
+  const snpTable = _snpTable;
+  if (!snpTable || !genetics.snps) {
+    if (lines.length === 0) return '';
+    const parts = [];
+    if (genetics.mtdna) parts.push(`mtDNA ${genetics.mtdna.haplogroup}`);
+    if (genetics.ydna) parts.push(`${genetics.ydna.markerCount} Y-DNA markers`);
+    if (genetics.source) parts.push(genetics.source);
+    return `GENETICS (${parts.join(', ')}):\n${lines.map(l => '- ' + l).join('\n')}`;
   }
 
   // Group SNPs by category — skip raw APOE component SNPs (haplotype shown instead)
@@ -312,7 +348,12 @@ export function buildGeneticsContext(genetics, activeMarkerKeys) {
   }
 
   if (lines.length === 0) return '';
-  return `GENETICS (${genetics.source}, ${Object.keys(genetics.snps).length} SNPs):\n${lines.map(l => '- ' + l).join('\n')}`;
+  const headerParts = [];
+  if (genetics.source) headerParts.push(genetics.source);
+  if (genetics.snps) headerParts.push(`${Object.keys(genetics.snps).length} SNPs`);
+  if (genetics.mtdna) headerParts.push(`mtDNA ${genetics.mtdna.haplogroup}`);
+  if (genetics.ydna) headerParts.push(`${genetics.ydna.markerCount} Y-DNA`);
+  return `GENETICS (${headerParts.join(', ')}):\n${lines.map(l => '- ' + l).join('\n')}`;
 }
 
 // Full genetics dump for when user explicitly asks about genetics
@@ -326,20 +367,23 @@ export function buildFullGeneticsContext(genetics) {
 
 export function renderGeneticsSection() {
   const genetics = state.importedData.genetics;
-  if (!genetics || !genetics.snps || Object.keys(genetics.snps).length === 0) return '';
-  if (!_snpTable) {
+  const hasSnps = genetics && genetics.snps && Object.keys(genetics.snps).length > 0;
+  const hasMtdna = genetics && genetics.mtdna;
+  const hasYdna = genetics && genetics.ydna;
+  if (!hasSnps && !hasMtdna && !hasYdna) return '';
+  if (hasSnps && !_snpTable) {
     loadSNPTable().then(() => { if (window.navigate) window.navigate('dashboard'); });
     return '';
   }
   const snpTable = _snpTable;
-  const snpCount = Object.keys(genetics.snps).length;
+  const snpCount = hasSnps ? Object.keys(genetics.snps).length : 0;
   const apoe = genetics.apoe;
   const collapsed = localStorage.getItem('labcharts-genetics-collapsed') === '1';
 
   // Group findings by category, skip "none"
   const byCat = {};
   const apoeRsids = new Set(['rs429358', 'rs7412']);
-  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+  for (const [rsid, stored] of Object.entries(genetics.snps || {})) {
     if (apoe && apoeRsids.has(rsid)) continue;
     const entry = snpTable?.[rsid];
     if (!entry) continue;
@@ -362,14 +406,48 @@ export function renderGeneticsSection() {
   const effectIcon = { significant: '\uD83D\uDD34', moderate: '\uD83D\uDFE1' };
   const catLabels = { methylation: 'Methylation', iron: 'Iron', lipids: 'Lipids', vitaminD: 'Vitamin D', vitaminB12: 'Vitamin B12', bilirubin: 'Bilirubin', thyroid: 'Thyroid', fattyAcids: 'Fatty Acids', bloodSugar: 'Blood Sugar', sexHormones: 'Sex Hormones' };
 
+  const metaParts = [];
+  if (genetics.source) metaParts.push(escapeHTML(genetics.source));
+  if (hasSnps) metaParts.push(`${snpCount} SNPs`);
+  if (hasMtdna) metaParts.push(`mtDNA ${escapeHTML(genetics.mtdna.haplogroup)}`);
+  if (hasYdna) metaParts.push(`${genetics.ydna.markerCount} Y-DNA`);
+  if (totalFindings > 0) metaParts.push(`${totalFindings} findings`);
+  const latestDate = [genetics.importDate, genetics.mtdna?.importDate, genetics.ydna?.importDate].filter(Boolean).sort().pop();
+  if (latestDate) metaParts.push(latestDate);
+
   let html = `<div class="dashboard-section genetics-section" id="genetics-section">
     <div class="section-header" onclick="toggleGeneticsCollapse()" style="cursor:pointer">
       <span>\uD83E\uDDEC Genetics</span>
-      <span class="section-meta">${escapeHTML(genetics.source)} \u00B7 ${snpCount} SNPs \u00B7 ${totalFindings} findings \u00B7 ${genetics.importDate}
+      <span class="section-meta">${metaParts.join(' \u00B7 ')}
         <span class="genetics-collapse-arrow${collapsed ? ' collapsed' : ''}">\u25BE</span></span>
     </div>`;
 
   html += `<div class="genetics-body${collapsed ? ' hidden' : ''}">`;
+
+  // mtDNA Haplogroup — prominent display
+  if (hasMtdna) {
+    const mt = genetics.mtdna;
+    const mismatch = detectMtDNAMismatch(genetics);
+    html += `<div class="genetics-mtdna">
+      <div class="genetics-mtdna-hg"><span class="genetics-mtdna-label">mtDNA Haplogroup:</span> <strong>${escapeHTML(mt.haplogroup)}</strong></div>`;
+    if (mt.coupling) {
+      html += `<div class="genetics-mtdna-coupling">${escapeHTML(mt.coupling.label)} \u2014 ${escapeHTML(mt.coupling.climate)}</div>`;
+    }
+    if (mismatch && mismatch.mismatch) {
+      html += `<div class="genetics-mtdna-mismatch mismatch-${mismatch.severity}">${escapeHTML(mismatch.message)}</div>`;
+    } else if (mismatch && !mismatch.mismatch) {
+      html += `<div class="genetics-mtdna-match">${escapeHTML(mismatch.message)}</div>`;
+    }
+    html += `<div class="genetics-mtdna-refs">Wallace 2015 (<a href="https://pubmed.ncbi.nlm.nih.gov/26406369/" target="_blank" rel="noopener">PMID: 26406369</a>)
+      \u00B7 <a href="#" onclick="window.deleteMtDNAData();return false" style="color:var(--text-muted)">remove</a></div>`;
+    html += `</div>`;
+  }
+
+  // Y-DNA — simple line
+  if (hasYdna) {
+    html += `<div class="genetics-ydna">${genetics.ydna.markerCount} Y-DNA markers (ancestry data)
+      \u00B7 <a href="#" onclick="window.deleteYDNAData();return false" style="color:var(--text-muted);font-size:10px">remove</a></div>`;
+  }
 
   if (apoe) {
     html += `<div class="genetics-apoe">APOE: <strong>${escapeHTML(apoe)}</strong></div>`;
@@ -627,11 +705,269 @@ function getRelevantSNPs(dotKey) {
 }
 
 // ═══════════════════════════════════════════════
+// mtDNA / Y-DNA HAPLOGROUP SUPPORT
+// ═══════════════════════════════════════════════
+
+let _haplogroupTable = null;
+let _haplogroupTablePromise = null;
+
+function loadHaplogroupTable() {
+  if (_haplogroupTable) return Promise.resolve(_haplogroupTable);
+  if (!_haplogroupTablePromise) {
+    _haplogroupTablePromise = fetch('data/haplogroups.json')
+      .then(r => r.json())
+      .then(data => { _haplogroupTable = data; return data; })
+      .catch(err => { _haplogroupTablePromise = null; console.error('Failed to load haplogroup table:', err); throw err; });
+  }
+  return _haplogroupTablePromise;
+}
+
+export function ensureHaplogroupTable() {
+  if (state.importedData?.genetics?.mtdna) loadHaplogroupTable();
+}
+
+function parseMtDNAMutations(text) {
+  const mutations = [];
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = trimmed.match(/^(\d+)([ACGT])$/i);
+    if (match) mutations.push({ position: parseInt(match[1]), allele: match[2].toUpperCase(), raw: match[1] + match[2].toUpperCase() });
+  }
+  return mutations;
+}
+
+function resolveHaplogroup(mutations, hapTable) {
+  const mutationSet = new Set(mutations.map(m => m.raw));
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const [hg, data] of Object.entries(hapTable.haplogroups)) {
+    if (data.isReference) continue; // H is reference — handle separately
+    const diag = data.mutations;
+    const matched = diag.filter(m => mutationSet.has(m));
+    const score = matched.length / diag.length;
+    if (score > bestScore && matched.length >= 2 && score >= 0.6) {
+      bestScore = score;
+      bestMatch = { haplogroup: hg, confidence: score, matchedMutations: matched.length, totalDiagnostic: diag.length };
+    }
+  }
+
+  // Fallback: if no match, check for H (defined by ABSENCE of non-H markers)
+  if (!bestMatch) {
+    const nonHMarkers = ['7028T', '2706G', '10400T', '10398G', '489C'];
+    const hasNonH = nonHMarkers.some(m => mutationSet.has(m));
+    const hasUniversal = ['263G', '750G', '1438G', '4769G', '8860G', '15326G'].filter(m => mutationSet.has(m));
+    if (!hasNonH && hasUniversal.length >= 3) {
+      bestMatch = { haplogroup: 'H', confidence: 0.7, matchedMutations: hasUniversal.length, totalDiagnostic: 6 };
+    }
+  }
+
+  return bestMatch;
+}
+
+function classifyCoupling(haplogroup, hapTable) {
+  const hgData = hapTable.haplogroups[haplogroup];
+  if (!hgData) return null;
+  const couplingKey = hgData.coupling;
+  const couplingData = hapTable.couplingLevels[couplingKey];
+  if (!couplingData) return null;
+  return {
+    level: couplingKey,
+    label: couplingData.label,
+    shortLabel: couplingData.shortLabel,
+    climate: hgData.climate,
+    description: couplingData.description,
+    implications: couplingData.implications,
+    matchedLatBands: couplingData.latitudeBands
+  };
+}
+
+export function detectMtDNAMismatch(genetics) {
+  if (!genetics?.mtdna?.coupling) return null;
+  const coupling = genetics.mtdna.coupling;
+
+  // Get latitude band from profile
+  const bandStr = window.getLatitudeFromLocation ? window.getLatitudeFromLocation() : null;
+  if (!bandStr) return null;
+
+  const BANDS = ['<25\u00b0 latitude (tropical)', '25-40\u00b0 (subtropical)', '40-50\u00b0 (temperate)', '50-60\u00b0 (northern)', '>60\u00b0 (subarctic)'];
+  const bandIndex = BANDS.indexOf(bandStr);
+  if (bandIndex === -1) return null;
+
+  const bandNames = ['tropical', 'subtropical', 'temperate', 'northern', 'subarctic'];
+  if (coupling.matchedLatBands.includes(bandIndex)) {
+    return { mismatch: false, message: `mtDNA haplogroup ${genetics.mtdna.haplogroup} (${coupling.shortLabel}) is well-matched to your ${bandNames[bandIndex]} latitude.` };
+  }
+
+  const minBand = Math.min(...coupling.matchedLatBands);
+  const maxBand = Math.max(...coupling.matchedLatBands);
+  const distance = bandIndex < minBand ? minBand - bandIndex : bandIndex - maxBand;
+  const severity = distance >= 2 ? 'significant' : 'moderate';
+
+  return {
+    mismatch: true,
+    severity,
+    message: `mtDNA haplogroup ${genetics.mtdna.haplogroup} (${coupling.shortLabel}) evolved for ${coupling.climate.toLowerCase()} climates, but you live at a ${bandNames[bandIndex]} latitude.`,
+    implications: coupling.implications
+  };
+}
+
+let _mtdnaImportRunning = false;
+
+export async function handleMtDNAFile(file) {
+  if (_mtdnaImportRunning) { showNotification('mtDNA import already in progress', 'info'); return; }
+  _mtdnaImportRunning = true;
+  try {
+    const text = await file.text();
+    const mutations = parseMtDNAMutations(text);
+    if (mutations.length === 0) { showNotification('No mtDNA mutations found in this file', 'error'); _mtdnaImportRunning = false; return; }
+
+    const hapTable = await loadHaplogroupTable();
+    const resolved = resolveHaplogroup(mutations, hapTable);
+    if (!resolved) { showNotification('Could not determine haplogroup — try a more complete mtDNA export', 'error'); _mtdnaImportRunning = false; return; }
+
+    const coupling = classifyCoupling(resolved.haplogroup, hapTable);
+    const hgData = hapTable.haplogroups[resolved.haplogroup];
+    window._pendingMtDNA = { mutations, resolved, coupling, hgData, source: 'mtDNA CSV' };
+    _showMtDNAPreview(resolved, coupling, mutations, file.name);
+  } catch (e) {
+    console.error('mtDNA import error:', e);
+    showNotification(e.message || 'Failed to parse mtDNA file', 'error');
+  }
+  _mtdnaImportRunning = false;
+}
+
+function _showMtDNAPreview(resolved, coupling, mutations, fileName) {
+  const mismatch = coupling ? detectMtDNAMismatch({ mtdna: { haplogroup: resolved.haplogroup, coupling } }) : null;
+
+  let html = `<div class="dna-preview-header">
+    <div class="dna-preview-title">mtDNA Import</div>
+    <div class="dna-preview-stats">${mutations.length} mutations from ${escapeHTML(fileName)}</div>
+  </div>
+  <div class="dna-preview-body">
+    <div class="mtdna-preview-haplogroup">
+      <div class="mtdna-hg-label">Haplogroup</div>
+      <div class="mtdna-hg-value">${escapeHTML(resolved.haplogroup)}</div>
+      <div class="mtdna-hg-confidence">${resolved.matchedMutations}/${resolved.totalDiagnostic} diagnostic mutations matched (${Math.round(resolved.confidence * 100)}%)</div>
+    </div>`;
+  if (coupling) {
+    html += `<div class="mtdna-preview-coupling">
+      <div class="mtdna-coupling-label">${escapeHTML(coupling.label)}</div>
+      <div class="mtdna-coupling-climate">${escapeHTML(coupling.climate)}</div>
+      <div class="mtdna-coupling-desc">${escapeHTML(coupling.description)}</div>
+    </div>`;
+  }
+  if (mismatch && mismatch.mismatch) {
+    html += `<div class="mtdna-preview-mismatch mtdna-mismatch-${mismatch.severity}">
+      <strong>Environment mismatch:</strong> ${escapeHTML(mismatch.message)}
+      ${mismatch.implications ? `<div class="mtdna-mismatch-implications">${escapeHTML(mismatch.implications)}</div>` : ''}
+    </div>`;
+  } else if (mismatch && !mismatch.mismatch) {
+    html += `<div class="mtdna-preview-match">${escapeHTML(mismatch.message)}</div>`;
+  }
+  html += `</div>
+  <div class="dna-preview-disclaimer">Processed locally. Coupling classification follows the Wallace mitochondrial paradigm — a research framework, not an established clinical standard.</div>
+  <div class="dna-preview-actions">
+    <button class="import-btn import-btn-secondary" onclick="window.closeMtDNAPreview()">Cancel</button>
+    <button class="import-btn import-btn-primary" onclick="window.confirmMtDNAImport()">Import Haplogroup ${escapeHTML(resolved.haplogroup)}</button>
+  </div>`;
+
+  let overlay = document.getElementById('dna-modal-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'dna-modal-overlay';
+    overlay.className = 'modal-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `<div class="modal dna-preview-modal" role="dialog">${html}</div>`;
+  overlay.classList.add('show');
+}
+
+export function closeMtDNAPreview() {
+  const overlay = document.getElementById('dna-modal-overlay');
+  if (overlay) overlay.classList.remove('show');
+  window._pendingMtDNA = null;
+}
+
+export function confirmMtDNAImport() {
+  const pending = window._pendingMtDNA;
+  if (!pending) return;
+
+  if (!state.importedData.genetics) {
+    state.importedData.genetics = { source: null, importDate: null, coverage: { found: 0, total: 0 }, effects: {}, snps: {} };
+  }
+  state.importedData.genetics.mtdna = {
+    haplogroup: pending.resolved.haplogroup,
+    confidence: pending.resolved.confidence,
+    coupling: pending.coupling ? {
+      level: pending.coupling.level,
+      label: pending.coupling.label,
+      shortLabel: pending.coupling.shortLabel,
+      climate: pending.coupling.climate,
+      matchedLatBands: pending.coupling.matchedLatBands
+    } : null,
+    mutations: pending.mutations.map(m => m.raw),
+    source: pending.source,
+    importDate: new Date().toISOString().slice(0, 10)
+  };
+
+  saveImportedData();
+  closeMtDNAPreview();
+  showNotification(`Haplogroup ${pending.resolved.haplogroup} imported`, 'success');
+  if (window.navigate) window.navigate('dashboard');
+}
+
+export async function handleYDNAFile(file) {
+  try {
+    const text = await file.text();
+    const markers = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && /^[A-Z]/i.test(l));
+    if (markers.length === 0) { showNotification('No Y-DNA markers found in this file', 'error'); return; }
+
+    // Store directly (no resolution needed — ancestry only)
+    if (!state.importedData.genetics) {
+      state.importedData.genetics = { source: null, importDate: null, coverage: { found: 0, total: 0 }, effects: {}, snps: {} };
+    }
+    state.importedData.genetics.ydna = {
+      markers,
+      markerCount: markers.length,
+      source: 'Y-DNA CSV',
+      importDate: new Date().toISOString().slice(0, 10)
+    };
+    saveImportedData();
+    showNotification(`${markers.length} Y-DNA markers imported`, 'success');
+    if (window.navigate) window.navigate('dashboard');
+  } catch (e) {
+    console.error('Y-DNA import error:', e);
+    showNotification(e.message || 'Failed to parse Y-DNA file', 'error');
+  }
+}
+
+export function deleteMtDNAData() {
+  if (state.importedData.genetics) {
+    delete state.importedData.genetics.mtdna;
+    saveImportedData();
+    if (window.navigate) window.navigate('dashboard');
+    showNotification('mtDNA haplogroup removed', 'info');
+  }
+}
+
+export function deleteYDNAData() {
+  if (state.importedData.genetics) {
+    delete state.importedData.genetics.ydna;
+    saveImportedData();
+    if (window.navigate) window.navigate('dashboard');
+    showNotification('Y-DNA data removed', 'info');
+  }
+}
+
+// ═══════════════════════════════════════════════
 // WINDOW EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
   isDNAFile,
   isDNAFileByContent,
+  detectDNAFile,
   handleDNAFile,
   closeDNAImportPreview,
   confirmDNAImport,
@@ -639,6 +975,14 @@ Object.assign(window, {
   toggleGeneticsCollapse,
   toggleGeneticsExpand,
   reimportDNA,
+  handleMtDNAFile,
+  handleYDNAFile,
+  closeMtDNAPreview,
+  confirmMtDNAImport,
+  deleteMtDNAData,
+  deleteYDNAData,
+  detectMtDNAMismatch,
+  ensureHaplogroupTable,
   _buildGeneticsContext: buildGeneticsContext,
   _getRelevantSNPs: getRelevantSNPs,
   _getState: () => state,

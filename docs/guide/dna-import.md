@@ -129,3 +129,44 @@ SNPs that fail any criterion will be declined. Common reasons for rejection:
 
 **Is this a medical diagnosis?**
 No. Genetic information provides context for interpreting your lab results — it does not diagnose conditions. Always discuss significant findings with your healthcare provider.
+
+## mtDNA Haplogroup Import
+
+In addition to autosomal SNPs, getbased can import **mitochondrial DNA (mtDNA)** mutation files to determine your maternal haplogroup and its mitochondrial coupling status.
+
+### Supported format
+
+Some DNA labs (e.g., Living DNA) export mtDNA results as a simple CSV with one mutation per line:
+
+```
+263G
+462T
+1438G
+10398G
+13708A
+```
+
+Drop this file onto the app and getbased will:
+
+1. Match your mutations against diagnostic markers from [PhyloTree Build 17](https://phylotree.org/)
+2. Resolve your maternal haplogroup (e.g., J, H, U, K)
+3. Classify your mitochondrial coupling status (coupled → uncoupled) using Doug Wallace's framework
+4. Compare against your profile's latitude to detect **environment-haplotype mismatch**
+
+### Coupling classification
+
+Based on [Wallace 2015 (Cell)](https://pubmed.ncbi.nlm.nih.gov/26406369/), mtDNA haplogroups correlate with mitochondrial electron transport coupling efficiency:
+
+- **Coupled** (L lineages) — efficient ATP production, low heat generation. Evolved in equatorial climates.
+- **Uncoupled** (J, T) — more heat per calorie, less ATP. Evolved in cold northern climates.
+- **Intermediate** — most other haplogroups fall between these extremes.
+
+The AI uses this to contextualize your lab results, light exposure, cold tolerance, and environmental data.
+
+::: warning Research framework
+The coupling classification follows Wallace's mitochondrial paradigm — supported by cybrid studies and population data, but not universally accepted as clinical standard. Individual variation within haplogroups is significant.
+:::
+
+## Y-DNA Import
+
+Y-DNA marker files (paternal haplogroup data) can also be imported. These are stored as ancestry context — no health coupling analysis is performed for Y-DNA. The file format is one marker name per line (e.g., `CTS10149/PF6490/V3993`).

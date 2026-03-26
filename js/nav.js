@@ -37,9 +37,13 @@ export function buildSidebar(data) {
 
   // Genetics sidebar link (only when data exists)
   const genetics = state.importedData?.genetics;
-  if (genetics && genetics.snps && Object.keys(genetics.snps).length > 0) {
+  const hasGeneticsData = genetics && ((genetics.snps && Object.keys(genetics.snps).length > 0) || genetics.mtdna || genetics.ydna);
+  if (hasGeneticsData) {
+    const gParts = [];
+    if (genetics.snps && Object.keys(genetics.snps).length > 0) gParts.push(Object.keys(genetics.snps).length);
+    if (genetics.mtdna) gParts.push(genetics.mtdna.haplogroup);
     html += `<div class="nav-item" data-category="genetics" tabindex="0" role="button" onclick="window.navigate('dashboard');setTimeout(()=>{const el=document.getElementById('genetics-section');if(el){const y=el.getBoundingClientRect().top+window.scrollY-60;window.scrollTo({top:y,behavior:'smooth'});const b=el.querySelector('.genetics-body');if(b&&b.classList.contains('hidden'))window.toggleGeneticsCollapse();}},100)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
-      <span class="icon">\uD83E\uDDEC</span> Genetics <span class="nav-count">${Object.keys(genetics.snps).length}</span></div>`;
+      <span class="icon">\uD83E\uDDEC</span> Genetics <span class="nav-count">${gParts.join(' ')}</span></div>`;
   }
 
   // Separate categories into blood work (no group) and specialty groups
