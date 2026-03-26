@@ -59,6 +59,25 @@ export function exportPDFReport() {
     }
     contextSections.push({ title: 'Menstrual Cycle', text: cycleText });
   }
+  const pBio = state.importedData.biometrics;
+  const pHeight = window.getProfileHeight ? window.getProfileHeight(state.currentProfile) : { height: null };
+  if (pBio || pHeight?.height) {
+    let bioText = '';
+    if (pHeight?.height) bioText += `Height: ${pHeight.height} cm\n`;
+    if (pBio?.weight?.length) {
+      const latest = [...pBio.weight].sort((a, b) => b.date.localeCompare(a.date))[0];
+      bioText += `Latest weight: ${latest.value} ${latest.unit} (${latest.date})\n`;
+    }
+    if (pBio?.bp?.length) {
+      const latest = [...pBio.bp].sort((a, b) => b.date.localeCompare(a.date))[0];
+      bioText += `Latest BP: ${latest.sys}/${latest.dia} mmHg (${latest.date})\n`;
+    }
+    if (pBio?.pulse?.length) {
+      const latest = [...pBio.pulse].sort((a, b) => b.date.localeCompare(a.date))[0];
+      bioText += `Latest pulse: ${latest.value} bpm (${latest.date})\n`;
+    }
+    if (bioText) contextSections.push({ title: 'Biometrics', text: bioText.trim() });
+  }
 
   const html = buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections);
   const win = window.open('', '_blank');
@@ -365,7 +384,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
   if (!data || !data.entries || data.entries.length === 0) { showNotification('No data to export for this client', 'error'); return; }
   const exportObj = {
     version: 2, exportedAt: new Date().toISOString(),
-    profile: { name: profile.name, sex: profile.sex || null, dob: profile.dob || null, location: profile.location || null, tags: profile.tags || [], notes: profile.notes || '', status: profile.status || 'active', avatar: profile.avatar || null, pinned: profile.pinned || false },
+    profile: { name: profile.name, sex: profile.sex || null, dob: profile.dob || null, location: profile.location || null, tags: profile.tags || [], notes: profile.notes || '', status: profile.status || 'active', avatar: profile.avatar || null, pinned: profile.pinned || false, height: profile.height || null, heightUnit: profile.heightUnit || 'cm' },
     entries: data.entries || [], notes: data.notes || [], supplements: data.supplements || [],
     diagnoses: data.diagnoses || null, diet: data.diet || null, exercise: data.exercise || null,
     sleepRest: data.sleepRest || null, lightCircadian: data.lightCircadian || null,
@@ -379,6 +398,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
     menstrualCycle: data.menstrualCycle || null,
     emfAssessment: data.emfAssessment || null,
     genetics: data.genetics || null,
+    biometrics: data.biometrics || null,
     markerNotes: data.markerNotes || {},
     changeHistory: data.changeHistory || [],
     chatSummaries: data.chatSummaries || []
@@ -413,6 +433,7 @@ export async function buildAllDataBundle() {
       id: p.id, name: p.name, sex: p.sex || null, dob: p.dob || null,
       location: p.location || null, tags: p.tags || [], notes: p.notes || '',
       status: p.status || 'active', avatar: p.avatar || null, pinned: p.pinned || false,
+      height: p.height || null, heightUnit: p.heightUnit || 'cm',
       data: data
     };
     if (chat) entry.chat = chat;
@@ -457,7 +478,8 @@ export function importDataJSON(file) {
         const profileId = createProfile(p.name, {
           sex: p.sex || null, dob: p.dob || null,
           location: p.location || null, tags: p.tags || [],
-          avatar: p.avatar || null
+          avatar: p.avatar || null,
+          height: p.height || null, heightUnit: p.heightUnit || 'cm'
         });
         await loadProfile(profileId);
       }
@@ -600,6 +622,35 @@ export function importDataJSON(file) {
       if (json.genetics && json.genetics.snps) {
         state.importedData.genetics = json.genetics;
       }
+      // Import biometrics
+      if (json.biometrics && typeof json.biometrics === 'object') {
+        if (!state.importedData.biometrics) {
+          state.importedData.biometrics = json.biometrics;
+        } else {
+          for (const metric of ['weight', 'pulse']) {
+            if (Array.isArray(json.biometrics[metric])) {
+              if (!state.importedData.biometrics[metric]) state.importedData.biometrics[metric] = [];
+              for (const e of json.biometrics[metric]) {
+                if (!e.date) continue;
+                if (!state.importedData.biometrics[metric].some(x => x.date === e.date)) {
+                  state.importedData.biometrics[metric].push(e);
+                }
+              }
+              state.importedData.biometrics[metric].sort((a, b) => a.date.localeCompare(b.date));
+            }
+          }
+          if (Array.isArray(json.biometrics.bp)) {
+            if (!state.importedData.biometrics.bp) state.importedData.biometrics.bp = [];
+            for (const e of json.biometrics.bp) {
+              if (!e.date) continue;
+              if (!state.importedData.biometrics.bp.some(x => x.date === e.date)) {
+                state.importedData.biometrics.bp.push(e);
+              }
+            }
+            state.importedData.biometrics.bp.sort((a, b) => a.date.localeCompare(b.date));
+          }
+        }
+      }
       // Import marker notes
       if (json.markerNotes && typeof json.markerNotes === 'object') {
         if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
@@ -686,6 +737,7 @@ async function _importDatabaseBundle(json) {
       if (bp.status && bp.status !== 'active') meta.status = bp.status;
       if (bp.avatar) meta.avatar = bp.avatar;
       if (bp.pinned) meta.pinned = bp.pinned;
+      if (bp.height) { meta.height = bp.height; meta.heightUnit = bp.heightUnit || 'cm'; }
       if (Object.keys(meta).length) updateProfileMeta(existing.id, meta);
       const storageKey = profileStorageKey(existing.id, 'imported');
       const raw = await encryptedGetItem(storageKey);
@@ -739,7 +791,7 @@ async function _importDatabaseBundle(json) {
         }
       }
       // Context fields: replace if present in bundle
-      for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle', 'emfAssessment', 'genetics']) {
+      for (const field of ['diagnoses', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress', 'loveLife', 'environment', 'menstrualCycle', 'emfAssessment', 'genetics', 'biometrics']) {
         if (importData[field] != null) current[field] = importData[field];
       }
       if (importData.interpretiveLens) current.interpretiveLens = importData.interpretiveLens;
@@ -787,7 +839,8 @@ async function _importDatabaseBundle(json) {
         sex: bp.sex || null, dob: bp.dob || null,
         location: bp.location || { country: '', zip: '' },
         tags: bp.tags || [], notes: bp.notes || '',
-        status: bp.status || 'active', avatar: bp.avatar || null
+        status: bp.status || 'active', avatar: bp.avatar || null,
+        height: bp.height || null, heightUnit: bp.heightUnit || 'cm'
       });
       if (!firstImportedId) firstImportedId = id;
       if (bp.pinned) updateProfileMeta(id, { pinned: true });
@@ -842,7 +895,7 @@ export function clearAllData() {
     const defaultId = profiles[0]?.id || 'default';
     const defaultName = profiles[0]?.name || 'Profile 1';
     saveProfiles([{ id: defaultId, name: defaultName, sex: null, dob: null, location: { country: '', zip: '' }, tags: [], notes: '', status: 'active', avatar: null, createdAt: Date.now(), lastUpdated: Date.now(), pinned: false }]);
-    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, refOverrides: {}, menstrualCycle: null, emfAssessment: null, genetics: null };
+    state.importedData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', customMarkers: {}, refOverrides: {}, menstrualCycle: null, emfAssessment: null, genetics: null, biometrics: null };
     state.currentProfile = defaultId;
     localStorage.setItem('labcharts-active-profile', defaultId);
     window.buildSidebar();

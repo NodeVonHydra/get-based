@@ -30,7 +30,7 @@ Once installed, the full app shell works offline. AI features (PDF import, chat)
 
 When you open the app for the first time, the chat panel guides you through setup in a conversational flow:
 
-1. **Profile** — name, sex, date of birth, location
+1. **Profile** — name, sex, date of birth, height, weight, location
 2. **AI provider** — connect OpenRouter (one-click OAuth), Anthropic, Venice, or Local AI. You can skip this step and set it up later
 3. **Extras** — menstrual cycle setup (female profiles), supplements & medications, lifestyle context cards
 
@@ -56,11 +56,13 @@ Charts, manual entry, JSON import/export, data tables, trend alerts, and correla
 
 ### 2. Set Your Profile
 
-Set your profile during chat onboarding, or in **Settings → Profile**. Your biological sex and date of birth affect:
+Set your profile during chat onboarding, or edit via the **Client List** (click your profile name in the header). Your biological sex and date of birth affect:
 
 - Reference ranges for sex-specific markers (hormones, hematology)
 - PhenoAge (biological age) calculation, which requires your DOB
 - Menstrual cycle tracking (available for female profiles)
+
+You can also track **biometrics** — height, weight, blood pressure, and resting pulse. Open the **Edit Client** form and expand the **Biometrics** section. Height is stored on your profile; weight, BP, and pulse are time-series (add entries with dates). BMI is auto-calculated from height and latest weight. Click the unit label (cm/in, kg/lbs) to switch units.
 
 ### 3. Import Your First Lab Report
 

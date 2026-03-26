@@ -26,7 +26,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `image-utils.js` — `resizeImage`, `formatImageBlock`, `buildVisionContent`, `isValidImageType` (no app imports)
   - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers, `supportsVision()`, `isAIPaused()`/`setAIPaused()` global AI toggle, Venice E2EE branch (`isE2EEModel`, `isVeniceE2EEActive`)
   - `venice-e2ee.js` — Venice E2EE crypto (ECDH secp256k1 via vendored `@noble/secp256k1` + HKDF-SHA256 + AES-256-GCM via Web Crypto). Session management with 30-min TTL, TEE attestation, per-chunk response decryption
-  - `profile.js` — profile CRUD, sex/DOB/location, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
+  - `profile.js` — profile CRUD, sex/DOB/location/height, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
@@ -44,13 +44,13 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — guided tour (spotlight walkthrough, auto-triggers after first data import) + cycle tour
   - `changelog.js` — What's New modal, auto-trigger on update (uses `window.APP_VERSION` from `/version.js`)
-  - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete)
+  - `client-list.js` — Client List modal (search/sort/filter profiles, inline create/edit form, archive/flag/pin/delete, biometrics)
   - `nav.js` — sidebar (with collapsible test-type groups), compact profile button, avatar colors
   - `views.js` — `navigate`, dashboard, category, compare, correlations, detail modal, manual entry, create custom marker, focus card, onboarding, emoji picker, category rename/icon editing, marker rename/revert, calculated marker input diagnostics
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`
-- **`tests/`** — 27 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 28 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -58,7 +58,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 1. `getActiveData()` is the central pipeline: clones `MARKER_SCHEMA` → collects dates from `importedData.entries` → populates `values` arrays → calculates ratios/PhenoAge → unit conversion if US mode
 2. All data in `importedData` under `localStorage` key `labcharts-{profileId}-imported`. Legacy fields auto-migrated via `migrateProfileData()`
-3. `refOverrides` stores per-marker ref/optimal ranges. `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` stores per-marker freeform notes. `changeHistory` is a capped (200) array of timestamped context field snapshots for AI temporal reasoning
+3. `refOverrides` stores per-marker ref/optimal ranges. `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` stores per-marker freeform notes. `changeHistory` is a capped (200) array of timestamped context field snapshots for AI temporal reasoning. `biometrics` stores time-series weight/BP/pulse arrays (height is on profile object)
 4. Marker values are arrays aligned with `dates`; `null` = no result. `singlePoint` categories use grid cards. Charts use `spanGaps: true`
 
 ### PDF Import Pipeline
@@ -125,7 +125,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-27 browser-based test files run headlessly:
+28 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

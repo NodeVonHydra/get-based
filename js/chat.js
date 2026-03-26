@@ -926,6 +926,61 @@ export function buildLabContext() {
     ctx += `[/section:supplements]\n\n`;
   }
 
+  // ── 7b. Biometrics ──
+  const bio = state.importedData.biometrics;
+  const _profileHeight = window.getProfileHeight ? window.getProfileHeight(state.currentProfile) : { height: null, unit: 'cm' };
+  if (_profileHeight.height || (bio && (bio.weight?.length || bio.bp?.length || bio.pulse?.length))) {
+    ctx += `[section:biometrics]\n## Biometrics\n`;
+    if (_profileHeight.height) {
+      const htCm = _profileHeight.height;
+      const htLabel = state.unitSystem === 'US'
+        ? `${Math.floor(htCm / 2.54 / 12)}' ${Math.round(htCm / 2.54 % 12)}"`
+        : `${htCm} cm`;
+      ctx += `Height: ${htLabel}\n`;
+    }
+    if (bio?.weight?.length) {
+      const sorted = [...bio.weight].sort((a, b) => b.date.localeCompare(a.date));
+      const latest = sorted[0];
+      const latestKg = latest.unit === 'lbs' ? latest.value / 2.205 : latest.value;
+      ctx += `Weight (latest ${latest.date}): ${latest.value} ${latest.unit}`;
+      if (sorted.length > 1) {
+        const recent = sorted.slice(0, 6);
+        const avgKg = recent.reduce((s, e) => s + (e.unit === 'lbs' ? e.value / 2.205 : e.value), 0) / recent.length;
+        ctx += ` (avg last ${recent.length}: ${avgKg.toFixed(1)} kg)`;
+      }
+      ctx += '\n';
+      if (_profileHeight.height) {
+        const htM = _profileHeight.height / 100;
+        const bmi = (latestKg / (htM * htM)).toFixed(1);
+        ctx += `BMI: ${bmi}\n`;
+      }
+    }
+    if (bio?.bp?.length) {
+      const sorted = [...bio.bp].sort((a, b) => b.date.localeCompare(a.date));
+      const latest = sorted[0];
+      ctx += `Blood Pressure (latest ${latest.date}): ${latest.sys}/${latest.dia} mmHg`;
+      if (sorted.length > 1) {
+        const recent = sorted.slice(0, 6);
+        const avgSys = Math.round(recent.reduce((s, e) => s + e.sys, 0) / recent.length);
+        const avgDia = Math.round(recent.reduce((s, e) => s + e.dia, 0) / recent.length);
+        ctx += ` (avg last ${recent.length}: ${avgSys}/${avgDia})`;
+      }
+      ctx += '\n';
+    }
+    if (bio?.pulse?.length) {
+      const sorted = [...bio.pulse].sort((a, b) => b.date.localeCompare(a.date));
+      const latest = sorted[0];
+      ctx += `Resting Pulse (latest ${latest.date}): ${latest.value} bpm`;
+      if (sorted.length > 1) {
+        const recent = sorted.slice(0, 6);
+        const avg = Math.round(recent.reduce((s, e) => s + e.value, 0) / recent.length);
+        ctx += ` (avg last ${recent.length}: ${avg} bpm)`;
+      }
+      ctx += '\n';
+    }
+    ctx += `[/section:biometrics]\n\n`;
+  }
+
   // ── 8. Genetics ──
   const genetics = state.importedData.genetics;
   if (genetics && genetics.snps && Object.keys(genetics.snps).length > 0) {
@@ -2221,6 +2276,9 @@ export function renderChatMessages() {
       const pSex = state.profileSex || '';
       const pDob = state.profileDob || '';
       const pLoc = getProfileLocation(state.currentProfile);
+      const _pH = window.getProfileHeight ? window.getProfileHeight(state.currentProfile) : { height: null, unit: 'cm' };
+      const pHeight = _pH.height ? (_pH.unit === 'in' ? (_pH.height / 2.54).toFixed(1) : _pH.height) : '';
+      const pHeightUnit = _pH.unit || 'cm';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
           <p>Hey! 👋 I'll be your AI health analyst — I help you understand blood work, track trends, and spot what matters. First, tell me a bit about yourself:</p>
@@ -2239,6 +2297,26 @@ export function renderChatMessages() {
             <div class="chat-onboard-row">
               <label class="chat-onboard-label">Born</label>
               <input type="date" class="chat-onboard-input" id="chat-onboard-dob" value="${escapeHTML(pDob)}" min="1900-01-01" max="${new Date().toISOString().slice(0, 10)}">
+            </div>
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Height</label>
+              <div style="display:flex;gap:6px;flex:1">
+                <input type="number" class="chat-onboard-input" id="chat-onboard-height" placeholder="cm" step="0.1" value="${pHeight || ''}" style="flex:1">
+                <select class="chat-onboard-input" id="chat-onboard-height-unit" style="flex:0 0 55px" onchange="window.onboardHeightUnitChanged()">
+                  <option value="cm"${pHeightUnit !== 'in' ? ' selected' : ''}>cm</option>
+                  <option value="in"${pHeightUnit === 'in' ? ' selected' : ''}>in</option>
+                </select>
+              </div>
+            </div>
+            <div class="chat-onboard-row">
+              <label class="chat-onboard-label">Weight</label>
+              <div style="display:flex;gap:6px;flex:1">
+                <input type="number" class="chat-onboard-input" id="chat-onboard-weight" placeholder="kg" step="0.1" style="flex:1">
+                <select class="chat-onboard-input" id="chat-onboard-weight-unit" style="flex:0 0 55px">
+                  <option value="kg">kg</option>
+                  <option value="lbs">lbs</option>
+                </select>
+              </div>
             </div>
             <div class="chat-onboard-row">
               <label class="chat-onboard-label">Location</label>
@@ -2847,6 +2925,16 @@ export function setChatProfileSex(sex) {
 }
 
 var _chatLocTimer = null;
+export function onboardHeightUnitChanged() {
+  const input = document.getElementById('chat-onboard-height');
+  const select = document.getElementById('chat-onboard-height-unit');
+  if (!input || !select) return;
+  const val = parseFloat(input.value);
+  if (!val) { input.placeholder = select.value === 'in' ? 'inches' : 'cm'; return; }
+  if (select.value === 'in') { input.value = (val / 2.54).toFixed(1); input.placeholder = 'inches'; }
+  else { input.value = (val * 2.54).toFixed(1); input.placeholder = 'cm'; }
+}
+
 export function saveChatLocation() {
   const country = document.getElementById('chat-onboard-country')?.value?.trim();
   if (country == null) return;
@@ -2904,6 +2992,25 @@ export function saveChatProfile(advance) {
       setProfileDob(state.currentProfile, dob); state.profileDob = dob;
     }
     // Silently ignore invalid DOB — user can fix before clicking Continue
+  }
+  // Save height
+  const heightRaw = parseFloat(document.getElementById('chat-onboard-height')?.value);
+  const heightUnit = document.getElementById('chat-onboard-height-unit')?.value || 'cm';
+  if (heightRaw && window.setProfileHeight) {
+    const heightCm = heightUnit === 'in' ? Math.round(heightRaw * 2.54 * 10) / 10 : heightRaw;
+    window.setProfileHeight(state.currentProfile, heightCm, heightUnit);
+  }
+  // Save weight as first biometric entry
+  const weightRaw = parseFloat(document.getElementById('chat-onboard-weight')?.value);
+  const weightUnit = document.getElementById('chat-onboard-weight-unit')?.value || 'kg';
+  if (weightRaw) {
+    if (!state.importedData.biometrics) state.importedData.biometrics = { weight: [], bp: [], pulse: [] };
+    const today = new Date().toISOString().slice(0, 10);
+    const w = state.importedData.biometrics.weight || [];
+    state.importedData.biometrics.weight = w.filter(e => e.date !== today);
+    state.importedData.biometrics.weight.push({ date: today, value: weightRaw, unit: weightUnit, source: 'manual' });
+    state.importedData.biometrics.weight.sort((a, b) => a.date.localeCompare(b.date));
+    window.saveImportedData();
   }
   saveChatLocation();
   window.renderProfileButton?.();
@@ -3897,6 +4004,7 @@ Object.assign(window, {
   setChatProfileSex,
   saveChatProfile,
   saveChatLocation,
+  onboardHeightUnitChanged,
   saveChatPeriod,
   addChatSupplement,
   removeChatSupplement,

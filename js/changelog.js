@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.10.4', date: '2026-03-26', title: 'Biometrics',
+    items: [
+      'Track height, weight, blood pressure, and resting pulse in the Edit Client form',
+      'Auto-calculated BMI from height + latest weight with category label',
+      'Time-series entries with date, averages, and history list for weight, BP, and pulse',
+      'Biometrics included in AI context, JSON export/import, and PDF report',
+    ]
+  },
+  {
     version: '1.10.3', date: '2026-03-25', title: 'Food Contaminants',
     items: [
       'Diet card scanned for food contaminant signals — pesticide residues (EWG Dirty Dozen) and plastic chemicals (PlasticList)',

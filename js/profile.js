@@ -34,6 +34,8 @@ function migrateProfiles(profiles) {
     if (!p.createdAt) { p.createdAt = now; changed = true; }
     if (!p.lastUpdated) { p.lastUpdated = now; changed = true; }
     if (typeof p.pinned !== 'boolean') { p.pinned = false; changed = true; }
+    if (p.height === undefined) { p.height = null; changed = true; }
+    if (p.heightUnit === undefined) { p.heightUnit = 'cm'; changed = true; }
   }
   if (changed) saveProfiles(profiles);
 }
@@ -270,6 +272,7 @@ export function migrateProfileData(data) {
   if (data.genetics === undefined) data.genetics = null;
   if (data.markerNotes === undefined) data.markerNotes = {};
   if (data.changeHistory === undefined) data.changeHistory = [];
+  if (data.biometrics === undefined) data.biometrics = null;
   return data;
 }
 
@@ -318,6 +321,8 @@ export function createProfile(name, opts = {}) {
     notes: opts.notes || '',
     status: opts.status || 'active',
     avatar: opts.avatar || null,
+    height: opts.height || null,
+    heightUnit: opts.heightUnit || 'cm',
     createdAt: now,
     lastUpdated: now,
     pinned: false
@@ -453,6 +458,18 @@ export function setProfileLocation(profileId, country, zip) {
   const profiles = getProfiles();
   const p = profiles.find(p => p.id === (profileId || state.currentProfile));
   if (p) { p.location = { country: (country || '').trim(), zip: (zip || '').trim() }; saveProfiles(profiles); }
+}
+
+export function getProfileHeight(profileId) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === (profileId || state.currentProfile));
+  return { height: (p && p.height) || null, unit: (p && p.heightUnit) || 'cm' };
+}
+
+export function setProfileHeight(profileId, height, unit) {
+  const profiles = getProfiles();
+  const p = profiles.find(p => p.id === (profileId || state.currentProfile));
+  if (p) { p.height = height; p.heightUnit = unit || 'cm'; p.lastUpdated = Date.now(); saveProfiles(profiles); }
 }
 
 // AI-powered latitude detection with hardcoded fallback
@@ -641,6 +658,8 @@ Object.assign(window, {
   setProfileDob,
   getProfileLocation,
   setProfileLocation,
+  getProfileHeight,
+  setProfileHeight,
   getLocationCache,
   setLocationCache,
   latitudeToBand,
