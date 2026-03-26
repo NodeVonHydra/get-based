@@ -3122,6 +3122,33 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .genetics-collapse-arrow { display: inline-block; transition: transform 0.2s; margin-left: 4px; }
 .genetics-collapse-arrow.collapsed { transform: rotate(-90deg); }
 .genetics-body.hidden { display: none; }
+/* mtDNA Haplogroup */
+.genetics-mtdna { padding: 8px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.genetics-mtdna-hg { font-size: 14px; margin-bottom: 2px; }
+.genetics-mtdna-label { font-size: 12px; color: var(--text-muted); }
+.genetics-mtdna-coupling { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.genetics-mtdna-mismatch { font-size: 12px; margin-top: 6px; padding: 6px 8px; border-radius: var(--radius-sm); border-left: 3px solid; }
+.genetics-mtdna-mismatch.mismatch-significant { background: rgba(239, 68, 68, 0.08); border-color: var(--status-high); color: var(--status-high); }
+.genetics-mtdna-mismatch.mismatch-moderate { background: rgba(234, 179, 8, 0.08); border-color: var(--status-low); color: var(--text-secondary); }
+.genetics-mtdna-match { font-size: 12px; color: var(--green, #22c55e); margin-top: 4px; }
+.genetics-mtdna-refs { font-size: 10px; color: var(--text-muted); margin-top: 4px; opacity: 0.7; }
+.genetics-mtdna-refs a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.genetics-mtdna-refs a:hover { color: var(--accent); border-color: var(--accent); }
+.genetics-ydna { font-size: 12px; color: var(--text-muted); padding: 4px 10px; margin-bottom: 6px; }
+/* mtDNA Import Preview */
+.mtdna-preview-haplogroup { text-align: center; padding: 16px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.mtdna-hg-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+.mtdna-hg-value { font-size: 28px; font-weight: 700; color: var(--accent); margin: 4px 0; }
+.mtdna-hg-confidence { font-size: 11px; color: var(--text-muted); }
+.mtdna-preview-coupling { padding: 10px; background: var(--bg-hover); border-radius: var(--radius-sm); margin-bottom: 10px; }
+.mtdna-coupling-label { font-size: 13px; font-weight: 600; }
+.mtdna-coupling-climate { font-size: 12px; color: var(--text-muted); }
+.mtdna-coupling-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+.mtdna-preview-mismatch { padding: 10px; border-radius: var(--radius-sm); border-left: 3px solid; margin-bottom: 10px; font-size: 12px; line-height: 1.5; }
+.mtdna-mismatch-significant { background: rgba(239, 68, 68, 0.08); border-color: var(--status-high); }
+.mtdna-mismatch-moderate { background: rgba(234, 179, 8, 0.08); border-color: var(--status-low); }
+.mtdna-mismatch-implications { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.mtdna-preview-match { font-size: 12px; color: var(--green, #22c55e); padding: 8px 10px; background: rgba(34, 197, 94, 0.06); border-radius: var(--radius-sm); margin-bottom: 10px; }
 .genetics-apoe { font-size: 13px; padding: 6px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); margin-bottom: 8px; }
 .genetics-findings { margin-bottom: 8px; }
 .genetics-cat-group { margin-bottom: 6px; }

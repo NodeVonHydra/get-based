@@ -1,0 +1,268 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "mtDNA haplogroup diagnostic mutations and mitochondrial coupling classification. Based on Doug Wallace's mitochondrial paradigm. Diagnostic mutations from MITOMAP/PhyloTree Build 17.",
+    "haplogroupCount": 26,
+    "caveat": "The coupling/uncoupling classification is a research framework supported by cybrid studies and epidemiological data, but not universally accepted. Individual variation within haplogroups is large.",
+    "references": [
+      { "pmid": 26406369, "desc": "Wallace 2015 (Cell) — Mitochondrial DNA variation in human radiation and disease" },
+      { "pmid": 12509511, "desc": "Mishmar/Wallace 2003 (PNAS) — Natural selection shaped regional mtDNA variation" },
+      { "pmid": 14716012, "desc": "Ruiz-Pesini/Wallace 2004 (Science) — Purifying and adaptive selection on mtDNA" },
+      { "pmid": 16285865, "desc": "Wallace 2005 (Annu Rev Genet) — Mitochondrial paradigm" },
+      { "pmid": 23543062, "desc": "Wallace 2013 (JCI) — Bioenergetic etiology of disease" },
+      { "pmid": 10936107, "desc": "Ruiz-Pesini 2000 — Haplogroup sperm motility differences" },
+      { "pmid": 20566709, "desc": "Gomez-Duran 2010 — Cybrid OXPHOS differences H vs T" },
+      { "pmid": 24200652, "desc": "Kenney/Wallace 2014 — African vs European haplogroup bioenergetics" }
+    ]
+  },
+  "haplogroups": {
+    "L0": {
+      "mutations": ["2758A", "2885C", "3594T", "7146G", "7521A", "8468T", "10810C", "10873C"],
+      "coupling": "coupled",
+      "origin": "Southern Africa",
+      "climate": "Equatorial",
+      "etc": "Complex I+IV: tight coupling, high ATP yield, low heat. Most ancient human lineage (~150 kya)"
+    },
+    "L1": {
+      "mutations": ["3666A", "7055G", "7389C", "13789C", "14178C", "14560A"],
+      "coupling": "coupled",
+      "origin": "Central/West Africa",
+      "climate": "Equatorial",
+      "etc": "Complex IV COI Y496H substitution. Tightly coupled, efficient OXPHOS"
+    },
+    "L2": {
+      "mutations": ["2416C", "8206A", "9221G", "10115C", "11944C", "13590A", "15301A", "16390A"],
+      "coupling": "coupled",
+      "origin": "West/Central Africa",
+      "climate": "Equatorial / Tropical",
+      "etc": "Higher mtDNA-encoded gene expression vs European cybrids"
+    },
+    "L3": {
+      "mutations": ["15301A", "16223T"],
+      "coupling": "coupled",
+      "origin": "East Africa",
+      "climate": "Equatorial / Tropical",
+      "etc": "Ancestor of all non-African lineages. Transitional coupling. ~70 kya"
+    },
+    "L4": {
+      "mutations": ["3918A", "15301A", "16362C"],
+      "coupling": "coupled",
+      "origin": "East Africa",
+      "climate": "Equatorial / Tropical",
+      "etc": "Rare East African lineage"
+    },
+    "L5": {
+      "mutations": ["3423C", "5147A", "7972G", "12432T", "12950G", "14581C", "16148T", "16166G"],
+      "coupling": "coupled",
+      "origin": "East Africa",
+      "climate": "Equatorial",
+      "etc": "Ancient deep branch (~120 kya)"
+    },
+    "L6": {
+      "mutations": ["709A", "770T", "961C", "4964T", "5267C", "6284G", "9332T", "10978G", "15244G"],
+      "coupling": "coupled",
+      "origin": "East Africa / Arabia",
+      "climate": "Equatorial / Tropical",
+      "etc": "Rare lineage, Ethiopia/Yemen"
+    },
+    "M": {
+      "mutations": ["489C", "10400T", "14783C", "15043A"],
+      "coupling": "intermediate",
+      "origin": "South/Southeast Asia",
+      "climate": "Tropical / Temperate",
+      "etc": "Out-of-Africa southern route (~60 kya). Complex I 10400T. Descendants diversify: tropical M coupled, arctic C/D/G less coupled"
+    },
+    "N": {
+      "mutations": ["8701A", "9540T", "10398A", "10873T"],
+      "coupling": "intermediate",
+      "origin": "West Asia / Near East",
+      "climate": "Temperate",
+      "etc": "Out-of-Africa northern route. Reverts ND3 10398G→A and ATP6 8701G→A from L/M ancestral state"
+    },
+    "R": {
+      "mutations": ["12705C"],
+      "coupling": "intermediate",
+      "origin": "West/South Asia",
+      "climate": "Temperate",
+      "etc": "Parent of most European haplogroups (H, J, T, U, K) and Asian B, F"
+    },
+    "A": {
+      "mutations": ["235G", "663G", "1736G", "4248C", "4824G", "8794T", "16290T", "16319A"],
+      "coupling": "intermediate_uncoupled",
+      "origin": "Northeast Siberia / Beringia",
+      "climate": "Cold / Subarctic",
+      "etc": "ATP6 variation in arctic lineages. Native American + Northeast Siberian"
+    },
+    "B": {
+      "mutations": ["16183C", "16217C"],
+      "coupling": "coupled_intermediate",
+      "origin": "Southeast Asia / Pacific",
+      "climate": "Tropical / Temperate",
+      "etc": "Classic 9bp deletion at 8271-8289. Polynesian, Pacific coastal. Risk factor for high-altitude pulmonary edema"
+    },
+    "C": {
+      "mutations": ["3552A", "9545G", "13263G", "14318C", "15487T", "16298C", "16327T"],
+      "coupling": "intermediate_uncoupled",
+      "origin": "Northeast Asia / Siberia",
+      "climate": "Cold / Subarctic",
+      "etc": "M descendant. Arctic/subarctic distribution. Cold-adapted"
+    },
+    "D": {
+      "mutations": ["4883T", "5178A", "8414T", "14668T", "16362C"],
+      "coupling": "intermediate_uncoupled",
+      "origin": "Northeast Asia",
+      "climate": "Temperate / Cold",
+      "etc": "5178A classic marker. Greater non-shivering thermogenesis. Associated with longevity in Japan"
+    },
+    "E": {
+      "mutations": ["3027C", "3705A", "4248C", "10834T", "13254C", "13626T", "14577C"],
+      "coupling": "coupled_intermediate",
+      "origin": "Island Southeast Asia",
+      "climate": "Tropical",
+      "etc": "M descendant in tropical SE Asia. Retains M-type 10400T"
+    },
+    "F": {
+      "mutations": ["3970T", "6392C", "10310A", "13928C", "16304C"],
+      "coupling": "coupled_intermediate",
+      "origin": "East/Southeast Asia",
+      "climate": "Tropical / Temperate",
+      "etc": "N descendant. Associated with sprint/power athletics (efficient ATP burst)"
+    },
+    "G": {
+      "mutations": ["4833G", "5108C", "14569A"],
+      "coupling": "intermediate_uncoupled",
+      "origin": "Northeast Asia / Siberia",
+      "climate": "Cold / Temperate",
+      "etc": "M descendant. Siberia, Ainu, northeast Asia. Cold-adapted"
+    },
+    "H": {
+      "mutations": ["2706A", "7028C"],
+      "coupling": "mildly_uncoupled",
+      "origin": "Near East / Southwest Europe",
+      "climate": "Temperate",
+      "etc": "Most common European haplogroup (~40%). The rCRS IS haplogroup H. Higher mtDNA copy number, higher ROS vs Uk cybrids. Post-glacial Franco-Cantabrian expansion",
+      "isReference": true
+    },
+    "HV": {
+      "mutations": ["14766C"],
+      "coupling": "mildly_uncoupled",
+      "origin": "Near East",
+      "climate": "Temperate",
+      "etc": "Parent of H and V"
+    },
+    "I": {
+      "mutations": ["199C", "204C", "250C", "1719A", "4529T", "8251A", "10398G", "15043A", "16391A"],
+      "coupling": "moderately_uncoupled",
+      "origin": "West Asia / Near East",
+      "climate": "Temperate / Cold",
+      "etc": "Complex I (10398G convergent with M) + Complex III (15043A). Multiple ETC hits → reduced coupling"
+    },
+    "J": {
+      "mutations": ["295T", "489C", "4216C", "10398G", "11251G", "12612G", "13708A", "16069T", "16126C"],
+      "coupling": "uncoupled",
+      "origin": "Near East → Northern Europe",
+      "climate": "Cold (Northern European)",
+      "etc": "Canonical uncoupled haplogroup. Multiple Complex I hits: ND3 10398G, ND5 13708A, ND1 4216C. Lower ATP, higher heat. LHON background. Associated with longevity (reduced ROS)"
+    },
+    "K": {
+      "mutations": ["1189C", "1811G", "3480G", "9055A", "9698C", "10550G", "11467G", "12308G", "12372A", "14798C", "16224C"],
+      "coupling": "moderately_uncoupled",
+      "origin": "Near East",
+      "climate": "Temperate",
+      "etc": "Subclade of U8. ATP6 9055A affects ATP synthase. Complex III 14798C. Common in Ashkenazi Jewish populations"
+    },
+    "T": {
+      "mutations": ["709A", "1888A", "4216C", "4917G", "8697A", "10463C", "13368A", "14905A", "15607G", "15928A", "16126C", "16294T"],
+      "coupling": "uncoupled",
+      "origin": "Near East / Mesopotamia",
+      "climate": "Temperate / Cold",
+      "etc": "Shares JT-cluster markers with J. ND2 4917G Complex I. Lower Complex I+IV activity vs H in cybrids. Lower sperm motility. Better oxidative stress survival"
+    },
+    "U": {
+      "mutations": ["11467G", "12308G", "12372A"],
+      "coupling": "moderately_uncoupled",
+      "origin": "West Asia / Near East",
+      "climate": "Temperate / Cold",
+      "etc": "Ancient European lineage (~45 kya). U5 dominant in Mesolithic hunter-gatherers. Higher thermogenic capacity. K is subclade (U8)"
+    },
+    "V": {
+      "mutations": ["72C", "4580A", "15904T", "16298C"],
+      "coupling": "mildly_uncoupled",
+      "origin": "Iberian Peninsula",
+      "climate": "Temperate",
+      "etc": "Sister to H. ND2 4580A Complex I. Post-glacial re-expansion. High frequency in Sami (~40%) and Basques"
+    },
+    "W": {
+      "mutations": ["189G", "204C", "1243C", "3505G", "5046A", "5460A", "8251A", "8994A", "11947G", "16292T"],
+      "coupling": "moderately_uncoupled",
+      "origin": "West Asia / Near East",
+      "climate": "Temperate / Cold",
+      "etc": "ATP6 8994A (Complex V) + ND2 5460A (Complex I). Near East, South Asia, Finland"
+    },
+    "X": {
+      "mutations": ["153G", "1719A", "6221C", "6371T", "13966G", "14470C"],
+      "coupling": "mildly_uncoupled",
+      "origin": "West Asia / Near East",
+      "climate": "Temperate",
+      "etc": "COI 6221C+6371T (Complex IV) + ND5/ND6 Complex I hits. Bimodal: Near East + Native American (Algonquian, Sioux)"
+    },
+    "Z": {
+      "mutations": ["6752G", "9090C", "15784C", "16185T", "16260T", "16298C"],
+      "coupling": "intermediate_uncoupled",
+      "origin": "Central/Northeast Asia",
+      "climate": "Cold / Temperate",
+      "etc": "M8 descendant (shares ancestry with C). Sami, Finns, Central Asians, Siberia"
+    }
+  },
+  "couplingLevels": {
+    "coupled": {
+      "label": "Coupled (efficient ATP, low heat)",
+      "latitudeBands": [0, 1],
+      "shortLabel": "coupled",
+      "description": "Tightly coupled electron transport chain — maximizes ATP yield per calorie with minimal heat generation. Evolved in warm equatorial environments.",
+      "implications": "Higher UV and warmth requirements. May struggle with cold environments or low-light conditions at northern latitudes. Prioritize sun exposure, warm climate, and circadian rhythm alignment."
+    },
+    "coupled_intermediate": {
+      "label": "Coupled to intermediate",
+      "latitudeBands": [0, 1, 2],
+      "shortLabel": "mostly coupled",
+      "description": "Moderately tight coupling with some metabolic flexibility. Adapted to tropical and warm temperate zones.",
+      "implications": "Good sun and warmth tolerance. Some cold tolerance but not optimized for high latitudes."
+    },
+    "intermediate": {
+      "label": "Intermediate",
+      "latitudeBands": [1, 2, 3],
+      "shortLabel": "intermediate",
+      "description": "Balanced coupling — the transitional state from the out-of-Africa dispersal. Metabolically flexible.",
+      "implications": "Adaptable to a range of environments. Neither strongly cold-adapted nor strongly heat-adapted."
+    },
+    "intermediate_uncoupled": {
+      "label": "Intermediate to uncoupled",
+      "latitudeBands": [2, 3, 4],
+      "shortLabel": "partly uncoupled",
+      "description": "Trending toward uncoupled. Evolved in cold or high-altitude environments. Higher thermogenic capacity.",
+      "implications": "Better cold tolerance. May benefit from cold exposure practices. Higher caloric needs in warm climates."
+    },
+    "mildly_uncoupled": {
+      "label": "Mildly uncoupled",
+      "latitudeBands": [2, 3],
+      "shortLabel": "mildly uncoupled",
+      "description": "Slightly loose electron transport coupling. Core European temperate adaptation. Moderate heat generation.",
+      "implications": "Well-suited to temperate climates. Moderate cold tolerance. Standard caloric needs."
+    },
+    "moderately_uncoupled": {
+      "label": "Moderately uncoupled",
+      "latitudeBands": [2, 3, 4],
+      "shortLabel": "moderately uncoupled",
+      "description": "Noticeably loose coupling with higher heat generation per calorie. Cold-adapted with reduced ATP efficiency.",
+      "implications": "Good cold tolerance. May benefit from cold exposure. Higher caloric turnover. Consider caloric needs if living in warm climates."
+    },
+    "uncoupled": {
+      "label": "Uncoupled (more heat, less ATP)",
+      "latitudeBands": [3, 4],
+      "shortLabel": "uncoupled",
+      "description": "Loosely coupled electron transport — generates significantly more heat per calorie at the expense of ATP production. Historically advantageous in cold northern climates. Multiple Complex I variants reduce coupling efficiency.",
+      "implications": "Naturally thermogenic — tolerates cold well. Lower ATP per calorie means higher caloric needs. May have reduced ROS (associated with longevity). Consider cold exposure as aligned with mitochondrial phenotype."
+    }
+  }
+}
