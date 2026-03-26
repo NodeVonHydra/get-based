@@ -376,14 +376,14 @@ export function renderGeneticsSection() {
     return '';
   }
   const snpTable = _snpTable;
-  const snpCount = Object.keys(genetics.snps).length;
+  const snpCount = hasSnps ? Object.keys(genetics.snps).length : 0;
   const apoe = genetics.apoe;
   const collapsed = localStorage.getItem('labcharts-genetics-collapsed') === '1';
 
   // Group findings by category, skip "none"
   const byCat = {};
   const apoeRsids = new Set(['rs429358', 'rs7412']);
-  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+  for (const [rsid, stored] of Object.entries(genetics.snps || {})) {
     if (apoe && apoeRsids.has(rsid)) continue;
     const entry = snpTable?.[rsid];
     if (!entry) continue;
