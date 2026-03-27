@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.11.1', date: '2026-03-27', title: 'Bug Fixes',
+    items: [
+      'Fix modal windows closing when drag-selecting text to outside the modal (#87)',
+      'Fix 23andMe v5 raw data import — newer export header variant was unrecognized (#89)',
+      'PDF report now includes "Additional notes for AI context" field (#92)',
+      'PDF report shows precise dates (day + month + year) instead of month only (#93)',
+    ]
+  },
+  {
     version: '1.11.0', date: '2026-03-26', title: 'mtDNA Haplogroup',
     items: [
       'Import mtDNA mutation files (CSV) — resolves maternal haplogroup from diagnostic mutations',

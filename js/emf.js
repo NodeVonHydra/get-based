@@ -800,9 +800,12 @@ function openInterpretationModal(title, existingInterp, onGenerate, onSave) {
   overlay.innerHTML = html;
   overlay.classList.add('show');
 
-  // Close on backdrop click
+  // Close on backdrop click (but not drag-from-inside, #87)
+  let mdInside = false;
+  overlay.onmousedown = (e) => { mdInside = e.target !== overlay; };
   overlay.onclick = (e) => {
-    if (e.target === overlay) closeEMFInterpretation();
+    if (e.target === overlay && !mdInside) closeEMFInterpretation();
+    mdInside = false;
   };
 
   // Store context for discuss button

@@ -41,6 +41,7 @@ export function exportPDFReport() {
   if (state.importedData.loveLife) contextSections.push({ title: 'Love Life & Relationships', text: fmtCtx(state.importedData.loveLife) });
   if (state.importedData.environment) contextSections.push({ title: 'Environment', text: fmtCtx(state.importedData.environment) });
   if (state.importedData.interpretiveLens) contextSections.push({ title: 'Interpretive Lens', text: state.importedData.interpretiveLens });
+  if (state.importedData.contextNotes) contextSections.push({ title: 'Additional Notes', text: state.importedData.contextNotes });
   const hg = state.importedData.healthGoals || [];
   if (hg.length) {
     const goalsText = hg.map(g => `[${g.severity}] ${g.text}`).join('\n');
@@ -89,11 +90,12 @@ export function exportPDFReport() {
 
 export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps, contextSections) {
   const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const dateRange = data.dateLabels.length > 0
-    ? `${data.dateLabels[0]} \u2013 ${data.dateLabels[data.dateLabels.length - 1]}`
-    : 'No dates';
   const unitLabel = state.unitSystem === 'US' ? 'US (conventional)' : 'EU (SI)';
   const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const fullDateLabels = data.dates.map(d => fmtDate(d));
+  const dateRange = fullDateLabels.length > 0
+    ? `${fullDateLabels[0]} \u2013 ${fullDateLabels[fullDateLabels.length - 1]}`
+    : 'No dates';
 
   let body = '';
 
@@ -125,7 +127,7 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
   for (const [catKey, cat] of Object.entries(data.categories)) {
     const markersWithData = Object.entries(cat.markers).filter(([_, m]) => m.values && m.values.some(v => v !== null));
     if (markersWithData.length === 0) continue;
-    const labels = cat.singleDate ? [cat.singleDateLabel || 'N/A'] : data.dateLabels;
+    const labels = cat.singleDate ? [cat.singleDateLabel || 'N/A'] : fullDateLabels;
     body += `<h2>${cat.icon} ${esc(cat.label)}</h2><table><thead><tr><th>Biomarker</th><th>Unit</th><th>Reference</th>`;
     if (cat.singleDate) {
       body += `<th>${labels[0]}</th>`;
@@ -220,7 +222,7 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
 
   // Summary for Healthcare Provider
   body += `<h2>Summary for Healthcare Provider</h2>`;
-  body += `<p style="font-size:13px;color:#555;margin-bottom:12px">Generated from <strong>${data.dates.length}</strong> collection date${data.dates.length !== 1 ? 's' : ''}${data.dateLabels.length >= 2 ? ` spanning ${data.dateLabels[0]} \u2013 ${data.dateLabels[data.dateLabels.length - 1]}` : ''}.</p>`;
+  body += `<p style="font-size:13px;color:#555;margin-bottom:12px">Generated from <strong>${data.dates.length}</strong> collection date${data.dates.length !== 1 ? 's' : ''}${fullDateLabels.length >= 2 ? ` spanning ${fullDateLabels[0]} \u2013 ${fullDateLabels[fullDateLabels.length - 1]}` : ''}.</p>`;
 
   if (flags.length > 0) {
     body += `<p style="font-size:14px;font-weight:700;margin:12px 0 6px">Out of Range (${flags.length}):</p><ul style="font-size:13px;margin:0 0 12px 20px">`;
@@ -246,8 +248,8 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
       const pctChange = ((last.v - first.v) / first.v) * 100;
       if (Math.abs(pctChange) > 10) {
         const dir = pctChange > 0 ? 'increased' : 'decreased';
-        const firstDate = data.dateLabels[first.i] || '';
-        const lastDate = data.dateLabels[last.i] || '';
+        const firstDate = fullDateLabels[first.i] || '';
+        const lastDate = fullDateLabels[last.i] || '';
         trendItems.push(`<li><strong>${esc(marker.name)}</strong> ${dir} ${Math.abs(pctChange).toFixed(0)}% (${formatValue(first.v)} \u2192 ${formatValue(last.v)} ${esc(marker.unit)}, ${firstDate} to ${lastDate})</li>`);
       }
     }

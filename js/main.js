@@ -198,7 +198,14 @@ function nudgeModal(overlay) {
   modal.classList.add("modal-nudge");
   modal.addEventListener("animationend", () => modal.classList.remove("modal-nudge"), { once: true });
 }
+// Track where mousedown started to prevent drag-from-inside closing modals (#87)
+let _mouseDownInsideModal = false;
+document.addEventListener("mousedown", e => {
+  _mouseDownInsideModal = !!(e.target.closest('.modal, .confirm-dialog, #chat-panel, .emf-interp-modal'));
+});
 document.addEventListener("click", e => {
+  // If mousedown started inside a modal, don't close on backdrop click (#87)
+  if (_mouseDownInsideModal) { _mouseDownInsideModal = false; return; }
   // Read-only modals — close on backdrop click
   if (e.target.id === "modal-overlay") { window.closeModal(); return; }
   if (e.target.id === "glossary-modal-overlay") { window.closeGlossary(); return; }

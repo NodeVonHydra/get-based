@@ -343,6 +343,16 @@ export function openClientForm(profileId) {
       </div>
     </div>
     <div class="cl-form-row">
+      <label class="cl-form-label">mtDNA Haplogroup <span style="font-weight:400;color:var(--text-muted);font-size:11px">(maternal lineage)</span></label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select class="cl-form-input" id="cl-haplogroup" style="max-width:160px" onchange="window._clHaplogroupChanged()">
+          <option value="">— not set —</option>
+          ${window.HAPLOGROUP_LIST ? window.HAPLOGROUP_LIST.map(h => '<option value="' + h + '"' + (state.importedData?.genetics?.mtdna?.haplogroup === h ? ' selected' : '') + '>' + h + '</option>').join('') : ''}
+        </select>
+        <span id="cl-hg-coupling" style="font-size:12px;color:var(--text-muted)">${state.importedData?.genetics?.mtdna?.coupling?.shortLabel || ''}</span>
+      </div>
+    </div>
+    <div class="cl-form-row">
       <label class="cl-form-label">Tags</label>
       <div class="cl-tags-wrap" id="cl-tags-wrap">
         ${tags.map(t => `<span class="cl-tag-pill">${escapeHTML(t)}<button type="button" class="cl-tag-remove" onclick="window._clRemoveTag(this)">&times;</button></span>`).join('')}
@@ -429,6 +439,21 @@ function _clSaveForm(e) {
   }
   _editingId = null;
   renderClientList();
+}
+
+async function _clHaplogroupChanged() {
+  const sel = document.getElementById('cl-haplogroup');
+  const label = document.getElementById('cl-hg-coupling');
+  if (!sel) return;
+  const hg = sel.value;
+  if (!hg) {
+    if (label) label.textContent = '';
+    return;
+  }
+  await window.setManualHaplogroup(hg);
+  // Update coupling label
+  const mt = state.importedData?.genetics?.mtdna;
+  if (label) label.textContent = mt?.coupling?.shortLabel || '';
 }
 
 async function _clAvatarChanged(input) {
@@ -954,7 +979,7 @@ Object.assign(window, {
   openClientList, closeClientList, openClientForm,
   _clSearch, _clSort, _clStatusFilter, _clTagFilter, _clSelect,
   _clSaveForm, _clSetSex, _clUpdateLat, _clTagKeydown, _clRemoveTag, _clBackToList,
-  _clAvatarChanged, _clRemoveAvatar,
+  _clAvatarChanged, _clRemoveAvatar, _clHaplogroupChanged,
   _clToggleMenu, _clPin, _clUnpin, _clFlag, _clUnflag, _clArchive, _clUnarchive, _clExport, _clExportChat, _clDelete,
   _clAddBioEntry, _clDeleteBioEntry, _clBioShowAll, _clUpdateBMI, _clHeightUnitChanged, _clWeightUnitChanged, _clToggleBio, _clToggleBioHistory,
 });

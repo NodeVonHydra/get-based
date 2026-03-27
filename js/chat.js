@@ -2098,7 +2098,9 @@ function _showSummaryModal(summaryText, thread, loading = false, usageInfo = nul
     overlay = document.createElement('div');
     overlay.id = 'summary-modal-overlay';
     overlay.className = 'modal-overlay show';
-    overlay.onclick = (e) => { if (e.target === overlay) _closeSummaryModal(); };
+    let mdInside = false;
+    overlay.addEventListener('mousedown', (e) => { mdInside = e.target !== overlay; });
+    overlay.onclick = (e) => { if (e.target === overlay && !mdInside) _closeSummaryModal(); mdInside = false; };
     document.body.appendChild(overlay);
   } else {
     overlay.className = 'modal-overlay show';
@@ -2470,6 +2472,11 @@ export function renderChatMessages() {
             <div style="display:flex;align-items:center;gap:8px;margin:8px 0">
               ${!hasSnps ? `<button class="ctx-btn-option" onclick="document.getElementById('dna-onboard-input').click()">Upload DNA raw data</button>` : ''}
               ${!hasMtdna ? `<button class="ctx-btn-option" onclick="document.getElementById('mtdna-onboard-input').click()">Upload mtDNA file</button>` : ''}
+              ${!hasMtdna ? `<span style="font-size:12px;color:var(--text-muted)">or</span>
+              <select class="ctx-btn-option" style="padding:4px 8px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px" onchange="if(this.value){window.setManualHaplogroup(this.value);this.value=''}">
+                <option value="">Enter haplogroup</option>
+                ${window.HAPLOGROUP_LIST ? window.HAPLOGROUP_LIST.map(h => '<option value="' + h + '">' + h + '</option>').join('') : ''}
+              </select>` : ''}
             </div>
             ${!hasSnps ? `<input type="file" id="dna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleDNAFile(this.files[0]);this.value=''}">` : ''}
             ${!hasMtdna ? `<input type="file" id="mtdna-onboard-input" accept=".txt,.csv" style="display:none" onchange="if(this.files[0]){window.handleMtDNAFile(this.files[0]);this.value=''}">` : ''}
