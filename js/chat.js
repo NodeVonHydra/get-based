@@ -817,6 +817,37 @@ export function buildLabContext() {
       ctx += `[section:${catKey}${_catDate ? ' updated:' + _catDate : ''}]\n## ${cat.label}\n`;
       for (const [key, m] of markersWithData) {
         const latestIdx = getLatestValueIndex(m.values);
+        // Trajectory narrative: only for flagged markers or those with >10% change
+        let trajectory = '';
+        try {
+          if (!m.singlePoint && data.dates.length >= 2) {
+            const points = [];
+            for (let ti = 0; ti < m.values.length; ti++) {
+              if (m.values[ti] !== null && data.dates[ti]) points.push({ v: m.values[ti], d: data.dates[ti] });
+            }
+            if (points.length >= 2) {
+              const first = points[0], last = points[points.length - 1];
+              const mr = getEffectiveRangeForDate(m, latestIdx);
+              const range = (mr.min != null && mr.max != null) ? mr.max - mr.min : 0;
+              const diff = last.v - first.v;
+              const changePct = range > 0 ? Math.abs(diff) / range : 0;
+              const latestStatus = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'normal';
+              const isFlagged = latestStatus === 'high' || latestStatus === 'low';
+              // Only show trajectory for flagged markers or >25% change relative to ref range
+              if (isFlagged || changePct > 0.25) {
+                const dir = diff > 0 ? '\u2191 rising' : '\u2193 declining';
+                const msSpan = new Date(last.d + 'T00:00:00') - new Date(first.d + 'T00:00:00');
+                const days = Math.round(msSpan / (24 * 3600 * 1000));
+                let durStr;
+                if (days < 30) durStr = `${days} day${days !== 1 ? 's' : ''}`;
+                else if (days < 90) { const w = Math.round(days / 7); durStr = `${w} week${w !== 1 ? 's' : ''}`; }
+                else if (days < 730) { const mo = Math.round(days / 30.44); durStr = `${mo} month${mo !== 1 ? 's' : ''}`; }
+                else { const yr = Math.round(days / 365.25 * 10) / 10; durStr = `${yr} year${yr !== 1 ? 's' : ''}`; }
+                trajectory = ` \u2014 ${dir} over ${durStr} (${points.length} readings)`;
+              }
+            }
+          }
+        } catch (_) { /* skip trajectory on error */ }
         if (m.phaseRefRanges && m.phaseLabels) {
           const parts = m.values.map((v, i) => {
             if (v === null) return null;
@@ -827,7 +858,7 @@ export function buildLabContext() {
             const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
             return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
           }).filter(Boolean).join(', ');
-          ctx += `- ${m.name}: ${parts} ${m.unit}\n`;
+          ctx += `- ${m.name}: ${parts} ${m.unit}${trajectory}\n`;
         } else {
           const vals = m.singlePoint
             ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
@@ -835,7 +866,7 @@ export function buildLabContext() {
           const mr = getEffectiveRangeForDate(m, latestIdx);
           const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
           const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
-          ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})\n`;
+          ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})${trajectory}\n`;
         }
       }
       // Per-category staleness: flag if this category's latest data is >90 days old
@@ -862,10 +893,7 @@ export function buildLabContext() {
       return !cat?.group || isGroupInAIContext(cat.group);
     });
     if (flags.length > 0) {
-      ctx += `[critical]\n## Flagged Results (Latest)\n`;
-      for (const f of flags) {
-        ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status.toUpperCase()}, range: ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
-      }
+      ctx += `[critical]\nFlagged markers (details in sections above): ${flags.map(f => `${f.categoryKey}.${f.markerKey}`).join(', ')}\n`;
       ctx += `[/critical]\n\n`;
     }
   }
