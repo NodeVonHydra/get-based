@@ -102,7 +102,7 @@
   // ═══════════════════════════════════════
   console.log('%c 7. Main Integration ', 'font-weight:bold;color:#f59e0b');
 
-  assert('main.js imports initSync', mainSrc.includes("import { initSync } from './sync.js'"));
+  assert('main.js imports initSync', mainSrc.includes("initSync") && mainSrc.includes("from './sync.js'"));
   assert('main.js calls initSync()', mainSrc.includes('await initSync()'));
 
   // ═══════════════════════════════════════

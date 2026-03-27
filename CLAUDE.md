@@ -38,7 +38,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, auto image mode for scanned PDFs, direct image import (JPG/PNG/WebP). AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
   - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
-  - `sync.js` — Evolu CRDT sync layer, push/pull, mnemonic identity, AI settings sync, debounced `onDataSaved` hook
+  - `sync.js` — Evolu CRDT sync layer, push/pull, mnemonic identity, AI settings sync, debounced `onDataSaved` hook, sync status indicator (header badge + popover)
   - `settings.js` — settings modal, provider panels, privacy section, sync setup modal
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
@@ -86,7 +86,7 @@ Baubiologie sub-module under Environment card. Room-by-room measurements with SB
 
 ### Cross-Device Sync
 
-Opt-in Evolu CRDT sync (Settings → Data). E2E encrypted — relay only sees ciphertext. Identity is a BIP-39 24-word mnemonic (256-bit CSPRNG). Setup modal: "New setup" (generate mnemonic, require acknowledgment) or "Join existing" (restore from mnemonic). Mnemonic masked in UI by default, clipboard auto-clears after 60s. `sync.js` pushes all profiles on enable, debounced `onDataSaved` hook for ongoing changes. Last-write-wins conflict resolution via `syncedAt` timestamps. AI settings (keys, models, provider) synced alongside profile data. Evolu stores its DB in OPFS (outside app encryption scope). See `sync.js`, `settings.js`.
+Opt-in Evolu CRDT sync (Settings → Data). E2E encrypted — relay only sees ciphertext. Identity is a BIP-39 24-word mnemonic (256-bit CSPRNG). Setup modal: "New setup" (generate mnemonic, require acknowledgment) or "Join existing" (restore from mnemonic). Mnemonic masked in UI by default, clipboard auto-clears after 60s. `sync.js` pushes all profiles on enable, debounced `onDataSaved` hook for ongoing changes. Last-write-wins conflict resolution via `syncedAt` timestamps. AI settings (keys, models, provider) synced alongside profile data. Evolu stores its DB in OPFS (outside app encryption scope). Sync status indicator: header badge (green/blue-pulse/amber/red) with click-to-expand popover showing relay connectivity, push confirmation (via Evolu `onComplete` callback), pull status, and timestamps. 60s periodic relay probe + `evolu.subscribeError()` for connection monitoring. See `sync.js`, `settings.js`.
 
 ### Calculated Markers
 

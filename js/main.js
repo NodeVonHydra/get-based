@@ -34,7 +34,7 @@ import { buildSidebar, renderProfileDropdown } from './nav.js';
 import './client-list.js';
 import './views.js';
 import { initEncryption, initBroadcastChannel, initFolderBackup, encryptedGetItem, maybeShowBackupNudge } from './crypto.js';
-import { initSync } from './sync.js';
+import { initSync, renderSyncIndicator } from './sync.js';
 
 // ═══════════════════════════════════════════════
 // INIT
@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (savedImported) { try { state.importedData = JSON.parse(savedImported); if (!state.importedData.notes) state.importedData.notes = []; migrateProfileData(state.importedData); } catch(e) {} }
   // Initialize Evolu sync after profile is loaded (needs state.currentProfile)
   await initSync();
+  renderSyncIndicator();
   ensureSNPTable(); // Eagerly load SNP table if genetics data exists (e.g. after JSON import)
   ensureHaplogroupTable(); // Eagerly load haplogroup table if mtDNA data exists
   const savedUnits = localStorage.getItem(profileStorageKey(state.currentProfile, 'units'));

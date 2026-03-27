@@ -211,6 +211,15 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
       body += `</tbody></table>`;
     }
   }
+  // mtDNA haplogroup
+  if (genetics?.mtdna) {
+    const mt = genetics.mtdna;
+    if (!genetics.snps || !snpTable) body += `<h2>Genetics</h2>`;
+    body += `<div style="margin:12px 0;font-size:13px"><strong>mtDNA Haplogroup:</strong> ${esc(mt.haplogroup)}`;
+    if (mt.coupling) body += ` \u2014 ${esc(mt.coupling.label)} (${esc(mt.coupling.climate)})`;
+    if (mt.source) body += ` &middot; Source: ${esc(mt.source)}`;
+    body += `</div>`;
+  }
 
   // Context sections
   if (contextSections.length > 0) {

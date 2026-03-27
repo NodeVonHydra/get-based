@@ -153,6 +153,15 @@ Drop this file onto the app and getbased will:
 3. Classify your mitochondrial coupling status (coupled → uncoupled) using Doug Wallace's framework
 4. Compare against your profile's latitude to detect **environment-haplotype mismatch**
 
+### Manual entry
+
+If you already know your maternal haplogroup (from 23andMe results, FTDNA, or another service) but don't have a mutation file, you can enter it directly:
+
+- **Edit Client form** — select your haplogroup from the dropdown under "mtDNA Haplogroup (maternal lineage)"
+- **Chat onboarding** — in the DNA step, use the "Enter haplogroup" dropdown next to the upload button
+
+Both paths auto-resolve the coupling classification and environment mismatch detection — no file needed.
+
 ### Coupling classification
 
 Based on [Wallace 2015 (Cell)](https://pubmed.ncbi.nlm.nih.gov/26406369/), mtDNA haplogroups correlate with mitochondrial electron transport coupling efficiency:

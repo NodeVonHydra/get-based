@@ -1334,6 +1334,8 @@ async function updateRelayStatus() {
   const connected = await checkRelayConnection();
   dot.style.background = connected ? '#22c55e' : 'var(--red)';
   text.textContent = connected ? 'Connected to relay' : 'Relay unreachable';
+  // Keep header indicator in sync
+  if (window.updateSyncIndicator) window.updateSyncIndicator();
 }
 
 let _mnemonicRetries = 0;

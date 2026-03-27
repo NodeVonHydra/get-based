@@ -3,7 +3,7 @@
 // Last-write-wins at the profile level — fine for single-user cross-device sync.
 
 import { state } from './state.js';
-import { showNotification, isDebugMode } from './utils.js';
+import { showNotification, isDebugMode, escapeHTML } from './utils.js';
 import { profileStorageKey, getProfiles, saveProfiles, migrateProfileData } from './profile.js';
 import { getEncryptionEnabled, encryptedSetItem, encryptedGetItem } from './crypto.js';
 
@@ -21,6 +21,44 @@ let _debounceTimer = null;
 let _pollInterval = null;
 let _lastPollRowCount = -1;
 let _subscriptionFireCount = 0;
+let _relayProbeInterval = null;
+
+// ═══════════════════════════════════════════════
+// SYNC STATUS — in-memory state + pub-sub
+// ═══════════════════════════════════════════════
+
+const _syncStatus = {
+  relay: 'unknown',        // 'unknown' | 'connected' | 'unreachable'
+  relayCheckedAt: null,
+  push: 'idle',            // 'idle' | 'pending' | 'confirmed' | 'error'
+  pushStartedAt: null,
+  pushConfirmedAt: null,
+  pull: 'idle',            // 'idle' | 'pulling' | 'received'
+  pullReceivedAt: null,
+  lastError: null,
+};
+const _syncStatusListeners = new Set();
+
+function updateSyncStatus(partial) {
+  Object.assign(_syncStatus, partial);
+  for (const fn of _syncStatusListeners) fn(_syncStatus);
+}
+
+export function getSyncStatus() { return { ..._syncStatus }; }
+
+export function subscribeSyncStatus(fn) {
+  _syncStatusListeners.add(fn);
+  return () => _syncStatusListeners.delete(fn);
+}
+
+function getSyncDisplayState() {
+  if (!_syncEnabled) return 'disabled';
+  if (_syncStatus.lastError && _syncStatus.push === 'error') return 'error';
+  if (_syncStatus.push === 'pending' && _syncStatus.pushStartedAt && Date.now() - _syncStatus.pushStartedAt > 8000) return 'error';
+  if (_syncStatus.relay === 'unreachable') return 'offline';
+  if (_syncStatus.push === 'pending' || _syncStatus.pull === 'pulling') return 'syncing';
+  return 'synced';
+}
 
 // ═══════════════════════════════════════════════
 // SETTINGS
@@ -137,6 +175,25 @@ export async function initSync() {
       }
     }, 30000);
 
+    // Subscribe to Evolu errors — catches relay connection failures
+    evolu.subscribeError((error) => {
+      if (!error) return;
+      const type = error?.type || 'unknown';
+      dbg('Evolu error:', type);
+      if (type.startsWith('WebSocket')) {
+        updateSyncStatus({ relay: 'unreachable', lastError: { type, message: type, at: Date.now() } });
+      }
+    });
+
+    // Initial relay probe + periodic 60s health check
+    checkRelayConnection().then(ok => {
+      updateSyncStatus({ relay: ok ? 'connected' : 'unreachable', relayCheckedAt: Date.now() });
+    });
+    _relayProbeInterval = setInterval(async () => {
+      const ok = await checkRelayConnection();
+      updateSyncStatus({ relay: ok ? 'connected' : 'unreachable', relayCheckedAt: Date.now() });
+    }, 60000);
+
     dbg('Initialized, relay:', relay);
   } catch (e) {
     console.error('[sync] Failed to initialize Evolu:', e);
@@ -159,6 +216,7 @@ export async function enableSync({ skipPush = false } = {}) {
       await pushAllProfiles();
     }
     showNotification('Sync enabled', 'success');
+    renderSyncIndicator();
   }
 }
 
@@ -169,6 +227,14 @@ export async function disableSync() {
   }
   localStorage.setItem(SYNC_STORAGE_KEY, 'false');
   _syncEnabled = false;
+
+  // Stop relay probe interval
+  if (_relayProbeInterval) { clearInterval(_relayProbeInterval); _relayProbeInterval = null; }
+
+  // Reset sync status and notify UI
+  Object.assign(_syncStatus, { relay: 'unknown', relayCheckedAt: null, push: 'idle', pushStartedAt: null, pushConfirmedAt: null, pull: 'idle', pullReceivedAt: null, lastError: null });
+  for (const fn of _syncStatusListeners) fn(_syncStatus);
+  renderSyncIndicator();
 
   // Clear sync timestamps so fresh pull can happen after re-enable
   for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -445,9 +511,14 @@ async function pushProfile(profileId, importedData) {
   if (!evolu || !_syncEnabled || _syncing) return;
   if (!profileId || typeof profileId !== 'string') return;
   _syncing = true;
+  updateSyncStatus({ push: 'pending', pushStartedAt: Date.now() });
   try {
     const dataJson = await buildSyncPayload(profileId, importedData);
     const syncedAt = new Date().toISOString();
+
+    const onComplete = () => {
+      updateSyncStatus({ push: 'confirmed', pushConfirmedAt: Date.now() });
+    };
 
     // Check if row exists for this profile
     const rows = evolu.getQueryRows(profileQuery);
@@ -458,13 +529,13 @@ async function pushProfile(profileId, importedData) {
         id: existing.id,
         dataJson,
         syncedAt,
-      });
+      }, { onComplete });
     } else {
       evolu.insert("profileData", {
         profileId,
         dataJson,
         syncedAt,
-      });
+      }, { onComplete });
     }
     // Only update sync-ts after successful push.
     // Use syncedAt (same value stored in Evolu) so the pull side sees exact equality
@@ -473,6 +544,7 @@ async function pushProfile(profileId, importedData) {
     dbg('Pushed:', profileId);
   } catch (e) {
     console.error('[sync] Push failed:', e);
+    updateSyncStatus({ push: 'error', lastError: { type: 'PushError', message: e.message, at: Date.now() } });
   } finally {
     _syncing = false;
   }
@@ -515,6 +587,7 @@ async function onSyncReceived() {
     return;
   }
   _pulling = true;
+  updateSyncStatus({ pull: 'pulling' });
   try {
     const rows = evolu.getQueryRows(profileQuery);
     dbg(`onSyncReceived: ${rows?.length ?? 0} rows`);
@@ -624,6 +697,7 @@ async function onSyncReceived() {
     }
   } finally {
     _pulling = false;
+    updateSyncStatus({ pull: 'received', pullReceivedAt: Date.now() });
   }
 }
 
@@ -723,6 +797,74 @@ export function pushContextToGateway() {
 }
 
 // ═══════════════════════════════════════════════
+// SYNC STATUS UI
+// ═══════════════════════════════════════════════
+
+function _timeAgo(ts) {
+  if (!ts) return 'never';
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 5) return 'just now';
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  return `${Math.floor(s / 3600)}h ago`;
+}
+
+export function renderSyncIndicator() {
+  const slot = document.getElementById('sync-indicator-slot');
+  if (!slot) return;
+  if (!_syncEnabled) { slot.innerHTML = ''; return; }
+  const ds = getSyncDisplayState();
+  const titles = { synced: 'Synced', syncing: 'Syncing\u2026', offline: 'Offline \u2014 changes saved locally', error: 'Sync error', disabled: '' };
+  slot.innerHTML = `<button class="sync-indicator" id="sync-indicator-btn" onclick="toggleSyncDetail()" title="${titles[ds]}" aria-label="Sync status"><span class="sync-dot sync-dot-${ds}"></span></button>`;
+}
+
+export function updateSyncIndicator() {
+  const dot = document.querySelector('#sync-indicator-btn .sync-dot');
+  if (!dot) { renderSyncIndicator(); return; }
+  const ds = getSyncDisplayState();
+  dot.className = `sync-dot sync-dot-${ds}`;
+  const titles = { synced: 'Synced', syncing: 'Syncing\u2026', offline: 'Offline \u2014 changes saved locally', error: 'Sync error' };
+  dot.parentElement.title = titles[ds] || '';
+}
+
+export function toggleSyncDetail() {
+  let pop = document.getElementById('sync-popover');
+  if (pop) { pop.remove(); return; }
+  const btn = document.getElementById('sync-indicator-btn');
+  if (!btn) return;
+  const ds = getSyncDisplayState();
+  const s = _syncStatus;
+  const relayDot = s.relay === 'connected' ? '#22c55e' : s.relay === 'unreachable' ? 'var(--red)' : 'var(--text-muted)';
+  const relayLabel = s.relay === 'connected' ? 'Connected to relay' : s.relay === 'unreachable' ? 'Relay unreachable' : 'Checking\u2026';
+  const pushLabel = s.push === 'confirmed' ? `Confirmed ${_timeAgo(s.pushConfirmedAt)}` : s.push === 'pending' ? 'Pending\u2026' : s.push === 'error' ? 'Failed' : '\u2014';
+  const pullLabel = s.pullReceivedAt ? `Checked ${_timeAgo(s.pullReceivedAt)}` : '\u2014';
+  const errorLine = s.lastError ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px">${escapeHTML(s.lastError.type)} ${_timeAgo(s.lastError.at)}</div>` : '';
+
+  pop = document.createElement('div');
+  pop.id = 'sync-popover';
+  pop.className = 'sync-popover';
+  pop.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span style="width:8px;height:8px;border-radius:50%;background:${relayDot};display:inline-block"></span><span style="font-size:13px">${relayLabel}</span></div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.8">
+      <div>Push: ${pushLabel}</div>
+      <div>Pull: ${pullLabel}</div>
+    </div>
+    ${errorLine}
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="ctx-btn-option" style="font-size:12px" onclick="pushCurrentProfile();toggleSyncDetail()">Sync now</button>
+      <button class="ctx-btn-option" style="font-size:12px" onclick="toggleSyncDetail();openSettingsModal('data')">Settings</button>
+    </div>`;
+  btn.parentElement.style.position = 'relative';
+  btn.parentElement.appendChild(pop);
+  // Close on outside click
+  const close = (e) => { if (!pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) { pop.remove(); document.removeEventListener('click', close); } };
+  setTimeout(() => document.addEventListener('click', close), 0);
+}
+
+// Subscribe to status changes → repaint indicator
+subscribeSyncStatus(() => updateSyncIndicator());
+
+// ═══════════════════════════════════════════════
 // EXPORTS for window binding
 // ═══════════════════════════════════════════════
 
@@ -740,4 +882,8 @@ Object.assign(window, {
   revokeMessengerToken,
   _syncDiag,
   _forcePull,
+  getSyncStatus,
+  renderSyncIndicator,
+  updateSyncIndicator,
+  toggleSyncDetail,
 });
