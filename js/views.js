@@ -83,6 +83,7 @@ export function showDashboard(data) {
     if (state.profileSex === 'female') html += renderMenstrualCycleSection(data);
     html += renderSupplementsSection();
     html += `</details>`;
+    html += renderGeneticsSection();
     main.innerHTML = html;
     setupDropZone();
     return;
