@@ -2684,7 +2684,7 @@ export function applyInlineMarkdown(text) {
     .replace(/`(.+?)`/g, '<code>$1</code>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
       const safe = /^(https?:|mailto:)/.test(url) ? url.replace(/"/g, '&quot;') : '#';
-      return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`;
+      return `<a href="${safe}" target="_blank" rel="noopener">${escapeHTML(label)}</a>`;
     })
     .replace(/(?<!")(https?:\/\/[^\s<>")\]]+)/g, url => {
       return `<a href="${url.replace(/"/g, '&quot;')}" target="_blank" rel="noopener">${url}</a>`;

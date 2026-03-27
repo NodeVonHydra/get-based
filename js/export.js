@@ -411,6 +411,7 @@ export async function exportClientJSON(profileId, includeChat = false) {
     genetics: data.genetics || null,
     biometrics: data.biometrics || null,
     markerNotes: data.markerNotes || {},
+    manualValues: data.manualValues || {},
     changeHistory: data.changeHistory || [],
     chatSummaries: data.chatSummaries || []
   };
@@ -667,6 +668,11 @@ export function importDataJSON(file) {
         if (!state.importedData.markerNotes) state.importedData.markerNotes = {};
         Object.assign(state.importedData.markerNotes, json.markerNotes);
       }
+      // Import manual value flags
+      if (json.manualValues && typeof json.manualValues === 'object') {
+        if (!state.importedData.manualValues) state.importedData.manualValues = {};
+        Object.assign(state.importedData.manualValues, json.manualValues);
+      }
       // Import change history (merge by field+date, imported snapshot wins on conflict)
       if (Array.isArray(json.changeHistory)) {
         if (!state.importedData.changeHistory) state.importedData.changeHistory = [];
@@ -829,8 +835,8 @@ async function _importDatabaseBundle(json) {
           else { current.chatSummaries.push(s); }
         }
       }
-      // Display overrides: merge labels/icons (don't overwrite existing)
-      for (const field of ['categoryLabels', 'categoryIcons', 'markerLabels']) {
+      // Display overrides: merge labels/icons/manualValues (don't overwrite existing)
+      for (const field of ['categoryLabels', 'categoryIcons', 'markerLabels', 'manualValues']) {
         if (importData[field] && typeof importData[field] === 'object') {
           if (!current[field]) current[field] = {};
           for (const [k, v] of Object.entries(importData[field])) {

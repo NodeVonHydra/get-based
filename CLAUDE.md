@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 34 ES modules loaded via `js/main.js`:
+- **`js/`** — 35 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
   - `adapters.js` — parser adapter registry for specialty labs. `ADAPTER_MARKERS` (194 entries), `detectProduct`, `normalizeWithAdapter`, `getAdapterByTestType`. Adapters: fattyAcids (29 markers, product detection), metabolomix (FA routing), oat (165 markers)
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
@@ -25,13 +25,14 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `hardware.js` — GPU detection (WebGL renderer → GPU_DB), `detectHardware`, `assessModel` (fits/tight/toobig/cloud), `getModelSuggestions`, VRAM override. Ollama Cloud `:cloud` models recognized (no VRAM needed)
   - `image-utils.js` — `resizeImage`, `formatImageBlock`, `buildVisionContent`, `isValidImageType` (no app imports)
   - `api.js` — all 4 AI providers + `callClaudeAPI` router, `callOpenAICompatibleAPI` shared helper, key/model management, dynamic model lists, OpenRouter OAuth PKCE, `isRecommendedModel()` tiering, `getActiveModelId/Display()` helpers, `supportsVision()`, `isAIPaused()`/`setAIPaused()` global AI toggle, Venice E2EE branch (`isE2EEModel`, `isVeniceE2EEActive`)
-  - `venice-e2ee.js` — Venice E2EE crypto (ECDH secp256k1 via vendored `@noble/secp256k1` + HKDF-SHA256 + AES-256-GCM via Web Crypto). Session management with 30-min TTL, TEE attestation, per-chunk response decryption
   - `profile.js` — profile CRUD, sex/DOB/location/height, `migrateProfileData`, `migrateProfiles`, `updateProfileMeta`, `getAllTags`, `touchProfileTimestamp`
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
   - `notes.js` — note editor (open/save/delete)
   - `supplements.js` — supplement editor + render section
+  - `supplement-warnings.js` — mitochondrial compound warnings for supplements (108 entries, PubMed-cited)
+  - `food-contaminants.js` — diet card pesticide/plastic contaminant scanner (EWG Dirty Dozen, PlasticList)
   - `cycle.js` — menstrual cycle helpers + editor + render section
   - `context-cards.js` — 9 context card editors, shared helpers, summaries, health dots, interpretive lens, `recordChange()` for change history
   - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports

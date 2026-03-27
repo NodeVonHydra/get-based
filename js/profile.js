@@ -280,7 +280,7 @@ export async function loadProfile(profileId) {
   state.currentProfile = profileId;
   setActiveProfileId(profileId);
   const savedImported = await encryptedGetItem(profileStorageKey(profileId, 'imported'));
-  const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, emfAssessment: null, customMarkers: {}, changeHistory: [], genetics: null, biometrics: null };
+  const defaultData = { entries: [], notes: [], supplements: [], healthGoals: [], diagnoses: null, diet: null, exercise: null, sleepRest: null, lightCircadian: null, stress: null, loveLife: null, environment: null, interpretiveLens: '', contextNotes: '', menstrualCycle: null, emfAssessment: null, customMarkers: {}, changeHistory: [], genetics: null, biometrics: null, manualValues: {} };
   state.importedData = savedImported ? (function() { try { const d = JSON.parse(savedImported); if (!d.notes) d.notes = []; if (!d.supplements) d.supplements = []; return migrateProfileData(d); } catch(e) { return defaultData; } })() : defaultData;
   const savedUnits = localStorage.getItem(profileStorageKey(profileId, 'units'));
   state.unitSystem = savedUnits === 'US' ? 'US' : 'EU';

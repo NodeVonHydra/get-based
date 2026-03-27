@@ -202,7 +202,7 @@ function _renderClientRow(p, activeId) {
     tags = p.tags.map(t => `<span class="cl-row-tag">${escapeHTML(t)}</span>`).join('');
   }
 
-  return `<div class="cl-row${isActive ? ' cl-row-active' : ''}" data-id="${p.id}" onclick="window._clSelect('${p.id}')">
+  return `<div class="cl-row${isActive ? ' cl-row-active' : ''}" data-id="${escapeAttr(p.id)}" onclick="window._clSelect('${escapeAttr(p.id)}')">
     ${_renderAvatarEl(p)}
     <div class="cl-row-info">
       <div class="cl-row-top">
@@ -214,8 +214,8 @@ function _renderClientRow(p, activeId) {
       </div>
     </div>
     <div class="cl-row-actions" onclick="event.stopPropagation()">
-      <button class="cl-row-edit" onclick="openClientForm('${p.id}')" title="Edit">Edit</button>
-      <button class="cl-row-menu-btn" onclick="window._clToggleMenu(event, '${p.id}')" title="More">&ctdot;</button>
+      <button class="cl-row-edit" onclick="openClientForm('${escapeAttr(p.id)}')" title="Edit">Edit</button>
+      <button class="cl-row-menu-btn" onclick="window._clToggleMenu(event, '${escapeAttr(p.id)}')" title="More">&ctdot;</button>
     </div>
   </div>`;
 }
@@ -634,21 +634,22 @@ function _clToggleMenu(e, id) {
   const p = profiles.find(pr => pr.id === id);
   if (!p) return;
   menu.dataset.profileId = id;
+  const eid = escapeAttr(id);
   menu.innerHTML =
     (p.pinned
-      ? `<div class="cl-menu-item" onclick="window._clUnpin('${id}')">Unpin</div>`
-      : `<div class="cl-menu-item" onclick="window._clPin('${id}')">Pin</div>`) +
+      ? `<div class="cl-menu-item" onclick="window._clUnpin('${eid}')">Unpin</div>`
+      : `<div class="cl-menu-item" onclick="window._clPin('${eid}')">Pin</div>`) +
     (p.status === 'flagged'
-      ? `<div class="cl-menu-item" onclick="window._clUnflag('${id}')">Unflag</div>`
-      : `<div class="cl-menu-item" onclick="window._clFlag('${id}')">Flag</div>`) +
+      ? `<div class="cl-menu-item" onclick="window._clUnflag('${eid}')">Unflag</div>`
+      : `<div class="cl-menu-item" onclick="window._clFlag('${eid}')">Flag</div>`) +
     `<div class="cl-menu-sep"></div>` +
-    `<div class="cl-menu-item" onclick="window._clExport('${id}')">Export</div>` +
-    `<div class="cl-menu-item" onclick="window._clExportChat('${id}')">Export with Chat</div>` +
+    `<div class="cl-menu-item" onclick="window._clExport('${eid}')">Export</div>` +
+    `<div class="cl-menu-item" onclick="window._clExportChat('${eid}')">Export with Chat</div>` +
     `<div class="cl-menu-sep"></div>` +
     (p.status === 'archived'
-      ? `<div class="cl-menu-item" onclick="window._clUnarchive('${id}')">Unarchive</div>`
-      : `<div class="cl-menu-item" onclick="window._clArchive('${id}')">Archive</div>`) +
-    `<div class="cl-menu-item cl-menu-danger" onclick="window._clDelete('${id}')">Delete</div>`;
+      ? `<div class="cl-menu-item" onclick="window._clUnarchive('${eid}')">Unarchive</div>`
+      : `<div class="cl-menu-item" onclick="window._clArchive('${eid}')">Archive</div>`) +
+    `<div class="cl-menu-item cl-menu-danger" onclick="window._clDelete('${eid}')">Delete</div>`;
   // Position relative to the modal (absolute positioned child)
   const btn = e.currentTarget;
   const modal = menu.parentElement;
