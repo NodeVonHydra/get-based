@@ -66,6 +66,21 @@ Disabling sync resets your identity — the page reloads to clean up the sync en
 If you lose your mnemonic, there is no way to recover your sync identity. You can still access your local data, but you will need to set up sync again with a new mnemonic on all devices.
 :::
 
+## Sync Status Indicator
+
+When sync is enabled, a small colored dot appears in the header (next to the settings gear):
+
+| Dot | Meaning |
+|-----|---------|
+| 🟢 Green | Synced — relay connected, data confirmed |
+| 🔵 Blue (pulsing) | Syncing — push or pull in progress |
+| 🟡 Amber | Offline — relay unreachable, changes saved locally |
+| 🔴 Red | Error — sync failed |
+
+**Click the dot** to see details: relay connectivity, last push/pull timestamps, and a "Sync now" button for manual retry. The "Settings" link opens the Data tab directly.
+
+The indicator checks relay connectivity every 60 seconds and monitors Evolu's error channel for connection drops.
+
 ## Conflict Resolution
 
 Sync uses **last-write-wins** at the profile level, based on timestamps. This is designed for single-user, multi-device use — one person using getbased on their phone and laptop. If you edit the same profile on two devices simultaneously before they sync, the most recent push wins.

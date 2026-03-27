@@ -5,8 +5,11 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.11.1', date: '2026-03-27', title: 'Bug Fixes',
+    version: '1.12.0', date: '2026-03-27', title: 'Sync Status & Fixes',
     items: [
+      'Sync status indicator in header — green/amber/red dot shows relay connectivity, push confirmation, and pull status',
+      'Click the sync dot for details: relay status, last push/pull timestamps, "Sync now" button',
+      'Manual mtDNA haplogroup entry in Edit Client form and chat onboarding — no mutation file needed',
       'Fix modal windows closing when drag-selecting text to outside the modal (#87)',
       'Fix 23andMe v5 raw data import — newer export header variant was unrecognized (#89)',
       'PDF report now includes "Additional notes for AI context" field (#92)',

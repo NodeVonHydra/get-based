@@ -2698,6 +2698,25 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 @media (max-width: 600px) {
   .trend-alert-spark { display: none; }
 }
+/* Sync indicator */
+.sync-indicator {
+  background: transparent; border: none; cursor: pointer; padding: 6px 8px;
+  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+}
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; transition: background 0.3s;
+}
+.sync-dot-synced { background: #22c55e; }
+.sync-dot-syncing { background: var(--accent); animation: sync-pulse 1.5s ease-in-out infinite; }
+.sync-dot-offline { background: #fbbf24; }
+.sync-dot-error { background: var(--red); }
+@keyframes sync-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.sync-popover {
+  position: absolute; top: 100%; right: 0; z-index: 999;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; min-width: 220px; box-shadow: var(--shadow-lg);
+  margin-top: 6px;
+}
 /* Glossary */
 .glossary-btn {
   background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
