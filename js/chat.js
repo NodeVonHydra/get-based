@@ -817,7 +817,7 @@ export function buildLabContext() {
       ctx += `[section:${catKey}${_catDate ? ' updated:' + _catDate : ''}]\n## ${cat.label}\n`;
       for (const [key, m] of markersWithData) {
         const latestIdx = getLatestValueIndex(m.values);
-        // Trajectory narrative: only for flagged markers or those with >10% change
+        // Trajectory narrative: only for flagged markers or those with >25% change
         let trajectory = '';
         try {
           if (!m.singlePoint && data.dates.length >= 2) {
