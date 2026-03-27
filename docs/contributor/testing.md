@@ -59,7 +59,6 @@ All test files live in the `tests/` directory.
 | `tests/test-openrouter.js` | OpenRouter provider: curated model list, pricing cache, exclude blocklist, model fetch |
 | `tests/test-phase-ranges.js` | Phase-aware reference ranges for estradiol and progesterone aligned with dates |
 | `tests/test-prelab.js` | Pre-lab onboarding: context assembly without data, chat prompts |
-| `tests/test-routstr.js` | ROUTSTR DISABLED markers: verifies all commented-out code is correctly disabled |
 | `tests/test-schema.js` | MARKER_SCHEMA integrity, unit conversions, optimal ranges, phase ranges |
 | `tests/test-tour.js` | App tour: 7 steps, spotlight DOM, positioning, escape key, completion flag (154 assertions) |
 

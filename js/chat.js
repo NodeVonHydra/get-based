@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
-import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, /* ROUTSTR DISABLED: getRoutstrModel, */ getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 import { onChatSaved } from './sync.js';

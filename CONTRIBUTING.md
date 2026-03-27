@@ -101,7 +101,6 @@ If you add a feature or fix a bug, add assertions to the relevant test file (or 
   const CACHE_NAME = 'labcharts-v49';
   ```
   Increment the number. This busts the cache for existing users.
-- Check comments near code you're changing — there are occasionally `// ROUTSTR DISABLED` or similar markers that explain why something is commented out.
 - Update `CLAUDE.md` if you change architecture, add a module, or change how something works at a system level.
 
 ---

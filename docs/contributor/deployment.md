@@ -127,18 +127,6 @@ The API bypass is critical for streaming. If the service worker intercepts a str
 }
 ```
 
-## ROUTSTR DISABLED markers
-
-The Routstr provider was disabled on Feb 23 2026 due to a CORS bug on their `/v1/chat/completions` endpoint (tracked at github.com/Routstr/routstr-core/issues/375). All Routstr code is commented out with `// ROUTSTR DISABLED` markers across 12 files.
-
-To find every affected location:
-
-```bash
-grep -r "ROUTSTR DISABLED" .
-```
-
-To re-enable when the CORS issue is fixed: uncomment all marked blocks, add Routstr back to the provider button row in `settings.js`, update the grid to `repeat(5, 1fr)`, bump the service worker cache version, and add `api.routstr.com` to `connect-src` in `vercel.json`.
-
 ## Vendor dependencies
 
 Chart.js, pdf.js, and Google Fonts are bundled locally in `vendor/`. To update:

@@ -71,4 +71,3 @@ const currentProfile = state.currentProfile;
 - Run `./run-tests.sh` — all 14 test files must pass
 - Bump the SW cache version in `service-worker.js` if any app file changed
 - Update `CLAUDE.md` if you changed architecture, added a module, or changed how a system-level feature works
-- Check for `// ROUTSTR DISABLED` comments near any code you touch (`grep -r "ROUTSTR DISABLED"`)

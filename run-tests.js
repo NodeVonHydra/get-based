@@ -13,7 +13,6 @@ const TEST_FILES = [
   'tests/test-mobile.js',
   'tests/test-demo.js',
   'tests/test-openrouter.js',
-  // ROUTSTR DISABLED: 'tests/test-routstr.js',
   'tests/test-tour.js',
   'tests/test-phase-ranges.js',
   'tests/test-cycle-improvements.js',

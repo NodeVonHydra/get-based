@@ -60,7 +60,6 @@ export function hasAIProvider() {
   if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();
   if (provider === 'openrouter') return hasOpenRouterKey();
-  // ROUTSTR DISABLED: if (provider === 'routstr') return hasRoutstrKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -271,27 +270,6 @@ export async function fetchOpenRouterModelPricing(modelId) {
   } catch (e) { /* fail silently */ }
   return null;
 }
-
-/* ROUTSTR DISABLED — waiting for CORS fix (github.com/Routstr/routstr-core/issues/375)
-// ═══════════════════════════════════════════════
-// ROUTSTR (Decentralized AI — eCash/Lightning)
-// ═══════════════════════════════════════════════
-export function getRoutstrKey() { return localStorage.getItem('labcharts-routstr-key') || ''; }
-export function saveRoutstrKey(key) { localStorage.setItem('labcharts-routstr-key', key); }
-export function hasRoutstrKey() { return !!getRoutstrKey(); }
-export function getRoutstrModel() { return localStorage.getItem('labcharts-routstr-model') || 'claude-sonnet-4.6'; }
-export function setRoutstrModel(model) { localStorage.setItem('labcharts-routstr-model', model); }
-export function getRoutstrModelDisplay() {
-  const id = getRoutstrModel();
-  const cached = JSON.parse(localStorage.getItem('labcharts-routstr-models') || '[]');
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
-}
-export async function fetchRoutstrModels(key) { ... }
-export function getRoutstrPricing(modelId) { ... }
-export async function validateRoutstrKey(key) { ... }
-export async function callRoutstrAPI(opts) { ... }
-END ROUTSTR DISABLED */
 
 export async function validateOpenRouterKey(key) {
   try {
@@ -806,7 +784,6 @@ export async function callClaudeAPI(opts) {
   if (provider === 'ollama') return callOpenAICompatibleLocalAPI(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
-  // ROUTSTR DISABLED: if (provider === 'routstr') return callRoutstrAPI(opts);
   return callAnthropicAPI(opts);
 }
 
@@ -817,22 +794,17 @@ Object.assign(window, {
   getVeniceModel, setVeniceModel, getVeniceModelDisplay,
   getOpenRouterKey, saveOpenRouterKey, hasOpenRouterKey,
   getOpenRouterModel, setOpenRouterModel, getOpenRouterModelDisplay,
-  /* ROUTSTR DISABLED
-  getRoutstrKey, saveRoutstrKey, hasRoutstrKey,
-  getRoutstrModel, setRoutstrModel, getRoutstrModelDisplay,
-  */
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
   fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing,
   generatePKCE, startOpenRouterOAuth, exchangeOpenRouterCode,
-  // ROUTSTR DISABLED: fetchRoutstrModels, getRoutstrPricing,
   deduplicateModels,
   isRecommendedModel,
   getActiveModelId, getActiveModelDisplay,
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   supportsVision, supportsWebSearch, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE,
-  validateApiKey, validateVeniceKey, validateOpenRouterKey, /* ROUTSTR DISABLED: validateRoutstrKey, */
-  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, /* ROUTSTR DISABLED: callRoutstrAPI, */ callClaudeAPI
+  validateApiKey, validateVeniceKey, validateOpenRouterKey,
+  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callClaudeAPI
 });

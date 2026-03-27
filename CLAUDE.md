@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 getbased is a blood work dashboard for tracking biomarker trends over time. It visualizes lab results across 15 standard categories (biochemistry, hormones, lipids, hematology, etc.) with Chart.js line charts, data tables, and a correlation viewer. The app starts empty and is fully data-driven — users load their data via AI-powered PDF import (any lab report) or JSON files. Specialty labs (OAT, fatty acids, etc.) flow through the custom marker pipeline — each user gets their own lab's stated reference ranges from their PDF. Fatty acid tests are grouped by product/lab (Spadia, ZinZino, OmegaQuant) under a "Fatty Acids" sidebar group.
 
-Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or Local AI) for AI-powered PDF import and an AI chat panel for interpreting results. (Routstr provider disabled pending CORS fix — see `grep -r "ROUTSTR DISABLED"`)
+Uses AI APIs (Anthropic Claude, OpenRouter, Venice, or Local AI) for AI-powered PDF import and an AI chat panel for interpreting results.
 
 ## Architecture
 
@@ -99,7 +99,7 @@ Slide-out panel with streaming. 2+custom personalities, stop/discuss buttons, co
 
 ### AI Provider System
 
-Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. OpenRouter (recommended, OAuth PKCE), Anthropic, Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`). Routstr disabled (`ROUTSTR DISABLED` markers). See `api.js` for details.
+Four active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. OpenRouter (recommended, OAuth PKCE), Anthropic, Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`). See `api.js` for details.
 
 Venice E2EE: toggle in settings swaps model dropdown to `e2ee-*` models. `callVeniceAPI` auto-branches: encrypts all messages, adds `X-Venice-TEE-*` headers, decrypts streamed response chunks per-chunk via ECDH. Web search + vision disabled when E2EE active. Lock emoji in chat header, `🔒 e2ee` in message footer. Session has 30-min TTL.
 

@@ -321,7 +321,6 @@ export const MODEL_PRICING = {
   openrouter: {
     '_default':  { input: 1.00,  output: 3.00, approx: true },
   },
-  // ROUTSTR DISABLED: routstr: { '_default': { input: 1.00, output: 3.00, approx: true } }
 };
 export function getModelPricing(provider, modelId) {
   // OpenRouter: check dynamic API-sourced pricing first
@@ -329,12 +328,6 @@ export function getModelPricing(provider, modelId) {
     const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
     if (cached[modelId]) return cached[modelId];
   }
-  /* ROUTSTR DISABLED
-  if (provider === 'routstr' && modelId) {
-    const cached = JSON.parse(localStorage.getItem('labcharts-routstr-pricing') || '{}');
-    if (cached[modelId]) return cached[modelId];
-  }
-  */
   if (!MODEL_PRICING[provider]) return { input: 0, output: 0 };
   const table = MODEL_PRICING[provider];
   const stripped = (modelId || '').replace(/-\d{8}$/, '');

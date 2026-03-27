@@ -9,8 +9,6 @@ const ALLOWED_ORIGINS = [
   'https://api.anthropic.com/',
   'https://openrouter.ai/',
   'https://api.venice.ai/',
-  // Routstr — ready when they are
-  // 'https://api.routstr.com/',
 ];
 
 function isAllowedUrl(url) {
