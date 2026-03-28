@@ -1644,16 +1644,33 @@ const AI_CONFIGS = {
     url: 'https://api.venice.ai/api/v1/chat/completions',
     format: 'openai',
   },
+  ollama: {
+    keyName: null,
+    modelName: 'labcharts-ollama-model',
+    defaultModel: 'qwen3:14b',
+    format: 'openai',
+  },
 };
 
 function detectAIProvider() {
   const provider = localStorage.getItem('labcharts-ai-provider') || 'anthropic';
   const config = AI_CONFIGS[provider];
   if (!config) return null;
+  // Local AI: no key needed, URL from localStorage
+  if (provider === 'ollama') {
+    const ollamaRaw = localStorage.getItem('labcharts-ollama');
+    if (!ollamaRaw) return null;
+    try {
+      const ollama = JSON.parse(ollamaRaw);
+      const url = (ollama.url || 'http://localhost:11434').replace(/\/$/, '') + '/v1/chat/completions';
+      return { ...config, key: ollama.apiKey || 'ollama', provider, model: ollama.model || config.defaultModel, url };
+    } catch { return null; }
+  }
   const key = localStorage.getItem(config.keyName);
   if (!key) {
     // Try fallbacks
     for (const [name, cfg] of Object.entries(AI_CONFIGS)) {
+      if (name === 'ollama') continue;
       const k = localStorage.getItem(cfg.keyName);
       if (k) return { ...cfg, key: k, provider: name, model: localStorage.getItem(cfg.modelName) || cfg.defaultModel };
     }
@@ -2198,7 +2215,7 @@ function showStalePrices() {
         <div>${esc(sp.product.brand || '')} — ${esc(sp.product.name || sp.product.form || '')}</div>
         <div class="stale-item-slot">${esc(sp.slot?.label || sp.slotKey)} · <span class="stale-badge ${sp.staleness.cls}">${sp.staleness.label}</span></div>
       </div>
-      <button class="btn btn-sm" onclick="window.open('${esc(sp.product.url || '')}','_blank')">Open</button>
+      <button class="btn btn-sm" onclick="const u='${esc(sp.product.url || '')}';if(/^https?:\\/\\//.test(u))window.open(u,'_blank')">Open</button>
     </div>`).join('');
   }
   // Store for openAllStale
@@ -2209,7 +2226,7 @@ function openAllStale() {
   const stale = window._staleProducts || [];
   const batch = stale.filter(sp => sp.product.url).slice(0, 10);
   for (const sp of batch) {
-    window.open(sp.product.url, '_blank');
+    if (/^https?:\/\//.test(sp.product.url)) window.open(sp.product.url, '_blank');
   }
   if (batch.length > 0) showToast(`Opened ${batch.length} product pages`, 'info');
 }
@@ -2322,7 +2339,7 @@ async function runShopFill() {
       `SLOT: ${r.slot.key} (${r.slot.label})\nForms: ${r.slot.forms.join(', ')}\nSEARCH RESULTS:\n${r.text}`
     ).join('\n\n---\n\n');
 
-    const prompt = `You are a product catalog assistant. Given search results from ${esc(shop.name)} (${shopBaseUrl}), find the best matching products for each slot.
+    const prompt = `You are a product catalog assistant. Given search results from ${shop.name} (${shopBaseUrl}), find the best matching products for each slot.
 
 For each slot, pick up to 3 candidate products from the search results text.
 

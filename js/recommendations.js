@@ -377,7 +377,7 @@ const EXTRA_TERMS = {
   'hydration': [/\bbun\b/, 'blood urea nitrogen', /\burea\b/],
   'hba1c': ['glycated hemoglobin', 'a1c', 'long-term glucose', 'glucose control'],
   'hemoglobin': ['anemia', 'iron deficiency', 'erythropoiesis', 'heme iron'],
-  'free testosterone': [/\bshbg\b/, 'bioavailable testosterone', 'free t'],
+  'free testosterone': [/\bshbg\b/, 'bioavailable testosterone', 'free testo'],
   'free t4': ['thyroxine', /\bft4\b/, 'thyroid hormone'],
   'albumin': ['hypoalbuminemia', 'protein status'],
   'total protein': ['protein status', 'protein intake'],

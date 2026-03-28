@@ -224,6 +224,7 @@ export function showDashboard(data) {
   if (hasData) loadFocusCard();
   if (hasData) loadChartCardRecs();
   loadContextHealthDots();
+  if (window.loadContextCardTips) window.loadContextCardTips();
   loadCommitHash();
   // Preload catalog so rec sections and sorting use it immediately
   if (window.loadCatalog) window.loadCatalog().then(c => { window._cachedCatalog = c; });

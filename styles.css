@@ -3641,10 +3641,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-dna-avoid { border-left: 3px solid var(--orange); padding: 4px 12px; margin: 4px 0 4px -15px; background: rgba(251, 191, 36, 0.06); border-radius: 0 var(--radius) var(--radius) 0; }
 .rec-dna-ref { font-size: 11px; color: var(--accent); text-decoration: none; margin-left: 4px; opacity: 0.6; }
 .rec-dna-ref:hover { text-decoration: underline; opacity: 1; }
-/* DNA badge on context cards */
-.ctx-dna-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; color: var(--text-muted); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); white-space: nowrap; flex-shrink: 0; }
-.ctx-dna-badge-avoid { color: var(--orange); border-color: rgba(251, 191, 36, 0.4); }
-/* Tips badge on context cards */
+/* Tips badge on chart cards and context cards */
 .ctx-tips-badge {
   font-size: 9px; font-weight: 600; letter-spacing: 0.05em; color: var(--accent);
   padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(99, 102, 241, 0.4);
@@ -3654,7 +3651,6 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .ctx-tips-badge:hover { background: rgba(99, 102, 241, 0.15); border-color: var(--accent); }
 /* Tips modal */
 .ctx-tips-modal-header { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
-.ctx-tips-modal-body { }
 .ctx-tip-slot { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
 .ctx-tip-slot:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 .ctx-tip-slot-label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }

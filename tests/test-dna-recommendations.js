@@ -159,10 +159,12 @@
   // ═══════════════════════════════════════
   console.log('%c 7. Context Card Badges ', 'font-weight:bold;color:#f59e0b');
 
-  assert('context-cards.js calls _getDNABadgeForCard', ctxSrc.includes('_getDNABadgeForCard'));
-  assert('context-cards.js renders ctx-dna-badge', ctxSrc.includes('ctx-dna-badge'));
-  assert('Badge shows DNA text (no emoji, no count)', ctxSrc.includes('>DNA</span>'));
-  assert('Badge shows avoid styling', ctxSrc.includes('ctx-dna-badge-avoid'));
+  // DNA info is now inside the Tips modal (not a standalone badge on cards)
+  const recSrc2 = await fetch('js/recommendations.js').then(r => r.text());
+  assert('recommendations.js has _buildCardDNASection', recSrc2.includes('function _buildCardDNASection'));
+  assert('Card DNA section checks contextCards', recSrc2.includes('entry.contextCards'));
+  assert('Card DNA section shows gene name', recSrc2.includes('stored.gene'));
+  assert('Card DNA section shows avoid styling', recSrc2.includes('ctx-tip-avoid'));
 
   // ═══════════════════════════════════════
   // 8. CSS classes
@@ -173,8 +175,8 @@
   assert('CSS has .rec-dna-row', cssSrc.includes('.rec-dna-row'));
   assert('CSS has .rec-dna-avoid', cssSrc.includes('.rec-dna-avoid'));
   assert('CSS has .rec-dna-ref', cssSrc.includes('.rec-dna-ref'));
-  assert('CSS has .ctx-dna-badge', cssSrc.includes('.ctx-dna-badge'));
-  assert('CSS has .ctx-dna-badge-avoid', cssSrc.includes('.ctx-dna-badge-avoid'));
+  assert('CSS has .ctx-tip-avoid', cssSrc.includes('.ctx-tip-avoid'));
+  assert('CSS has .ctx-tips-badge', cssSrc.includes('.ctx-tips-badge'));
 
   // Verify CSS is loaded in the page
   let hasDnaHintsCss = false;

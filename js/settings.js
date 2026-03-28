@@ -108,7 +108,7 @@ export function openSettingsModal(tab) {
       <div class="settings-section">
         <label class="settings-label">Product Recommendations</label>
         <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
-          <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked)">
+          <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked);if(window.navigate)window.navigate('dashboard')">
           Show vetted supplement and product options
         </label>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Suggestions are for informational purposes only and do not constitute medical advice.</div>

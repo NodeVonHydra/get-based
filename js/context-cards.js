@@ -206,14 +206,12 @@ export function renderProfileContextCards() {
   for (const c of cardDefs) {
     const filled = isContextFilled(c.key);
     const summary = c.summaryFn();
-    const _hasTips = window.getCardSlotKeys ? window.getCardSlotKeys(c.key).length > 0 : false;
-    const _tipsBadgeHtml = _hasTips ? `<span class="ctx-tips-badge" onclick="event.stopPropagation();openCardTipsModal('${c.key}')" title="Lifestyle tips for this area">Tips</span>` : '';
     html += `<div class="context-card" onclick="${c.editor}()">
       <div class="context-card-header">
         <span class="ctx-health-dot ctx-health-dot-gray" id="ctx-dot-${c.key}"></span>
         <span class="context-card-label">${c.emoji} ${c.label}</span>
         <span class="context-info-icon">i<span class="context-tooltip">${c.tooltip}</span></span>
-        ${_tipsBadgeHtml}<button class="diagnoses-edit-btn" onclick="event.stopPropagation();${c.editor}()">${filled ? 'Edit' : '+ Add'}</button>
+        <span id="ctx-tips-${c.key}"></span><button class="diagnoses-edit-btn" onclick="event.stopPropagation();${c.editor}()">${filled ? 'Edit' : '+ Add'}</button>
       </div>
       ${summary
         ? `<div class="context-card-body">${escapeHTML(summary)}</div>`
@@ -1198,6 +1196,25 @@ export function showDietContaminantsModal() {
   overlay.classList.add('show');
 }
 
+// ── Card tips badges (async — waits for catalog) ──
+async function loadContextCardTips() {
+  if (!window.isProductRecsEnabled || !window.isProductRecsEnabled()) return;
+  if (!window.loadCatalog || !window.getCardSlotKeys) return;
+  await window.loadCatalog();
+  const cardKeys = ['sleepRest', 'lightCircadian', 'environment', 'exercise', 'diet', 'stress'];
+  for (const key of cardKeys) {
+    const el = document.getElementById(`ctx-tips-${key}`);
+    if (!el || el.children.length > 0) continue;
+    if (window.getCardSlotKeys(key).length === 0) continue;
+    const badge = document.createElement('span');
+    badge.className = 'ctx-tips-badge';
+    badge.textContent = 'Tips';
+    badge.title = 'Lifestyle tips for this area';
+    badge.onclick = (e) => { e.stopPropagation(); openCardTipsModal(key); };
+    el.appendChild(badge);
+  }
+}
+
 // ── Card tips modal ──
 function openCardTipsModal(cardKey) {
   if (!window.renderCardTipsModal) return;
@@ -1284,4 +1301,5 @@ Object.assign(window, {
   recordChange,
   showDietContaminantsModal,
   openCardTipsModal,
+  loadContextCardTips,
 });

@@ -248,15 +248,20 @@
       "label": "Testosterone support"
     },
     "hormones.shbg": {
-      "forms": [
-        "Boron (calcium fructoborate)",
-        "Stinging nettle root"
-      ],
-      "label": "SHBG (Boron)",
       "freeActions": [
         "Morning sunlight (circadian rhythm regulates SHBG)",
-        "Cold exposure"
-      ]
+        "Cold exposure (acutely lowers SHBG)"
+      ],
+      "foodForms": [
+        "Boron-rich foods — raisins, prunes, avocado",
+        "Magnesium-rich foods — pumpkin seeds, dark chocolate",
+        "Zinc-rich foods — oysters, beef"
+      ],
+      "forms": [
+        "Boron (calcium fructoborate, 6-10mg)",
+        "Stinging nettle root"
+      ],
+      "label": "SHBG"
     },
     "hormones.dheaS": {
       "freeActions": [
@@ -264,6 +269,11 @@
         "Sleep 7-9h in complete darkness (DHEA produced during deep sleep)",
         "Cold exposure (stimulates adrenal function)",
         "Reduce chronic stress (cortisol steals the same precursor)"
+      ],
+      "foodForms": [
+        "Healthy fats — egg yolks, avocado, olive oil (cholesterol is DHEA precursor)",
+        "Wild-caught salmon (omega-3 supports adrenal function)",
+        "Sweet potato and yams (diosgenin, a phyto-steroid precursor)"
       ],
       "forms": [
         "DHEA 25mg",
@@ -299,10 +309,10 @@
         "Eat protein/fat before carbs (blunts glucose spike)"
       ],
       "foodForms": [
-        "Apple cider vinegar",
-        "Berries",
-        "Ceylon cinnamon",
-        "Fiber-rich meals"
+        "Fatty fish (omega-3 improves insulin receptor sensitivity)",
+        "Avocado (monounsaturated fat improves insulin signaling)",
+        "Nuts and seeds (magnesium supports insulin sensitivity)",
+        "Fermented foods (gut microbiome modulates insulin response)"
       ],
       "forms": [
         "Berberine HCl",
@@ -789,15 +799,20 @@
       ]
     },
     "hematology.rdwcv": {
+      "freeActions": [
+        "Morning sunlight (supports healthy red blood cell production and iron recycling)"
+      ],
+      "foodForms": [
+        "Beef liver (richest source of B12, folate, and heme iron — all RDW drivers)",
+        "Dark leafy greens — spinach, kale (folate + non-heme iron)",
+        "Sardines (B12 + heme iron in one food)"
+      ],
       "forms": [
         "Iron Bisglycinate",
         "B12 + Folate",
         "Iron + B12 + Folate combo"
       ],
-      "label": "RDW-CV",
-      "freeActions": [
-        "Morning sunlight (supports healthy red blood cell production)"
-      ]
+      "label": "RDW-CV (red cell variation)"
     },
     "fattyAcids.omega3Index": {
       "foodForms": [
@@ -875,10 +890,10 @@
         "Reduce seed oils and ultra-processed food"
       ],
       "foodForms": [
-        "Fatty fish",
-        "Turmeric + black pepper",
-        "Ginger",
-        "Dark leafy greens"
+        "Garlic (modulates neutrophil-lymphocyte balance)",
+        "Mushrooms — shiitake, reishi (beta-glucans boost lymphocyte activity)",
+        "Fermented foods — sauerkraut, kefir (gut microbiome drives immune cell ratios)",
+        "Berries (polyphenols reduce neutrophil activation)"
       ],
       "forms": [
         "Omega-3 (high-EPA)",
@@ -905,7 +920,7 @@
       "freeActions": [
         "Go outside within 30 min of waking — no sunglasses (light enters through eyes)",
         "Face the sun with eyes open (not staring — ambient light through retina)",
-        "Even overcast sky provides 10,000+ lux — far more than any indoor light"
+        "Even an overcast sky provides 10,000+ lux — far more than any indoor light"
       ],
       "card": "Light & Circadian",
       "forms": [
@@ -1010,6 +1025,11 @@
       "label": "Water filtration"
     },
     "env.cookware": {
+      "freeActions": [
+        "Check existing pans for scratched or peeling non-stick coatings — replace immediately",
+        "Never heat non-stick pans above medium or use metal utensils on them",
+        "Use glass or ceramic bakeware for oven cooking"
+      ],
       "card": "Environment",
       "forms": [
         "Cast iron skillet",
