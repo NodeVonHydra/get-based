@@ -253,7 +253,23 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
     </span>
     <button class="btn btn-primary" id="ai-go-btn" onclick="aiBulkMode?bulkAIAutoFill():globalAIAutoFill()">Auto-fill</button>
     <span class="ai-mode-toggle" onclick="toggleBulkMode()">Bulk mode</span>
-    <span class="ai-provider-info" id="ai-provider-info"></span>
+    <span class="ai-provider-info" id="ai-provider-info" onclick="toggleAISettings()" style="cursor:pointer" title="Click to configure"></span>
+  </div>
+  <div class="ai-settings" id="ai-settings" style="display:none">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <select id="ai-settings-provider" onchange="saveAISettings()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
+        <option value="openrouter">OpenRouter</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="venice">Venice</option>
+        <option value="ollama">Local AI (Ollama)</option>
+      </select>
+      <input type="password" id="ai-settings-key" placeholder="API key" onchange="saveAISettings()" style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
+      <input type="text" id="ai-settings-model" placeholder="Model (optional)" onchange="saveAISettings()" style="width:200px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
+      <span style="font-size:11px;color:var(--text3)">Editor-only settings</span>
+    </div>
+    <div id="ai-settings-ollama" style="display:none;margin-top:6px">
+      <input type="text" id="ai-settings-ollama-url" placeholder="Ollama URL (default: http://localhost:11434)" onchange="saveAISettings()" style="width:300px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
+    </div>
   </div>
   <textarea id="ai-bulk-urls" placeholder="Paste multiple URLs, one per line...&#10;https://gymbeam.cz/magnesium-glycinate&#10;https://aktin.cz/omega-3-fish-oil&#10;https://prozdravi.cz/vitamin-d3-k2"></textarea>
   <div class="ai-status" id="ai-status"></div>
@@ -1604,61 +1620,59 @@ function renderAll() {
 }
 
 // ── AI Auto-fill ──
-const AI_CONFIGS = {
-  openrouter: {
-    keyName: 'labcharts-openrouter-key',
-    modelName: 'labcharts-openrouter-model',
-    defaultModel: 'anthropic/claude-sonnet-4-6',
-    url: 'https://openrouter.ai/api/v1/chat/completions',
-    format: 'openai',
-  },
-  anthropic: {
-    keyName: 'labcharts-api-key',
-    modelName: 'labcharts-anthropic-model',
-    defaultModel: 'claude-sonnet-4-6',
-    url: 'https://api.anthropic.com/v1/messages',
-    format: 'anthropic',
-  },
-  venice: {
-    keyName: 'labcharts-venice-key',
-    modelName: 'labcharts-venice-model',
-    defaultModel: 'llama-3.3-70b',
-    url: 'https://api.venice.ai/api/v1/chat/completions',
-    format: 'openai',
-  },
-  ollama: {
-    keyName: null,
-    modelName: 'labcharts-ollama-model',
-    defaultModel: 'qwen3:14b',
-    format: 'openai',
-  },
+const AI_PROVIDER_DEFAULTS = {
+  openrouter: { defaultModel: 'anthropic/claude-sonnet-4-6', url: 'https://openrouter.ai/api/v1/chat/completions', format: 'openai' },
+  anthropic: { defaultModel: 'claude-sonnet-4-6', url: 'https://api.anthropic.com/v1/messages', format: 'anthropic' },
+  venice: { defaultModel: 'llama-3.3-70b', url: 'https://api.venice.ai/api/v1/chat/completions', format: 'openai' },
+  ollama: { defaultModel: 'qwen3:14b', format: 'openai' },
 };
 
+const AI_SETTINGS_KEY = 'catalog-editor-ai';
+
+function loadAISettings() {
+  try { return JSON.parse(localStorage.getItem(AI_SETTINGS_KEY)) || {}; } catch { return {}; }
+}
+
+function saveAISettings() {
+  const provider = document.getElementById('ai-settings-provider').value;
+  const key = document.getElementById('ai-settings-key').value.trim();
+  const model = document.getElementById('ai-settings-model').value.trim();
+  const ollamaUrl = document.getElementById('ai-settings-ollama-url').value.trim();
+  const settings = { provider };
+  if (key) settings.key = key;
+  if (model) settings.model = model;
+  if (ollamaUrl) settings.ollamaUrl = ollamaUrl;
+  localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
+  document.getElementById('ai-settings-ollama').style.display = provider === 'ollama' ? '' : 'none';
+  showProviderInfo();
+}
+
+function toggleAISettings() {
+  const el = document.getElementById('ai-settings');
+  const show = el.style.display === 'none';
+  el.style.display = show ? '' : 'none';
+  if (show) {
+    const s = loadAISettings();
+    document.getElementById('ai-settings-provider').value = s.provider || 'openrouter';
+    document.getElementById('ai-settings-key').value = s.key || '';
+    document.getElementById('ai-settings-model').value = s.model || '';
+    document.getElementById('ai-settings-ollama-url').value = s.ollamaUrl || '';
+    document.getElementById('ai-settings-ollama').style.display = (s.provider === 'ollama') ? '' : 'none';
+  }
+}
+
 function detectAIProvider() {
-  const provider = localStorage.getItem('labcharts-ai-provider') || 'anthropic';
-  const config = AI_CONFIGS[provider];
+  const s = loadAISettings();
+  const provider = s.provider || 'openrouter';
+  const config = AI_PROVIDER_DEFAULTS[provider];
   if (!config) return null;
-  // Local AI: no key needed, URL from localStorage
   if (provider === 'ollama') {
-    const ollamaRaw = localStorage.getItem('labcharts-ollama');
-    if (!ollamaRaw) return null;
-    try {
-      const ollama = JSON.parse(ollamaRaw);
-      const url = (ollama.url || 'http://localhost:11434').replace(/\/$/, '') + '/v1/chat/completions';
-      return { ...config, key: ollama.apiKey || 'ollama', provider, model: ollama.model || config.defaultModel, url };
-    } catch { return null; }
+    const url = (s.ollamaUrl || 'http://localhost:11434').replace(/\/$/, '') + '/v1/chat/completions';
+    return { ...config, key: 'ollama', provider, model: s.model || config.defaultModel, url };
   }
-  const key = localStorage.getItem(config.keyName);
-  if (!key) {
-    // Try fallbacks
-    for (const [name, cfg] of Object.entries(AI_CONFIGS)) {
-      if (name === 'ollama') continue;
-      const k = localStorage.getItem(cfg.keyName);
-      if (k) return { ...cfg, key: k, provider: name, model: localStorage.getItem(cfg.modelName) || cfg.defaultModel };
-    }
-    return null;
-  }
-  return { ...config, key, provider, model: localStorage.getItem(config.modelName) || config.defaultModel };
+  const key = s.key;
+  if (!key) return null;
+  return { ...config, key, provider, model: s.model || config.defaultModel };
 }
 
 let sessionCost = 0;
@@ -1667,12 +1681,13 @@ let sessionCalls = 0;
 function showProviderInfo() {
   const ai = detectAIProvider();
   const el = document.getElementById('ai-provider-info');
+  el.style.color = '';
   if (ai) {
     const shortModel = ai.model.split('/').pop().slice(0, 25);
-    el.textContent = `${ai.provider} · ${shortModel}`;
+    el.textContent = `⚙ ${ai.provider} · ${shortModel}`;
   } else {
-    el.textContent = 'No API key — configure in getbased Settings';
-    el.style.color = 'var(--red)';
+    el.textContent = '⚙ Click to configure AI';
+    el.style.color = 'var(--yellow)';
   }
 }
 
