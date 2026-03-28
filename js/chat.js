@@ -2654,6 +2654,18 @@ export function renderChatMessages() {
         html += `<div class="chat-cost-footnote">${escapeHTML(mName)} \u00b7 ${escapeHTML(formatCost(cost))} \u00b7 ${totalTokens.toLocaleString()} tokens${webTag}${e2eeTag}</div>`;
       }
       html += buildActionBar(i);
+      // Rec slots (persisted on message, rendered from catalog)
+      if (msg.recSlots?.length && window.isProductRecsEnabled?.() && window.renderRecommendationSectionSync && window._cachedCatalog?.slots) {
+        const recSections = msg.recSlots.map(slot => {
+          const slotLabel = window._cachedCatalog.slots[slot]?.label || slot.split('.').pop();
+          return window.renderRecommendationSectionSync(slot, { label: slotLabel, maxProducts: 2 });
+        }).filter(Boolean);
+        if (recSections.length) {
+          html += `<details class="rec-chat-wrapper" onclick="event.stopPropagation()"><summary class="rec-chat-summary">What can help</summary>`;
+          html += recSections.map(s => s.replace('rec-section-header', 'rec-chat-subheading')).join('');
+          html += `</details>`;
+        }
+      }
     }
     html += '</div>';
   }
@@ -3276,9 +3288,6 @@ export async function sendChatMessage() {
     saveChatThreadIndex();
   }
 
-  // Collapse any open rec sections from previous messages
-  document.querySelectorAll('.rec-chat-wrapper[open]').forEach(d => d.open = false);
-
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('chat-send-btn');
   const container = document.getElementById('chat-messages');
@@ -3445,8 +3454,9 @@ export async function sendChatMessage() {
     }
     state.chatHistory.push(assistantMsg);
 
-    // Detect supplement slots from AI text for live rec rendering (not persisted)
+    // Detect supplement slots from AI text — persist on message for re-rendering
     const _recSlots = (window.isProductRecsEnabled && window.isProductRecsEnabled() && window.detectSupplementSlots) ? window.detectSupplementSlots(fullText) : [];
+    if (_recSlots.length) assistantMsg.recSlots = _recSlots;
 
     // Append action bar
     const msgIndex = state.chatHistory.length - 1;
