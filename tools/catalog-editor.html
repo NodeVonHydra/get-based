@@ -2627,17 +2627,49 @@ async function runQuickFill() {
   // Cache fetched pages to avoid duplicate requests for same query
   const fetchCache = {};
 
+  let useBrowser = false; // auto-detected on first fetch
+
   async function fetchSearch(query) {
     if (fetchCache[query]) return fetchCache[query];
     const searchUrl = getShopSearchUrl(shop, query);
     if (!searchUrl) return null;
     try {
-      const resp = await fetch('/api/fetch-page?url=' + encodeURIComponent(searchUrl));
-      const data = await resp.json();
+      // Try fast server-side fetch first (unless we already know it's a SPA)
+      if (!useBrowser) {
+        const resp = await fetch('/api/fetch-page?url=' + encodeURIComponent(searchUrl));
+        const data = await resp.json();
+        fetches++;
+        if (data.html && data.status < 400) {
+          const products = extractProducts(data.html);
+          if (products.length > 0) {
+            fetchCache[query] = products;
+            await new Promise(r => setTimeout(r, 300));
+            return products;
+          }
+        }
+      }
+      // Fallback: headless Chrome for SPA shops
+      if (!useBrowser) {
+        useBrowser = true;
+        logEl.innerHTML += `<div class="sf-log-item"><span class="skip">SPA</span> No products in server HTML — switching to browser rendering (slower)</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+      const resp2 = await fetch('/api/fetch-page-rendered?url=' + encodeURIComponent(searchUrl));
+      const data2 = await resp2.json();
       fetches++;
-      await new Promise(r => setTimeout(r, 300)); // rate limit
-      if (data.html && data.status < 400) {
-        const products = extractProducts(data.html);
+      if (data2.status < 400) {
+        // Use pre-extracted products from Puppeteer if available, else try HTML extraction
+        let products = [];
+        if (data2.products?.length) {
+          products = data2.products.filter(p => p.name?.length > 5).map(p => ({
+            name: p.name,
+            price: p.price ? parseFloat(String(p.price).replace(/[^\d.,]/g, '').replace(',', '.')) || null : null,
+            currency: /€|EUR/.test(p.price || '') ? 'EUR' : 'CZK',
+            url: p.url || null,
+            inStock: true
+          }));
+        }
+        if (!products.length && data2.html) products = extractProducts(data2.html);
         fetchCache[query] = products;
         return products;
       }

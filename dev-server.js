@@ -116,6 +116,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // API: fetch page with headless Chrome (for SPA shops)
+  if (pathname === '/api/fetch-page-rendered') {
+    const target = url.searchParams.get('url');
+    if (!target) { res.writeHead(400, jsonCors); res.end('{"error":"missing url param"}'); return; }
+    const { execFile } = require('child_process');
+    const scriptPath = path.join(ROOT, 'tools', 'fetch-rendered.mjs');
+    execFile('node', [scriptPath, target], { timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout) => {
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      if (err) { res.end(JSON.stringify({ status: 0, error: err.message })); return; }
+      try { JSON.parse(stdout); res.end(stdout); } catch { res.end(JSON.stringify({ status: 0, error: 'Invalid response from renderer' })); }
+    });
+    return;
+  }
+
   // API: deploy catalog JSON from editor to data/
   if (pathname === '/api/deploy-catalog' && req.method === 'POST') {
     let body = '';
