@@ -328,7 +328,8 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
     </select>
     <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="radio" name="sf-slot-filter" value="empty" checked> Empty slots only</label>
     <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="radio" name="sf-slot-filter" value="all"> All slots</label>
-    <button class="btn btn-primary" onclick="runShopFill()">Search shop</button>
+    <button class="btn btn-primary" onclick="runQuickFill()">Quick Fill</button>
+    <button class="btn" onclick="runShopFill()">AI Fill</button>
   </div>
   <div class="bulk-progress" id="sf-progress">
     <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="sf-progress-fill" style="width:0"></div></div>
@@ -2392,6 +2393,198 @@ function trimHtml(html) {
   text = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if (text.length > 10000) text = text.slice(0, 10000);
   return text;
+}
+
+// Extract structured product objects from HTML (for auto-fill, not AI)
+function extractProducts(html) {
+  const items = [];
+  const productRe = /data-micro="product"[\s\S]*?(?=data-micro="product"|<\/section|$)/gi;
+  let m;
+  while ((m = productRe.exec(html)) !== null) {
+    const block = m[0];
+    const name = block.match(/data-micro="name"[^>]*>([^<]+)/)?.[1]?.trim();
+    const price = block.match(/data-micro-price="([^"]+)"/)?.[1];
+    const currency = block.match(/data-micro-price-currency="([^"]+)"/)?.[1] || 'CZK';
+    const url = block.match(/<a[^>]*href="(\/[^"]+)"/)?.[1];
+    const avail = block.match(/availability[^>]*>[\s\S]*?<span[^>]*>([^<]+)/)?.[1]?.trim();
+    const inStock = avail ? /skladem|in stock|available/i.test(avail) : true;
+    if (name && name.length > 5) items.push({ name, price: price ? parseFloat(price) : null, currency, url: url || null, inStock });
+  }
+  return items;
+}
+
+// Score how well a product matches a slot (0-100)
+function scoreMatch(product, slot) {
+  const pName = product.name.toLowerCase();
+  const terms = [];
+  if (slot.label) terms.push(...slot.label.toLowerCase().split(/[\s/()]+/).filter(t => t.length > 2));
+  if (slot.forms) {
+    for (const f of slot.forms) terms.push(...f.toLowerCase().split(/[\s/()]+/).filter(t => t.length > 2));
+  }
+  if (slot.foodForms) {
+    for (const f of slot.foodForms) terms.push(...f.toLowerCase().split(/[\s/()]+/).filter(t => t.length > 2));
+  }
+  const unique = [...new Set(terms)];
+  if (!unique.length) return 0;
+  const hits = unique.filter(t => pName.includes(t)).length;
+  return Math.round((hits / Math.min(unique.length, 5)) * 100);
+}
+
+async function runQuickFill() {
+  const shopId = document.getElementById('sf-shop-select').value;
+  if (!shopId) return showToast('Select a shop first', 'error');
+  const shop = catalog.shops.find(s => s.id === shopId);
+  if (!shop) return showToast('Shop not found', 'error');
+
+  const filterValue = document.querySelector('input[name="sf-slot-filter"]:checked')?.value || 'empty';
+  const allSlots = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].filter(s => !s.card); // biomarker slots only
+  let targetSlots = allSlots;
+  if (filterValue === 'empty') {
+    targetSlots = allSlots.filter(s => !catalog.products[s.key] || catalog.products[s.key].length === 0);
+  }
+  if (targetSlots.length === 0) return showToast('No slots to fill', 'info');
+
+  const progressEl = document.getElementById('sf-progress');
+  const fillEl = document.getElementById('sf-progress-fill');
+  const logEl = document.getElementById('sf-log');
+  progressEl.classList.add('show');
+  logEl.innerHTML = '';
+  fillEl.style.width = '0%';
+
+  let matched = 0, total = targetSlots.length;
+  const candidates = {}; // slotKey → [{ product, score }]
+
+  for (let i = 0; i < targetSlots.length; i++) {
+    const slot = targetSlots[i];
+    const query = slot.label + (slot.forms?.[0] ? ' ' + slot.forms[0] : '');
+    const searchUrl = getShopSearchUrl(shop, query);
+    fillEl.style.width = `${((i + 1) / total) * 100}%`;
+
+    if (!searchUrl) {
+      logEl.innerHTML += `<div class="sf-log-item"><span class="skip">SKIP</span> ${esc(slot.label)}: no search URL</div>`;
+      continue;
+    }
+
+    try {
+      const resp = await fetch('/api/fetch-page?url=' + encodeURIComponent(searchUrl));
+      const data = await resp.json();
+      if (!data.html || data.status >= 400) {
+        logEl.innerHTML += `<div class="sf-log-item"><span class="fail">FAIL</span> ${esc(slot.label)}: HTTP ${data.status || 'error'}</div>`;
+        continue;
+      }
+
+      const products = extractProducts(data.html);
+      // Score and rank
+      const scored = products
+        .filter(p => p.inStock)
+        .map(p => ({ product: p, score: scoreMatch(p, slot) }))
+        .filter(s => s.score >= 30)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+
+      if (scored.length > 0) {
+        candidates[slot.key] = scored;
+        matched++;
+        logEl.innerHTML += `<div class="sf-log-item"><span class="ok">OK</span> ${esc(slot.label)}: ${scored.length} match${scored.length > 1 ? 'es' : ''} (best: ${scored[0].score}% — ${esc(scored[0].product.name.slice(0, 60))})</div>`;
+      } else {
+        logEl.innerHTML += `<div class="sf-log-item"><span class="skip">0</span> ${esc(slot.label)}: ${products.length} products, none matched (query: ${esc(query.slice(0, 40))})</div>`;
+      }
+    } catch(e) {
+      logEl.innerHTML += `<div class="sf-log-item"><span class="fail">ERR</span> ${esc(slot.label)}: ${esc(e.message)}</div>`;
+    }
+    logEl.scrollTop = logEl.scrollHeight;
+    // Small delay to avoid hammering the shop
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  fillEl.style.width = '100%';
+  logEl.innerHTML += `<div class="sf-log-item" style="margin-top:8px;font-weight:600">${matched}/${total} slots matched</div>`;
+
+  // Render review UI
+  if (matched > 0) {
+    shopFillResults = candidates;
+    renderQuickFillReview(shop, candidates);
+  } else {
+    showToast('No matches found. Try a different shop or adjust search URL pattern.', 'info');
+  }
+}
+
+function renderQuickFillReview(shop, candidates) {
+  const reviewEl = document.getElementById('sf-review');
+  let html = `<div style="margin:16px 0 8px;font-weight:600;font-size:14px">Review matches (${Object.keys(candidates).length} slots)</div>`;
+  for (const [slotKey, scored] of Object.entries(candidates)) {
+    const slot = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].find(s => s.key === slotKey);
+    const label = slot?.label || slotKey;
+    html += `<div class="sf-review-slot"><div class="sf-review-header" style="padding:8px 12px;font-weight:600;font-size:13px;background:var(--bg3);cursor:pointer" onclick="this.parentElement.classList.toggle('open')">${esc(label)}</div>`;
+    html += `<div class="sf-review-body" style="padding:8px 12px;display:none">`;
+    for (let ci = 0; ci < scored.length; ci++) {
+      const { product, score } = scored[ci];
+      const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
+      const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
+      html += `<label style="display:flex;gap:8px;align-items:start;padding:4px 0;font-size:13px;cursor:pointer">
+        <input type="radio" name="qf-${slotKey}" value="${ci}" ${ci === 0 ? 'checked' : ''}>
+        <div>
+          <div>${esc(product.name)}</div>
+          <div style="font-size:11px;color:var(--text3)">${product.price ? product.price + ' ' + product.currency : 'No price'} · Match: ${score}%${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
+        </div>
+      </label>`;
+    }
+    html += `<label style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px;cursor:pointer;color:var(--text3)">
+      <input type="radio" name="qf-${slotKey}" value="skip"> Skip this slot
+    </label>`;
+    html += `</div></div>`;
+  }
+  html += `<button class="btn btn-primary" style="margin-top:12px" onclick="applyQuickFill('${esc(shop.id)}')">Apply selected (${Object.keys(candidates).length} slots)</button>`;
+  reviewEl.innerHTML = html;
+  // Auto-open the review body sections
+  reviewEl.querySelectorAll('.sf-review-slot').forEach(s => s.classList.add('open'));
+  reviewEl.querySelectorAll('.sf-review-body').forEach(b => b.style.display = '');
+}
+
+function applyQuickFill(shopId) {
+  const shop = catalog.shops.find(s => s.id === shopId);
+  if (!shop) return;
+  let added = 0;
+  for (const [slotKey, scored] of Object.entries(shopFillResults)) {
+    const radio = document.querySelector(`input[name="qf-${slotKey}"]:checked`);
+    if (!radio || radio.value === 'skip') continue;
+    const idx = parseInt(radio.value);
+    const { product } = scored[idx];
+    const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
+    const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
+    // Build affiliate URL if shop has params
+    let affiliateUrl = null;
+    if (shop.affiliateParam && fullUrl) {
+      affiliateUrl = fullUrl + (fullUrl.includes('?') ? '&' : '?') + shop.affiliateParam + '=' + (shop.affiliateCode || '');
+    }
+    const newProduct = {
+      type: 'supplement',
+      form: '',
+      brand: '',
+      name: product.name,
+      shop: shopId,
+      url: fullUrl,
+      affiliateUrl,
+      priceCZK: product.currency === 'CZK' ? product.price : null,
+      priceEUR: product.currency === 'EUR' ? product.price : null,
+      dosage: null,
+      servings: null,
+      certifications: null,
+      notes: 'Added via Quick Fill — verify details',
+      regions: shop.regions || ['CZ', 'SK'],
+      langUrls: {},
+      lastChecked: new Date().toISOString(),
+    };
+    if (!catalog.products[slotKey]) catalog.products[slotKey] = [];
+    // Check for duplicate URL
+    if (fullUrl && catalog.products[slotKey].some(p => p.url === fullUrl)) continue;
+    catalog.products[slotKey].push(newProduct);
+    added++;
+  }
+  save();
+  renderAll();
+  showToast(`Added ${added} products from Quick Fill`, 'success');
+  document.getElementById('sf-review').innerHTML = '';
 }
 
 async function runShopFill() {
