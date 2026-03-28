@@ -2416,35 +2416,57 @@ function extractProducts(html) {
 // Score how well a product matches a slot (0-100)
 function scoreMatch(product, slot) {
   const pName = product.name.toLowerCase();
-  // Core matching terms — supplement names are international (magnesium, zinc, vitamin, berberine, etc.)
+  const pUrl = (product.url || '').toLowerCase();
+  // Core matching terms from forms + label
   const terms = new Set();
-  // From forms: "Zinc picolinate (30-50mg)" → ["zinc", "picolinate"]
-  if (slot.forms) for (const f of slot.forms) f.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s,/+·]+/).filter(t => t.length > 2 && !/^\d/.test(t) && !/^(mg|mcg|iu|ml|g|combo|form|alone)$/.test(t)).forEach(t => terms.add(t));
-  // From label: "Magnesium" → ["magnesium"]
+  if (slot.forms) for (const f of slot.forms) f.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s,/+·]+/).filter(t => t.length > 2 && !/^\d/.test(t) && !/^(mg|mcg|iu|ml|g|combo|form|alone|high|low|dose|liposomal|sublingual)$/.test(t)).forEach(t => terms.add(t));
   if (slot.label) slot.label.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s/]+/).filter(t => t.length > 2).forEach(t => terms.add(t));
-  // Remove noise words
-  for (const noise of ['support', 'balance', 'metabolism', 'the', 'and', 'for', 'from', 'with', 'body', 'makes', 'best', 'option', 'last', 'resort', 'high-dose', 'low-dose']) terms.delete(noise);
+  const noise = new Set(['support', 'balance', 'metabolism', 'the', 'and', 'for', 'from', 'with', 'body', 'makes', 'best', 'option', 'last', 'resort', 'production', 'check', 'cofactor', 'particle', 'count', 'immune', 'function', 'link', 'pituitary', 'gonad', 'thyroid', 'liver', 'kidney', 'inflammation']);
+  for (const n of noise) terms.delete(n);
   if (!terms.size) return 0;
-  const hits = [...terms].filter(t => pName.includes(t)).length;
-  // At least 1 hit required, score based on coverage
+  // Check name + URL for matches
+  const hits = [...terms].filter(t => pName.includes(t) || pUrl.includes(t)).length;
   if (hits === 0) return 0;
-  return Math.round(Math.min(100, (hits / Math.min(terms.size, 4)) * 100));
+  // Score: 1 hit on a core term = 25%, 2 = 50%, etc. Max denominator = 3
+  return Math.round(Math.min(100, (hits / Math.min(terms.size, 3)) * 100));
 }
 
-// Build a short, language-neutral search query from slot data
-// Supplement names (magnesium, zinc, vitamin D, berberine, NAC, omega-3) are international
-function buildSearchQuery(slot) {
-  // Try forms first — they're the actual supplement names
-  if (slot.forms?.length) {
-    // Take first form, strip dosage/parentheticals: "Zinc picolinate (30-50mg)" → "Zinc picolinate"
-    const first = slot.forms[0].replace(/\s*\(.*?\)\s*/g, '').replace(/\s*\d+[\d\s,.-]*\s*(mg|mcg|g|iu|ml)\b/gi, '').trim();
-    if (first.length >= 3) return first;
+// Build multiple search queries from slot data (most specific first, then fallbacks)
+function buildSearchQueries(slot) {
+  const queries = [];
+  const strip = s => s.replace(/\s*\(.*?\)\s*/g, '').replace(/\s*\d+[\d\s,.-]*\s*(mg|mcg|g|iu|ml)\b/gi, '').trim();
+  // Each form is a query candidate
+  if (slot.forms) {
+    for (const f of slot.forms) {
+      const q = strip(f);
+      if (q.length >= 3 && !queries.includes(q)) queries.push(q);
+    }
   }
-  // Fallback to label, stripped of English-only descriptors
-  return slot.label
+  // Label as fallback (stripped of English descriptors)
+  const labelQ = slot.label
     .replace(/\s*\(.*?\)\s*/g, '')
-    .replace(/\b(support|balance|metabolism|recovery|production|check|cofactor|particle count|body makes|low|hydration|immune function|dopamine link|pituitary.*gonad)\b/gi, '')
-    .replace(/\s+/g, ' ').trim() || slot.label;
+    .replace(/\b(support|balance|metabolism|recovery|production|check|cofactor|particle count|body makes|low|hydration|immune function|dopamine link|pituitary.*gonad|thyroid|liver|kidney|inflammation)\b/gi, '')
+    .replace(/\s+/g, ' ').trim();
+  if (labelQ.length >= 3 && !queries.includes(labelQ)) queries.push(labelQ);
+  // Single-word core term as last resort (e.g., "Magnesium" from "Magnesium Glycinate")
+  if (queries.length > 0) {
+    const core = queries[0].split(/\s+/)[0];
+    if (core.length >= 3 && !queries.includes(core)) queries.push(core);
+  }
+  return queries.length ? queries : [slot.label];
+}
+
+// Parse brand and dosage from product name
+function parseProductMeta(name) {
+  let brand = '';
+  let dosage = '';
+  // Common brand patterns: "BrainMax ...", "NOW ...", "Life Extension ...", "Viridian ..."
+  const brandMatch = name.match(/^(BrainMax|BrainPure|NOW|Life Extension|Viridian|Swanson|Puhdistamo|Reflex|Aroha|Sunwarrior|Osavi|TrainMax|Doctor['']?s Best|Thorne|Jarrow|Nordic Naturals|Source Naturals|Solgar|Nature['']?s Way)\b/i);
+  if (brandMatch) brand = brandMatch[1];
+  // Dosage: "90 kapslí", "200 ml", "60 tablet", "150 g", "30 sáčků"
+  const dosageMatch = name.match(/(\d+)\s*(kapsl[íe]|tablet|tobolek|sáčků|dávek|ml|g\b|ks)/i);
+  if (dosageMatch) dosage = dosageMatch[0];
+  return { brand, dosage };
 }
 
 async function runQuickFill() {
@@ -2454,7 +2476,7 @@ async function runQuickFill() {
   if (!shop) return showToast('Shop not found', 'error');
 
   const filterValue = document.querySelector('input[name="sf-slot-filter"]:checked')?.value || 'empty';
-  const allSlots = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].filter(s => !s.card); // biomarker slots only
+  const allSlots = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS]; // all slots including lifestyle
   let targetSlots = allSlots;
   if (filterValue === 'empty') {
     targetSlots = allSlots.filter(s => !catalog.products[s.key] || catalog.products[s.key].length === 0);
@@ -2468,57 +2490,68 @@ async function runQuickFill() {
   logEl.innerHTML = '';
   fillEl.style.width = '0%';
 
-  let matched = 0, total = targetSlots.length;
-  const candidates = {}; // slotKey → [{ product, score }]
+  let matched = 0, total = targetSlots.length, fetches = 0;
+  const candidates = {};
+  // Cache fetched pages to avoid duplicate requests for same query
+  const fetchCache = {};
 
-  for (let i = 0; i < targetSlots.length; i++) {
-    const slot = targetSlots[i];
-    // Use short, language-neutral search term: first form name (supplement names are mostly international)
-    const query = buildSearchQuery(slot);
+  async function fetchSearch(query) {
+    if (fetchCache[query]) return fetchCache[query];
     const searchUrl = getShopSearchUrl(shop, query);
-    fillEl.style.width = `${((i + 1) / total) * 100}%`;
-
-    if (!searchUrl) {
-      logEl.innerHTML += `<div class="sf-log-item"><span class="skip">SKIP</span> ${esc(slot.label)}: no search URL</div>`;
-      continue;
-    }
-
+    if (!searchUrl) return null;
     try {
       const resp = await fetch('/api/fetch-page?url=' + encodeURIComponent(searchUrl));
       const data = await resp.json();
-      if (!data.html || data.status >= 400) {
-        logEl.innerHTML += `<div class="sf-log-item"><span class="fail">FAIL</span> ${esc(slot.label)}: HTTP ${data.status || 'error'}</div>`;
-        continue;
+      fetches++;
+      await new Promise(r => setTimeout(r, 300)); // rate limit
+      if (data.html && data.status < 400) {
+        const products = extractProducts(data.html);
+        fetchCache[query] = products;
+        return products;
       }
+    } catch(e) {}
+    fetchCache[query] = [];
+    return [];
+  }
 
-      const products = extractProducts(data.html);
-      // Score and rank
+  for (let i = 0; i < targetSlots.length; i++) {
+    const slot = targetSlots[i];
+    const queries = buildSearchQueries(slot);
+    fillEl.style.width = `${((i + 1) / total) * 100}%`;
+
+    let bestScored = [];
+    let usedQuery = '';
+
+    // Try each query until we get matches (most specific first)
+    for (const query of queries) {
+      const products = await fetchSearch(query);
+      if (!products || !products.length) continue;
       const scored = products
         .filter(p => p.inStock)
         .map(p => ({ product: p, score: scoreMatch(p, slot) }))
-        .filter(s => s.score >= 30)
+        .filter(s => s.score >= 25)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
-
-      if (scored.length > 0) {
-        candidates[slot.key] = scored;
-        matched++;
-        logEl.innerHTML += `<div class="sf-log-item"><span class="ok">OK</span> ${esc(slot.label)}: ${scored.length} match${scored.length > 1 ? 'es' : ''} (best: ${scored[0].score}% — ${esc(scored[0].product.name.slice(0, 60))})</div>`;
-      } else {
-        logEl.innerHTML += `<div class="sf-log-item"><span class="skip">0</span> ${esc(slot.label)}: ${products.length} products, none matched (query: ${esc(query.slice(0, 40))})</div>`;
+        .slice(0, 5);
+      if (scored.length > bestScored.length || (scored.length && scored[0].score > (bestScored[0]?.score || 0))) {
+        bestScored = scored;
+        usedQuery = query;
       }
-    } catch(e) {
-      logEl.innerHTML += `<div class="sf-log-item"><span class="fail">ERR</span> ${esc(slot.label)}: ${esc(e.message)}</div>`;
+      if (scored.length >= 3) break; // good enough, stop trying more queries
+    }
+
+    if (bestScored.length > 0) {
+      candidates[slot.key] = bestScored.slice(0, 3);
+      matched++;
+      logEl.innerHTML += `<div class="sf-log-item"><span class="ok">OK</span> ${esc(slot.label)}: ${bestScored.length} match${bestScored.length > 1 ? 'es' : ''} (${esc(usedQuery)} → ${esc(bestScored[0].product.name.slice(0, 50))})</div>`;
+    } else {
+      logEl.innerHTML += `<div class="sf-log-item"><span class="skip">—</span> ${esc(slot.label)}: no match (tried: ${queries.slice(0, 3).map(q => esc(q)).join(', ')})</div>`;
     }
     logEl.scrollTop = logEl.scrollHeight;
-    // Small delay to avoid hammering the shop
-    await new Promise(r => setTimeout(r, 300));
   }
 
   fillEl.style.width = '100%';
-  logEl.innerHTML += `<div class="sf-log-item" style="margin-top:8px;font-weight:600">${matched}/${total} slots matched</div>`;
+  logEl.innerHTML += `<div class="sf-log-item" style="margin-top:8px;font-weight:600">${matched}/${total} slots matched · ${fetches} HTTP requests (${Object.keys(fetchCache).length} unique queries)</div>`;
 
-  // Render review UI
   if (matched > 0) {
     shopFillResults = candidates;
     renderQuickFillReview(shop, candidates);
@@ -2568,6 +2601,7 @@ function applyQuickFill(shopId) {
     if (!radio || radio.value === 'skip') continue;
     const idx = parseInt(radio.value);
     const { product } = scored[idx];
+    const slot = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].find(s => s.key === slotKey);
     const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
     const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
     // Build affiliate URL if shop has params
@@ -2575,10 +2609,11 @@ function applyQuickFill(shopId) {
     if (shop.affiliateParam && fullUrl) {
       affiliateUrl = fullUrl + (fullUrl.includes('?') ? '&' : '?') + shop.affiliateParam + '=' + (shop.affiliateCode || '');
     }
+    const meta = parseProductMeta(product.name);
     const newProduct = {
-      type: 'supplement',
+      type: slot.card ? 'product' : 'supplement',
       form: '',
-      brand: '',
+      brand: meta.brand,
       name: product.name,
       shop: shopId,
       url: fullUrl,
@@ -2588,7 +2623,7 @@ function applyQuickFill(shopId) {
       dosage: null,
       servings: null,
       certifications: null,
-      notes: 'Added via Quick Fill — verify details',
+      notes: 'Quick Fill — verify details',
       regions: shop.regions || ['CZ', 'SK'],
       langUrls: {},
       lastChecked: new Date().toISOString(),
