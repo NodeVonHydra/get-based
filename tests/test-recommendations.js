@@ -31,7 +31,7 @@
   assert('recommendations.js exports markDisclosureSeen', recSrc.includes('export function markDisclosureSeen'));
   assert('recommendations.js exports getUserRegion', recSrc.includes('export function getUserRegion'));
   assert('recommendations.js exports getProductsForSlot', recSrc.includes('export function getProductsForSlot'));
-  assert('recommendations.js exports getSlotsForCard', recSrc.includes('export function getSlotsForCard'));
+  assert('recommendations.js deduplicates concurrent loadCatalog calls', recSrc.includes('_catalogPromise'));
   assert('recommendations.js exports renderRecommendationSection', recSrc.includes('export async function renderRecommendationSection'));
   assert('recommendations.js exports renderRecommendationSectionSync', recSrc.includes('export function renderRecommendationSectionSync'));
   assert('recommendations.js exports detectSupplementSlots', recSrc.includes('export function detectSupplementSlots'));
@@ -46,7 +46,7 @@
   assert('markRecDisclosureSeen on window', typeof window.markRecDisclosureSeen === 'function');
   assert('renderRecommendationSection on window', typeof window.renderRecommendationSection === 'function');
   assert('renderRecommendationSectionSync on window', typeof window.renderRecommendationSectionSync === 'function');
-  assert('getSlotsForCard on window', typeof window.getSlotsForCard === 'function');
+  assert('getUserRegion uses exact match', recSrc.includes("CZSK_COUNTRIES.includes(c)"));
   assert('detectSupplementSlots on window', typeof window.detectSupplementSlots === 'function');
   assert('loadCatalog on window', typeof window.loadCatalog === 'function');
 
@@ -137,30 +137,23 @@
   assert('getProductsForSlot returns empty for null catalog', recSrc.includes('if (!catalog || !catalog.products) return []'));
 
   // ═══════════════════════════════════════
-  // 8. getSlotsForCard
+  // 8. B12/Folate schema + keyword safety
   // ═══════════════════════════════════════
-  console.log('%c 8. Card-to-Slot Mapping ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 8. Schema & Keyword Safety ', 'font-weight:bold;color:#f59e0b');
 
-  const mockCat2 = {
-    slots: {
-      'sleep.coolingPad': { label: 'Cooling pad', card: 'Sleep & Rest', forms: [] },
-      'sleep.blackout': { label: 'Blackout curtains', card: 'Sleep & Rest', forms: [] },
-      'light.blueBlockers': { label: 'Blue blockers', card: 'Light & Circadian', forms: [] },
-      'vitamins.vitaminD': { label: 'Vitamin D3', forms: [] },
-    }
-  };
-  const sleepSlots = window.getSlotsForCard(mockCat2, 'sleepRest');
-  assert('getSlotsForCard returns sleep slots', sleepSlots.length === 2, `got ${sleepSlots.length}`);
-  assert('getSlotsForCard includes cooling pad', sleepSlots.includes('sleep.coolingPad'));
-  assert('getSlotsForCard includes blackout', sleepSlots.includes('sleep.blackout'));
+  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  assert('MARKER_SCHEMA has vitamins.vitaminB12', schemaSrc.includes("vitaminB12: { name:"));
+  assert('MARKER_SCHEMA has vitamins.folate', schemaSrc.includes("folate: { name:"));
+  assert('UNIT_CONVERSIONS has vitaminB12', schemaSrc.includes("'vitamins.vitaminB12'"));
+  assert('UNIT_CONVERSIONS has folate', schemaSrc.includes("'vitamins.folate'"));
+  assert('OPTIMAL_RANGES has vitaminB12', schemaSrc.includes("'vitamins.vitaminB12'"));
+  assert('OPTIMAL_RANGES has folate', schemaSrc.includes("'vitamins.folate'"));
 
-  const lightSlots = window.getSlotsForCard(mockCat2, 'lightCircadian');
-  assert('getSlotsForCard returns light slots', lightSlots.length === 1);
-
-  const noSlots = window.getSlotsForCard(mockCat2, 'loveLife');
-  assert('getSlotsForCard returns [] for unmapped card', noSlots.length === 0);
-
-  assert('getSlotsForCard handles null catalog', window.getSlotsForCard(null, 'sleepRest').length === 0);
+  // Short keywords use word boundaries (regex) to avoid false positives
+  assert('EXTRA_TERMS epa uses regex word boundary', recSrc.includes('/\\bepa\\b/'));
+  assert('EXTRA_TERMS dha uses regex word boundary', recSrc.includes('/\\bdha\\b/'));
+  assert('EXTRA_TERMS ggt uses regex word boundary', recSrc.includes('/\\bggt\\b/'));
+  assert('Gene name matching uses word boundary regex', recSrc.includes("new RegExp('\\\\b'"));
 
   // ═══════════════════════════════════════
   // 9. Integration wiring

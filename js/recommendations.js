@@ -8,22 +8,29 @@ import { state } from './state.js';
 // CATALOG CACHE
 // ═══════════════════════════════════════════════
 let _catalog = undefined; // undefined = not loaded, null = load failed
+let _catalogPromise = null; // deduplicates concurrent loads
 
 export async function loadCatalog() {
   if (_catalog !== undefined) return _catalog;
-  try {
-    const res = await fetch('data/recommendations-czsk.json');
-    if (!res.ok) { _catalog = null; return null; }
-    _catalog = await res.json();
-    return _catalog;
-  } catch {
-    _catalog = null;
-    return null;
-  }
+  if (_catalogPromise) return _catalogPromise;
+  _catalogPromise = (async () => {
+    try {
+      const res = await fetch('data/recommendations-czsk.json');
+      if (!res.ok) { _catalog = null; return null; }
+      _catalog = await res.json();
+      return _catalog;
+    } catch {
+      _catalog = null;
+      return null;
+    } finally {
+      _catalogPromise = null;
+    }
+  })();
+  return _catalogPromise;
 }
 
 // For tests — reset cached catalog
-export function _resetCatalog() { _catalog = undefined; }
+export function _resetCatalog() { _catalog = undefined; _catalogPromise = null; }
 
 // ═══════════════════════════════════════════════
 // SETTINGS
@@ -53,9 +60,7 @@ export function getUserRegion() {
   const loc = getProfileLocation();
   if (!loc.country) return 'EU';
   const c = loc.country.toLowerCase().trim();
-  for (const name of CZSK_COUNTRIES) {
-    if (c === name || c.includes(name)) return 'CZSK';
-  }
+  if (CZSK_COUNTRIES.includes(c)) return 'CZSK';
   return 'EU';
 }
 
@@ -69,26 +74,6 @@ export function getProductsForSlot(catalog, slotKey, region) {
   // CZSK users see CZ + SK + EU + INTL products; EU users see EU + INTL
   const regionCodes = region === 'CZSK' ? ['CZ', 'SK', 'EU', 'INTL'] : ['EU', 'INTL'];
   return products.filter(p => p.regions && p.regions.some(r => regionCodes.includes(r)));
-}
-
-// ═══════════════════════════════════════════════
-// SLOT LOOKUP FOR CONTEXT CARDS
-// ═══════════════════════════════════════════════
-export function getSlotsForCard(catalog, cardKey) {
-  if (!catalog || !catalog.slots) return [];
-  const cardNames = {
-    sleepRest: 'Sleep & Rest',
-    lightCircadian: 'Light & Circadian',
-    environment: 'Environment',
-    exercise: 'Exercise',
-    diet: 'Diet & Digestion',
-    stress: 'Stress'
-  };
-  const cardName = cardNames[cardKey];
-  if (!cardName) return [];
-  return Object.entries(catalog.slots)
-    .filter(([, slot]) => slot.card === cardName)
-    .map(([key]) => key);
 }
 
 // ═══════════════════════════════════════════════
@@ -126,6 +111,7 @@ export function buildDNAHints(slotKey) {
     if (!entry || !entry.snpHints) continue;
 
     const g = stored.genotype;
+    if (!g) continue;
     const rev = g.length === 2 ? g[1] + g[0] : g;
     const sorted = _sortAlleles(g);
     const hint = entry.snpHints[g] || entry.snpHints[rev] || entry.snpHints[sorted];
@@ -171,7 +157,7 @@ function _buildDisclosureBanner() {
   if (hasSeenDisclosure()) return '';
   return `<div class="rec-disclosure-banner">
     These suggestions are informational, not medical advice. Always consult your healthcare provider before starting supplements. Affiliate links earn a small commission\u00a0\u2014 brands cannot pay for placement.
-    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');const d=w.nextElementSibling;d.classList.remove('rec-gated');d.open=true;w.remove()">Got it</button>
+    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');const p=w.parentElement||w.parentNode;if(p){p.querySelectorAll('.rec-gated').forEach(d=>{d.classList.remove('rec-gated');d.open=true})}w.remove()">Got it</button>
   </div>`;
 }
 
@@ -290,11 +276,11 @@ const EXTRA_TERMS = {
   'vitamin k': ['mk-7', 'menaquinone'],
   'magnesium': ['mag glycinate', 'mag citrate'],
   'iron': ['ferritin', 'ferrous', 'iron bisglycinate'],
-  'omega-3': ['omega 3', 'fish oil', 'epa', 'dha'],
+  'omega-3': ['omega 3', 'fish oil', /\bepa\b/, /\bdha\b/],
   'selenium': ['selenomethionine'],
   'zinc': ['zinc picolinate', 'zinc carnosine'],
   'nac': ['n-acetyl cysteine'],
-  'glutathione': ['ggt'],
+  'glutathione': [/\bggt\b/],
   'homocysteine': ['methylation', 'b12 + folate'],
   'berberine': ['dihydroberberine'],
   'ashwagandha': ['ksm-66'],
@@ -322,7 +308,7 @@ export function detectSupplementSlots(text) {
     if (!matched) {
       for (const [fragment, terms] of Object.entries(EXTRA_TERMS)) {
         if (label.includes(fragment)) {
-          if (terms.some(t => lower.includes(t))) { matched = true; break; }
+          if (terms.some(t => t instanceof RegExp ? t.test(lower) : lower.includes(t))) { matched = true; break; }
         }
       }
     }
@@ -337,10 +323,12 @@ export function detectSupplementSlots(text) {
       const entry = snpTable[rsid];
       if (!entry || !entry.snpHints) continue;
       const g = stored.genotype;
+      if (!g) continue;
       const rev = g.length === 2 ? g[1] + g[0] : g;
       const hint = entry.snpHints[g] || entry.snpHints[rev] || entry.snpHints[_sortAlleles(g)];
       if (!hint) continue;
-      if (lower.includes(stored.gene.toLowerCase()) && !found.includes(hint.slotKey)) {
+      const geneRe = new RegExp('\\b' + stored.gene.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+      if (geneRe.test(lower) && !found.includes(hint.slotKey)) {
         // Verify slot exists in catalog
         if (_catalog.slots[hint.slotKey]) found.push(hint.slotKey);
       }
@@ -360,7 +348,6 @@ Object.assign(window, {
   markRecDisclosureSeen: markDisclosureSeen,
   renderRecommendationSection,
   renderRecommendationSectionSync,
-  getSlotsForCard,
   detectSupplementSlots,
   loadCatalog,
   buildDNAHints,

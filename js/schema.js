@@ -105,7 +105,9 @@ export const MARKER_SCHEMA = {
       vitaminD: { name: "Vitamin D Total", unit: "nmol/l", refMin: 75.0, refMax: 250.0, desc: "Sum of D2 and D3 forms; essential for calcium absorption, bone health, immune function, and mood regulation." },
       vitaminD3: { name: "Vitamin D3", unit: "nmol/l", refMin: 50.0, refMax: 175.0, desc: "The form of vitamin D produced by sun exposure and supplements; the most bioactive and clinically relevant form." },
       calcitriol: { name: "Calcitriol (1,25-(OH)\u2082D)", unit: "pmol/l", refMin: 36.5, refMax: 216.2, desc: "The active hormonal form of vitamin D produced by the kidneys; regulates calcium absorption and bone metabolism. Ordered for kidney disease or calcium disorders." },
-      vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, desc: "A fat-soluble vitamin essential for vision, immune defense, and cell growth; both deficiency and excess are harmful." }
+      vitaminA: { name: "Vitamin A", unit: "\u00b5mol/l", refMin: 1.05, refMax: 2.80, desc: "A fat-soluble vitamin essential for vision, immune defense, and cell growth; both deficiency and excess are harmful." },
+      vitaminB12: { name: "Vitamin B12", unit: "pmol/l", refMin: 145, refMax: 569, desc: "Essential for DNA synthesis, red blood cell formation, and neurological function; deficiency causes macrocytic anemia and neuropathy." },
+      folate: { name: "Folate", unit: "nmol/l", refMin: 7.0, refMax: 45.3, desc: "B-vitamin critical for DNA synthesis and methylation; deficiency causes macrocytic anemia and elevated homocysteine. Key in pregnancy for neural tube prevention." }
     }
   },
   diabetes: {
@@ -228,6 +230,8 @@ export const UNIT_CONVERSIONS = {
   'vitamins.vitaminD3': { factor: 0.4006, usUnit: 'ng/ml', type: 'multiply' },
   'vitamins.calcitriol': { factor: 0.4006, usUnit: 'pg/ml', type: 'multiply' },
   'vitamins.vitaminA': { factor: 28.65, usUnit: '\u00b5g/dl', type: 'multiply' },
+  'vitamins.vitaminB12': { factor: 1.355, usUnit: 'pg/ml', type: 'multiply' },
+  'vitamins.folate': { factor: 0.4413, usUnit: 'ng/ml', type: 'multiply' },
   'hematology.hemoglobin': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
   // hematocrit: stored as % natively (was fraction before v1.6.1, migrated in profile.js)
   'hematology.mchc': { factor: 0.1, usUnit: 'g/dl', type: 'multiply' },
@@ -439,6 +443,8 @@ export const OPTIMAL_RANGES = {
   'vitamins.vitaminD': { optimalMin: 100.0, optimalMax: 200.0 },
   'vitamins.calcitriol': { optimalMin: 60.0, optimalMax: 160.0 },
   'vitamins.vitaminA': { optimalMin: 1.40, optimalMax: 2.10 },
+  'vitamins.vitaminB12': { optimalMin: 300, optimalMax: 500 },
+  'vitamins.folate': { optimalMin: 14.0, optimalMax: 36.0 },
   // Diabetes
   'diabetes.hba1c': { optimalMin: 20.0, optimalMax: 36.0 },
   'diabetes.insulin_d': { optimalMin: 2.6, optimalMax: 10.0 },

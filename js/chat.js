@@ -3462,6 +3462,9 @@ export async function sendChatMessage() {
           const wrapper = document.createElement('div');
           wrapper.className = 'rec-chat-wrapper';
           wrapper.innerHTML = combined;
+          // Deduplicate disclosure banners when multiple slots rendered
+          const banners = wrapper.querySelectorAll('.rec-disclosure-banner');
+          for (let i = 1; i < banners.length; i++) banners[i].remove();
           // Insert before the action bar
           const actionBar = aiMsgEl.querySelector('.chat-action-bar');
           if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);

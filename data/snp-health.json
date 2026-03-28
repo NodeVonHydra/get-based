@@ -10,7 +10,7 @@
   "rs1801133": {
     "gene": "MTHFR", "variant": "C677T", "category": "methylation",
     "markers": ["coagulation.homocysteine", "vitamins.folate", "vitamins.vitaminB12"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "strandNote": "Minus strand gene. Forward: G(ref)/A(alt). G=C complement, A=T complement.",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/7647779/"],
     "genotypes": {
@@ -63,7 +63,7 @@
   "rs1805087": {
     "gene": "MTR", "variant": "A2756G", "category": "methylation",
     "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/9327029/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal methionine synthase activity" },
@@ -88,7 +88,7 @@
   "rs1801394": {
     "gene": "MTRR", "variant": "A66G", "category": "methylation",
     "markers": ["coagulation.homocysteine", "vitamins.vitaminB12"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/11472746/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Normal B12 recycling via MTRR" },
@@ -202,7 +202,7 @@
   "rs855791": {
     "gene": "TMPRSS6", "variant": "V736A", "category": "iron",
     "markers": ["iron.ferritin", "iron.transferrin", "hematology.hemoglobin"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "strandNote": "Forward strand: G(ref=Ala736)/A(alt=Val736). Literature often cites T/C (complement).",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/19820698/"],
     "genotypes": {
@@ -336,7 +336,7 @@
   "rs10741657": {
     "gene": "CYP2R1", "variant": "25-hydroxylase", "category": "vitaminD",
     "markers": ["vitamins.vitaminD"],
-    "contextCards": ["lightCircadian", "supplements"],
+    "contextCards": ["lightCircadian"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/20541252/"],
     "genotypes": {
       "AA": { "effect": "none", "note": "Highest CYP2R1 activity; efficient 25-hydroxylation" },
@@ -392,7 +392,7 @@
   "rs601338": {
     "gene": "FUT2", "variant": "W154X", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/18776911/"],
     "genotypes": {
       "GG": { "effect": "moderate", "note": "Secretor; lower total B12 but cellular B12 likely normal" },
@@ -428,7 +428,7 @@
   "rs1801198": {
     "gene": "TCN2", "variant": "P259R", "category": "vitaminB12",
     "markers": ["vitamins.vitaminB12", "coagulation.homocysteine"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "references": ["https://pubmed.ncbi.nlm.nih.gov/12194912/"],
     "genotypes": {
       "CC": { "effect": "none", "note": "Normal transcobalamin II; efficient cellular B12 delivery" },
@@ -565,7 +565,7 @@
   "rs174546": {
     "gene": "FADS1", "variant": "3'-UTR", "category": "fattyAcids",
     "markers": ["fattyAcids.omega3Index"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "markerNote": "Maps to custom fatty acid markers (omega-3 index, AA, EPA, DHA)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
     "genotypes": {
@@ -591,7 +591,7 @@
   "rs174547": {
     "gene": "FADS1", "variant": "coding region", "category": "fattyAcids",
     "markers": ["fattyAcids.omega3Index"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "markerNote": "In strong LD with rs174546; largely redundant",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/16670158/"],
     "genotypes": {
@@ -617,7 +617,7 @@
   "rs174575": {
     "gene": "FADS2", "variant": "delta-6 desaturase", "category": "fattyAcids",
     "markers": ["fattyAcids.omega3Index"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "markerNote": "Maps to custom fatty acid markers (GLA, AA, EPA, DHA)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/17984066/"],
     "genotypes": {
@@ -643,7 +643,7 @@
   "rs953413": {
     "gene": "ELOVL2", "variant": "elongase 2", "category": "fattyAcids",
     "markers": ["fattyAcids.omega3Index"],
-    "contextCards": ["diet", "supplements"],
+    "contextCards": ["diet"],
     "markerNote": "Maps to custom fatty acid markers (EPA, DHA, Omega-3 Index)",
     "references": ["https://pubmed.ncbi.nlm.nih.gov/19148276/"],
     "genotypes": {
