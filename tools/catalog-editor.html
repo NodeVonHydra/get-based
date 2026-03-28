@@ -2528,63 +2528,90 @@ const SUPP_INDICATORS = /kapsl[íe]|tablet|tobolek|sáčků|dávek|softgel|powde
 const NEGATIVE_KEYWORDS = /éterický olej|essential oil|filtrační|expandér|žárovka|čokoláda|tyčink|sušenk|müsli|pizza|wrap|sauce|omáčk|koření|barbecue|proteino.*tyčink|triko|tričko|oblečení|boty|obuv|shaker|bottle|láhev|ručník|podložka na|karimatk|keramick|kalabas|bowl|mísa/i;
 
 // Score how well a product matches a slot (0-100)
+// Returns { score, type: 'supplement'|'food' }
 function scoreMatch(product, slot) {
   const pName = product.name.toLowerCase();
   const pUrl = (product.url || '').toLowerCase();
 
   // Negative filter — reject clearly wrong products
-  if (NEGATIVE_KEYWORDS.test(product.name)) return 0;
+  if (NEGATIVE_KEYWORDS.test(product.name)) return { score: 0 };
 
-  // Core matching terms from forms + label
+  // Score as supplement (forms + label)
+  const suppScore = _scoreTerms(pName, pUrl, slot.forms, slot.label, slot.card);
+
+  // Score as food (foodForms)
+  const foodScore = slot.foodForms?.length ? _scoreFoodTerms(pName, pUrl, slot.foodForms) : 0;
+
+  if (suppScore >= foodScore && suppScore > 0) return { score: suppScore, type: 'supplement' };
+  if (foodScore > 0) return { score: foodScore, type: 'food' };
+  return { score: 0 };
+}
+
+function _scoreTerms(pName, pUrl, forms, label, isLifestyle) {
   const terms = new Set();
-  if (slot.forms) for (const f of slot.forms) f.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s,/+·]+/).filter(t => t.length > 2 && !/^\d/.test(t) && !/^(mg|mcg|iu|ml|g|combo|form|alone|high|low|dose|liposomal|sublingual)$/.test(t)).forEach(t => terms.add(t));
-  if (slot.label) slot.label.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s/]+/).filter(t => t.length > 2).forEach(t => terms.add(t));
+  if (forms) for (const f of forms) f.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s,/+·]+/).filter(t => t.length > 2 && !/^\d/.test(t) && !/^(mg|mcg|iu|ml|g|combo|form|alone|high|low|dose|liposomal|sublingual)$/.test(t)).forEach(t => terms.add(t));
+  if (label) label.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s/]+/).filter(t => t.length > 2).forEach(t => terms.add(t));
   const noise = new Set(['support', 'balance', 'metabolism', 'the', 'and', 'for', 'from', 'with', 'body', 'makes', 'best', 'option', 'last', 'resort', 'production', 'check', 'cofactor', 'particle', 'count', 'immune', 'function', 'link', 'pituitary', 'gonad', 'thyroid', 'liver', 'kidney', 'inflammation']);
   for (const n of noise) terms.delete(n);
   if (!terms.size) return 0;
-
-  // Check name + URL for matches
   const hitTerms = [...terms].filter(t => pName.includes(t) || pUrl.includes(t));
   const hits = hitTerms.length;
   if (hits === 0) return 0;
-
-  // For biomarker slots: require product to look like a supplement (not random goods)
-  if (!slot.card && !SUPP_INDICATORS.test(product.name) && hits < 2) return 0;
-
-  // Single-term match: only accept if the term is the core ingredient (>4 chars, not a generic word)
+  if (!isLifestyle && !SUPP_INDICATORS.test(pName + ' ' + pUrl) && hits < 2) return 0;
   if (hits === 1 && terms.size > 1) {
     const t = hitTerms[0];
-    // Reject if the single matching term is too generic
     if (t.length <= 3 || /^(acid|zinc|iron|fish|cold|blue|mold|desk|sleep|light|glass|steel|water)$/.test(t)) return 0;
   }
-
-  // Score: hits / min(terms, 3) * 100
   return Math.round(Math.min(100, (hits / Math.min(terms.size, 3)) * 100));
 }
 
+function _scoreFoodTerms(pName, pUrl, foodForms) {
+  // Food matching: check if product name contains food keywords
+  let bestScore = 0;
+  for (const food of foodForms) {
+    const terms = food.toLowerCase().replace(/\(.*?\)/g, '').replace(/\s*—.*$/, '').split(/[\s,/+·]+/).filter(t => t.length > 3);
+    if (!terms.length) continue;
+    const hits = terms.filter(t => pName.includes(t) || pUrl.includes(t)).length;
+    if (hits === 0) continue;
+    const score = Math.round(Math.min(100, (hits / Math.min(terms.length, 3)) * 100));
+    if (score > bestScore) bestScore = score;
+  }
+  return bestScore;
+}
+
 // Build multiple search queries from slot data (most specific first, then fallbacks)
+// Returns { supplements: [...], foods: [...] }
 function buildSearchQueries(slot) {
-  const queries = [];
+  const supps = [];
+  const foods = [];
   const strip = s => s.replace(/\s*\(.*?\)\s*/g, '').replace(/\s*\d+[\d\s,.-]*\s*(mg|mcg|g|iu|ml)\b/gi, '').trim();
-  // Each form is a query candidate
+  // Supplement forms
   if (slot.forms) {
     for (const f of slot.forms) {
       const q = strip(f);
-      if (q.length >= 3 && !queries.includes(q)) queries.push(q);
+      if (q.length >= 3 && !supps.includes(q)) supps.push(q);
     }
   }
-  // Label as fallback (stripped of English descriptors)
+  // Food forms — use as-is (they're already food names)
+  if (slot.foodForms) {
+    for (const f of slot.foodForms) {
+      // Strip parentheticals and explanations
+      const q = f.replace(/\s*\(.*?\)\s*/g, '').replace(/\s*—.*$/, '').trim();
+      if (q.length >= 3 && !foods.includes(q)) foods.push(q);
+    }
+  }
+  // Label as fallback
   const labelQ = slot.label
     .replace(/\s*\(.*?\)\s*/g, '')
     .replace(/\b(support|balance|metabolism|recovery|production|check|cofactor|particle count|body makes|low|hydration|immune function|dopamine link|pituitary.*gonad|thyroid|liver|kidney|inflammation)\b/gi, '')
     .replace(/\s+/g, ' ').trim();
-  if (labelQ.length >= 3 && !queries.includes(labelQ)) queries.push(labelQ);
-  // Single-word core term as last resort (e.g., "Magnesium" from "Magnesium Glycinate")
-  if (queries.length > 0) {
-    const core = queries[0].split(/\s+/)[0];
-    if (core.length >= 3 && !queries.includes(core)) queries.push(core);
+  if (labelQ.length >= 3 && !supps.includes(labelQ)) supps.push(labelQ);
+  // Single-word core term
+  if (supps.length > 0) {
+    const core = supps[0].split(/\s+/)[0];
+    if (core.length >= 3 && !supps.includes(core)) supps.push(core);
   }
-  return queries.length ? queries : [slot.label];
+  return { supplements: supps.length ? supps : [slot.label], foods };
 }
 
 // Parse brand and dosage from product name
@@ -2680,19 +2707,20 @@ async function runQuickFill() {
 
   for (let i = 0; i < targetSlots.length; i++) {
     const slot = targetSlots[i];
-    const queries = buildSearchQueries(slot);
+    const { supplements: suppQueries, foods: foodQueries } = buildSearchQueries(slot);
     fillEl.style.width = `${((i + 1) / total) * 100}%`;
 
     let bestScored = [];
     let usedQuery = '';
 
-    // Try each query until we get matches (most specific first)
-    for (const query of queries) {
+    // Search supplements first, then foods
+    const allQueries = [...suppQueries.map(q => ({ q, src: 'supp' })), ...foodQueries.map(q => ({ q, src: 'food' }))];
+    for (const { q: query, src } of allQueries) {
       const products = await fetchSearch(query);
       if (!products || !products.length) continue;
       const scored = products
-        .filter(p => p.inStock)
-        .map(p => ({ product: p, score: scoreMatch(p, slot) }))
+        .filter(p => p.inStock !== false)
+        .map(p => { const m = scoreMatch(p, slot); return { product: p, score: m.score, type: m.type || src }; })
         .filter(s => s.score >= 25)
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
@@ -2700,15 +2728,17 @@ async function runQuickFill() {
         bestScored = scored;
         usedQuery = query;
       }
-      if (scored.length >= 3) break; // good enough, stop trying more queries
+      if (scored.length >= 3) break;
     }
 
     if (bestScored.length > 0) {
       candidates[slot.key] = bestScored.slice(0, 3);
       matched++;
-      logEl.innerHTML += `<div class="sf-log-item"><span class="ok">OK</span> ${esc(slot.label)}: ${bestScored.length} match${bestScored.length > 1 ? 'es' : ''} (${esc(usedQuery)} → ${esc(bestScored[0].product.name.slice(0, 50))})</div>`;
+      const typeTag = bestScored[0].type === 'food' ? ' [food]' : '';
+      logEl.innerHTML += `<div class="sf-log-item"><span class="ok">OK</span> ${esc(slot.label)}: ${bestScored.length} match${bestScored.length > 1 ? 'es' : ''}${typeTag} (${esc(usedQuery)} → ${esc(bestScored[0].product.name.slice(0, 50))})</div>`;
     } else {
-      logEl.innerHTML += `<div class="sf-log-item"><span class="skip">—</span> ${esc(slot.label)}: no match (tried: ${queries.slice(0, 3).map(q => esc(q)).join(', ')})</div>`;
+      const triedAll = [...suppQueries, ...foodQueries].slice(0, 3);
+      logEl.innerHTML += `<div class="sf-log-item"><span class="skip">—</span> ${esc(slot.label)}: no match (tried: ${triedAll.map(q => esc(q)).join(', ')})</div>`;
     }
     logEl.scrollTop = logEl.scrollHeight;
   }
@@ -2738,14 +2768,15 @@ function renderQuickFillReview(shop, candidates) {
     html += `<div class="sf-review-slot"><div class="sf-review-header" style="padding:8px 12px;font-weight:600;font-size:13px;background:var(--bg3);cursor:pointer" onclick="this.parentElement.classList.toggle('open')">${esc(label)}</div>`;
     html += `<div class="sf-review-body" style="padding:8px 12px;display:none">`;
     for (let ci = 0; ci < scored.length; ci++) {
-      const { product, score } = scored[ci];
+      const { product, score, type: matchType } = scored[ci];
       const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
       const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
+      const typeTag = matchType === 'food' ? '<span style="color:var(--orange);font-size:10px;font-weight:600">FOOD</span> · ' : '';
       html += `<label style="display:flex;gap:8px;align-items:start;padding:4px 0;font-size:13px;cursor:pointer">
         <input type="radio" name="qf-${slotKey}" value="${ci}" ${ci === 0 && score >= 50 ? 'checked' : ''}>
         <div>
           <div>${esc(product.name)}</div>
-          <div style="font-size:11px;color:var(--text3)">${product.price ? product.price + ' ' + product.currency : 'No price'} · <span style="color:${score >= 67 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)'}">${score}%</span>${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
+          <div style="font-size:11px;color:var(--text3)">${typeTag}${product.price ? product.price + ' ' + product.currency : 'No price'} · <span style="color:${score >= 67 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)'}">${score}%</span>${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
         </div>
       </label>`;
     }
@@ -2769,7 +2800,7 @@ function applyQuickFill(shopId) {
     const radio = document.querySelector(`input[name="qf-${slotKey}"]:checked`);
     if (!radio || radio.value === 'skip') continue;
     const idx = parseInt(radio.value);
-    const { product } = scored[idx];
+    const { product, type: matchType } = scored[idx];
     const slot = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].find(s => s.key === slotKey);
     const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
     const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
@@ -2780,7 +2811,7 @@ function applyQuickFill(shopId) {
     }
     const meta = parseProductMeta(product.name);
     const newProduct = {
-      type: slot.card ? 'product' : 'supplement',
+      type: matchType || (slot?.card ? 'product' : 'supplement'),
       form: '',
       brand: meta.brand,
       name: product.name,
