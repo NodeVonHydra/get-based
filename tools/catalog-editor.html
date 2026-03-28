@@ -534,8 +534,8 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-// ── Recommendation slots (from SUPPLEMENT_MAP + LIFESTYLE_REC_MAP) ──
-const SUPPLEMENT_SLOTS = [
+// ── Slot lists derived from catalog JSON on load ──
+const _HARDCODED_SUPPLEMENT_SLOTS = [
   { key: 'vitamins.vitaminD', label: 'Vitamin D3', freeActions: ['15-30 min midday sunlight with skin exposed', 'Spend time outdoors — even overcast sky provides some UVB'], productForms: ['UVB light panel', 'Red light + UVB combo panel'], foodForms: ['Fatty fish (salmon, sardines)', 'Cod liver oil', 'Pasture-raised egg yolks'], forms: ['D3 + K2 combo', 'D3 liquid drops', 'D3 high-dose (5000+ IU)'] },
   { key: 'vitamins.vitaminA', label: 'Vitamin A', foodForms: ['Beef/lamb liver', 'Cod liver oil', 'Pasture-raised egg yolks'], forms: ['Retinyl palmitate', 'Cod liver oil (supplement)', 'Beta-carotene'] },
   { key: 'vitamins.vitaminB12', label: 'Vitamin B12', foodForms: ['Beef liver', 'Sardines', 'Clams/mussels', 'Pasture-raised eggs'], forms: ['Methylcobalamin', 'Hydroxocobalamin', 'Adenosylcobalamin'] },
@@ -597,7 +597,7 @@ const SUPPLEMENT_SLOTS = [
   { key: 'hormones.prolactin', label: 'Prolactin (dopamine link)', forms: ['Vitamin B6 (P5P, 50-100mg)', 'Vitex / Chasteberry', 'Mucuna pruriens', 'Zinc picolinate'] },
 ];
 
-const LIFESTYLE_SLOTS = [
+const _HARDCODED_LIFESTYLE_SLOTS = [
   { key: 'light.blueBlockers', label: 'Blue light blocking', card: 'Light & Circadian', freeActions: ['Avoid screens 1-2h before bed', 'Use built-in Night Shift / Night Light on devices', 'Dim room lights after sunset'], forms: ['Blue light glasses (evening/red)', 'Blue light glasses (daytime/clear)', 'Red/amber book light'] },
   { key: 'light.morningLight', label: 'Morning light therapy', card: 'Light & Circadian', freeActions: ['Go outside within 30 min of waking (even overcast works)', 'Have coffee/breakfast outside or by a window'], forms: ['10,000 lux light therapy lamp', 'Dawn simulator alarm clock'] },
   { key: 'light.coldExposure', label: 'Cold exposure', card: 'Light & Circadian', freeActions: ['End shower with 30-90s cold water', 'Cold face splash (triggers dive reflex, lowers heart rate)'], forms: ['Cold plunge tub', 'Portable ice bath barrel', 'Cold face immersion bowl'] },
@@ -620,6 +620,10 @@ const LIFESTYLE_SLOTS = [
   { key: 'diet.reflux', label: 'Reflux support', card: 'Diet & Digestion', freeActions: ['Don\'t eat within 3h of lying down', 'Elevate head of bed 15-20cm (gravity keeps acid down)', 'Eat smaller meals, chew thoroughly'], forms: ['Betaine HCl + Pepsin', 'DGL (Deglycyrrhizinated Licorice)', 'Zinc Carnosine'] },
   { key: 'stress.adaptogens', label: 'Stress / HPA axis', card: 'Stress', freeActions: ['Box breathing (4-4-4-4) or 4-7-8 breathing — free, instant cortisol reduction', 'Time in nature (even 20 min lowers cortisol measurably)', 'Journaling, meditation, or prayer'], forms: ['Ashwagandha (KSM-66)', 'L-Theanine', 'Magnesium Glycinate', 'HRV biofeedback device'] },
 ];
+
+// ── Derived slot lists (populated from JSON on load) ──
+let SUPPLEMENT_SLOTS = [];
+let LIFESTYLE_SLOTS = [];
 
 // ── State ──
 const STORAGE_KEY = 'getbased-catalog-editor';
@@ -675,11 +679,45 @@ function collapseAll(type) {
   container.querySelectorAll('.slot').forEach(s => s.classList.remove('open'));
 }
 
-function load() {
+async function load() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) catalog = JSON.parse(saved);
   } catch(e) {}
+  // Load slot definitions from the catalog JSON (single source of truth)
+  try {
+    const res = await fetch('/data/recommendations-czsk.json');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.slots) {
+        SUPPLEMENT_SLOTS = [];
+        LIFESTYLE_SLOTS = [];
+        for (const [key, slot] of Object.entries(json.slots)) {
+          const entry = { key, label: slot.label || key.split('.').pop(), forms: slot.forms || [] };
+          if (slot.freeActions) entry.freeActions = slot.freeActions;
+          if (slot.foodForms) entry.foodForms = slot.foodForms;
+          if (slot.productForms) entry.productForms = slot.productForms;
+          if (slot.card) {
+            entry.card = slot.card;
+            LIFESTYLE_SLOTS.push(entry);
+          } else {
+            SUPPLEMENT_SLOTS.push(entry);
+          }
+        }
+      }
+      // Sync shops from JSON if editor has none
+      if (json.shops && (!catalog.shops || catalog.shops.length === 0)) catalog.shops = json.shops;
+      // Sync products from JSON for slots not yet in editor
+      if (json.products) {
+        for (const [key, prods] of Object.entries(json.products)) {
+          if (!catalog.products[key] || catalog.products[key].length === 0) catalog.products[key] = prods;
+        }
+      }
+    }
+  } catch(e) { console.warn('Could not load catalog JSON, using hardcoded fallback:', e); }
+  // Fallback to hardcoded arrays if JSON load failed
+  if (!SUPPLEMENT_SLOTS.length) SUPPLEMENT_SLOTS = _HARDCODED_SUPPLEMENT_SLOTS;
+  if (!LIFESTYLE_SLOTS.length) LIFESTYLE_SLOTS = _HARDCODED_LIFESTYLE_SLOTS;
   // Ensure products map has all slots
   for (const s of [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS]) {
     if (!catalog.products[s.key]) catalog.products[s.key] = [];
@@ -2533,9 +2571,10 @@ function importShopFillSelected() {
 }
 
 // ── Init ──
-load();
-renderAll();
-showProviderInfo();
+load().then(() => {
+  renderAll();
+  showProviderInfo();
+});
 </script>
 </body>
 </html>
