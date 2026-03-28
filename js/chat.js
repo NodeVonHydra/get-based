@@ -3453,23 +3453,25 @@ export async function sendChatMessage() {
     while (actionBarContainer.firstChild) aiMsgEl.appendChild(actionBarContainer.firstChild);
 
     // Async-render supplement recommendations before action bar
-    if (_recSlots.length && window.renderRecommendationSection) {
-      Promise.all(_recSlots.map(slot =>
-        window.renderRecommendationSection(slot, { label: 'What can help', maxProducts: 2 })
-      )).then(htmlArr => {
-        const combined = htmlArr.filter(Boolean).join('');
-        if (combined && aiMsgEl.isConnected) {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'rec-chat-wrapper';
-          wrapper.innerHTML = combined;
-          // Deduplicate disclosure banners when multiple slots rendered
-          const banners = wrapper.querySelectorAll('.rec-disclosure-banner');
-          for (let i = 1; i < banners.length; i++) banners[i].remove();
-          // Insert before the action bar
-          const actionBar = aiMsgEl.querySelector('.chat-action-bar');
-          if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);
-          else aiMsgEl.appendChild(wrapper);
-        }
+    if (_recSlots.length && window.renderRecommendationSection && window.loadCatalog) {
+      window.loadCatalog().then(catalog => {
+        if (!catalog?.slots || !aiMsgEl.isConnected) return;
+        const sections = _recSlots.map(slot => {
+          const slotLabel = catalog.slots[slot]?.label || slot.split('.').pop();
+          return window.renderRecommendationSectionSync(slot, { label: slotLabel, maxProducts: 2 });
+        }).filter(Boolean);
+        if (!sections.length) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'rec-chat-wrapper';
+        wrapper.innerHTML = `<div class="rec-section-header">What can help</div>` + sections.join('');
+        // Deduplicate disclosure banners
+        const banners = wrapper.querySelectorAll('.rec-disclosure-banner');
+        for (let i = 1; i < banners.length; i++) banners[i].remove();
+        // Remove per-section headers (shared header above)
+        wrapper.querySelectorAll('.rec-section-header:not(:first-child)').forEach(h => h.remove());
+        const actionBar = aiMsgEl.querySelector('.chat-action-bar');
+        if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);
+        else aiMsgEl.appendChild(wrapper);
       });
     }
 
