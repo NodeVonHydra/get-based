@@ -3276,6 +3276,9 @@ export async function sendChatMessage() {
     saveChatThreadIndex();
   }
 
+  // Collapse any open rec sections from previous messages
+  document.querySelectorAll('.rec-chat-wrapper[open]').forEach(d => d.open = false);
+
   const input = document.getElementById('chat-input');
   const sendBtn = document.getElementById('chat-send-btn');
   const container = document.getElementById('chat-messages');
