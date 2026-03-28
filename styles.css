@@ -3611,6 +3611,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-chat-summary::before { content: '\25B8'; margin-right: 6px; display: inline-block; transition: transform 0.2s; font-size: 11px; }
 .rec-chat-wrapper[open] > .rec-chat-summary::before { transform: rotate(90deg); }
 .rec-chat-summary:hover { color: var(--text-primary); }
+.rec-chat-subheading { font-size: 13px; font-weight: 600; color: var(--accent); margin-top: 8px; }
 /* Rec disclosure & warnings */
 .rec-disclosure-banner {
   background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);

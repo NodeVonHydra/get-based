@@ -3474,8 +3474,8 @@ export async function sendChatMessage() {
         // Deduplicate disclosure banners
         const banners = body.querySelectorAll('.rec-disclosure-banner');
         for (let i = 1; i < banners.length; i++) banners[i].remove();
-        // Remove per-section headers (shared header above covers it)
-        body.querySelectorAll('.rec-section-header').forEach(h => h.remove());
+        // Downgrade per-section headers to subheadings (shared header is the <summary>)
+        body.querySelectorAll('.rec-section-header').forEach(h => h.className = 'rec-chat-subheading');
         wrapper.appendChild(body);
         const actionBar = aiMsgEl.querySelector('.chat-action-bar');
         if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);
