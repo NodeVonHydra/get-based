@@ -5,6 +5,19 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.13.0', date: '2026-03-28', title: 'Tips & Recommendations',
+    items: [
+      'Tips badges on chart cards and context cards — actionable lifestyle, food, and supplement suggestions per marker',
+      '80 evidence-based recommendation slots (59 biomarkers + 21 lifestyle) with nature-first philosophy',
+      'Unified detail modal: genetics + tips in one section — YOUR GENETICS → NATURE → WHOLE FOOD → SUPPLEMENTS',
+      'Context card Tips open a dedicated modal with per-area recommendations and DNA hints',
+      'Chat recommendations persist across messages — collapsible, with slot subheadings',
+      'Vitamin B12 and Folate added to marker schema with reference ranges and unit conversions',
+      'Settings toggle to enable/disable recommendations — gates all touchpoints',
+      '6 missing JS modules added to service worker precache for offline support',
+    ]
+  },
+  {
     version: '1.12.0', date: '2026-03-27', title: 'Sync Status & Fixes',
     items: [
       'Sync status indicator in header — green/amber/red dot shows relay connectivity, push confirmation, and pull status',
