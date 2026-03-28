@@ -1657,21 +1657,85 @@ function closeAISettingsModal() {
   document.getElementById('ai-modal-overlay').classList.remove('show');
 }
 
+let _activePanel = null;
+
 function renderAIProviderPanel(providerId) {
+  _activePanel = providerId;
   document.querySelectorAll('.ai-tab').forEach(t => t.classList.toggle('active', t.textContent === AI_PROVIDERS.find(p => p.id === providerId)?.name));
   const s = loadAISettings();
+  const isCurrent = s.provider === providerId;
   const p = AI_PROVIDERS.find(x => x.id === providerId);
   const body = document.getElementById('ai-modal-body');
   let html = `<div style="font-size:12px;color:var(--text3);margin-bottom:12px">${esc(p.hint)}</div>`;
   if (providerId === 'ollama') {
-    html += `<div class="ai-field"><label>Server URL</label><input type="text" id="ai-m-url" value="${esc(s.provider === providerId ? (s.ollamaUrl || '') : '')}" placeholder="http://localhost:11434"><div class="hint">Leave empty for default Ollama port</div></div>`;
-    html += `<div class="ai-field"><label>Model</label><input type="text" id="ai-m-model" value="${esc(s.provider === providerId ? (s.model || '') : '')}" placeholder="qwen3:14b"></div>`;
+    html += `<div class="ai-field"><label>Server URL</label><input type="text" id="ai-m-url" value="${esc(isCurrent ? (s.ollamaUrl || '') : '')}" placeholder="http://localhost:11434"><div class="hint">Leave empty for default Ollama port</div></div>`;
+    html += `<div class="ai-field"><label>Model</label><select id="ai-m-model" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:14px"><option value="">Loading...</option></select></div>`;
   } else {
-    html += `<div class="ai-field"><label>${esc(p.keyLabel)}</label><input type="password" id="ai-m-key" value="${esc(s.provider === providerId ? (s.key || '') : '')}" placeholder="sk-..."></div>`;
-    html += `<div class="ai-field"><label>Model</label><input type="text" id="ai-m-model" value="${esc(s.provider === providerId ? (s.model || '') : '')}" placeholder="${esc(AI_PROVIDER_DEFAULTS[providerId]?.defaultModel || '')}"><div class="hint">Leave empty for default</div></div>`;
+    html += `<div class="ai-field"><label>${esc(p.keyLabel)}</label><input type="password" id="ai-m-key" value="${esc(isCurrent ? (s.key || '') : '')}" placeholder="sk-..." onchange="fetchModelsForPanel('${providerId}')"></div>`;
+    html += `<div class="ai-field"><label>Model</label><select id="ai-m-model" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:14px"><option value="">Enter API key first</option></select></div>`;
   }
-  html += `<button class="ai-save-btn" onclick="saveAIProvider('${providerId}')">Save</button>`;
+  html += `<div style="display:flex;gap:10px;align-items:center;margin-top:16px"><button class="ai-save-btn" onclick="saveAIProvider('${providerId}')">Save</button><span id="ai-m-status" style="font-size:12px;color:var(--text3)"></span></div>`;
   body.innerHTML = html;
+  // Auto-fetch models if key exists
+  if (providerId === 'ollama') {
+    fetchModelsForPanel(providerId);
+  } else if (isCurrent && s.key) {
+    fetchModelsForPanel(providerId);
+  }
+}
+
+async function fetchModelsForPanel(providerId) {
+  const select = document.getElementById('ai-m-model');
+  const status = document.getElementById('ai-m-status');
+  if (!select) return;
+  const s = loadAISettings();
+  const savedModel = s.provider === providerId ? (s.model || '') : '';
+  select.innerHTML = '<option value="">Loading models...</option>';
+  if (status) status.textContent = 'Fetching...';
+  try {
+    let models = [];
+    if (providerId === 'openrouter') {
+      const key = document.getElementById('ai-m-key')?.value.trim();
+      if (!key) { select.innerHTML = '<option value="">Enter API key first</option>'; if (status) status.textContent = ''; return; }
+      const res = await fetch('https://openrouter.ai/api/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+      if (!res.ok) throw new Error('Invalid key or network error');
+      const data = await res.json();
+      const curated = ['anthropic/', 'openai/', 'google/', 'deepseek/', 'x-ai/', 'qwen/'];
+      models = (data.data || []).filter(m => curated.some(p => m.id.startsWith(p))).map(m => ({ id: m.id, name: m.name || m.id })).sort((a, b) => a.name.localeCompare(b.name));
+    } else if (providerId === 'anthropic') {
+      const key = document.getElementById('ai-m-key')?.value.trim();
+      if (!key) { select.innerHTML = '<option value="">Enter API key first</option>'; if (status) status.textContent = ''; return; }
+      const res = await fetch('/proxy?url=' + encodeURIComponent('https://api.anthropic.com/v1/models'), { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' } });
+      if (res.ok) {
+        const data = await res.json();
+        const seen = new Set();
+        models = (data.data || []).filter(m => { const base = m.id.replace(/-\d{8}$/, ''); if (seen.has(base)) return false; seen.add(base); return true; }).map(m => ({ id: m.id, name: m.display_name || m.id }));
+      } else {
+        models = [{ id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' }, { id: 'claude-opus-4-6', name: 'Claude Opus 4.6' }, { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5' }];
+      }
+    } else if (providerId === 'venice') {
+      const key = document.getElementById('ai-m-key')?.value.trim();
+      if (!key) { select.innerHTML = '<option value="">Enter API key first</option>'; if (status) status.textContent = ''; return; }
+      const res = await fetch('https://api.venice.ai/api/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+      if (!res.ok) throw new Error('Invalid key or network error');
+      const data = await res.json();
+      models = (data.data || []).filter(m => m.type === 'text' && !m.id.startsWith('e2ee-')).map(m => ({ id: m.id, name: m.id }));
+    } else if (providerId === 'ollama') {
+      const urlInput = document.getElementById('ai-m-url');
+      const baseUrl = (urlInput?.value.trim() || 'http://localhost:11434').replace(/\/$/, '');
+      const res = await fetch(baseUrl + '/api/tags');
+      if (!res.ok) throw new Error('Cannot reach Ollama at ' + baseUrl);
+      const data = await res.json();
+      models = (data.models || []).map(m => ({ id: m.name, name: `${m.name} (${(m.size / 1e9).toFixed(1)}GB)` }));
+    }
+    if (!models.length) { select.innerHTML = '<option value="">No models found</option>'; if (status) status.textContent = ''; return; }
+    select.innerHTML = models.map(m => `<option value="${esc(m.id)}"${m.id === savedModel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+    if (!savedModel) select.value = AI_PROVIDER_DEFAULTS[providerId]?.defaultModel || models[0].id;
+    if (status) { status.textContent = models.length + ' models loaded'; status.style.color = 'var(--green)'; }
+  } catch(e) {
+    select.innerHTML = `<option value="">${esc(e.message)}</option>`;
+    if (status) { status.textContent = e.message; status.style.color = 'var(--red)'; }
+  }
 }
 
 function saveAIProvider(providerId) {
@@ -1681,9 +1745,10 @@ function saveAIProvider(providerId) {
     if (url) settings.ollamaUrl = url;
   } else {
     const key = document.getElementById('ai-m-key')?.value.trim();
-    if (key) settings.key = key;
+    if (!key) { showToast('API key is required', 'error'); return; }
+    settings.key = key;
   }
-  const model = document.getElementById('ai-m-model')?.value.trim();
+  const model = document.getElementById('ai-m-model')?.value;
   if (model) settings.model = model;
   localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
   showProviderInfo();
