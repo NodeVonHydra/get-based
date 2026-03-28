@@ -97,7 +97,7 @@ const server = http.createServer((req, res) => {
         }
         let body = '';
         let bytes = 0;
-        const MAX = 80 * 1024;
+        const MAX = 256 * 1024;
         pageRes.setEncoding('utf8');
         pageRes.on('data', (chunk) => {
           if (bytes < MAX) { body += chunk; bytes += Buffer.byteLength(chunk); }
