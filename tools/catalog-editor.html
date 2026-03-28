@@ -331,6 +331,7 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
     <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="checkbox" id="sf-skip-lifestyle" checked> Supplements only</label>
     <button class="btn btn-primary" onclick="runQuickFill()">Quick Fill</button>
     <button class="btn" onclick="runShopFill()">AI Fill</button>
+    <button class="btn" onclick="renderStashCompare()" id="sf-compare-btn" style="display:none">Compare shops</button>
     <span style="font-size:11px;color:var(--text3);margin-left:8px">Quick Fill works with Shoptet stores. For SPAs (Aktin, etc.) use AI Fill.</span>
   </div>
   <div class="bulk-progress" id="sf-progress">
@@ -662,6 +663,7 @@ async function load() {
   }
   if (!catalog.shops) catalog.shops = [];
   if (!catalog.freeActions) catalog.freeActions = {};
+  if (!catalog.stash) catalog.stash = {}; // shopId → { slotKey → [{ product, score }] }
   // Migrate old shop format (add new fields)
   for (const shop of catalog.shops) {
     if (!shop.status) shop.status = 'pending';
@@ -2684,7 +2686,12 @@ async function runQuickFill() {
 
   if (matched > 0) {
     shopFillResults = candidates;
+    // Stash results for later comparison
+    catalog.stash[shopId] = candidates;
+    save();
     renderQuickFillReview(shop, candidates);
+    updateCompareBtn();
+    logEl.innerHTML += `<div class="sf-log-item"><span class="ok">STASHED</span> Results saved. Run Quick Fill on other shops, then use <strong>Compare</strong> to pick the best per slot.</div>`;
   } else {
     showToast('No matches found. Try a different shop or adjust search URL pattern.', 'info');
   }
@@ -2767,6 +2774,114 @@ function applyQuickFill(shopId) {
   save();
   renderAll();
   showToast(`Added ${added} products from Quick Fill`, 'success');
+  document.getElementById('sf-review').innerHTML = '';
+}
+
+// Show/hide compare button based on stash state
+function updateCompareBtn() {
+  const btn = document.getElementById('sf-compare-btn');
+  const shopCount = Object.keys(catalog.stash || {}).length;
+  if (btn) btn.style.display = shopCount > 0 ? '' : 'none';
+  if (btn && shopCount > 0) btn.textContent = `Compare (${shopCount} shop${shopCount > 1 ? 's' : ''})`;
+}
+
+function renderStashCompare() {
+  const stash = catalog.stash || {};
+  const shopIds = Object.keys(stash);
+  if (!shopIds.length) return showToast('No stashed results. Run Quick Fill on one or more shops first.', 'info');
+
+  // Collect all slot keys across all shops
+  const allSlotKeys = new Set();
+  for (const results of Object.values(stash)) for (const key of Object.keys(results)) allSlotKeys.add(key);
+
+  const reviewEl = document.getElementById('sf-review');
+  const shopNames = {};
+  for (const id of shopIds) {
+    const shop = catalog.shops.find(s => s.id === id);
+    shopNames[id] = shop?.name || id;
+  }
+
+  let html = `<div style="margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-weight:600;font-size:14px">Compare ${allSlotKeys.size} slots across ${shopIds.length} shop${shopIds.length > 1 ? 's' : ''}</span>
+    <button class="btn" style="font-size:11px" onclick="if(confirm('Clear all stashed results?')){catalog.stash={};save();document.getElementById('sf-review').innerHTML='';updateCompareBtn();showToast('Stash cleared','info')}">Clear stash</button>
+  </div>`;
+
+  for (const slotKey of [...allSlotKeys].sort()) {
+    const slot = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].find(s => s.key === slotKey);
+    const label = slot?.label || slotKey;
+    html += `<div class="sf-review-slot"><div class="sf-review-header" style="padding:8px 12px;font-weight:600;font-size:13px;background:var(--bg3);cursor:pointer" onclick="this.parentElement.classList.toggle('open')">${esc(label)}</div>`;
+    html += `<div class="sf-review-body" style="padding:8px 12px;display:none">`;
+
+    for (const shopId of shopIds) {
+      const scored = stash[shopId]?.[slotKey];
+      if (!scored?.length) continue;
+      const shop = catalog.shops.find(s => s.id === shopId);
+      const baseUrl = typeof shop?.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop?.url;
+      html += `<div style="font-size:11px;color:var(--blue);font-weight:600;margin:6px 0 2px">${esc(shopNames[shopId])}</div>`;
+      for (let ci = 0; ci < scored.length; ci++) {
+        const { product, score } = scored[ci];
+        const fullUrl = product.url && baseUrl ? new URL(product.url, baseUrl).href : '';
+        const scoreColor = score >= 67 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)';
+        html += `<label style="display:flex;gap:8px;align-items:start;padding:3px 0;font-size:12px;cursor:pointer">
+          <input type="radio" name="cmp-${slotKey}" value="${shopId}:${ci}">
+          <div>
+            <div>${esc(product.name.slice(0, 80))}</div>
+            <div style="font-size:11px;color:var(--text3)">${product.price ? product.price + ' ' + product.currency : '?'} · <span style="color:${scoreColor}">${score}%</span>${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
+          </div>
+        </label>`;
+      }
+    }
+    html += `<label style="display:flex;gap:8px;align-items:center;padding:3px 0;font-size:12px;cursor:pointer;color:var(--text3)">
+      <input type="radio" name="cmp-${slotKey}" value="skip" checked> Skip
+    </label>`;
+    html += `</div></div>`;
+  }
+  html += `<button class="btn btn-primary" style="margin-top:12px" onclick="applyCompare()">Apply selected</button>`;
+  reviewEl.innerHTML = html;
+  reviewEl.querySelectorAll('.sf-review-slot').forEach(s => s.classList.add('open'));
+  reviewEl.querySelectorAll('.sf-review-body').forEach(b => b.style.display = '');
+}
+
+function applyCompare() {
+  let added = 0;
+  const stash = catalog.stash || {};
+  for (const [slotKey] of [...new Set([...Object.values(stash).flatMap(s => Object.keys(s))])].map(k => [k])) {
+    const radio = document.querySelector(`input[name="cmp-${slotKey}"]:checked`);
+    if (!radio || radio.value === 'skip') continue;
+    const [shopId, ciStr] = radio.value.split(':');
+    const ci = parseInt(ciStr);
+    const scored = stash[shopId]?.[slotKey];
+    if (!scored?.[ci]) continue;
+    const { product } = scored[ci];
+    const shop = catalog.shops.find(s => s.id === shopId);
+    if (!shop) continue;
+    const slot = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS].find(s => s.key === slotKey);
+    const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
+    const fullUrl = product.url && baseUrl ? new URL(product.url, baseUrl).href : '';
+    let affiliateUrl = null;
+    if (shop.affiliateParam && fullUrl) {
+      affiliateUrl = fullUrl + (fullUrl.includes('?') ? '&' : '?') + shop.affiliateParam + '=' + (shop.affiliateCode || '');
+    }
+    const meta = parseProductMeta(product.name);
+    const newProduct = {
+      type: slot?.card ? 'product' : 'supplement',
+      form: '', brand: meta.brand, name: product.name, shop: shopId,
+      url: fullUrl, affiliateUrl,
+      priceCZK: product.currency === 'CZK' ? product.price : null,
+      priceEUR: product.currency === 'EUR' ? product.price : null,
+      dosage: meta.dosage || null, servings: null, certifications: null,
+      notes: 'Compare pick — verify details',
+      regions: shop.regions || ['CZ', 'SK'], langUrls: {},
+      lastChecked: new Date().toISOString(),
+    };
+    if (!catalog.products[slotKey]) catalog.products[slotKey] = [];
+    if (fullUrl && catalog.products[slotKey].some(p => p.url === fullUrl)) continue;
+    catalog.products[slotKey].push(newProduct);
+    added++;
+  }
+  save();
+  renderAll();
+  showToast(`Added ${added} products from Compare`, 'success');
   document.getElementById('sf-review').innerHTML = '';
 }
 
@@ -3009,6 +3124,8 @@ function importShopFillSelected() {
 load().then(() => {
   renderAll();
   showProviderInfo();
+  updateCompareBtn();
+  populateShopFillDropdown();
 });
 </script>
 
