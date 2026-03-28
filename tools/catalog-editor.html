@@ -224,6 +224,24 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
 .sf-candidate label{display:flex;gap:8px;align-items:center;cursor:pointer;flex:1}
 .sf-candidate-details{color:var(--text3);font-size:12px}
 .sf-warning{font-size:11px;color:var(--yellow);padding:4px 0}
+/* AI Settings modal */
+.ai-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:center;justify-content:center}
+.ai-modal-overlay.show{display:flex}
+.ai-modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:90%;max-width:480px;position:relative}
+.ai-modal h3{margin:0 0 16px;font-size:16px;color:var(--text);font-weight:600}
+.ai-modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:4px}
+.ai-modal-close:hover{color:var(--text)}
+.ai-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.ai-tab{background:none;border:1px solid transparent;color:var(--text3);font-size:13px;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.ai-tab:hover{color:var(--text);background:var(--bg3)}
+.ai-tab.active{color:var(--blue);border-color:var(--blue);background:rgba(59,130,246,0.08)}
+.ai-field{margin-bottom:12px}
+.ai-field label{display:block;font-size:12px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.ai-field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:14px;font-family:inherit;box-sizing:border-box}
+.ai-field input:focus{outline:none;border-color:var(--blue)}
+.ai-field .hint{font-size:11px;color:var(--text3);margin-top:4px}
+.ai-save-btn{background:var(--blue);color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.ai-save-btn:hover{filter:brightness(1.1)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -253,23 +271,7 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
     </span>
     <button class="btn btn-primary" id="ai-go-btn" onclick="aiBulkMode?bulkAIAutoFill():globalAIAutoFill()">Auto-fill</button>
     <span class="ai-mode-toggle" onclick="toggleBulkMode()">Bulk mode</span>
-    <span class="ai-provider-info" id="ai-provider-info" onclick="toggleAISettings()" style="cursor:pointer" title="Click to configure"></span>
-  </div>
-  <div class="ai-settings" id="ai-settings" style="display:none">
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
-      <select id="ai-settings-provider" onchange="saveAISettings()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
-        <option value="openrouter">OpenRouter</option>
-        <option value="anthropic">Anthropic</option>
-        <option value="venice">Venice</option>
-        <option value="ollama">Local AI (Ollama)</option>
-      </select>
-      <input type="password" id="ai-settings-key" placeholder="API key" onchange="saveAISettings()" style="flex:1;min-width:200px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
-      <input type="text" id="ai-settings-model" placeholder="Model (optional)" onchange="saveAISettings()" style="width:200px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
-      <span style="font-size:11px;color:var(--text3)">Editor-only settings</span>
-    </div>
-    <div id="ai-settings-ollama" style="display:none;margin-top:6px">
-      <input type="text" id="ai-settings-ollama-url" placeholder="Ollama URL (default: http://localhost:11434)" onchange="saveAISettings()" style="width:300px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:13px">
-    </div>
+    <span class="ai-provider-info" id="ai-provider-info" onclick="openAISettingsModal()" style="cursor:pointer" title="Click to configure"></span>
   </div>
   <textarea id="ai-bulk-urls" placeholder="Paste multiple URLs, one per line...&#10;https://gymbeam.cz/magnesium-glycinate&#10;https://aktin.cz/omega-3-fish-oil&#10;https://prozdravi.cz/vitamin-d3-k2"></textarea>
   <div class="ai-status" id="ai-status"></div>
@@ -1633,32 +1635,60 @@ function loadAISettings() {
   try { return JSON.parse(localStorage.getItem(AI_SETTINGS_KEY)) || {}; } catch { return {}; }
 }
 
-function saveAISettings() {
-  const provider = document.getElementById('ai-settings-provider').value;
-  const key = document.getElementById('ai-settings-key').value.trim();
-  const model = document.getElementById('ai-settings-model').value.trim();
-  const ollamaUrl = document.getElementById('ai-settings-ollama-url').value.trim();
-  const settings = { provider };
-  if (key) settings.key = key;
-  if (model) settings.model = model;
-  if (ollamaUrl) settings.ollamaUrl = ollamaUrl;
-  localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
-  document.getElementById('ai-settings-ollama').style.display = provider === 'ollama' ? '' : 'none';
-  showProviderInfo();
+const AI_PROVIDERS = [
+  { id: 'openrouter', name: 'OpenRouter', hint: 'Recommended. Access Claude, GPT, Gemini, Grok via one key.', keyLabel: 'OpenRouter API Key' },
+  { id: 'anthropic', name: 'Anthropic', hint: 'Direct Claude access.', keyLabel: 'Anthropic API Key' },
+  { id: 'venice', name: 'Venice', hint: 'Privacy-focused. Optional E2EE.', keyLabel: 'Venice API Key' },
+  { id: 'ollama', name: 'Local AI', hint: 'Ollama, LM Studio, or any OpenAI-compatible server.', keyLabel: null },
+];
+
+function openAISettingsModal() {
+  const s = loadAISettings();
+  const activeProvider = s.provider || 'openrouter';
+  const tabs = document.getElementById('ai-tabs');
+  tabs.innerHTML = AI_PROVIDERS.map(p =>
+    `<button class="ai-tab${p.id === activeProvider ? ' active' : ''}" onclick="renderAIProviderPanel('${p.id}')">${esc(p.name)}</button>`
+  ).join('');
+  renderAIProviderPanel(activeProvider);
+  document.getElementById('ai-modal-overlay').classList.add('show');
 }
 
-function toggleAISettings() {
-  const el = document.getElementById('ai-settings');
-  const show = el.style.display === 'none';
-  el.style.display = show ? '' : 'none';
-  if (show) {
-    const s = loadAISettings();
-    document.getElementById('ai-settings-provider').value = s.provider || 'openrouter';
-    document.getElementById('ai-settings-key').value = s.key || '';
-    document.getElementById('ai-settings-model').value = s.model || '';
-    document.getElementById('ai-settings-ollama-url').value = s.ollamaUrl || '';
-    document.getElementById('ai-settings-ollama').style.display = (s.provider === 'ollama') ? '' : 'none';
+function closeAISettingsModal() {
+  document.getElementById('ai-modal-overlay').classList.remove('show');
+}
+
+function renderAIProviderPanel(providerId) {
+  document.querySelectorAll('.ai-tab').forEach(t => t.classList.toggle('active', t.textContent === AI_PROVIDERS.find(p => p.id === providerId)?.name));
+  const s = loadAISettings();
+  const p = AI_PROVIDERS.find(x => x.id === providerId);
+  const body = document.getElementById('ai-modal-body');
+  let html = `<div style="font-size:12px;color:var(--text3);margin-bottom:12px">${esc(p.hint)}</div>`;
+  if (providerId === 'ollama') {
+    html += `<div class="ai-field"><label>Server URL</label><input type="text" id="ai-m-url" value="${esc(s.provider === providerId ? (s.ollamaUrl || '') : '')}" placeholder="http://localhost:11434"><div class="hint">Leave empty for default Ollama port</div></div>`;
+    html += `<div class="ai-field"><label>Model</label><input type="text" id="ai-m-model" value="${esc(s.provider === providerId ? (s.model || '') : '')}" placeholder="qwen3:14b"></div>`;
+  } else {
+    html += `<div class="ai-field"><label>${esc(p.keyLabel)}</label><input type="password" id="ai-m-key" value="${esc(s.provider === providerId ? (s.key || '') : '')}" placeholder="sk-..."></div>`;
+    html += `<div class="ai-field"><label>Model</label><input type="text" id="ai-m-model" value="${esc(s.provider === providerId ? (s.model || '') : '')}" placeholder="${esc(AI_PROVIDER_DEFAULTS[providerId]?.defaultModel || '')}"><div class="hint">Leave empty for default</div></div>`;
   }
+  html += `<button class="ai-save-btn" onclick="saveAIProvider('${providerId}')">Save</button>`;
+  body.innerHTML = html;
+}
+
+function saveAIProvider(providerId) {
+  const settings = { provider: providerId };
+  if (providerId === 'ollama') {
+    const url = document.getElementById('ai-m-url')?.value.trim();
+    if (url) settings.ollamaUrl = url;
+  } else {
+    const key = document.getElementById('ai-m-key')?.value.trim();
+    if (key) settings.key = key;
+  }
+  const model = document.getElementById('ai-m-model')?.value.trim();
+  if (model) settings.model = model;
+  localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
+  showProviderInfo();
+  closeAISettingsModal();
+  showToast(`AI provider set to ${AI_PROVIDERS.find(p => p.id === providerId)?.name}`, 'success');
 }
 
 function detectAIProvider() {
@@ -2508,5 +2538,14 @@ load().then(() => {
   showProviderInfo();
 });
 </script>
+
+<div class="ai-modal-overlay" id="ai-modal-overlay" onclick="if(event.target===this)closeAISettingsModal()">
+  <div class="ai-modal">
+    <button class="ai-modal-close" onclick="closeAISettingsModal()">&times;</button>
+    <h3>AI Provider</h3>
+    <div class="ai-tabs" id="ai-tabs"></div>
+    <div id="ai-modal-body"></div>
+  </div>
+</div>
 </body>
 </html>
