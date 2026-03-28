@@ -2346,41 +2346,51 @@ function populateShopFillDropdown() {
 }
 
 function trimHtml(html) {
-  // Strip script, style, svg, noscript
-  let h = html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<svg[\s\S]*?<\/svg>/gi, '')
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '');
-  // Extract product-like content: links with product URLs, prices, product names
-  const products = [];
-  // Match anchor tags with href containing product-like paths and their text
-  const linkRe = /<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  // Strategy 1: Extract structured product data (microdata, data attributes)
+  const items = [];
+  // Shoptet / standard microdata: data-micro-product-id, data-micro="name", data-micro-price
+  const productRe = /data-micro="product"[\s\S]*?(?=data-micro="product"|<\/section|$)/gi;
   let m;
-  while ((m = linkRe.exec(h)) !== null) {
-    const href = m[1];
-    const inner = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    // Skip nav/category/empty links, keep product-like ones
-    if (inner.length > 5 && inner.length < 200 && !href.includes('javascript:') && !href.startsWith('#')) {
-      products.push(`${inner} [${href}]`);
+  while ((m = productRe.exec(html)) !== null) {
+    const block = m[0];
+    const name = block.match(/data-micro="name"[^>]*>([^<]+)/)?.[1]?.trim();
+    const price = block.match(/data-micro-price="([^"]+)"/)?.[1];
+    const currency = block.match(/data-micro-price-currency="([^"]+)"/)?.[1] || '';
+    const url = block.match(/class="[^"]*name[^"]*"[^>]*data-micro="url"|<a[^>]*href="([^"]+)"[^>]*class="[^"]*name/)?.[1]
+             || block.match(/<a[^>]*href="(\/[^"]+)"/)?.[1];
+    const avail = block.match(/availability[^>]*>[\s\S]*?<span[^>]*>([^<]+)/)?.[1]?.trim();
+    if (name) {
+      let line = name;
+      if (price) line += ` | ${price} ${currency}`;
+      if (avail) line += ` | ${avail}`;
+      if (url) line += ` | URL: ${url}`;
+      items.push(line);
     }
   }
-  // Also extract price elements
-  const priceRe = /(?:class="[^"]*price[^"]*"[^>]*>|data-price[^>]*>)([\s\S]*?)<\//gi;
-  while ((m = priceRe.exec(h)) !== null) {
-    const price = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-    if (price.length > 0 && price.length < 50) products.push(`PRICE: ${price}`);
+  if (items.length >= 3) return items.join('\n');
+
+  // Strategy 2: Generic product extraction — links with prices nearby
+  const h = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<svg[\s\S]*?<\/svg>/gi, '');
+  const linkRe = /<a[^>]*href="(\/[^"]{10,})"[^>]*>([\s\S]*?)<\/a>/gi;
+  while ((m = linkRe.exec(h)) !== null) {
+    const inner = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (inner.length > 10 && inner.length < 300) items.push(`${inner} [${m[1]}]`);
   }
-  if (products.length > 5) {
-    // Structured extraction worked — return product-focused content
-    let text = products.join('\n');
-    if (text.length > 8000) text = text.slice(0, 8000);
+  const priceRe = /data-micro-price="([^"]+)"|class="[^"]*price-final[^"]*"[^>]*>[\s\S]*?(\d[\d\s,.]+\s*(?:Kč|CZK|€|EUR))/gi;
+  while ((m = priceRe.exec(h)) !== null) {
+    const p = (m[1] || m[2] || '').trim();
+    if (p) items.push(`PRICE: ${p}`);
+  }
+  if (items.length > 5) {
+    let text = items.join('\n');
+    if (text.length > 10000) text = text.slice(0, 10000);
     return text;
   }
-  // Fallback: strip all tags, remove nav noise, keep main content
+
+  // Strategy 3: Full text fallback
   let text = h.replace(/<nav[\s\S]*?<\/nav>/gi, '').replace(/<footer[\s\S]*?<\/footer>/gi, '').replace(/<header[\s\S]*?<\/header>/gi, '');
   text = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  if (text.length > 8000) text = text.slice(0, 8000);
+  if (text.length > 10000) text = text.slice(0, 10000);
   return text;
 }
 
