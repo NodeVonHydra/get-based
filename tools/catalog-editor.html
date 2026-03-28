@@ -2346,19 +2346,41 @@ function populateShopFillDropdown() {
 }
 
 function trimHtml(html) {
-  // Strip script, style, nav, footer, header tags and their content
-  let text = html
+  // Strip script, style, svg, noscript
+  let h = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
-    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
-    .replace(/<header[\s\S]*?<\/header>/gi, '');
-  // Strip remaining HTML tags
-  text = text.replace(/<[^>]+>/g, ' ');
-  // Collapse whitespace
-  text = text.replace(/\s+/g, ' ').trim();
-  // Cap at 6KB
-  if (text.length > 6000) text = text.slice(0, 6000);
+    .replace(/<svg[\s\S]*?<\/svg>/gi, '')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, '');
+  // Extract product-like content: links with product URLs, prices, product names
+  const products = [];
+  // Match anchor tags with href containing product-like paths and their text
+  const linkRe = /<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m;
+  while ((m = linkRe.exec(h)) !== null) {
+    const href = m[1];
+    const inner = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    // Skip nav/category/empty links, keep product-like ones
+    if (inner.length > 5 && inner.length < 200 && !href.includes('javascript:') && !href.startsWith('#')) {
+      products.push(`${inner} [${href}]`);
+    }
+  }
+  // Also extract price elements
+  const priceRe = /(?:class="[^"]*price[^"]*"[^>]*>|data-price[^>]*>)([\s\S]*?)<\//gi;
+  while ((m = priceRe.exec(h)) !== null) {
+    const price = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    if (price.length > 0 && price.length < 50) products.push(`PRICE: ${price}`);
+  }
+  if (products.length > 5) {
+    // Structured extraction worked — return product-focused content
+    let text = products.join('\n');
+    if (text.length > 8000) text = text.slice(0, 8000);
+    return text;
+  }
+  // Fallback: strip all tags, remove nav noise, keep main content
+  let text = h.replace(/<nav[\s\S]*?<\/nav>/gi, '').replace(/<footer[\s\S]*?<\/footer>/gi, '').replace(/<header[\s\S]*?<\/header>/gi, '');
+  text = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (text.length > 8000) text = text.slice(0, 8000);
   return text;
 }
 
