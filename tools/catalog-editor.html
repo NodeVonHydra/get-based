@@ -534,94 +534,7 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
 <div class="toast-container" id="toast-container"></div>
 
 <script>
-// ── Slot lists derived from catalog JSON on load ──
-const _HARDCODED_SUPPLEMENT_SLOTS = [
-  { key: 'vitamins.vitaminD', label: 'Vitamin D3', freeActions: ['15-30 min midday sunlight with skin exposed', 'Spend time outdoors — even overcast sky provides some UVB'], productForms: ['UVB light panel', 'Red light + UVB combo panel'], foodForms: ['Fatty fish (salmon, sardines)', 'Cod liver oil', 'Pasture-raised egg yolks'], forms: ['D3 + K2 combo', 'D3 liquid drops', 'D3 high-dose (5000+ IU)'] },
-  { key: 'vitamins.vitaminA', label: 'Vitamin A', foodForms: ['Beef/lamb liver', 'Cod liver oil', 'Pasture-raised egg yolks'], forms: ['Retinyl palmitate', 'Cod liver oil (supplement)', 'Beta-carotene'] },
-  { key: 'vitamins.vitaminB12', label: 'Vitamin B12', foodForms: ['Beef liver', 'Sardines', 'Clams/mussels', 'Pasture-raised eggs'], forms: ['Methylcobalamin', 'Hydroxocobalamin', 'Adenosylcobalamin'] },
-  { key: 'electrolytes.magnesium', label: 'Magnesium', freeActions: ['Epsom salt baths (transdermal magnesium absorption)'], foodForms: ['Pumpkin seeds', 'Dark chocolate (85%+)', 'Almonds', 'Spinach/Swiss chard'], forms: ['Magnesium Glycinate', 'Magnesium L-Threonate', 'Magnesium Taurate', 'Magnesium Citrate', 'Magnesium Malate'] },
-  { key: 'electrolytes.potassium', label: 'Potassium', foodForms: ['Avocado', 'Potato (with skin)', 'Coconut water', 'Sweet potato'], forms: ['Potassium citrate', 'Potassium bicarbonate', 'Potassium chloride'] },
-  { key: 'electrolytes.zinc', label: 'Zinc', foodForms: ['Oysters', 'Beef (grass-fed)', 'Pumpkin seeds', 'Dark chocolate (85%+)'], forms: ['Zinc picolinate', 'Zinc carnosine', 'Zinc bisglycinate'] },
-  { key: 'electrolytes.copper', label: 'Copper', foodForms: ['Beef liver', 'Oysters', 'Dark chocolate (85%+)', 'Cashews'], forms: ['Copper bisglycinate', 'Copper sebacate'] },
-  { key: 'iron.ferritin', label: 'Iron', freeActions: ['Cook in cast iron (leaches bioavailable iron into food)'], foodForms: ['Beef liver', 'Red meat (grass-fed)', 'Sardines', 'Dark poultry (thigh)'], forms: ['Iron Bisglycinate', 'Heme iron polypeptide', 'Lactoferrin + iron'] },
-  { key: 'lipids.hdl', label: 'Omega-3 (HDL)', freeActions: ['Regular aerobic exercise (raises HDL naturally)', 'Reduce refined carbs and seed oils'], foodForms: ['Wild salmon', 'Sardines (canned, olive oil)', 'Mackerel', 'Anchovies'], forms: ['Triglyceride-form fish oil', 'High-EPA concentrate', 'High-DHA concentrate', 'Algal DHA/EPA'] },
-  { key: 'lipids.triglycerides', label: 'Omega-3 (Triglycerides)', freeActions: ['Cut sugar and refined carbs (biggest dietary driver of high TG)', 'Regular exercise'], foodForms: ['Fatty fish (same as HDL)'], forms: ['High-EPA fish oil (2-4g EPA)', 'Algal EPA'] },
-  { key: 'lipids.ldl', label: 'LDL support', freeActions: ['Daily movement — even walking lowers LDL', 'Reduce processed food and seed oils'], foodForms: ['Oats/soluble fiber', 'Cruciferous vegetables'], forms: ['Berberine HCl', 'Plant sterols/stanols', 'Red yeast rice', 'Citrus bergamot'] },
-  { key: 'thyroid.tsh', label: 'Selenium (Thyroid)', foodForms: ['Brazil nuts (2/day)', 'Sardines', 'Organ meats'], forms: ['Selenomethionine', 'Selenium + Zinc combo'] },
-  { key: 'thyroid.ft3', label: 'T4→T3 conversion', freeActions: ['Manage stress (cortisol blocks T4→T3 conversion)', 'Sleep 7-9h (thyroid hormone conversion peaks during sleep)'], foodForms: ['Brazil nuts + pumpkin seeds', 'Oysters'], forms: ['Selenomethionine + Zinc picolinate', 'Ashwagandha (KSM-66)'] },
-  { key: 'hormones.testosterone', label: 'Testosterone support', freeActions: ['Heavy compound lifts (squat, deadlift, press)', 'Sleep 7-9h in a dark cold room', 'Reduce alcohol', 'Morning sunlight on skin (supports circadian-linked T production)'], foodForms: ['Oysters', 'Beef liver', 'Whole eggs (pasture-raised)', 'Pomegranate'], forms: ['Tongkat Ali', 'Ashwagandha (KSM-66)', 'Fadogia Agrestis', 'Boron (6-10mg)'] },
-  { key: 'hormones.shbg', label: 'SHBG (Boron)', forms: ['Boron (calcium fructoborate)', 'Stinging nettle root'] },
-  { key: 'hormones.dheaS', label: 'DHEA (body makes)', freeActions: ['Sleep 7-9h (DHEA is produced during deep sleep)', 'Reduce chronic stress (cortisol steals the same precursor)'], forms: ['DHEA 25mg', 'DHEA 50mg', '7-Keto DHEA'] },
-  { key: 'hormones.estradiol', label: 'Estrogen metabolism', freeActions: ['Reduce body fat (adipose tissue aromatizes testosterone → estrogen)', 'Reduce alcohol (impairs estrogen clearance)'], foodForms: ['Cruciferous vegetables', 'Citrus fruits'], forms: ['DIM', 'Calcium D-Glucarate', 'DIM + CDG combo'] },
-  { key: 'hormones.insulin', label: 'Insulin / glucose', freeActions: ['Walk 15 min after meals (most effective glucose intervention)', 'Eat protein/fat before carbs (blunts glucose spike)', 'Resistance training (improves insulin sensitivity for 24-48h)'], foodForms: ['Apple cider vinegar', 'Berries', 'Ceylon cinnamon', 'Fiber-rich meals'], forms: ['Berberine HCl', 'Dihydroberberine', 'Chromium picolinate', 'Ceylon cinnamon extract'] },
-  { key: 'hormones.igf1', label: 'IGF-1 (body makes)', freeActions: ['Resistance training (strongest natural IGF-1 stimulus)', 'Sleep 7-9h (GH/IGF-1 axis peaks during deep sleep)'], foodForms: ['Adequate protein (1.6-2.2g/kg)'], forms: ['Colostrum'] },
-  { key: 'biochemistry.glucose', label: 'Glucose support', freeActions: ['Post-meal walks', 'Eat protein/fat before carbs', 'Resistance training'], foodForms: ['Same as insulin'], forms: ['Berberine HCl', 'Dihydroberberine', 'Chromium picolinate', 'Alpha Lipoic Acid'] },
-  { key: 'biochemistry.ast', label: 'Liver support', freeActions: ['Reduce/eliminate alcohol', 'Avoid unnecessary medications (esp. NSAIDs, acetaminophen)'], foodForms: ['Cruciferous vegetables', 'Garlic/onion (alliums)', 'Pasture-raised eggs'], forms: ['NAC (N-Acetyl Cysteine)', 'Milk Thistle (Silymarin)', 'TUDCA'] },
-  { key: 'biochemistry.ggt', label: 'Glutathione / GGT', freeActions: ['Eliminate alcohol (GGT is the most sensitive alcohol marker)', 'Regular exercise (upregulates glutathione synthesis)'], foodForms: ['Same sulfur foods as liver'], forms: ['NAC', 'Liposomal glutathione', 'Milk Thistle'] },
-  { key: 'biochemistry.uricAcid', label: 'Uric acid', freeActions: ['Stay well hydrated (dilutes uric acid, aids excretion)', 'Reduce fructose / high-purine foods (beer, organ meats, shellfish)'], foodForms: ['Tart cherries/juice', 'Vitamin C foods (bell pepper, citrus, kiwi)'], forms: ['Vitamin C', 'Tart cherry extract', 'Quercetin'] },
-  { key: 'proteins.hsCRP', label: 'Inflammation (hs-CRP)', freeActions: ['Sleep 7-9h (sleep deprivation raises CRP)', 'Reduce seed oils and ultra-processed food', 'Regular moderate exercise (intense overtraining raises CRP)'], foodForms: ['Fatty fish', 'Turmeric + black pepper', 'Ginger', 'Dark leafy greens'], forms: ['High-EPA fish oil', 'Curcumin (liposomal)', 'NAC', 'SPMs'] },
-  { key: 'coagulation.homocysteine', label: 'Homocysteine / methylation', foodForms: ['Beef liver', 'Dark leafy greens (folate)', 'Eggs (choline)', 'Beets (betaine)'], forms: ['B12 + Folate + B6 (P5P)', 'TMG (Betaine)', 'Riboflavin (B2)'] },
-  { key: 'hematology.mcv', label: 'MCV (macrocytic)', foodForms: ['B12 foods (liver, sardines)', 'Folate foods (leafy greens, legumes)'], forms: ['Methylcobalamin sublingual', '5-MTHF (Methylfolate)', 'B12 + Folate combo'] },
-  { key: 'hematology.rdwcv', label: 'RDW-CV', forms: ['Iron Bisglycinate', 'B12 + Folate', 'Iron + B12 + Folate combo'] },
-  { key: 'fattyAcids.omega3Index', label: 'Omega-3 Index', foodForms: ['Wild salmon', 'Sardines', 'Mackerel', 'Anchovies'], forms: ['Triglyceride-form fish oil', 'High-EPA concentrate', 'High-DHA concentrate', 'Algal DHA/EPA'] },
-  { key: 'boneMetabolism.osteocalcin', label: 'Vitamin K2 (bone)', freeActions: ['Weight-bearing exercise (walking, running, lifting — stimulates osteoblasts)'], foodForms: ['Natto', 'Hard aged cheese (Gouda)', 'Pasture-raised egg yolks', 'Grass-fed butter/ghee'], forms: ['K2 MK-7 (100-200mcg)', 'K2 MK-4 (high-dose)', 'D3 + K2 combo'] },
-  { key: 'calculatedRatios.tgHdlRatio', label: 'TG/HDL ratio', freeActions: ['Cut sugar/refined carbs + regular exercise (addresses both sides of the ratio)'], foodForms: ['Fatty fish + reduce refined carbs'], forms: ['High-EPA fish oil + Berberine', 'Omega-3 alone', 'Berberine alone'] },
-  { key: 'calculatedRatios.copperZincRatio', label: 'Cu/Zn ratio', foodForms: ['Oysters (balanced Cu+Zn)', 'Pumpkin seeds + dark chocolate (zinc-dominant)'], forms: ['Zinc picolinate'] },
-  { key: 'calculatedRatios.nlr', label: 'NLR (inflammation)', freeActions: ['Sleep, stress management, moderate exercise (same as hs-CRP)'], foodForms: ['Anti-inflammatory diet (same as hs-CRP)'], forms: ['Omega-3 (high-EPA)', 'Curcumin (liposomal)', 'Vitamin D3'] },
-  // Added in v1.12 catalog expansion
-  { key: 'biochemistry.alt', label: 'Liver support / ALT', forms: ['NAC', 'Milk Thistle (Silymarin)', 'TUDCA', 'Artichoke extract'] },
-  { key: 'biochemistry.ldh', label: 'Recovery / LDH', forms: ['Tart cherry extract', 'Curcumin (liposomal)', 'Taurine', 'Magnesium glycinate'] },
-  { key: 'biochemistry.bilirubinTotal', label: 'Bilirubin metabolism', forms: ['Calcium D-Glucarate', 'NAC', 'Milk Thistle'] },
-  { key: 'biochemistry.creatinine', label: 'Kidney support', forms: ['Omega-3 (EPA/DHA)', 'CoQ10', 'Astragalus', 'Probiotics'] },
-  { key: 'biochemistry.urea', label: 'Kidney / hydration (BUN)', forms: ['Omega-3', 'Probiotics', 'CoQ10'] },
-  { key: 'diabetes.hba1c', label: 'HbA1c / long-term glucose', forms: ['Berberine HCl', 'Dihydroberberine', 'Chromium picolinate', 'Alpha Lipoic Acid'] },
-  { key: 'hematology.hemoglobin', label: 'Hemoglobin / iron', forms: ['Iron Bisglycinate', 'Heme iron polypeptide', 'Lactoferrin + iron', 'B12 + Folate combo'] },
-  { key: 'hematology.wbc', label: 'WBC (immune function)', forms: ['Vitamin C', 'Vitamin D3', 'Zinc picolinate', 'Beta-Glucan'] },
-  { key: 'hormones.freeTestosterone', label: 'Free Testosterone', forms: ['Boron (6-10mg)', 'Tongkat Ali', 'Stinging Nettle Root', 'Magnesium'] },
-  { key: 'hormones.progesterone', label: 'Progesterone', forms: ['Vitex / Chasteberry', 'Vitamin B6 (P5P)', 'Vitamin C (750mg)', 'Magnesium Glycinate'] },
-  { key: 'thyroid.ft4', label: 'Free T4 (Thyroid)', forms: ['Selenomethionine', 'Zinc picolinate', 'Iodine (Lugol\'s)'] },
-  { key: 'proteins.albumin', label: 'Albumin (protein status)', forms: ['Collagen peptides', 'NAC', 'Digestive enzymes'] },
-  { key: 'proteins.totalProtein', label: 'Total Protein', forms: ['Digestive enzymes + Betaine HCl', 'Collagen peptides', 'L-Glutamine'] },
-  { key: 'lipids.cholesterol', label: 'Total Cholesterol', forms: ['Citrus Bergamot', 'Plant sterols/stanols', 'Red Yeast Rice', 'Berberine HCl'] },
-  { key: 'electrolytes.sodium', label: 'Sodium (low support)', forms: ['Electrolyte capsules', 'Sodium bicarbonate', 'Adrenal support complex'] },
-  { key: 'electrolytes.calciumTotal', label: 'Calcium balance', forms: ['Calcium hydroxyapatite (MCHC)', 'K2 MK-7 + D3 combo', 'Calcium citrate'] },
-  { key: 'biochemistry.alp', label: 'ALP (zinc cofactor)', forms: ['Zinc picolinate (30-50mg)', 'Magnesium glycinate', 'Vitamin D3 + K2'] },
-  { key: 'biochemistry.creatineKinase', label: 'Recovery / CK', forms: ['Creatine monohydrate', 'Taurine (1-3g)', 'Magnesium glycinate', 'Vitamin D3'] },
-  { key: 'hematology.rbc', label: 'RBC production', forms: ['Iron Bisglycinate', 'B12 + Folate combo', 'EPO-support (altitude training)', 'Copper bisglycinate'] },
-  { key: 'hematology.hematocrit', label: 'Hematocrit (hydration check)', forms: ['Electrolyte formula', 'Iron Bisglycinate', 'B12 + Folate'] },
-  { key: 'hematology.platelets', label: 'Platelet balance', forms: ['Omega-3 (EPA/DHA)', 'Papaya leaf extract', 'Folate (5-MTHF)', 'Iron Bisglycinate'] },
-  { key: 'iron.iron', label: 'Serum Iron', forms: ['Iron Bisglycinate', 'Lactoferrin + iron', 'Vitamin C (paired)', 'Heme iron polypeptide'] },
-  { key: 'lipids.apoB', label: 'ApoB (particle count)', forms: ['Citrus Bergamot', 'Berberine HCl', 'Plant sterols/stanols', 'Niacin (flush-free)'] },
-  { key: 'hormones.lh', label: 'LH (pituitary→gonad)', forms: ['Tongkat Ali', 'Ashwagandha KSM-66', 'Zinc picolinate', 'Vitamin D3'] },
-  { key: 'hormones.fsh', label: 'FSH (pituitary→gonad)', forms: ['Myo-inositol', 'CoQ10 (ubiquinol)', 'Vitamin D3', 'DHEA (low-dose)'] },
-  { key: 'hormones.prolactin', label: 'Prolactin (dopamine link)', forms: ['Vitamin B6 (P5P, 50-100mg)', 'Vitex / Chasteberry', 'Mucuna pruriens', 'Zinc picolinate'] },
-];
-
-const _HARDCODED_LIFESTYLE_SLOTS = [
-  { key: 'light.blueBlockers', label: 'Blue light blocking', card: 'Light & Circadian', freeActions: ['Avoid screens 1-2h before bed', 'Use built-in Night Shift / Night Light on devices', 'Dim room lights after sunset'], forms: ['Blue light glasses (evening/red)', 'Blue light glasses (daytime/clear)', 'Red/amber book light'] },
-  { key: 'light.morningLight', label: 'Morning light therapy', card: 'Light & Circadian', freeActions: ['Go outside within 30 min of waking (even overcast works)', 'Have coffee/breakfast outside or by a window'], forms: ['10,000 lux light therapy lamp', 'Dawn simulator alarm clock'] },
-  { key: 'light.coldExposure', label: 'Cold exposure', card: 'Light & Circadian', freeActions: ['End shower with 30-90s cold water', 'Cold face splash (triggers dive reflex, lowers heart rate)'], forms: ['Cold plunge tub', 'Portable ice bath barrel', 'Cold face immersion bowl'] },
-  { key: 'light.grounding', label: 'Grounding / Earthing', card: 'Light & Circadian', freeActions: ['Walk barefoot on grass, soil, or sand for 15-30 min', 'Sit or stand on natural ground while working outside'], forms: ['Grounding mat (desk/floor)', 'Grounding sheet (bed)', 'Grounding shoes'] },
-  { key: 'light.screenTime', label: 'Screen time mitigation', card: 'Light & Circadian', freeActions: ['20-20-20 rule (every 20 min, look 20 feet away for 20 sec)', 'Take regular screen breaks — walk, stretch, look outside'], forms: ['Daytime blue light glasses', 'Monitor light bar', 'E-ink monitor/tablet'] },
-  { key: 'sleep.blackout', label: 'Blackout / light blocking', card: 'Sleep & Rest', freeActions: ['Cover LED standby lights with tape', 'Use existing towels/blankets over curtain rod'], forms: ['Blackout curtains', 'Sleep mask (contoured)'] },
-  { key: 'sleep.mouthTape', label: 'Nasal breathing (sleep)', card: 'Sleep & Rest', freeActions: ['Practice nasal breathing during the day to build the habit', 'Clear sinuses before bed (steam, saline rinse)'], forms: ['Sleep mouth tape (hypoallergenic)'] },
-  { key: 'sleep.cooling', label: 'Sleep cooling', card: 'Sleep & Rest', freeActions: ['Open a window or crack the door (18-19°C ideal)', 'Lighter bedding — swap duvet for a sheet in summer'], forms: ['Cooling mattress pad (water-based)', 'Cooling pillow', 'Bedroom fan'] },
-  { key: 'env.waterFilter', label: 'Water filtration', card: 'Environment', freeActions: ['Check local water quality report (know what you are filtering for)'], forms: ['Reverse osmosis (under-sink)', 'Gravity-fed filter', 'Countertop RO', 'Shower filter'] },
-  { key: 'env.cookware', label: 'PFAS-free cookware', card: 'Environment', forms: ['Cast iron skillet', 'Stainless steel cookware', 'Carbon steel pan'] },
-  { key: 'env.glassContainers', label: 'Glass/steel food storage', card: 'Environment', freeActions: ['Never microwave food in plastic', 'Reuse glass jars from store-bought food'], forms: ['Glass food storage containers', 'Stainless steel containers', 'Glass water bottle'] },
-  { key: 'env.wifiTimer', label: 'EMF reduction (WiFi)', card: 'Environment', freeActions: ['Turn WiFi router off at night manually', 'Use airplane mode on phone while sleeping'], forms: ['WiFi outlet timer', 'Ethernet adapter + cable'] },
-  { key: 'env.airPurifier', label: 'Air purification', card: 'Environment', freeActions: ['Open windows regularly for cross-ventilation', 'Keep houseplants (snake plant, pothos, peace lily)'], forms: ['HEPA air purifier', 'Air quality monitor'] },
-  { key: 'env.moldTest', label: 'Mold testing', card: 'Environment', freeActions: ['Visually inspect wet areas (bathroom, kitchen, basement, window frames)', 'Fix any water leaks promptly — mold needs moisture'], forms: ['ERMI / HERTSMI-2 mold test kit', 'HEPA + carbon filter purifier'] },
-  { key: 'env.lighting', label: 'Healthier indoor lighting', card: 'Environment', freeActions: ['Use candles or dimmed lights in the evening', 'Turn off overhead lights — use a single side lamp instead'], forms: ['Incandescent bulbs', 'Low-blue LED bulbs (<2700K)', 'Red LED bulbs'] },
-  { key: 'exercise.standingDesk', label: 'Movement at desk', card: 'Exercise', freeActions: ['Set a timer — stand and walk for 2 min every 30 min', 'Take phone calls standing or walking', 'Stack books to create a makeshift standing desk'], forms: ['Standing desk converter', 'Under-desk walking pad'] },
-  { key: 'diet.digestiveEnzymes', label: 'Digestive enzyme support', card: 'Diet & Digestion', freeActions: ['Chew food thoroughly (digestion starts in the mouth)', 'Don\'t drink large amounts of water with meals (dilutes stomach acid)', 'Eat slowly and without screens'], forms: ['Broad-spectrum digestive enzymes', 'Betaine HCl + Pepsin', 'Ox bile supplement'] },
-  { key: 'diet.lactase', label: 'Lactose/dairy support', card: 'Diet & Digestion', freeActions: ['Try fermented dairy first (yogurt, kefir, aged cheese — bacteria pre-digest lactose)'], forms: ['Lactase enzyme'] },
-  { key: 'diet.dao', label: 'Histamine intolerance', card: 'Diet & Digestion', freeActions: ['Eat food fresh — histamine builds up in leftovers, aged foods, fermented foods', 'Keep a food diary to identify personal triggers'], forms: ['DAO enzyme supplement', 'Quercetin + Vitamin C'] },
-  { key: 'diet.reflux', label: 'Reflux support', card: 'Diet & Digestion', freeActions: ['Don\'t eat within 3h of lying down', 'Elevate head of bed 15-20cm (gravity keeps acid down)', 'Eat smaller meals, chew thoroughly'], forms: ['Betaine HCl + Pepsin', 'DGL (Deglycyrrhizinated Licorice)', 'Zinc Carnosine'] },
-  { key: 'stress.adaptogens', label: 'Stress / HPA axis', card: 'Stress', freeActions: ['Box breathing (4-4-4-4) or 4-7-8 breathing — free, instant cortisol reduction', 'Time in nature (even 20 min lowers cortisol measurably)', 'Journaling, meditation, or prayer'], forms: ['Ashwagandha (KSM-66)', 'L-Theanine', 'Magnesium Glycinate', 'HRV biofeedback device'] },
-];
-
-// ── Derived slot lists (populated from JSON on load) ──
+// ── Slot lists (loaded from data/recommendations-czsk.json on init) ──
 let SUPPLEMENT_SLOTS = [];
 let LIFESTYLE_SLOTS = [];
 
@@ -714,10 +627,14 @@ async function load() {
         }
       }
     }
-  } catch(e) { console.warn('Could not load catalog JSON, using hardcoded fallback:', e); }
-  // Fallback to hardcoded arrays if JSON load failed
-  if (!SUPPLEMENT_SLOTS.length) SUPPLEMENT_SLOTS = _HARDCODED_SUPPLEMENT_SLOTS;
-  if (!LIFESTYLE_SLOTS.length) LIFESTYLE_SLOTS = _HARDCODED_LIFESTYLE_SLOTS;
+  } catch(e) {
+    alert('Could not load catalog JSON. Make sure the dev server is running (node dev-server.js).');
+    return;
+  }
+  if (!SUPPLEMENT_SLOTS.length && !LIFESTYLE_SLOTS.length) {
+    alert('Catalog JSON loaded but contains no slots. Check data/recommendations-czsk.json.');
+    return;
+  }
   // Ensure products map has all slots
   for (const s of [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS]) {
     if (!catalog.products[s.key]) catalog.products[s.key] = [];
