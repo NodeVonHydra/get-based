@@ -1183,6 +1183,262 @@
         "HRV biofeedback device"
       ],
       "label": "Stress / HPA axis"
+    },
+    "electrolytes.sodium": {
+      "freeActions": [
+        "Don't overhydrate — drink to thirst, not a fixed quota (overhydration is the #1 cause of mild low sodium in active people)",
+        "Add unrefined salt to water and meals (Celtic sea salt, Himalayan pink salt — contains sodium + trace minerals)",
+        "Morning sunlight (cortisol rises with light; cortisol drives aldosterone, which retains sodium via the kidney)",
+        "Support adrenal function — sleep 7-9h in complete darkness, reduce chronic stress (cortisol deficiency → low aldosterone → sodium wasting)",
+        "Avoid excessive plain water around exercise — use electrolyte-balanced hydration for sessions >60 min"
+      ],
+      "foodForms": [
+        "Bone broth (naturally rich in sodium + minerals — 300-500mg sodium per cup)",
+        "Olives and olive brine (whole-food sodium source with polyphenols)",
+        "Fermented vegetables — sauerkraut, pickles, kimchi (sodium + probiotics)",
+        "Celery (natural sodium source, ~80mg per stalk)"
+      ],
+      "forms": [
+        "Electrolyte mix (sodium + potassium + magnesium — balanced ratio)",
+        "Sodium chloride + sodium bicarbonate (for heavy sweaters)",
+        "Celtic sea salt or Redmond Real Salt capsules"
+      ],
+      "label": "Sodium (low support)"
+    },
+    "electrolytes.calciumTotal": {
+      "freeActions": [
+        "Morning sunlight — UVB drives vitamin D synthesis, which is required for intestinal calcium absorption (calcitriol upregulates calbindin)",
+        "Weight-bearing exercise — walking, running, lifting (mechanical loading stimulates osteoblast activity and calcium deposition into bone)",
+        "Cold exposure (CT stimulates thyroid and parathyroid function, regulating calcium homeostasis)",
+        "Reduce caffeine and excess sodium (both increase urinary calcium excretion)"
+      ],
+      "foodForms": [
+        "Sardines with bones (300mg calcium per can + vitamin D + omega-3)",
+        "Dark leafy greens — kale, bok choy, broccoli (high calcium bioavailability, unlike spinach which has oxalate-bound calcium)",
+        "Raw dairy — yogurt, kefir, aged cheese (calcium + K2 from fermentation)",
+        "Bone broth (calcium + collagen + minerals in bioavailable form)"
+      ],
+      "forms": [
+        "D3 + K2 combo (D3 absorbs calcium, K2 MK-7 directs it to bone and away from arteries — PMC5613455)",
+        "Calcium hydroxyapatite (MCHC — whole-bone extract, most bioavailable form)",
+        "Magnesium + calcium combo (magnesium needed for PTH secretion and calcium metabolism)"
+      ],
+      "label": "Calcium balance"
+    },
+    "biochemistry.alp": {
+      "freeActions": [
+        "Morning sunlight (supports vitamin D → calcium/phosphate metabolism; ALP is involved in bone mineralization)",
+        "Weight-bearing exercise (stimulates bone-specific ALP isoenzyme via osteoblast activation)",
+        "Reduce alcohol (liver ALP rises with hepatic damage; alcohol is directly hepatotoxic)",
+        "Ensure adequate zinc and magnesium intake — ALP active site contains 2 Zn²⁺ + 1 Mg²⁺ (zinc deficiency directly reduces ALP activity — PMID 20535396)"
+      ],
+      "foodForms": [
+        "Oysters (richest zinc food — zinc is the primary ALP cofactor; 6 oysters = ~50mg zinc)",
+        "Beef liver (zinc + copper + B vitamins for liver and bone ALP support)",
+        "Pumpkin seeds (zinc + magnesium — both ALP cofactors in one food)",
+        "Dark chocolate 85%+ (magnesium + zinc)"
+      ],
+      "forms": [
+        "Zinc picolinate (30-50mg — zinc supplementation increases bone ALP in healthy men, PMID 11787985)",
+        "Magnesium glycinate (Mg is the second cofactor at the ALP active site)",
+        "D3 + K2 (if ALP elevation is bone-origin, supports proper mineralization)"
+      ],
+      "label": "ALP (zinc cofactor)"
+    },
+    "biochemistry.creatineKinase": {
+      "freeActions": [
+        "Adequate recovery between intense sessions — CK peaks 24-72h post-exercise; retest after 7 days rest (70% normalize, PMID 27107876)",
+        "Sleep 7-9h (tissue repair and CK clearance happen during deep sleep — growth hormone peaks in N3 sleep)",
+        "Cold water immersion post-exercise (reduces exercise-induced muscle damage markers)",
+        "Grounding barefoot after training (anti-inflammatory electron transfer — reduces tissue inflammation)",
+        "Ensure vitamin D sufficiency — deficient (<30 ng/mL) subjects had 2x greater CK rise with eccentric exercise (PMC4029611)"
+      ],
+      "foodForms": [
+        "Tart cherry juice (anthocyanins reduce muscle damage markers — same mechanism as LDH, meta-analysis PMC 11918606)",
+        "Fatty fish (omega-3 reduces exercise-induced muscle damage with sustained intake)",
+        "Turmeric with black pepper (curcumin reduces CK post-exercise, PMID 34584659)",
+        "Berries (anthocyanins reduce oxidative muscle damage)"
+      ],
+      "forms": [
+        "Creatine monohydrate (pre-loading reduced CK ~84% after eccentric damage in untrained individuals — PMC2697134)",
+        "Taurine (2g/day — expedites eccentric force recovery at 48h by mitigating secondary inflammation damage, PMC5745489)",
+        "Magnesium (deficiency worsens muscle damage; supplementation has protective effect — PMC11227245)",
+        "CoQ10 (supports mitochondrial function, reduces oxidative damage in exercising muscle)"
+      ],
+      "label": "Recovery / CK"
+    },
+    "hematology.rbc": {
+      "freeActions": [
+        "Morning sunlight (light drives hepcidin regulation — the master iron-recycling hormone that gates erythropoiesis)",
+        "Regular endurance exercise (stimulates EPO production and erythropoiesis — reticulocyte elevation within 1-2 days, PMC3824146)",
+        "Altitude exposure or altitude training (hypoxia triggers EPO → increased RBC production; steady-state hematocrit reached in weeks)",
+        "Cook in cast iron cookware (leaches bioavailable iron — meaningful for plant-based diets)",
+        "Pair iron foods with vitamin C at the same meal (ascorbic acid is the strongest enhancer of non-heme iron absorption)"
+      ],
+      "foodForms": [
+        "Beef/lamb liver (heme iron + B12 + folate — the three pillars of erythropoiesis in one food, PMID 15189115)",
+        "Red meat + organ meats (heme iron absorbed 15-35% vs 2-20% for non-heme)",
+        "Sardines and dark poultry (heme iron + B12)",
+        "Dark leafy greens + bell pepper (non-heme iron + vitamin C for maximum absorption)"
+      ],
+      "forms": [
+        "Iron Bisglycinate (gentlest form, best absorbed — only if iron-deficient)",
+        "B12 + Folate combo (erythroblasts require both for proliferation; deficiency causes apoptosis and ineffective erythropoiesis)",
+        "EPO-supporting nutrients: copper + B6 (copper needed for ceruloplasmin iron mobilization; B6 for heme synthesis)"
+      ],
+      "label": "RBC production"
+    },
+    "hematology.hematocrit": {
+      "freeActions": [
+        "Stay properly hydrated — drink to thirst (dehydration falsely elevates hematocrit by concentrating blood; rehydrate and retest if borderline high)",
+        "Avoid overhydration (dilutional low hematocrit — same mechanism as low sodium; drink to thirst, not a quota)",
+        "Regular endurance exercise (increases true red cell mass over time via EPO stimulation)",
+        "Morning sunlight (supports hepcidin rhythm and iron recycling for healthy erythropoiesis)",
+        "Altitude exposure (hypoxia-induced EPO raises both RBC mass and hematocrit — acclimatization in 3-4 weeks)"
+      ],
+      "foodForms": [
+        "Iron-rich foods — liver, red meat, sardines (same as RBC/hemoglobin support)",
+        "B12 + folate foods — liver, eggs, dark leafy greens (support red cell maturation)",
+        "Adequate protein (1.6-2.2g/kg — amino acids needed for hemoglobin and red cell synthesis)",
+        "Spring water (proper mineral-balanced hydration prevents both dehydration and dilution artifacts)"
+      ],
+      "forms": [
+        "Iron Bisglycinate (only if low due to iron deficiency — do not supplement iron without testing)",
+        "B12 + Folate (if low hematocrit with high MCV — suggests megaloblastic anemia)",
+        "Electrolyte mix (if hematocrit fluctuates with hydration status)"
+      ],
+      "label": "Hematocrit (hydration check)"
+    },
+    "hematology.platelets": {
+      "freeActions": [
+        "Morning sunlight (immune and hematopoietic cells follow circadian rhythms set by light)",
+        "Reduce chronic inflammation — cold exposure, grounding, sleep (reactive thrombocytosis is most often driven by inflammation or infection)",
+        "Regular moderate exercise (extreme overtraining can suppress bone marrow; moderate exercise optimizes hematopoiesis)",
+        "Reduce alcohol (heavy drinking directly suppresses platelet production via bone marrow toxicity)",
+        "Address underlying infections or inflammation if platelets are persistently elevated (rule out iron deficiency — common cause of reactive thrombocytosis)"
+      ],
+      "foodForms": [
+        "Fatty fish — salmon, sardines, mackerel (omega-3 modulates platelet function and thromboxane/prostacyclin ratio — PMC6242736)",
+        "Garlic (allicin modulates platelet aggregation and WBC production)",
+        "Dark leafy greens (folate supports megakaryocyte maturation in bone marrow)",
+        "Berries (anthocyanins reduce platelet activation via COX-1 pathway)"
+      ],
+      "forms": [
+        "Omega-3 (EPA/DHA — incorporated into platelet membrane phospholipids, shifting thromboxane balance toward anti-aggregatory, PMC6300962)",
+        "Vitamin D3 (vitamin D receptors on megakaryocytes; deficiency associated with altered platelet counts)",
+        "Folate + B12 (support healthy megakaryocyte maturation and platelet production in bone marrow)"
+      ],
+      "label": "Platelet balance"
+    },
+    "iron.iron": {
+      "freeActions": [
+        "Test serum iron in the morning — hepcidin has a circadian rhythm, rising during the day; morning values most reliable (PMID 23232066)",
+        "Pair iron-rich meals with vitamin C foods (ascorbic acid overcomes all dietary iron inhibitors — strongest single enhancer, PMID 15743017)",
+        "Avoid tea, coffee, and calcium with iron-rich meals (polyphenols and calcium inhibit both heme and non-heme iron absorption)",
+        "Cook in cast iron cookware (leaches bioavailable iron into food)",
+        "Morning sunlight (light regulates hepcidin — the master hormone that gates iron absorption via ferroportin)"
+      ],
+      "foodForms": [
+        "Beef/lamb liver (richest heme iron source — heme iron absorbed 15-35% vs 2-20% for non-heme)",
+        "Red meat and dark poultry (heme iron not affected by phytates or polyphenols)",
+        "Sardines (heme iron + B12 + vitamin D in one food)",
+        "Dark leafy greens + bell pepper (non-heme iron + vitamin C at same meal for maximum absorption)"
+      ],
+      "forms": [
+        "Iron Bisglycinate (best absorbed, least GI side effects; take on alternate days — alternate-day dosing absorbs more due to hepcidin kinetics, PMC7193469)",
+        "Heme iron polypeptide (mimics food-form heme; bypasses non-heme absorption inhibitors)",
+        "Lactoferrin + iron (lactoferrin enhances iron uptake + has anti-inflammatory effects)",
+        "Vitamin C (500-1000mg with iron — directly inhibits hepcidin expression in liver, boosting absorption, PMID 22227182)"
+      ],
+      "label": "Serum Iron"
+    },
+    "lipids.apoB": {
+      "freeActions": [
+        "Mediterranean diet pattern (RCT: reduced ApoB and ApoB/ApoA-I ratio in high-risk individuals — PMID 21640348)",
+        "Regular aerobic exercise — walking, cycling, swimming (exercise reduced ApoB in overweight men independent of diet — PMID 17645591)",
+        "Reduce refined carbs and sugar (drives hepatic VLDL overproduction → more ApoB particles)",
+        "Reduce seed oils and ultra-processed food (oxidized lipids increase small dense LDL particle count)",
+        "Cold exposure (activates brown fat and bile acid metabolism, both consume cholesterol and reduce particle production)"
+      ],
+      "foodForms": [
+        "Oats and soluble fiber (bind bile acids in gut, forcing liver to clear LDL particles to make more bile — reduces ApoB, PMC4223745)",
+        "Fatty fish — salmon, sardines, mackerel (omega-3 reduces hepatic VLDL secretion, lowering ApoB particle count)",
+        "Extra virgin olive oil (Mediterranean diet cornerstone — polyphenols reduce oxidized LDL and improve ApoA-I)",
+        "Cruciferous vegetables (support bile acid metabolism and estrogen clearance, both linked to ApoB particle clearance)"
+      ],
+      "forms": [
+        "Citrus Bergamot (500-1000mg — reduced LDL-C 24% and TG 30% via HMG-CoA reductase modulation, PMC6497409)",
+        "Berberine HCl (upregulates hepatic LDL receptors, increasing ApoB particle clearance — meta-analysis shows LDL-C reduction 10-15%, PMC5871262)",
+        "Plant sterols/stanols (2g/day — compete with cholesterol for intestinal absorption, reduce ApoB secretion from enterocytes)",
+        "Niacin (inhibits diacylglycerol acyltransferase-2, decreasing TG synthesis and increasing hepatic ApoB degradation)"
+      ],
+      "label": "ApoB (particle count)"
+    },
+    "hormones.lh": {
+      "freeActions": [
+        "Morning sunlight on skin (UV triggers pregnenolone synthesis in the skin; light sets the circadian HPG axis that pulses GnRH → LH)",
+        "Sleep 7-9h in pitch-dark, cold room (LH pulsatility peaks during sleep; sleep debt disrupts GnRH pulse generator within days)",
+        "Heavy compound lifts — squat, deadlift, press (resistance training acutely stimulates LH release)",
+        "Reduce chronic stress (cortisol suppresses GnRH pulse generator at the hypothalamic level, reducing LH output — pregnenolone steal)",
+        "Reduce nnEMF — phone away from gonads, WiFi off at night (RF-EMF associated with altered gonadotropin levels)"
+      ],
+      "foodForms": [
+        "Zinc-rich foods — oysters, beef, pumpkin seeds (zinc deficiency impairs Leydig cell response to LH and suppresses gonadotropin secretion — PMID 779495)",
+        "Healthy fats — egg yolks, avocado, olive oil (cholesterol is the precursor to all steroid hormones downstream of LH)",
+        "Cruciferous vegetables (DIM supports estrogen metabolism, preventing negative feedback suppression of LH)",
+        "Pomegranate (reduces cortisol ~12%, relieving HPA-mediated GnRH suppression)"
+      ],
+      "forms": [
+        "Tongkat Ali (standardized extract — shown to raise LH and testosterone in clinical trials)",
+        "Ashwagandha KSM-66 (reduces cortisol, relieving HPA suppression of the HPG axis; raises LH in stressed men)",
+        "Zinc picolinate (30-50mg — restores LH signaling and Leydig cell testosterone response in deficiency)",
+        "Vitamin D3 (VDR expressed on pituitary gonadotropes; deficiency associated with lower LH and testosterone)"
+      ],
+      "label": "LH (pituitary→gonad)"
+    },
+    "hormones.fsh": {
+      "freeActions": [
+        "Morning sunlight (circadian light exposure regulates the HPG axis; FSH has pulsatile secretion gated by GnRH)",
+        "Sleep 7-9h in complete darkness (FSH pulsatility is sleep-dependent; melatonin modulates GnRH)",
+        "Reduce chronic stress (cortisol suppresses GnRH, reducing both FSH and LH output)",
+        "Regular moderate exercise (supports healthy HPG axis signaling; extreme overtraining can suppress FSH)",
+        "Reduce xenoestrogen exposure — avoid plastics, BPA, parabens (environmental estrogens disrupt the feedback loop that regulates FSH)"
+      ],
+      "foodForms": [
+        "Zinc-rich foods — oysters, pumpkin seeds (zinc supports pituitary gonadotropin production and gonadal function)",
+        "Antioxidant-rich foods — berries, dark leafy greens (oxidative stress impairs gonadal function, causing compensatory FSH elevation)",
+        "Healthy fats — wild salmon, avocado, olive oil (steroid hormone precursors support downstream feedback to pituitary)",
+        "Cruciferous vegetables (support estrogen metabolism — proper estrogen clearance normalizes FSH feedback)"
+      ],
+      "forms": [
+        "Myo-inositol (4g/day — improves FSH receptor sensitivity and aromatase expression in granulosa cells; reduced FSH dose needed for follicular maturation, PMC8227031)",
+        "CoQ10 (200-600mg — antioxidant support for ovarian/testicular mitochondria; reduces oxidative damage that drives compensatory FSH elevation)",
+        "Vitamin D3 (VDR on gonadotropes and gonads; deficiency associated with dysregulated FSH)",
+        "Folate + B12 (methylation support for HPG axis signaling; deficiency disrupts gonadal feedback)"
+      ],
+      "label": "FSH (pituitary→gonad)"
+    },
+    "hormones.prolactin": {
+      "freeActions": [
+        "Reduce chronic stress (prolactin is a stress hormone — released by stressful stimulation and mediated via the HPA axis)",
+        "Morning sunlight (sets circadian dopamine rhythm; dopamine is the primary prolactin inhibitor via D2 receptors on lactotrophs)",
+        "Sleep 7-9h in complete darkness (prolactin normally rises during sleep; chronic sleep disruption alters the prolactin rhythm)",
+        "Cold exposure (hormetic stress builds stress resilience, reducing chronic HPA-driven prolactin elevation)",
+        "Review medications with physician — many drugs cause hyperprolactinemia (antipsychotics, SSRIs, metoclopramide block D2 receptors)"
+      ],
+      "foodForms": [
+        "Vitamin B6-rich foods — poultry, pistachios, sunflower seeds, banana (B6/PLP is the cofactor for L-DOPA decarboxylase, the enzyme that produces dopamine)",
+        "Mucuna pruriens seeds or extract-containing foods (natural L-DOPA source — increases dopamine, reduces prolactin, PMID 18973898)",
+        "Zinc-rich foods — oysters, beef, pumpkin seeds (zinc inhibits prolactin release from pituitary cells in vitro)",
+        "Dark chocolate (contains phenylethylamine, a dopamine precursor; also magnesium for HPA axis calming)"
+      ],
+      "forms": [
+        "Vitamin B6 P5P form (50-300mg — B6 reduces prolactin similarly to cabergoline in reproductive-age women; PLP activates dopamine synthesis, PMC8426548)",
+        "Vitex / Chasteberry (high-dose — binds D2 dopamine receptors on lactotrophs, inhibiting prolactin release; low dose may paradoxically increase it, PMC10702745)",
+        "Mucuna pruriens extract (standardized L-DOPA — directly increases dopamine, shown to reduce prolactin in infertile men, PMID 18973898)",
+        "Vitamin E (400 IU — modest prolactin reduction via antioxidant protection of dopaminergic neurons)"
+      ],
+      "label": "Prolactin (dopamine link)"
     }
   },
   "shops": [

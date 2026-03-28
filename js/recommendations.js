@@ -393,6 +393,18 @@ const EXTRA_TERMS = {
   'cholesterol': ['total cholesterol', 'ldl particle', 'statin'],
   'progesterone': ['luteal phase', 'pregnenolone steal', 'corpus luteum'],
   'wbc': ['white blood cell', 'leukocyte', 'immune function', 'neutrophil'],
+  'sodium': ['hyponatremia', 'electrolyte balance', 'aldosterone'],
+  'calcium': ['hypocalcemia', 'parathyroid', 'bone density', 'osteopor'],
+  'alp': ['alkaline phosphatase', 'bone turnover'],
+  'creatine kinase': [/\bck\b/, 'muscle damage', 'rhabdomyolysis', 'overtraining'],
+  'rbc': ['red blood cell', 'erythropoiesis', 'red cell count'],
+  'hematocrit': ['hemoconcentration', 'polycythemia', /\bhct\b/],
+  'platelet': ['thrombocyt', 'platelet count', 'clotting'],
+  'serum iron': ['iron absorption', 'hepcidin', 'transferrin sat'],
+  'apob': ['apolipoprotein b', 'particle count', 'atherogenic'],
+  'lh': ['luteinizing hormone', 'gonadotropin', /\blh\b/],
+  'fsh': ['follicle stimulating', /\bfsh\b/, 'perimenopause', 'ovarian reserve'],
+  'prolactin': ['hyperprolactinemia', 'dopamine', 'pituitary', 'galactorrhea'],
 };
 
 export function detectSupplementSlots(text) {
