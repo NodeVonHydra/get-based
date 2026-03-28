@@ -3461,14 +3461,22 @@ export async function sendChatMessage() {
           return window.renderRecommendationSectionSync(slot, { label: slotLabel, maxProducts: 2 });
         }).filter(Boolean);
         if (!sections.length) return;
-        const wrapper = document.createElement('div');
+        const wrapper = document.createElement('details');
         wrapper.className = 'rec-chat-wrapper';
-        wrapper.innerHTML = `<div class="rec-section-header">What can help</div>` + sections.join('');
+        wrapper.open = true;
+        wrapper.onclick = (e) => e.stopPropagation();
+        const summary = document.createElement('summary');
+        summary.className = 'rec-chat-summary';
+        summary.textContent = 'What can help';
+        wrapper.appendChild(summary);
+        const body = document.createElement('div');
+        body.innerHTML = sections.join('');
         // Deduplicate disclosure banners
-        const banners = wrapper.querySelectorAll('.rec-disclosure-banner');
+        const banners = body.querySelectorAll('.rec-disclosure-banner');
         for (let i = 1; i < banners.length; i++) banners[i].remove();
-        // Remove per-section headers (shared header above)
-        wrapper.querySelectorAll('.rec-section-header:not(:first-child)').forEach(h => h.remove());
+        // Remove per-section headers (shared header above covers it)
+        body.querySelectorAll('.rec-section-header').forEach(h => h.remove());
+        wrapper.appendChild(body);
         const actionBar = aiMsgEl.querySelector('.chat-action-bar');
         if (actionBar) aiMsgEl.insertBefore(wrapper, actionBar);
         else aiMsgEl.appendChild(wrapper);
