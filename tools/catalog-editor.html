@@ -328,6 +328,7 @@ h3{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text2)}
     </select>
     <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="radio" name="sf-slot-filter" value="empty" checked> Empty slots only</label>
     <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="radio" name="sf-slot-filter" value="all"> All slots</label>
+    <label style="font-size:13px;color:var(--text3);white-space:nowrap"><input type="checkbox" id="sf-skip-lifestyle" checked> Supplements only</label>
     <button class="btn btn-primary" onclick="runQuickFill()">Quick Fill</button>
     <button class="btn" onclick="runShopFill()">AI Fill</button>
   </div>
@@ -2413,10 +2414,18 @@ function extractProducts(html) {
   return items;
 }
 
+// Detect if a product name looks like a supplement/health product
+const SUPP_INDICATORS = /kapsl[íe]|tablet|tobolek|sáčků|dávek|softgel|powder|prášek|extract|extrakt|tinktur|drops|kapky|spray|spreji|cream|krém|oil\b|olej[^í]|mg\b|mcg\b|\d+\s*g\b|rostlinn/i;
+const NEGATIVE_KEYWORDS = /éterický olej|essential oil|filtrační|expandér|žárovka|čokoláda|tyčink|sušenk|müsli|pizza|wrap|sauce|omáčk|koření|barbecue|proteino.*tyčink|triko|tričko|oblečení|boty|obuv|shaker|bottle|láhev|ručník|podložka na|karimatk|keramick|kalabas|bowl|mísa/i;
+
 // Score how well a product matches a slot (0-100)
 function scoreMatch(product, slot) {
   const pName = product.name.toLowerCase();
   const pUrl = (product.url || '').toLowerCase();
+
+  // Negative filter — reject clearly wrong products
+  if (NEGATIVE_KEYWORDS.test(product.name)) return 0;
+
   // Core matching terms from forms + label
   const terms = new Set();
   if (slot.forms) for (const f of slot.forms) f.toLowerCase().replace(/\(.*?\)/g, '').split(/[\s,/+·]+/).filter(t => t.length > 2 && !/^\d/.test(t) && !/^(mg|mcg|iu|ml|g|combo|form|alone|high|low|dose|liposomal|sublingual)$/.test(t)).forEach(t => terms.add(t));
@@ -2424,10 +2433,23 @@ function scoreMatch(product, slot) {
   const noise = new Set(['support', 'balance', 'metabolism', 'the', 'and', 'for', 'from', 'with', 'body', 'makes', 'best', 'option', 'last', 'resort', 'production', 'check', 'cofactor', 'particle', 'count', 'immune', 'function', 'link', 'pituitary', 'gonad', 'thyroid', 'liver', 'kidney', 'inflammation']);
   for (const n of noise) terms.delete(n);
   if (!terms.size) return 0;
+
   // Check name + URL for matches
-  const hits = [...terms].filter(t => pName.includes(t) || pUrl.includes(t)).length;
+  const hitTerms = [...terms].filter(t => pName.includes(t) || pUrl.includes(t));
+  const hits = hitTerms.length;
   if (hits === 0) return 0;
-  // Score: 1 hit on a core term = 25%, 2 = 50%, etc. Max denominator = 3
+
+  // For biomarker slots: require product to look like a supplement (not random goods)
+  if (!slot.card && !SUPP_INDICATORS.test(product.name) && hits < 2) return 0;
+
+  // Single-term match: only accept if the term is the core ingredient (>4 chars, not a generic word)
+  if (hits === 1 && terms.size > 1) {
+    const t = hitTerms[0];
+    // Reject if the single matching term is too generic
+    if (t.length <= 3 || /^(acid|zinc|iron|fish|cold|blue|mold|desk|sleep|light|glass|steel|water)$/.test(t)) return 0;
+  }
+
+  // Score: hits / min(terms, 3) * 100
   return Math.round(Math.min(100, (hits / Math.min(terms.size, 3)) * 100));
 }
 
@@ -2476,7 +2498,8 @@ async function runQuickFill() {
   if (!shop) return showToast('Shop not found', 'error');
 
   const filterValue = document.querySelector('input[name="sf-slot-filter"]:checked')?.value || 'empty';
-  const allSlots = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS]; // all slots including lifestyle
+  const skipLifestyle = document.getElementById('sf-skip-lifestyle')?.checked;
+  const allSlots = skipLifestyle ? [...SUPPLEMENT_SLOTS] : [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS];
   let targetSlots = allSlots;
   if (filterValue === 'empty') {
     targetSlots = allSlots.filter(s => !catalog.products[s.key] || catalog.products[s.key].length === 0);
@@ -2573,15 +2596,15 @@ function renderQuickFillReview(shop, candidates) {
       const baseUrl = typeof shop.url === 'object' ? (shop.url.CZ || Object.values(shop.url)[0]) : shop.url;
       const fullUrl = product.url ? new URL(product.url, baseUrl).href : '';
       html += `<label style="display:flex;gap:8px;align-items:start;padding:4px 0;font-size:13px;cursor:pointer">
-        <input type="radio" name="qf-${slotKey}" value="${ci}" ${ci === 0 ? 'checked' : ''}>
+        <input type="radio" name="qf-${slotKey}" value="${ci}" ${ci === 0 && score >= 50 ? 'checked' : ''}>
         <div>
           <div>${esc(product.name)}</div>
-          <div style="font-size:11px;color:var(--text3)">${product.price ? product.price + ' ' + product.currency : 'No price'} · Match: ${score}%${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
+          <div style="font-size:11px;color:var(--text3)">${product.price ? product.price + ' ' + product.currency : 'No price'} · <span style="color:${score >= 67 ? 'var(--green)' : score >= 50 ? 'var(--yellow)' : 'var(--red)'}">${score}%</span>${fullUrl ? ' · <a href="' + esc(fullUrl) + '" target="_blank" rel="noopener" style="color:var(--blue)">view</a>' : ''}</div>
         </div>
       </label>`;
     }
     html += `<label style="display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13px;cursor:pointer;color:var(--text3)">
-      <input type="radio" name="qf-${slotKey}" value="skip"> Skip this slot
+      <input type="radio" name="qf-${slotKey}" value="skip" ${scored[0].score < 50 ? 'checked' : ''}> Skip this slot
     </label>`;
     html += `</div></div>`;
   }
