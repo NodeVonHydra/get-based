@@ -298,7 +298,7 @@
   console.log('Section 19: addPeriodEntry collects symptoms');
   {
     const src = await fetch('js/cycle.js').then(r => r.text());
-    assert('addPeriodEntry queries selected ctx-tags', src.includes("mc-period-symptoms") && src.includes('.ctx-tag.selected'));
+    assert('addPeriodEntry queries selected ctx-tags', src.includes("mc-period-symptoms") && src.includes('.ctx-tag.active'));
     assert('Period push includes symptoms', src.includes('symptoms, notes'));
   }
 
