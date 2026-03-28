@@ -2082,7 +2082,7 @@ async function globalAIAutoFill() {
     // Validate slotKey exists
     const allSlots = [...SUPPLEMENT_SLOTS, ...LIFESTYLE_SLOTS];
     const slot = allSlots.find(s => s.key === data.slotKey);
-    if (!slot) throw new Error(`AI returned unknown slot: ${data.slotKey}`);
+    if (!slot) { showToast(`AI couldn't match this product to a slot (returned: ${data.slotKey}). Try adding a note to help.`, 'info'); return; }
 
     // Open product form for that slot, pre-filled
     const isLifestyle = LIFESTYLE_SLOTS.some(s => s.key === data.slotKey);
