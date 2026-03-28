@@ -1208,21 +1208,8 @@ export function showDetailModal(id, opts = {}) {
       html += `<div class="calc-missing-inputs">Not calculated — ${issues.join('. ')}</div>`;
     }
   }
-  // Inline genetics — show SNPs mapped to this marker
-  const genetics = state.importedData.genetics;
-  if (genetics && genetics.snps) {
-    const snpEntries = window._getRelevantSNPs ? window._getRelevantSNPs(dotKey) : [];
-    if (snpEntries.length > 0) {
-      html += `<div class="detail-genetics"><div class="detail-genetics-title">\uD83E\uDDEC Genetic Factors</div>`;
-      for (const s of snpEntries) {
-        const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
-        const refLink = s.references && s.references.length > 0 && /^https?:/.test(s.references[0]) ? ` <a href="${s.references[0].replace(/"/g, '&quot;')}" target="_blank" rel="noopener" class="detail-genetics-ref" title="Primary study (PubMed)">primary study</a>` : '';
-        const moreLink = s.rsid ? ` <a href="https://www.snpedia.com/index.php/${s.rsid.charAt(0).toUpperCase() + s.rsid.slice(1)}" target="_blank" rel="noopener" class="detail-genetics-ref" title="All studies (SNPedia)">more studies</a>` : '';
-        html += `<div class="detail-genetics-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} — ${escapeHTML(s.note)}${refLink}${moreLink}</div>`;
-      }
-      html += `</div>`;
-    }
-  }
+  // Collect inline SNPs for the unified rec section (genetics + actionable tips together)
+  const _inlineSNPs = (state.importedData.genetics?.snps && window._getRelevantSNPs) ? window._getRelevantSNPs(dotKey) : [];
   // Marker note
   const markerNote = state.importedData.markerNotes?.[dotKey] || '';
   html += `<div class="marker-note-section">
@@ -1249,16 +1236,14 @@ export function showDetailModal(id, opts = {}) {
   }
   modal.innerHTML = html;
   overlay.classList.add("show");
-  // Async-fill recommendation section
+  // Async-fill recommendation section (unified: genetics + actionable tips)
   if (window.renderRecommendationSection) {
-    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3 })
+    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3, inlineSNPs: _inlineSNPs })
       .then(h => {
         const el = document.getElementById('rec-modal-' + id);
         if (h && el) {
           el.innerHTML = h;
-          const details = el.querySelector('.rec-details');
-          if (details && !details.classList.contains('rec-gated')) details.open = true;
-          if (opts.scrollToRec) (details || el).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          if (opts.scrollToRec) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       });
   }

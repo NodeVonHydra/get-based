@@ -3587,18 +3587,9 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 }
 .cycle-tour-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,140,255,0.05); }
 /* Recommendation sections */
-.rec-details { margin-top: 12px; }
-.rec-summary {
-  display: block; padding: 10px 14px; font-size: 13px; color: var(--text-secondary);
-  border: 1px dashed var(--border); border-radius: var(--radius-sm); cursor: pointer;
-  transition: border-color 0.2s, color 0.2s; list-style: none;
-}
-.rec-summary::-webkit-details-marker { display: none; }
-.rec-summary::marker { display: none; content: ''; }
-.rec-summary::before { content: '\25B8'; margin-right: 8px; display: inline-block; transition: transform 0.2s; }
-.rec-details[open] > .rec-summary::before { transform: rotate(90deg); }
-.rec-summary:hover { border-color: var(--accent); color: var(--text-primary); }
-.rec-content { padding: 10px 14px 6px; }
+.rec-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+.rec-section-header { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.rec-content { }
 .rec-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin: 8px 0 3px; font-weight: 600; }
 .rec-section-label:first-child { margin-top: 0; }
 .rec-tier-hint { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.7; font-style: italic; }
@@ -3623,13 +3614,6 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
   border-radius: var(--radius); color: var(--text-muted); cursor: pointer;
 }
 .rec-disclosure-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
-.rec-gated { opacity: 0.5; cursor: default; }
-.rec-gated summary { pointer-events: none; }
-@keyframes rec-nudge {
-  0%, 100% { box-shadow: none; }
-  50% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
-}
-.rec-disclosure-banner.rec-nudge { animation: rec-nudge 0.3s ease 2; }
 .rec-drug-warning {
   border-left: 3px solid var(--red); background: rgba(239, 68, 68, 0.06);
   padding: 6px 10px; margin-top: 6px; border-radius: 0 var(--radius) var(--radius) 0;

@@ -240,20 +240,20 @@ function _buildDisclosureBanner() {
   if (hasSeenDisclosure()) return '';
   return `<div class="rec-disclosure-banner">
     These suggestions are informational, not medical advice. Always consult your healthcare provider before starting supplements. Affiliate links earn a small commission\u00a0\u2014 brands cannot pay for placement.
-    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();const w=this.closest('.rec-disclosure-banner');const p=w.parentElement||w.parentNode;if(p){p.querySelectorAll('.rec-gated').forEach(d=>{d.classList.remove('rec-gated');d.open=true})}w.remove()">Got it</button>
+    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();this.closest('.rec-disclosure-banner').remove()">Got it</button>
   </div>`;
 }
 
 // Sync core — builds HTML from cached catalog, no promises
 function _renderRecSection(slotKey, opts = {}) {
-  if (!_catalog || !_catalog.slots) return '';
-  const slot = _catalog.slots[slotKey];
-  if (!slot) return '';
+  const slot = _catalog?.slots?.[slotKey];
+  const hasInlineSNPs = opts.inlineSNPs?.length > 0;
+  if (!slot && !hasInlineSNPs) return '';
 
   const label = opts.label || 'What can help';
   const maxProducts = opts.maxProducts || 3;
   const region = getUserRegion();
-  const products = getProductsForSlot(_catalog, slotKey, region);
+  const products = slot ? getProductsForSlot(_catalog, slotKey, region) : [];
 
   const knownTypes = ['food', 'supplement', 'product', 'drug'];
   const foodProducts = products.filter(p => p.type === 'food').slice(0, maxProducts);
@@ -266,9 +266,19 @@ function _renderRecSection(slotKey, opts = {}) {
 
   // DNA hints — prepend before tiers
   const dnaHints = buildDNAHints(slotKey);
-  if (dnaHints.length > 0) {
+  // Inline SNPs (from detail modal) — raw genotype info alongside actionable hints
+  const inlineSNPs = opts.inlineSNPs || [];
+  if (dnaHints.length > 0 || inlineSNPs.length > 0) {
     inner += `<div class="rec-dna-hints">`;
-    inner += `<div class="rec-section-label">YOUR GENETICS</div>`;
+    inner += `<div class="rec-section-label">\uD83E\uDDEC YOUR GENETICS</div>`;
+    // Show raw SNP genotypes with effect levels
+    for (const s of inlineSNPs) {
+      const icon = s.effect === 'significant' ? '\uD83D\uDD34' : s.effect === 'moderate' ? '\uD83D\uDFE1' : '\uD83D\uDFE2';
+      const refLink = s.references?.[0] && /^https?:/.test(s.references[0]) ? ` <a href="${escapeHTML(s.references[0])}" target="_blank" rel="noopener" class="rec-dna-ref">study</a>` : '';
+      const moreLink = s.rsid ? ` <a href="https://www.snpedia.com/index.php/${s.rsid.charAt(0).toUpperCase() + s.rsid.slice(1)}" target="_blank" rel="noopener" class="rec-dna-ref">SNPedia</a>` : '';
+      inner += `<div class="rec-dna-row">${icon} <strong>${escapeHTML(s.gene)} ${escapeHTML(s.variant)}</strong>: ${escapeHTML(s.genotype)} \u2014 ${escapeHTML(s.note)}${refLink}${moreLink}</div>`;
+    }
+    // Actionable hints from snpHints
     for (const h of dnaHints) {
       const isAvoid = h.direction === 'avoid';
       const icon = isAvoid ? '\u26A0' : '\u2192';
@@ -280,7 +290,7 @@ function _renderRecSection(slotKey, opts = {}) {
   }
 
   // Tier 1: Nature — free, best option (full width, listed)
-  if (slot.freeActions && slot.freeActions.length) {
+  if (slot?.freeActions?.length) {
     inner += `<div class="rec-section-label">NATURE <span class="rec-tier-hint">best option</span></div>`;
     for (const action of slot.freeActions) {
       inner += `<div class="rec-item-free">${escapeHTML(action)}</div>`;
@@ -291,7 +301,7 @@ function _renderRecSection(slotKey, opts = {}) {
   if (foodProducts.length) {
     inner += `<div class="rec-section-label">WHOLE FOOD <span class="rec-tier-hint">from nature</span></div>`;
     for (const fp of foodProducts) inner += buildProductRow(fp);
-  } else if (slot.foodForms && slot.foodForms.length) {
+  } else if (slot?.foodForms?.length) {
     inner += `<div class="rec-section-label">WHOLE FOOD <span class="rec-tier-hint">from nature</span></div>`;
     inner += `<div class="rec-item-food">${slot.foodForms.map(f => escapeHTML(f)).join(' · ')}</div>`;
   }
@@ -300,7 +310,7 @@ function _renderRecSection(slotKey, opts = {}) {
   if (toolProducts.length) {
     inner += `<div class="rec-section-label">TOOLS <span class="rec-tier-hint">supports nature</span></div>`;
     for (const tp of toolProducts) inner += buildProductRow(tp);
-  } else if (slot.productForms && slot.productForms.length) {
+  } else if (slot?.productForms?.length) {
     inner += `<div class="rec-section-label">TOOLS <span class="rec-tier-hint">supports nature</span></div>`;
     inner += `<div class="rec-item-form">${slot.productForms.map(t => escapeHTML(t)).join(' · ')}</div>`;
   }
@@ -309,7 +319,7 @@ function _renderRecSection(slotKey, opts = {}) {
   if (suppProducts.length) {
     inner += `<div class="rec-section-label">SUPPLEMENTS <span class="rec-tier-hint">last resort</span></div>`;
     for (const sp of suppProducts) inner += buildProductRow(sp);
-  } else if (slot.forms && slot.forms.length) {
+  } else if (slot?.forms?.length) {
     inner += `<div class="rec-section-label">SUPPLEMENTS <span class="rec-tier-hint">last resort</span></div>`;
     inner += `<div class="rec-item-form">${slot.forms.map(f => escapeHTML(f)).join(', ')}</div>`;
   }
@@ -327,11 +337,10 @@ function _renderRecSection(slotKey, opts = {}) {
 
   if (!inner) return '';
   const hasProducts = products.length > 0;
-  const gated = !hasSeenDisclosure() ? ' rec-gated' : '';
-  return `${_buildDisclosureBanner()}<details class="rec-details${gated}" onclick="event.stopPropagation();if(this.classList.contains('rec-gated')){this.open=false;const b=this.previousElementSibling;if(b){b.classList.remove('rec-nudge');void b.offsetWidth;b.classList.add('rec-nudge')}}">
-    <summary class="rec-summary">${escapeHTML(label)}</summary>
+  return `${_buildDisclosureBanner()}<div class="rec-section" onclick="event.stopPropagation()">
+    <div class="rec-section-header">${escapeHTML(label)}</div>
     <div class="rec-content">${inner}${hasProducts ? buildDisclosureFooter() : ''}</div>
-  </details>`;
+  </div>`;
 }
 
 // Sync version — uses cached catalog, returns '' if not loaded yet

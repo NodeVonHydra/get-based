@@ -200,18 +200,18 @@
 
   // Check CSS classes exist in the page
   const styleSheets = Array.from(document.styleSheets);
-  let hasRecDetails = false;
+  let hasRecSection = false;
   try {
     for (const sheet of styleSheets) {
       try {
         for (const rule of sheet.cssRules || []) {
-          if (rule.selectorText && rule.selectorText.includes('.rec-details')) { hasRecDetails = true; break; }
+          if (rule.selectorText && rule.selectorText.includes('.rec-section')) { hasRecSection = true; break; }
         }
       } catch(e) { /* cross-origin */ }
-      if (hasRecDetails) break;
+      if (hasRecSection) break;
     }
   } catch(e) {}
-  assert('CSS has .rec-details rule', hasRecDetails);
+  assert('CSS has .rec-section rule', hasRecSection);
 
   // ═══════════════════════════════════════
   // 13. Security
