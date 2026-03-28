@@ -261,7 +261,7 @@
   // 3. DOM STRUCTURE — core elements exist
   // ═══════════════════════════════════════════════
   assert('Header exists', !!document.querySelector('header.header'));
-  assert('Logo text', document.querySelector('header h1')?.textContent.includes('Lab'));
+  assert('Logo text', document.querySelector('header h1')?.textContent.includes('getbased'));
   assert('Profile selector', !!document.getElementById('profile-selector'));
   assert('Header dates', !!document.getElementById('header-dates'));
   assert('Range toggle', !!document.getElementById('header-range-toggle'));
