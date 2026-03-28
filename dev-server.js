@@ -40,8 +40,6 @@ function serveFile(res, filePath) {
   });
 }
 
-const https = require('https');
-
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
