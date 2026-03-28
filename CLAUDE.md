@@ -52,7 +52,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker). Run `./update-vendor.sh` to update
 - **`data/`** — `seed-data.json`, `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`, `snp-health.json` (42 autosomal SNPs), `haplogroups.json` (28 mtDNA haplogroups with Wallace coupling classification), `mito-compounds.json` (108 mitochondrial compound effects)
-- **`tests/`** — 28 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 29 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -127,7 +127,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-28 browser-based test files run headlessly:
+29 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

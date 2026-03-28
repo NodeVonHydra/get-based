@@ -119,7 +119,7 @@ const server = http.createServer((req, res) => {
   // API: fetch page with headless Chrome (for SPA shops)
   if (pathname === '/api/fetch-page-rendered') {
     const target = url.searchParams.get('url');
-    if (!target) { res.writeHead(400, jsonCors); res.end('{"error":"missing url param"}'); return; }
+    if (!target) { res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); res.end('{"error":"missing url param"}'); return; }
     const { execFile } = require('child_process');
     const scriptPath = path.join(ROOT, 'tools', 'fetch-rendered.mjs');
     execFile('node', [scriptPath, target], { timeout: 30000, maxBuffer: 1024 * 1024 }, (err, stdout) => {
