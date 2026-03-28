@@ -167,7 +167,7 @@
   assert('chat.js calls detectSupplementSlots', chatSrc.includes('detectSupplementSlots'));
   assert('chat.js detects recSlots for live rendering', chatSrc.includes('_recSlots'));
   assert('chat.js has rec-chat-wrapper class', chatSrc.includes('rec-chat-wrapper'));
-  assert('views.js has chart-card-rec placeholder', viewsSrc.includes('chart-card-rec'));
+  assert('views.js has chart-rec placeholder in header', viewsSrc.includes('chart-rec-'));
   assert('views.js has loadChartCardRecs function', viewsSrc.includes('function loadChartCardRecs'));
   assert('views.js scrollToRec auto-opens details', viewsSrc.includes('scrollToRec'));
   assert('loadCatalog on window', typeof window.loadCatalog === 'function');

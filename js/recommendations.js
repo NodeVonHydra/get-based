@@ -77,6 +77,89 @@ export function getProductsForSlot(catalog, slotKey, region) {
 }
 
 // ═══════════════════════════════════════════════
+// CARD TIPS — lifestyle slots for context cards
+// ═══════════════════════════════════════════════
+const CARD_NAMES = {
+  sleepRest: 'Sleep & Rest', lightCircadian: 'Light & Circadian',
+  environment: 'Environment', exercise: 'Exercise',
+  diet: 'Diet & Digestion', stress: 'Stress'
+};
+
+export function getCardSlotKeys(cardKey) {
+  if (!_catalog || !_catalog.slots) return [];
+  const cardName = CARD_NAMES[cardKey];
+  if (!cardName) return [];
+  return Object.keys(_catalog.slots).filter(k => _catalog.slots[k].card === cardName);
+}
+
+const CARD_LABELS = {
+  sleepRest: { emoji: '\uD83D\uDE34', label: 'Sleep & Rest' },
+  lightCircadian: { emoji: '\u2600\uFE0F', label: 'Light & Circadian' },
+  environment: { emoji: '\uD83C\uDF0D', label: 'Environment' },
+  exercise: { emoji: '\uD83C\uDFCB\uFE0F', label: 'Exercise' },
+  diet: { emoji: '\uD83E\uDD57', label: 'Diet & Digestion' },
+  stress: { emoji: '\uD83E\uDDE0', label: 'Stress' }
+};
+
+function _buildCardDNASection(cardKey) {
+  const genetics = state.importedData?.genetics;
+  if (!genetics || !genetics.snps) return '';
+  const snpTable = window._snpTableCache;
+  if (!snpTable) return '';
+  const hints = [];
+  const apoeRsids = new Set(['rs429358', 'rs7412']);
+  for (const [rsid, stored] of Object.entries(genetics.snps)) {
+    if (genetics.apoe && apoeRsids.has(rsid)) continue;
+    const entry = snpTable[rsid];
+    if (!entry || !entry.snpHints || !entry.contextCards || !entry.contextCards.includes(cardKey)) continue;
+    const g = stored.genotype;
+    if (!g) continue;
+    const rev = g.length === 2 ? g[1] + g[0] : g;
+    const sorted = _sortAlleles(g);
+    const hint = entry.snpHints[g] || entry.snpHints[rev] || entry.snpHints[sorted];
+    if (!hint) continue;
+    const info = entry.genotypes?.[g] || entry.genotypes?.[rev] || entry.genotypes?.[sorted];
+    if (info && info.effect === 'none') continue;
+    const isAvoid = hint.direction === 'avoid';
+    const icon = isAvoid ? '\u26A0' : '\u2192';
+    const cls = isAvoid ? ' ctx-tip-avoid' : ' ctx-tip-free';
+    const refLink = hint.ref && /^https?:\/\//.test(hint.ref) ? ` <a href="${escapeHTML(hint.ref)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);opacity:0.6">study</a>` : '';
+    hints.push(`<div class="ctx-tip-item${cls}">${icon} <strong>${escapeHTML(stored.gene)}</strong> ${escapeHTML(g)} \u2014 ${escapeHTML(hint.text)}${refLink}</div>`);
+  }
+  if (!hints.length) return '';
+  return `<div class="ctx-tip-slot"><div class="ctx-tip-slot-label">Your Genetics</div>${hints.join('')}</div>`;
+}
+
+export function renderCardTipsModal(cardKey) {
+  if (!isProductRecsEnabled() || !_catalog || !_catalog.slots) return '';
+  const slotKeys = getCardSlotKeys(cardKey);
+  if (!slotKeys.length) return '';
+  const cardInfo = CARD_LABELS[cardKey] || { emoji: '', label: cardKey };
+  let items = _buildCardDNASection(cardKey);
+  for (const sk of slotKeys) {
+    const slot = _catalog.slots[sk];
+    if (!slot) continue;
+    const label = escapeHTML(slot.label || sk.split('.').pop());
+    let tips = '';
+    if (slot.freeActions?.length) {
+      tips += `<div class="ctx-tip-tier"><div class="ctx-tip-tier-label">NATURE <span class="rec-tier-hint">best option</span></div>`;
+      tips += slot.freeActions.map(a => `<div class="ctx-tip-item ctx-tip-free">${escapeHTML(a)}</div>`).join('');
+      tips += `</div>`;
+    }
+    if (slot.forms?.length) {
+      tips += `<div class="ctx-tip-tier"><div class="ctx-tip-tier-label">TOOLS & SUPPLEMENTS <span class="rec-tier-hint">if needed</span></div>`;
+      tips += `<div class="ctx-tip-item ctx-tip-form">${slot.forms.map(f => escapeHTML(f)).join(' · ')}</div>`;
+      tips += `</div>`;
+    }
+    if (tips) items += `<div class="ctx-tip-slot"><div class="ctx-tip-slot-label">${label}</div>${tips}</div>`;
+  }
+  if (!items) return '';
+  return `<button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('show')">\u00D7</button>
+    <div class="ctx-tips-modal-header">${cardInfo.emoji} ${escapeHTML(cardInfo.label)} \u2014 Tips</div>
+    <div class="ctx-tips-modal-body">${items}</div>`;
+}
+
+// ═══════════════════════════════════════════════
 // DNA HINTS — connect genetics to recommendations
 // ═══════════════════════════════════════════════
 
@@ -287,6 +370,20 @@ const EXTRA_TERMS = {
   'testosterone': ['tongkat ali', 'fadogia'],
   'insulin': ['blood sugar', 'glucose spike'],
   'inflammation': ['hs-crp', 'hsCRP'],
+  'liver support': [/\balt\b/, 'alanine aminotransferase', 'fatty liver', /\bnafld\b/, /\bmasld\b/],
+  'recovery': [/\bldh\b/, 'lactate dehydrogenase', 'muscle damage', 'muscle recovery'],
+  'bilirubin': ['gilbert', 'jaundice', 'unconjugated bilirubin', 'conjugation'],
+  'kidney': ['creatinine', /\bgfr\b/, /\begfr\b/, 'renal function', 'nephron'],
+  'hydration': [/\bbun\b/, 'blood urea nitrogen', /\burea\b/],
+  'hba1c': ['glycated hemoglobin', 'a1c', 'long-term glucose', 'glucose control'],
+  'hemoglobin': ['anemia', 'iron deficiency', 'erythropoiesis', 'heme iron'],
+  'free testosterone': [/\bshbg\b/, 'bioavailable testosterone', 'free t'],
+  'free t4': ['thyroxine', /\bft4\b/, 'thyroid hormone'],
+  'albumin': ['hypoalbuminemia', 'protein status'],
+  'total protein': ['protein status', 'protein intake'],
+  'cholesterol': ['total cholesterol', 'ldl particle', 'statin'],
+  'progesterone': ['luteal phase', 'pregnenolone steal', 'corpus luteum'],
+  'wbc': ['white blood cell', 'leukocyte', 'immune function', 'neutrophil'],
 };
 
 export function detectSupplementSlots(text) {
@@ -351,4 +448,6 @@ Object.assign(window, {
   detectSupplementSlots,
   loadCatalog,
   buildDNAHints,
+  getCardSlotKeys,
+  renderCardTipsModal,
 });

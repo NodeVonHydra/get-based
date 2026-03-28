@@ -435,36 +435,35 @@ async function loadChartCardRecs() {
   const catalog = await window.loadCatalog();
   if (!catalog || !catalog.slots) return;
 
-  const els = document.querySelectorAll('.chart-card-rec');
+  const els = document.querySelectorAll('[id^="chart-rec-"]');
   for (const el of els) {
     if (el.children.length > 0) continue;
     const id = el.id.replace('chart-rec-', '');
     const slotKey = id.replace('_', '.');
     const slot = catalog.slots[slotKey];
     if (!slot) continue;
-    const link = document.createElement('a');
-    link.className = 'chart-card-rec-link';
-    link.textContent = 'What can help \u2192';
-    link.href = '#';
-    link.onclick = e => {
-      e.preventDefault();
+    const badge = document.createElement('span');
+    badge.className = 'ctx-tips-badge';
+    badge.textContent = 'Tips';
+    badge.title = 'What can help';
+    badge.onclick = e => {
       e.stopPropagation();
       showDetailModal(id, { scrollToRec: true });
     };
-    el.appendChild(link);
+    el.appendChild(badge);
   }
-  // Reorder chart cards: those with rec links first (within each grid)
+  // Reorder chart cards: those with tips badges first (within each grid)
   for (const grid of document.querySelectorAll('.charts-grid')) {
     const cards = Array.from(grid.querySelectorAll('.chart-card'));
-    const withRec = cards.filter(c => c.querySelector('.chart-card-rec-link'));
-    const without = cards.filter(c => !c.querySelector('.chart-card-rec-link'));
+    const withRec = cards.filter(c => c.querySelector('.ctx-tips-badge'));
+    const without = cards.filter(c => !c.querySelector('.ctx-tips-badge'));
     for (const c of [...withRec, ...without]) grid.appendChild(c);
   }
-  // One-time nudge
-  const recLinks = document.querySelectorAll('.chart-card-rec-link');
+  // One-time nudge (must query after badges are added)
+  const recLinks = document.querySelectorAll('[id^="chart-rec-"] .ctx-tips-badge');
   if (recLinks.length > 0 && !localStorage.getItem('labcharts-rec-nudge-seen')) {
     localStorage.setItem('labcharts-rec-nudge-seen', '1');
-    showNotification(`${recLinks.length} marker${recLinks.length > 1 ? 's have' : ' has'} actionable suggestions \u2014 look for "What can help" on your charts`, 'info');
+    showNotification(`${recLinks.length} marker${recLinks.length > 1 ? 's have' : ' has'} actionable tips \u2014 look for the Tips badge on your chart cards`, 'info');
   }
 }
 
@@ -820,7 +819,7 @@ export function renderChartCard(id, marker, dateLabels) {
 
   let html = `<div class="chart-card" onclick="showDetailModal('${id}')">
     <div class="chart-card-header"><div>
-      <div class="chart-card-title">${escapeHTML(marker.name)}</div>
+      <div class="chart-card-title">${escapeHTML(marker.name)} <span id="chart-rec-${id}"></span></div>
       <div class="chart-card-unit">${escapeHTML(marker.unit)}</div></div>
       <div><span class="chart-card-status status-${status}">${sIcon ? sIcon + ' ' : ''}${statusLabel}</span>${trendBadge}</div></div>
     <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
@@ -849,10 +848,7 @@ export function renderChartCard(id, marker, dateLabels) {
     const rangeLabel = state.rangeMode === 'optimal' && (marker.optimalMin != null || marker.optimalMax != null) ? 'Optimal' : 'Reference';
     rangeHtml = r.min != null || r.max != null ? `<div class="chart-ref-range">${rangeLabel}: ${fmtRange(r.min, r.max)} ${escapeHTML(marker.unit)}</div>` : '';
   }
-  // "What can help" link for out-of-range markers with catalog slots
-  // Placeholder for "What can help" — filled async when catalog has a slot for this marker
-  const recPlaceholder = `<div class="chart-card-rec" id="chart-rec-${id}"></div>`;
-  html += `</div>${rangeHtml}${recPlaceholder}</div>`;
+  html += `</div>${rangeHtml}</div>`;
   return html;
 }
 

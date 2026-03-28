@@ -403,6 +403,301 @@
       ],
       "label": "Uric acid"
     },
+    "biochemistry.alt": {
+      "freeActions": [
+        "Eliminate or strictly limit alcohol (single biggest modifiable driver of elevated ALT)",
+        "Morning sunlight + grounding (supports hepatic glutathione recycling — light-dependent pathway)",
+        "Lose visceral fat — even 5-7% weight loss significantly reduces ALT in fatty liver (PMID 29683979)",
+        "Sleep 7-9h in complete darkness (sleep deprivation raises ALT up to 58% — PMID 1478242)",
+        "Avoid unnecessary hepatotoxic drugs (acetaminophen, NSAIDs, statins — check with physician)"
+      ],
+      "foodForms": [
+        "Coffee (2-3 cups/day — dose-dependent ALT reduction, PMID 15633120)",
+        "Cruciferous vegetables (sulforaphane upregulates phase II liver detox enzymes)",
+        "Garlic and onions (allicin supports glutathione synthesis)",
+        "Beets (betaine supports liver methylation and fat metabolism)"
+      ],
+      "forms": [
+        "NAC (N-Acetyl Cysteine) — glutathione precursor, shown to decrease ALT in NAFLD (PMID 22069674)",
+        "Milk Thistle (Silymarin) — hepatoprotective via antioxidant activity, systematic review of 29 RCTs (PMID 38021897)",
+        "TUDCA — bile acid that reduces ER stress in hepatocytes",
+        "Alpha Lipoic Acid — liver antioxidant, supports glutathione recycling"
+      ],
+      "label": "Liver support (ALT)"
+    },
+    "biochemistry.ldh": {
+      "freeActions": [
+        "Adequate recovery between intense training sessions (LDH peaks 24-72h post-exercise, PMID 28804100)",
+        "Sleep 7-9h (tissue repair and LDH clearance happen during deep sleep)",
+        "Cold water immersion post-exercise (reduces exercise-induced muscle damage markers)",
+        "Grounding barefoot after training (anti-inflammatory electron transfer reduces tissue inflammation)"
+      ],
+      "foodForms": [
+        "Tart cherry juice (260ml/day — reduces muscle damage markers and inflammation, meta-analysis PMC 11918606)",
+        "Fatty fish (omega-3 reduces exercise-induced muscle damage with long-term intake)",
+        "Turmeric with black pepper (curcumin reduces LDH post-exercise, PMID 34584659)",
+        "Berries (anthocyanins reduce oxidative muscle damage)"
+      ],
+      "forms": [
+        "Curcumin (liposomal) — RCT showed significant LDH reduction in active individuals (PMC 8428303)",
+        "Omega-3 (high-EPA) — long-term intake attenuates exercise-induced muscle damage",
+        "Tart cherry extract — concentrated anthocyanins for recovery",
+        "CoQ10 — supports mitochondrial function, reduces oxidative damage"
+      ],
+      "label": "Recovery / LDH"
+    },
+    "biochemistry.bilirubinTotal": {
+      "freeActions": [
+        "Stay well hydrated (dehydration concentrates bilirubin)",
+        "Don't skip meals — fasting significantly raises unconjugated bilirubin (Gilbert syndrome trigger)",
+        "Morning sunlight (phototherapy breaks down bilirubin — the same mechanism used in neonatal jaundice)",
+        "Moderate exercise (supports healthy RBC turnover and liver conjugation)"
+      ],
+      "foodForms": [
+        "Cruciferous vegetables (support liver glucuronidation — the conjugation pathway for bilirubin clearance)",
+        "Beets and bitter greens (stimulate bile flow, support bilirubin excretion)",
+        "Turmeric (curcumin supports bile production and liver function)",
+        "Lemon water (citric acid supports liver detox pathways)"
+      ],
+      "forms": [
+        "Milk Thistle (Silymarin) — supports hepatocyte function and bile flow",
+        "TUDCA — improves bile acid metabolism and bilirubin conjugation",
+        "NAC — supports glutathione, protects liver conjugation capacity"
+      ],
+      "label": "Bilirubin metabolism"
+    },
+    "biochemistry.creatinine": {
+      "freeActions": [
+        "Stay well hydrated with spring water (adequate hydration supports renal filtration — GFR declines with dehydration)",
+        "Sleep 7-9h (circadian disruption directly damages kidney function — short sleep RR 1.63 for CKD, PMC 4868793)",
+        "Moderate protein intake (excess protein increases intraglomerular pressure and BUN/creatinine)",
+        "Regular aerobic exercise (improves renal blood flow — lifestyle interventions improve creatinine, PMC 10205767)",
+        "Reduce nnEMF and environmental toxin exposure (oxidative stress impairs nephron function)"
+      ],
+      "foodForms": [
+        "Berries and dark leafy greens (antioxidants protect nephrons from oxidative damage)",
+        "Fatty fish (omega-3 reduces renal inflammation and improves BUN/creatinine, PMC 12206260)",
+        "Celery and cucumber (natural diuretics, support hydration)",
+        "Garlic (allicin has renal protective antioxidant effects)"
+      ],
+      "forms": [
+        "Omega-3 (EPA/DHA) — improved BUN and creatinine in clinical trials (PMC 12206260)",
+        "CoQ10 — reduced creatinine and oxidative stress in CKD meta-analysis (PMID 30417782)",
+        "Astragalus root — improved eGFR in mild-moderate CKD case series (PMC 8921640)",
+        "NAC — antioxidant support for renal tubular cells"
+      ],
+      "label": "Kidney support (creatinine)"
+    },
+    "biochemistry.urea": {
+      "freeActions": [
+        "Hydrate adequately — urea excretion requires 40-60ml water per gram urea nitrogen (dehydration is the #1 cause of elevated BUN)",
+        "Moderate protein intake if consistently elevated (high protein increases urea production proportionally)",
+        "Morning sunlight + circadian alignment (kidney filtration follows circadian rhythm)",
+        "Regular moderate exercise (improves renal blood flow and filtration)"
+      ],
+      "foodForms": [
+        "Spring water throughout the day (proper hydration is the single most important dietary factor)",
+        "Watermelon, cucumber, celery (high water content + natural diuretic support)",
+        "Berries (antioxidants protect kidney filtration capacity)",
+        "Reduce processed/cured meats (concentrated protein + sodium burden on kidneys)"
+      ],
+      "forms": [
+        "Omega-3 (EPA/DHA) — supports renal function and reduces inflammatory burden",
+        "Probiotics — gut bacteria produce urease; gut health affects systemic urea levels",
+        "CoQ10 — mitochondrial support for energy-intensive nephron function"
+      ],
+      "label": "Kidney / hydration (BUN)"
+    },
+    "diabetes.hba1c": {
+      "freeActions": [
+        "Morning sunlight within 30 min of waking (sets circadian insulin sensitivity — glucose tolerance is highest in the morning)",
+        "Post-meal walks 15-30 min (single most effective acute glucose intervention — blunts postprandial spikes that drive HbA1c)",
+        "Cold exposure (cold activates GLUT4 transporters independent of insulin, activates brown fat glucose uptake)",
+        "Time-restricted eating aligned with daylight (TRE + exercise reduced HbA1c in RCT, PMID 36198292)",
+        "Resistance training 2-3x/week (structured exercise reduces HbA1c by 0.59%, meta-analysis)"
+      ],
+      "foodForms": [
+        "Apple cider vinegar before meals (acetic acid improves postprandial glucose response)",
+        "Fiber-rich meals — eat protein and fat before carbs (blunts glucose spike that glycates hemoglobin)",
+        "Berries (low glycemic, polyphenols improve insulin sensitivity)",
+        "Ceylon cinnamon (modest HbA1c reduction in meta-analysis, SMD -0.26)"
+      ],
+      "forms": [
+        "Berberine HCl — HbA1c reduction of -0.73% in meta-analysis of 37 RCTs (PMID 34956436)",
+        "Dihydroberberine (better absorption than berberine HCl)",
+        "Chromium picolinate (insulin sensitizer, synergistic with berberine)",
+        "Alpha Lipoic Acid — improves insulin sensitivity and glucose disposal"
+      ],
+      "label": "HbA1c / long-term glucose"
+    },
+    "hematology.hemoglobin": {
+      "freeActions": [
+        "Morning sunlight (light drives hepcidin regulation — the master iron-recycling hormone)",
+        "Cook in cast iron cookware (leaches bioavailable iron — meaningful contribution, especially for plant-based diets)",
+        "Pair iron-rich foods with vitamin C foods at the same meal (ascorbic acid is the strongest enhancer of non-heme iron absorption)",
+        "Avoid tea, coffee, and calcium supplements with iron-rich meals (polyphenols and calcium inhibit both heme and non-heme iron absorption)",
+        "Regular exercise (stimulates erythropoiesis — but avoid overtraining which causes hemolysis)"
+      ],
+      "foodForms": [
+        "Beef/lamb liver (most bioavailable heme iron source)",
+        "Red meat + organ meats (heme iron absorbed 15-35% vs 2-20% for non-heme)",
+        "Sardines and dark poultry (heme iron + B12 for erythropoiesis)",
+        "Dark leafy greens + bell pepper (non-heme iron + vitamin C for maximum absorption)"
+      ],
+      "forms": [
+        "Iron Bisglycinate (gentlest form, best absorbed, least GI side effects)",
+        "Heme iron polypeptide (mimics food-form heme iron)",
+        "Lactoferrin + iron (lactoferrin enhances iron uptake and has anti-inflammatory effects)",
+        "B12 + Folate combo (if hemoglobin low with high MCV — rules out megaloblastic component)"
+      ],
+      "label": "Hemoglobin / iron"
+    },
+    "hormones.freeTestosterone": {
+      "freeActions": [
+        "Morning sunlight on skin within 30 min of waking (UV triggers pregnenolone synthesis, precursor to all sex hormones)",
+        "Heavy compound lifts — squat, deadlift, press (acute T spike + chronic SHBG reduction with resistance training)",
+        "Cold exposure — cold water immersion raises LH and free T; cold also lowers SHBG acutely",
+        "Sleep 7-9h in pitch-dark cold room (free T peaks during deep sleep; sleep debt lowers it within days)",
+        "Reduce body fat to 12-18% (adipose aromatase converts T to estrogen and raises SHBG)"
+      ],
+      "foodForms": [
+        "Oysters (zinc inhibits aromatase, lowers SHBG)",
+        "Whole eggs, pasture-raised (cholesterol is the direct precursor to testosterone)",
+        "Cruciferous vegetables (DIM metabolites lower estrogen, indirectly freeing more T)",
+        "Pomegranate (reduces cortisol ~12%, cortisol competes with T for receptors)"
+      ],
+      "forms": [
+        "Boron (6-10mg — reduces SHBG by ~10%, directly increases free T fraction)",
+        "Tongkat Ali (standardized extract — lowers SHBG, raises free T in clinical trials)",
+        "Stinging Nettle Root (binds SHBG, displacing testosterone)",
+        "Magnesium (deficiency raises SHBG; correcting it frees bound T)"
+      ],
+      "label": "Free Testosterone"
+    },
+    "thyroid.ft4": {
+      "freeActions": [
+        "Morning sunlight (light drives thyroid hormone production; TSH has a strong circadian rhythm set by light)",
+        "Cold exposure (activates thyroid — cold increases TSH and T4 output to drive thermogenesis)",
+        "Reduce nnEMF exposure — phone away from neck/thyroid, WiFi off at night (thyroid is radiation-sensitive; RF-EMF associated with altered TSH/FT4)",
+        "Sleep 7-9h in complete darkness (thyroid hormone production peaks during deep sleep)",
+        "Avoid fluoride and chlorine in water (displace iodine from the thyroid; use filtered water)"
+      ],
+      "foodForms": [
+        "Seaweed — kelp, dulse, nori (richest natural iodine source; T4 = thyronine + 4 iodine atoms)",
+        "Brazil nuts (2/day — selenium required for deiodinase enzymes that activate T4)",
+        "Oysters and pumpkin seeds (zinc needed for TSH receptor function and T4 synthesis)"
+      ],
+      "forms": [
+        "Selenomethionine (200mcg — supports T4 production and protects thyroid from oxidative damage)",
+        "Zinc picolinate (supports TSH signaling and T4 synthesis cascade)",
+        "Iodine (Lugol's or potassium iodide — only if deficient; excess suppresses thyroid)"
+      ],
+      "label": "Free T4 (Thyroid)"
+    },
+    "proteins.albumin": {
+      "freeActions": [
+        "Morning sunlight + outdoor movement (light supports liver protein synthesis; exercise increases albumin production)",
+        "Sleep 7-9h (liver albumin synthesis peaks during rest; sleep deprivation impairs hepatic protein production)",
+        "Reduce chronic inflammation (inflammation diverts liver to acute-phase proteins at albumin's expense — albumin is a negative acute-phase reactant)",
+        "Stay well-hydrated (dehydration concentrates albumin artificially; chronic dehydration stresses kidneys)"
+      ],
+      "foodForms": [
+        "Pasture-raised eggs (complete amino acid profile, highly bioavailable protein for liver synthesis)",
+        "Bone broth (glycine and proline support liver function and protein synthesis)",
+        "Grass-fed beef and organ meats (complete protein with B vitamins for liver support)",
+        "Wild-caught fish (easily digestible complete protein)"
+      ],
+      "forms": [
+        "Collagen peptides (glycine supports liver function; liver produces all albumin)",
+        "NAC (supports liver glutathione and liver health, the organ that produces albumin)",
+        "Digestive enzymes / Betaine HCl (if low albumin stems from poor protein digestion)"
+      ],
+      "label": "Albumin (protein status)"
+    },
+    "proteins.totalProtein": {
+      "freeActions": [
+        "Eat adequate protein — 1.6-2.2g/kg bodyweight (most common cause of low total protein is insufficient intake)",
+        "Morning sunlight (supports circadian liver function; liver produces albumin, the largest protein fraction)",
+        "Resistance training (stimulates muscle protein synthesis, upregulates whole-body protein turnover)",
+        "Address gut health — chew thoroughly, eat slowly, manage stress before meals (malabsorption is a hidden cause)"
+      ],
+      "foodForms": [
+        "Pasture-raised eggs (highest biological value protein — near 100% utilization)",
+        "Grass-fed beef and organ meats (complete amino acid profile with cofactors)",
+        "Wild-caught fish (easily digestible complete protein)",
+        "Bone broth (collagen amino acids plus minerals; supports gut lining for better absorption)"
+      ],
+      "forms": [
+        "Digestive enzymes + Betaine HCl (improve protein digestion if stomach acid is low)",
+        "Collagen peptides (boost total protein, support gut lining for better absorption)",
+        "L-Glutamine (supports intestinal barrier integrity, improving protein absorption)"
+      ],
+      "label": "Total Protein"
+    },
+    "lipids.cholesterol": {
+      "freeActions": [
+        "Morning sunlight — UVB converts 7-dehydrocholesterol to vitamin D (a primary cholesterol utilization pathway; low sun = less cholesterol consumed = higher serum levels)",
+        "Cold exposure (activates brown fat and bile acid metabolism, both consume cholesterol)",
+        "Regular outdoor movement (exercise raises HDL and shifts LDL to large buoyant pattern)",
+        "Reduce seed oils and ultra-processed food (oxidized LDL, not total cholesterol, drives atherosclerosis)"
+      ],
+      "foodForms": [
+        "Fatty fish — salmon, sardines, mackerel (omega-3s improve the HDL fraction within total cholesterol)",
+        "Oats and soluble fiber (bind bile acids, forcing liver to use cholesterol to make more)",
+        "Cruciferous vegetables (support liver bile and estrogen metabolism, both linked to cholesterol clearance)"
+      ],
+      "forms": [
+        "Citrus Bergamot (500-1000mg — reduces total cholesterol via HMG-CoA reductase modulation)",
+        "Plant sterols/stanols (2g/day — compete with cholesterol for intestinal absorption, reducing total by ~10%)",
+        "Red Yeast Rice (contains natural monacolin K; low-dose natural statin mechanism)",
+        "Berberine HCl (upregulates LDL receptors, improving clearance)"
+      ],
+      "label": "Total Cholesterol"
+    },
+    "hormones.progesterone": {
+      "freeActions": [
+        "Morning sunlight — light drives the HPG axis; progesterone production requires proper circadian signaling",
+        "Sleep 7-9h in complete darkness (melatonin and progesterone are synergistic; light at night impairs both)",
+        "Reduce chronic stress (cortisol and progesterone share pregnenolone precursor — chronic stress causes 'pregnenolone steal')",
+        "Cold exposure (reduces inflammation and cortisol, freeing up the progesterone pathway)",
+        "Avoid xenoestrogens — plastics, BPA, parabens (environmental estrogens disrupt estrogen-progesterone balance)"
+      ],
+      "foodForms": [
+        "Zinc-rich foods — oysters, pumpkin seeds (zinc required for corpus luteum to produce progesterone)",
+        "Vitamin B6-rich foods — poultry, pistachios, sunflower seeds (B6 supports corpus luteum function)",
+        "Vitamin C-rich foods — bell peppers, kiwi, citrus (raised progesterone in luteal phase in clinical studies)",
+        "Healthy fats — avocado, olive oil, egg yolks (cholesterol is the raw material for all steroid hormones)"
+      ],
+      "forms": [
+        "Vitex / Chasteberry (most studied herb for progesterone — raises LH, shifts estrogen:progesterone ratio)",
+        "Vitamin B6 P5P form (50-100mg — supports corpus luteum function and progesterone output)",
+        "Vitamin C (750mg — Henmi 2003: raised progesterone in 53% of women with luteal phase defect)",
+        "Magnesium Glycinate (calms HPA axis, reducing cortisol competition for pregnenolone)"
+      ],
+      "label": "Progesterone"
+    },
+    "hematology.wbc": {
+      "freeActions": [
+        "Morning sunlight (sets circadian immune rhythm; WBC count has strong diurnal variation driven by cortisol and melatonin)",
+        "Cold exposure — brief cold stress acutely mobilizes WBC, especially neutrophils and lymphocytes",
+        "Ground barefoot on earth (earthing reduces chronic inflammation markers, helping normalize elevated WBC)",
+        "Sleep 7-9h in complete darkness (sleep deprivation raises WBC via inflammatory signaling)",
+        "Regular moderate exercise — walking, swimming, hiking (intense overtraining suppresses WBC; moderate optimizes it)"
+      ],
+      "foodForms": [
+        "Garlic (allicin stimulates leukocyte activity and modulates WBC production)",
+        "Citrus fruits and bell peppers (vitamin C supports WBC production and function)",
+        "Mushrooms — shiitake, maitake, reishi (beta-glucans activate innate immune cells)",
+        "Bone broth (glycine and minerals support bone marrow, where WBCs are produced)"
+      ],
+      "forms": [
+        "Vitamin C (1-2g/day — supports neutrophil function; deficiency directly lowers WBC)",
+        "Vitamin D3 (vitamin D receptors on all WBC types; deficiency impairs immune cell differentiation)",
+        "Zinc picolinate (zinc deficiency causes thymic atrophy and reduced lymphocyte production)",
+        "Beta-Glucan (stimulates innate immune cells via Dectin-1 receptor)"
+      ],
+      "label": "WBC (immune function)"
+    },
     "proteins.hsCRP": {
       "freeActions": [
         "Morning sunlight (sets anti-inflammatory circadian rhythm)",
