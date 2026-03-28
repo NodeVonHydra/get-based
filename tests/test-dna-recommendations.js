@@ -140,27 +140,20 @@
   assert('detectSupplementSlots verifies slot exists in catalog', recSrc.includes('_catalog.slots[hint.slotKey]'));
 
   // ═══════════════════════════════════════
-  // 6. dna.js — getDNABadgeForCard
+  // 6. Card DNA section in Tips modal
   // ═══════════════════════════════════════
-  console.log('%c 6. DNA Badge Helper ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 6. Card DNA Section ', 'font-weight:bold;color:#f59e0b');
 
-  assert('getDNABadgeForCard in dna.js', dnaSrc.includes('getDNABadgeForCard'));
-  assert('_getDNABadgeForCard on window', typeof window._getDNABadgeForCard === 'function');
-  assert('getDNABadgeForCard checks contextCards', dnaSrc.includes('contextCards'));
-  assert('getDNABadgeForCard returns hasAvoid', dnaSrc.includes('hasAvoid'));
-  assert('getDNABadgeForCard requires snpHints (not just any SNP)', dnaSrc.includes('!entry.snpHints'));
-
-  // Test with no genetics
-  const noBadge = window._getDNABadgeForCard('diet');
-  assert('getDNABadgeForCard returns null with no genetics', noBadge === null);
-
-  // ═══════════════════════════════════════
-  // 7. context-cards.js — badge rendering
-  // ═══════════════════════════════════════
-  console.log('%c 7. Context Card Badges ', 'font-weight:bold;color:#f59e0b');
-
-  // DNA info is now inside the Tips modal (not a standalone badge on cards)
+  // DNA info is inside the Tips modal via _buildCardDNASection in recommendations.js
   const recSrc2 = await fetch('js/recommendations.js').then(r => r.text());
+  assert('_buildCardDNASection checks contextCards', recSrc2.includes('entry.contextCards'));
+  assert('_buildCardDNASection checks snpHints', recSrc2.includes('!entry.snpHints'));
+  assert('_buildCardDNASection skips effect=none', recSrc2.includes("effect === 'none'"));
+
+  // ═══════════════════════════════════════
+  // 7. Context card Tips badge rendering
+  // ═══════════════════════════════════════
+  console.log('%c 7. Context Card Tips Badges ', 'font-weight:bold;color:#f59e0b');
   assert('recommendations.js has _buildCardDNASection', recSrc2.includes('function _buildCardDNASection'));
   assert('Card DNA section checks contextCards', recSrc2.includes('entry.contextCards'));
   assert('Card DNA section shows gene name', recSrc2.includes('stored.gene'));

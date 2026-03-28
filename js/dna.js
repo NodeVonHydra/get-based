@@ -662,33 +662,6 @@ function confirmDNAImport() {
 }
 
 // ═══════════════════════════════════════════════
-// CONTEXT CARD BADGE HELPER
-// ═══════════════════════════════════════════════
-
-// Returns { hasAvoid } for cards with actionable snpHints, or null if none
-function getDNABadgeForCard(cardKey) {
-  const genetics = state.importedData?.genetics;
-  if (!genetics || !genetics.snps || !_snpTable) return null;
-
-  let found = false, hasAvoid = false;
-  const apoeRsids = new Set(['rs429358', 'rs7412']);
-  for (const [rsid, stored] of Object.entries(genetics.snps)) {
-    if (genetics.apoe && apoeRsids.has(rsid)) continue;
-    const entry = _snpTable[rsid];
-    if (!entry || !entry.snpHints || !entry.contextCards || !entry.contextCards.includes(cardKey)) continue;
-    const rev = stored.genotype.length === 2 ? stored.genotype[1] + stored.genotype[0] : stored.genotype;
-    const hint = entry.snpHints[stored.genotype] || entry.snpHints[rev] || entry.snpHints[sortAlleles(stored.genotype)];
-    if (!hint) continue;
-    const info = entry.genotypes[stored.genotype] || entry.genotypes[rev] || entry.genotypes[sortAlleles(stored.genotype)];
-    if (info && info.effect === 'none') continue;
-    found = true;
-    if (hint.direction === 'avoid') hasAvoid = true;
-  }
-
-  return found ? { hasAvoid } : null;
-}
-
-// ═══════════════════════════════════════════════
 // DETAIL MODAL HELPER
 // ═══════════════════════════════════════════════
 
@@ -999,7 +972,6 @@ Object.assign(window, {
   HAPLOGROUP_LIST,
   _buildGeneticsContext: buildGeneticsContext,
   _getRelevantSNPs: getRelevantSNPs,
-  _getDNABadgeForCard: getDNABadgeForCard,
   _getState: () => state,
   _saveAndRefresh: () => { saveImportedData(); if (window.navigate) window.navigate('dashboard'); },
 });
