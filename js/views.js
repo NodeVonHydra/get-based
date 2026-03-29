@@ -1238,7 +1238,9 @@ export function showDetailModal(id, opts = {}) {
   overlay.classList.add("show");
   // Async-fill recommendation section (unified: genetics + actionable tips)
   if (window.renderRecommendationSection) {
-    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3, inlineSNPs: _inlineSNPs })
+    const _latestVal = marker.values?.filter(v => v !== null).pop();
+    const _markerStatus = _latestVal != null ? getStatus(_latestVal, r.min, r.max) : 'missing';
+    window.renderRecommendationSection(id.replace('_','.'), { label: 'What can help', maxProducts: 3, inlineSNPs: _inlineSNPs, markerStatus: _markerStatus })
       .then(h => {
         const el = document.getElementById('rec-modal-' + id);
         if (h && el) {

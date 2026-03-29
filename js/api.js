@@ -536,8 +536,12 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
       signal
     });
   } catch (e) {
-    if (e.name === 'TypeError' && e.message.includes('Failed to fetch')) {
-      throw new Error('Cannot reach local server. This is usually a CORS issue — try starting Ollama with: OLLAMA_ORIGINS=* ollama serve');
+    if (e instanceof TypeError || /Failed to fetch|Load failed|NetworkError/.test(e.message || '')) {
+      const ua = navigator.userAgent || '';
+      const hint = /Mac/i.test(ua) ? 'Ollama: launchctl setenv OLLAMA_ORIGINS "*" and restart. LM Studio: Settings \u2192 Enable CORS'
+        : /Win/i.test(ua) ? 'Ollama: set OLLAMA_ORIGINS=* as system env var and restart. LM Studio: Settings \u2192 Enable CORS'
+        : 'Ollama: OLLAMA_ORIGINS=* ollama serve. LM Studio: Settings \u2192 Enable CORS';
+      throw new Error(`Cannot reach local server \u2014 CORS blocked. ${hint}`);
     }
     throw new Error(`Cannot reach local server. Check that it's running. (${e.message})`);
   }

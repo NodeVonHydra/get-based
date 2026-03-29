@@ -51,6 +51,7 @@ const APP_SHELL = [
   '/vendor/pdf.min.js',
   '/vendor/pdf.worker.min.js',
   '/vendor/fonts/fonts.css',
+  '/data/recommendations-czsk.json',
 ];
 
 // Install: pre-cache app shell

@@ -12,7 +12,7 @@
       "freeActions": [
         "Midday sun with maximum skin exposed (UVB peaks 10am-2pm)",
         "Ground barefoot while sunbathing (electrons + photons together)",
-        "No sunscreen for the first 15-30 min — build solar callus gradually",
+        "Morning sun without sunscreen builds tolerance gradually — start with 10-15 min based on your skin type",
         "Cold exposure after sun (CT upregulates vitamin D receptors)"
       ],
       "productForms": [
@@ -27,9 +27,17 @@
       "forms": [
         "D3 + K2 combo",
         "D3 liquid drops",
-        "D3 high-dose (5000+ IU)"
+        "D3 high-dose"
       ],
-      "label": "Vitamin D3"
+      "label": "Vitamin D3",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/32972636/"
+      ],
+      "formRefs": {
+        "D3 + K2 combo": "https://pubmed.ncbi.nlm.nih.gov/32219282/",
+        "D3 liquid drops": "https://pubmed.ncbi.nlm.nih.gov/32357579/",
+        "D3 high-dose": "https://pubmed.ncbi.nlm.nih.gov/38257146/"
+      }
     },
     "vitamins.vitaminA": {
       "foodForms": [
@@ -45,7 +53,15 @@
       "label": "Vitamin A",
       "freeActions": [
         "Morning sunlight (vitamin A and D work synergistically with light)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35294044/"
+      ],
+      "formRefs": {
+        "Retinyl palmitate": "https://pubmed.ncbi.nlm.nih.gov/3907818/",
+        "Cod liver oil (supplement)": "https://pubmed.ncbi.nlm.nih.gov/25325252/",
+        "Beta-carotene": "https://pubmed.ncbi.nlm.nih.gov/20980645/"
+      }
     },
     "electrolytes.magnesium": {
       "freeActions": [
@@ -66,7 +82,17 @@
         "Magnesium Citrate",
         "Magnesium Malate"
       ],
-      "label": "Magnesium"
+      "label": "Magnesium",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/34111673/"
+      ],
+      "formRefs": {
+        "Magnesium Glycinate": "https://pubmed.ncbi.nlm.nih.gov/7815675/",
+        "Magnesium L-Threonate": "https://pubmed.ncbi.nlm.nih.gov/39252819/",
+        "Magnesium Taurate": "https://pubmed.ncbi.nlm.nih.gov/8692051/",
+        "Magnesium Citrate": "https://pubmed.ncbi.nlm.nih.gov/14596323/",
+        "Magnesium Malate": "https://pubmed.ncbi.nlm.nih.gov/8587088/"
+      }
     },
     "electrolytes.potassium": {
       "foodForms": [
@@ -76,15 +102,23 @@
         "Sweet potato"
       ],
       "forms": [
-        "Potassium citrate",
-        "Potassium bicarbonate",
-        "Potassium chloride"
+        "Potassium citrate — use with medical supervision; excess can cause cardiac events",
+        "Potassium bicarbonate — use with medical supervision; excess can cause cardiac events",
+        "Potassium chloride — use with medical supervision; excess can cause cardiac events"
       ],
       "label": "Potassium",
       "freeActions": [
         "Drink spring water (natural electrolyte balance)",
         "Ground barefoot (earth connection supports mineral homeostasis)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28024910/"
+      ],
+      "formRefs": {
+        "Potassium citrate — use with medical supervision; excess can cause cardiac events": "https://pubmed.ncbi.nlm.nih.gov/26439475/",
+        "Potassium bicarbonate — use with medical supervision; excess can cause cardiac events": "https://pubmed.ncbi.nlm.nih.gov/25990255/",
+        "Potassium chloride — use with medical supervision; excess can cause cardiac events": "https://pubmed.ncbi.nlm.nih.gov/28024910/"
+      }
     },
     "electrolytes.zinc": {
       "foodForms": [
@@ -102,7 +136,15 @@
       "freeActions": [
         "Morning sunlight (supports zinc-dependent enzyme activation)",
         "Reduce nnEMF (zinc is depleted by oxidative stress from EMF)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/3630857/"
+      ],
+      "formRefs": {
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/",
+        "Zinc carnosine": "https://pubmed.ncbi.nlm.nih.gov/16777920/",
+        "Zinc bisglycinate": "https://pubmed.ncbi.nlm.nih.gov/18271278/"
+      }
     },
     "electrolytes.copper": {
       "foodForms": [
@@ -118,7 +160,14 @@
       "label": "Copper",
       "freeActions": [
         "Morning sunlight (copper-dependent enzymes like ceruloplasmin are light-activated)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/22444781/"
+      ],
+      "formRefs": {
+        "Copper bisglycinate": "https://pubmed.ncbi.nlm.nih.gov/22444781/",
+        "Copper sebacate": "https://pubmed.ncbi.nlm.nih.gov/12055353/"
+      }
     },
     "iron.ferritin": {
       "freeActions": [
@@ -132,11 +181,19 @@
         "Dark poultry (thigh)"
       ],
       "forms": [
-        "Iron Bisglycinate",
-        "Heme iron polypeptide",
-        "Lactoferrin + iron"
+        "Iron Bisglycinate (only if deficient)",
+        "Heme iron polypeptide (only if deficient)",
+        "Lactoferrin + iron (only if deficient)"
       ],
-      "label": "Iron"
+      "label": "Iron",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36728680/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "Heme iron polypeptide (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/23514036/",
+        "Lactoferrin + iron (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/35276902/"
+      }
     },
     "lipids.hdl": {
       "freeActions": [
@@ -156,7 +213,16 @@
         "High-DHA concentrate",
         "Algal DHA/EPA"
       ],
-      "label": "Omega-3 (HDL)"
+      "label": "Omega-3 (HDL)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/37264945/"
+      ],
+      "formRefs": {
+        "Triglyceride-form fish oil": "https://pubmed.ncbi.nlm.nih.gov/21063431/",
+        "High-EPA concentrate": "https://pubmed.ncbi.nlm.nih.gov/31422671/",
+        "High-DHA concentrate": "https://pubmed.ncbi.nlm.nih.gov/32060571/",
+        "Algal DHA/EPA": "https://pubmed.ncbi.nlm.nih.gov/28417511/"
+      }
     },
     "lipids.triglycerides": {
       "freeActions": [
@@ -168,10 +234,17 @@
         "Fatty fish (salmon, sardines, mackerel)"
       ],
       "forms": [
-        "High-EPA fish oil (2-4g EPA)",
+        "High-EPA fish oil",
         "Algal EPA"
       ],
-      "label": "Omega-3 (Triglycerides)"
+      "label": "Omega-3 (Triglycerides)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/18774613/"
+      ],
+      "formRefs": {
+        "High-EPA fish oil": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Algal EPA": "https://pubmed.ncbi.nlm.nih.gov/25123060/"
+      }
     },
     "lipids.ldl": {
       "freeActions": [
@@ -184,12 +257,19 @@
         "Cruciferous vegetables"
       ],
       "forms": [
-        "Berberine HCl",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician",
         "Plant sterols/stanols",
-        "Red yeast rice",
         "Citrus bergamot"
       ],
-      "label": "LDL support"
+      "label": "LDL support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23512497/"
+      ],
+      "formRefs": {
+        "Plant sterols/stanols": "https://pubmed.ncbi.nlm.nih.gov/24780090/",
+        "Citrus bergamot": "https://pubmed.ncbi.nlm.nih.gov/31670973/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/23512497/"
+      }
     },
     "thyroid.tsh": {
       "foodForms": [
@@ -206,7 +286,14 @@
         "Morning sunlight within 30 min of waking",
         "Cold exposure (stimulates thyroid activity)",
         "Reduce nnEMF — WiFi off at night, phone away from thyroid"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/38243784/"
+      ],
+      "formRefs": {
+        "Selenomethionine": "https://pubmed.ncbi.nlm.nih.gov/38243784/",
+        "Selenium + Zinc combo": "https://pubmed.ncbi.nlm.nih.gov/25758370/"
+      }
     },
     "thyroid.ft3": {
       "freeActions": [
@@ -221,9 +308,16 @@
       ],
       "forms": [
         "Selenomethionine + Zinc picolinate",
-        "Ashwagandha (KSM-66)"
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication"
       ],
-      "label": "T4→T3 conversion"
+      "label": "T4→T3 conversion",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/25758370/"
+      ],
+      "formRefs": {
+        "Selenomethionine + Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/30818086/",
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication": "https://pubmed.ncbi.nlm.nih.gov/31517876/"
+      }
     },
     "hormones.testosterone": {
       "freeActions": [
@@ -241,11 +335,18 @@
       ],
       "forms": [
         "Tongkat Ali",
-        "Ashwagandha (KSM-66)",
-        "Fadogia Agrestis",
-        "Boron (6-10mg)"
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication",
+        "Boron"
       ],
-      "label": "Testosterone support"
+      "label": "Testosterone support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36013514/"
+      ],
+      "formRefs": {
+        "Tongkat Ali": "https://pubmed.ncbi.nlm.nih.gov/36013514/",
+        "Boron": "https://pubmed.ncbi.nlm.nih.gov/21129941/",
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication": "https://pubmed.ncbi.nlm.nih.gov/35873404/"
+      }
     },
     "hormones.shbg": {
       "freeActions": [
@@ -258,10 +359,17 @@
         "Zinc-rich foods — oysters, beef"
       ],
       "forms": [
-        "Boron (calcium fructoborate, 6-10mg)",
+        "Boron (calcium fructoborate)",
         "Stinging nettle root"
       ],
-      "label": "SHBG"
+      "label": "SHBG",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/30037620/"
+      ],
+      "formRefs": {
+        "Boron (calcium fructoborate)": "https://pubmed.ncbi.nlm.nih.gov/30037620/",
+        "Stinging nettle root": "https://pubmed.ncbi.nlm.nih.gov/7700987/"
+      }
     },
     "hormones.dheaS": {
       "freeActions": [
@@ -276,11 +384,15 @@
         "Sweet potato and yams (diosgenin, a phyto-steroid precursor)"
       ],
       "forms": [
-        "DHEA 25mg",
-        "DHEA 50mg",
         "7-Keto DHEA"
       ],
-      "label": "DHEA (body makes)"
+      "label": "DHEA (body makes)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36566478/"
+      ],
+      "formRefs": {
+        "7-Keto DHEA": "https://pubmed.ncbi.nlm.nih.gov/36566478/"
+      }
     },
     "hormones.estradiol": {
       "freeActions": [
@@ -298,7 +410,15 @@
         "Calcium D-Glucarate",
         "DIM + CDG combo"
       ],
-      "label": "Estrogen metabolism"
+      "label": "Estrogen metabolism",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28560655/"
+      ],
+      "formRefs": {
+        "DIM": "https://pubmed.ncbi.nlm.nih.gov/28560655/",
+        "Calcium D-Glucarate": "https://pubmed.ncbi.nlm.nih.gov/12197785/",
+        "DIM + CDG combo": "https://pubmed.ncbi.nlm.nih.gov/36111381/"
+      }
     },
     "hormones.insulin": {
       "freeActions": [
@@ -315,12 +435,21 @@
         "Fermented foods (gut microbiome modulates insulin response)"
       ],
       "forms": [
-        "Berberine HCl",
-        "Dihydroberberine",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician",
         "Chromium picolinate",
         "Ceylon cinnamon extract"
       ],
-      "label": "Insulin / glucose"
+      "label": "Insulin / glucose",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/34956436/"
+      ],
+      "formRefs": {
+        "Chromium picolinate": "https://pubmed.ncbi.nlm.nih.gov/32730903/",
+        "Ceylon cinnamon extract": "https://pubmed.ncbi.nlm.nih.gov/31425768/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/33981233/",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/35010998/"
+      }
     },
     "hormones.igf1": {
       "freeActions": [
@@ -334,7 +463,13 @@
       "forms": [
         "Colostrum"
       ],
-      "label": "IGF-1 (body makes)"
+      "label": "IGF-1 (body makes)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/9338422/"
+      ],
+      "formRefs": {
+        "Colostrum": "https://pubmed.ncbi.nlm.nih.gov/9338422/"
+      }
     },
     "biochemistry.glucose": {
       "freeActions": [
@@ -351,12 +486,21 @@
         "Fiber-rich meals"
       ],
       "forms": [
-        "Berberine HCl",
-        "Dihydroberberine",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician",
         "Chromium picolinate",
         "Alpha Lipoic Acid"
       ],
-      "label": "Glucose support"
+      "label": "Glucose support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36467075/"
+      ],
+      "formRefs": {
+        "Chromium picolinate": "https://pubmed.ncbi.nlm.nih.gov/32730903/",
+        "Alpha Lipoic Acid": "https://pubmed.ncbi.nlm.nih.gov/37630823/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/33981233/",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/35010998/"
+      }
     },
     "biochemistry.ast": {
       "freeActions": [
@@ -375,7 +519,15 @@
         "Milk Thistle (Silymarin)",
         "TUDCA"
       ],
-      "label": "Liver support"
+      "label": "Liver support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/38313355/"
+      ],
+      "formRefs": {
+        "NAC (N-Acetyl Cysteine)": "https://pubmed.ncbi.nlm.nih.gov/34912495/",
+        "Milk Thistle (Silymarin)": "https://pubmed.ncbi.nlm.nih.gov/38579127/",
+        "TUDCA": "https://pubmed.ncbi.nlm.nih.gov/23592128/"
+      }
     },
     "biochemistry.ggt": {
       "freeActions": [
@@ -391,10 +543,16 @@
       ],
       "forms": [
         "NAC",
-        "Liposomal glutathione",
         "Milk Thistle"
       ],
-      "label": "Glutathione / GGT"
+      "label": "Glutathione / GGT",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/32726657/"
+      ],
+      "formRefs": {
+        "NAC": "https://pubmed.ncbi.nlm.nih.gov/33654365/",
+        "Milk Thistle": "https://pubmed.ncbi.nlm.nih.gov/38021897/"
+      }
     },
     "biochemistry.uricAcid": {
       "freeActions": [
@@ -411,7 +569,15 @@
         "Tart cherry extract",
         "Quercetin"
       ],
-      "label": "Uric acid"
+      "label": "Uric acid",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/21671418/"
+      ],
+      "formRefs": {
+        "Vitamin C": "https://pubmed.ncbi.nlm.nih.gov/21671418/",
+        "Tart cherry extract": "https://pubmed.ncbi.nlm.nih.gov/31885677/",
+        "Quercetin": "https://pubmed.ncbi.nlm.nih.gov/26785820/"
+      }
     },
     "biochemistry.alt": {
       "freeActions": [
@@ -428,12 +594,21 @@
         "Beets (betaine supports liver methylation and fat metabolism)"
       ],
       "forms": [
-        "NAC (N-Acetyl Cysteine) — glutathione precursor, shown to decrease ALT in NAFLD (PMID 22069674)",
-        "Milk Thistle (Silymarin) — hepatoprotective via antioxidant activity, systematic review of 29 RCTs (PMID 38021897)",
-        "TUDCA — bile acid that reduces ER stress in hepatocytes",
-        "Alpha Lipoic Acid — liver antioxidant, supports glutathione recycling"
+        "NAC (N-Acetyl Cysteine)",
+        "Milk Thistle (Silymarin)",
+        "TUDCA",
+        "Alpha Lipoic Acid"
       ],
-      "label": "Liver support (ALT)"
+      "label": "Liver support (ALT)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/38021897/"
+      ],
+      "formRefs": {
+        "NAC (N-Acetyl Cysteine)": "https://pubmed.ncbi.nlm.nih.gov/34912495/",
+        "Milk Thistle (Silymarin)": "https://pubmed.ncbi.nlm.nih.gov/38579127/",
+        "TUDCA": "https://pubmed.ncbi.nlm.nih.gov/23592128/",
+        "Alpha Lipoic Acid": "https://pubmed.ncbi.nlm.nih.gov/37630823/"
+      }
     },
     "biochemistry.ldh": {
       "freeActions": [
@@ -449,12 +624,21 @@
         "Berries (anthocyanins reduce oxidative muscle damage)"
       ],
       "forms": [
-        "Curcumin (liposomal) — RCT showed significant LDH reduction in active individuals (PMC 8428303)",
-        "Omega-3 (high-EPA) — long-term intake attenuates exercise-induced muscle damage",
-        "Tart cherry extract — concentrated anthocyanins for recovery",
-        "CoQ10 — supports mitochondrial function, reduces oxidative damage"
+        "Curcumin (liposomal)",
+        "Omega-3 (high-EPA)",
+        "Tart cherry extract",
+        "CoQ10"
       ],
-      "label": "Recovery / LDH"
+      "label": "Recovery / LDH",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33174301/"
+      ],
+      "formRefs": {
+        "Curcumin (liposomal)": "https://pubmed.ncbi.nlm.nih.gov/33174301/",
+        "Omega-3 (high-EPA)": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Tart cherry extract": "https://pubmed.ncbi.nlm.nih.gov/31885677/",
+        "CoQ10": "https://pubmed.ncbi.nlm.nih.gov/38479900/"
+      }
     },
     "biochemistry.bilirubinTotal": {
       "freeActions": [
@@ -470,11 +654,19 @@
         "Lemon water (citric acid supports liver detox pathways)"
       ],
       "forms": [
-        "Milk Thistle (Silymarin) — supports hepatocyte function and bile flow",
-        "TUDCA — improves bile acid metabolism and bilirubin conjugation",
-        "NAC — supports glutathione, protects liver conjugation capacity"
+        "Milk Thistle (Silymarin)",
+        "TUDCA",
+        "NAC"
       ],
-      "label": "Bilirubin metabolism"
+      "label": "Bilirubin metabolism",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28785154/"
+      ],
+      "formRefs": {
+        "Milk Thistle (Silymarin)": "https://pubmed.ncbi.nlm.nih.gov/38021897/",
+        "TUDCA": "https://pubmed.ncbi.nlm.nih.gov/8674405/",
+        "NAC": "https://pubmed.ncbi.nlm.nih.gov/33654365/"
+      }
     },
     "biochemistry.creatinine": {
       "freeActions": [
@@ -491,12 +683,21 @@
         "Garlic (allicin has renal protective antioxidant effects)"
       ],
       "forms": [
-        "Omega-3 (EPA/DHA) — improved BUN and creatinine in clinical trials (PMC 12206260)",
-        "CoQ10 — reduced creatinine and oxidative stress in CKD meta-analysis (PMID 30417782)",
-        "Astragalus root — improved eGFR in mild-moderate CKD case series (PMC 8921640)",
-        "NAC — antioxidant support for renal tubular cells"
+        "Omega-3 (EPA/DHA)",
+        "CoQ10",
+        "Astragalus root",
+        "NAC"
       ],
-      "label": "Kidney support (creatinine)"
+      "label": "Kidney support (creatinine)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28226034/"
+      ],
+      "formRefs": {
+        "Omega-3 (EPA/DHA)": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "CoQ10": "https://pubmed.ncbi.nlm.nih.gov/37159264/",
+        "Astragalus root": "https://pubmed.ncbi.nlm.nih.gov/35300298/",
+        "NAC": "https://pubmed.ncbi.nlm.nih.gov/33654365/"
+      }
     },
     "biochemistry.urea": {
       "freeActions": [
@@ -512,11 +713,19 @@
         "Reduce processed/cured meats (concentrated protein + sodium burden on kidneys)"
       ],
       "forms": [
-        "Omega-3 (EPA/DHA) — supports renal function and reduces inflammatory burden",
-        "Probiotics — gut bacteria produce urease; gut health affects systemic urea levels",
-        "CoQ10 — mitochondrial support for energy-intensive nephron function"
+        "Omega-3 (EPA/DHA)",
+        "Probiotics",
+        "CoQ10"
       ],
-      "label": "Kidney / hydration (BUN)"
+      "label": "Kidney / hydration (BUN)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/30905498/"
+      ],
+      "formRefs": {
+        "Omega-3 (EPA/DHA)": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Probiotics": "https://pubmed.ncbi.nlm.nih.gov/20721651/",
+        "CoQ10": "https://pubmed.ncbi.nlm.nih.gov/37159264/"
+      }
     },
     "diabetes.hba1c": {
       "freeActions": [
@@ -533,12 +742,21 @@
         "Ceylon cinnamon (modest HbA1c reduction in meta-analysis, SMD -0.26)"
       ],
       "forms": [
-        "Berberine HCl — HbA1c reduction of -0.73% in meta-analysis of 37 RCTs (PMID 34956436)",
-        "Dihydroberberine (better absorption than berberine HCl)",
-        "Chromium picolinate (insulin sensitizer, synergistic with berberine)",
-        "Alpha Lipoic Acid — improves insulin sensitivity and glucose disposal"
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician",
+        "Chromium picolinate",
+        "Alpha Lipoic Acid"
       ],
-      "label": "HbA1c / long-term glucose"
+      "label": "HbA1c / long-term glucose",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33981233/"
+      ],
+      "formRefs": {
+        "Chromium picolinate": "https://pubmed.ncbi.nlm.nih.gov/32730903/",
+        "Alpha Lipoic Acid": "https://pubmed.ncbi.nlm.nih.gov/37630823/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/33981233/",
+        "Dihydroberberine — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/35010998/"
+      }
     },
     "hematology.hemoglobin": {
       "freeActions": [
@@ -555,12 +773,21 @@
         "Dark leafy greens + bell pepper (non-heme iron + vitamin C for maximum absorption)"
       ],
       "forms": [
-        "Iron Bisglycinate (gentlest form, best absorbed, least GI side effects)",
-        "Heme iron polypeptide (mimics food-form heme iron)",
-        "Lactoferrin + iron (lactoferrin enhances iron uptake and has anti-inflammatory effects)",
-        "B12 + Folate combo (if hemoglobin low with high MCV — rules out megaloblastic component)"
+        "Iron Bisglycinate (only if deficient)",
+        "Heme iron polypeptide (only if deficient)",
+        "Lactoferrin + iron (only if deficient)",
+        "B12 + Folate combo"
       ],
-      "label": "Hemoglobin / iron"
+      "label": "Hemoglobin / iron",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36728680/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "Heme iron polypeptide (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/23514036/",
+        "Lactoferrin + iron (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/35276902/",
+        "B12 + Folate combo": "https://pubmed.ncbi.nlm.nih.gov/28223907/"
+      }
     },
     "hormones.freeTestosterone": {
       "freeActions": [
@@ -577,12 +804,21 @@
         "Pomegranate (reduces cortisol ~12%, cortisol competes with T for receptors)"
       ],
       "forms": [
-        "Boron (6-10mg — reduces SHBG by ~10%, directly increases free T fraction)",
-        "Tongkat Ali (standardized extract — lowers SHBG, raises free T in clinical trials)",
-        "Stinging Nettle Root (binds SHBG, displacing testosterone)",
-        "Magnesium (deficiency raises SHBG; correcting it frees bound T)"
+        "Boron",
+        "Tongkat Ali",
+        "Stinging Nettle Root",
+        "Magnesium"
       ],
-      "label": "Free Testosterone"
+      "label": "Free Testosterone",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/21129941/"
+      ],
+      "formRefs": {
+        "Boron": "https://pubmed.ncbi.nlm.nih.gov/21129941/",
+        "Tongkat Ali": "https://pubmed.ncbi.nlm.nih.gov/36013514/",
+        "Stinging Nettle Root": "https://pubmed.ncbi.nlm.nih.gov/7700987/",
+        "Magnesium": "https://pubmed.ncbi.nlm.nih.gov/34111673/"
+      }
     },
     "thyroid.ft4": {
       "freeActions": [
@@ -598,11 +834,19 @@
         "Oysters and pumpkin seeds (zinc needed for TSH receptor function and T4 synthesis)"
       ],
       "forms": [
-        "Selenomethionine (200mcg — supports T4 production and protects thyroid from oxidative damage)",
-        "Zinc picolinate (supports TSH signaling and T4 synthesis cascade)",
-        "Iodine (Lugol's or potassium iodide — only if deficient; excess suppresses thyroid)"
+        "Selenomethionine",
+        "Zinc picolinate",
+        "Iodine — only if deficient AND no autoimmune thyroid disease; excess can cause thyroid crisis"
       ],
-      "label": "Free T4 (Thyroid)"
+      "label": "Free T4 (Thyroid)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/19403637/"
+      ],
+      "formRefs": {
+        "Selenomethionine": "https://pubmed.ncbi.nlm.nih.gov/38243784/",
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/",
+        "Iodine — only if deficient AND no autoimmune thyroid disease; excess can cause thyroid crisis": "https://pubmed.ncbi.nlm.nih.gov/24088547/"
+      }
     },
     "proteins.albumin": {
       "freeActions": [
@@ -618,11 +862,19 @@
         "Wild-caught fish (easily digestible complete protein)"
       ],
       "forms": [
-        "Collagen peptides (glycine supports liver function; liver produces all albumin)",
-        "NAC (supports liver glutathione and liver health, the organ that produces albumin)",
-        "Digestive enzymes / Betaine HCl (if low albumin stems from poor protein digestion)"
+        "Collagen peptides",
+        "NAC",
+        "Digestive enzymes / Betaine HCl"
       ],
-      "label": "Albumin (protein status)"
+      "label": "Albumin (protein status)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35187864/"
+      ],
+      "formRefs": {
+        "Collagen peptides": "https://pubmed.ncbi.nlm.nih.gov/34491424/",
+        "NAC": "https://pubmed.ncbi.nlm.nih.gov/33654365/",
+        "Digestive enzymes / Betaine HCl": "https://pubmed.ncbi.nlm.nih.gov/37976892/"
+      }
     },
     "proteins.totalProtein": {
       "freeActions": [
@@ -638,11 +890,19 @@
         "Bone broth (collagen amino acids plus minerals; supports gut lining for better absorption)"
       ],
       "forms": [
-        "Digestive enzymes + Betaine HCl (improve protein digestion if stomach acid is low)",
-        "Collagen peptides (boost total protein, support gut lining for better absorption)",
-        "L-Glutamine (supports intestinal barrier integrity, improving protein absorption)"
+        "Digestive enzymes + Betaine HCl",
+        "Collagen peptides",
+        "L-Glutamine"
       ],
-      "label": "Total Protein"
+      "label": "Total Protein",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28698222/"
+      ],
+      "formRefs": {
+        "Digestive enzymes + Betaine HCl": "https://pubmed.ncbi.nlm.nih.gov/37976892/",
+        "Collagen peptides": "https://pubmed.ncbi.nlm.nih.gov/34491424/",
+        "L-Glutamine": "https://pubmed.ncbi.nlm.nih.gov/39397201/"
+      }
     },
     "lipids.cholesterol": {
       "freeActions": [
@@ -657,12 +917,19 @@
         "Cruciferous vegetables (support liver bile and estrogen metabolism, both linked to cholesterol clearance)"
       ],
       "forms": [
-        "Citrus Bergamot (500-1000mg — reduces total cholesterol via HMG-CoA reductase modulation)",
-        "Plant sterols/stanols (2g/day — compete with cholesterol for intestinal absorption, reducing total by ~10%)",
-        "Red Yeast Rice (contains natural monacolin K; low-dose natural statin mechanism)",
-        "Berberine HCl (upregulates LDL receptors, improving clearance)"
+        "Citrus Bergamot",
+        "Plant sterols/stanols",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician"
       ],
-      "label": "Total Cholesterol"
+      "label": "Total Cholesterol",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/31670973/"
+      ],
+      "formRefs": {
+        "Citrus Bergamot": "https://pubmed.ncbi.nlm.nih.gov/31670973/",
+        "Plant sterols/stanols": "https://pubmed.ncbi.nlm.nih.gov/24780090/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/23512497/"
+      }
     },
     "hormones.progesterone": {
       "freeActions": [
@@ -679,12 +946,21 @@
         "Healthy fats — avocado, olive oil, egg yolks (cholesterol is the raw material for all steroid hormones)"
       ],
       "forms": [
-        "Vitex / Chasteberry (most studied herb for progesterone — raises LH, shifts estrogen:progesterone ratio)",
-        "Vitamin B6 P5P form (50-100mg — supports corpus luteum function and progesterone output)",
-        "Vitamin C (750mg — Henmi 2003: raised progesterone in 53% of women with luteal phase defect)",
-        "Magnesium Glycinate (calms HPA axis, reducing cortisol competition for pregnenolone)"
+        "Vitex / Chasteberry — may reduce hormonal contraceptive efficacy",
+        "Vitamin B6 (P5P)",
+        "Vitamin C",
+        "Magnesium Glycinate"
       ],
-      "label": "Progesterone"
+      "label": "Progesterone",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23136064/"
+      ],
+      "formRefs": {
+        "Vitamin B6 (P5P)": "https://pubmed.ncbi.nlm.nih.gov/6684167/",
+        "Vitamin C": "https://pubmed.ncbi.nlm.nih.gov/15934094/",
+        "Magnesium Glycinate": "https://pubmed.ncbi.nlm.nih.gov/7815675/",
+        "Vitex / Chasteberry — may reduce hormonal contraceptive efficacy": "https://pubmed.ncbi.nlm.nih.gov/23136064/"
+      }
     },
     "hematology.wbc": {
       "freeActions": [
@@ -701,12 +977,21 @@
         "Bone broth (glycine and minerals support bone marrow, where WBCs are produced)"
       ],
       "forms": [
-        "Vitamin C (1-2g/day — supports neutrophil function; deficiency directly lowers WBC)",
-        "Vitamin D3 (vitamin D receptors on all WBC types; deficiency impairs immune cell differentiation)",
-        "Zinc picolinate (zinc deficiency causes thymic atrophy and reduced lymphocyte production)",
-        "Beta-Glucan (stimulates innate immune cells via Dectin-1 receptor)"
+        "Vitamin C",
+        "Vitamin D3",
+        "Zinc picolinate",
+        "Beta-Glucan"
       ],
-      "label": "WBC (immune function)"
+      "label": "WBC (immune function)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/29099763/"
+      ],
+      "formRefs": {
+        "Vitamin C": "https://pubmed.ncbi.nlm.nih.gov/15934094/",
+        "Vitamin D3": "https://pubmed.ncbi.nlm.nih.gov/32972636/",
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/",
+        "Beta-Glucan": "https://pubmed.ncbi.nlm.nih.gov/25081694/"
+      }
     },
     "proteins.hsCRP": {
       "freeActions": [
@@ -728,7 +1013,16 @@
         "NAC",
         "SPMs"
       ],
-      "label": "Inflammation (hs-CRP)"
+      "label": "Inflammation (hs-CRP)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35914448/"
+      ],
+      "formRefs": {
+        "High-EPA fish oil": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Curcumin (liposomal)": "https://pubmed.ncbi.nlm.nih.gov/36804260/",
+        "NAC": "https://pubmed.ncbi.nlm.nih.gov/33654365/",
+        "SPMs": "https://pubmed.ncbi.nlm.nih.gov/28002074/"
+      }
     },
     "vitamins.vitaminB12": {
       "freeActions": [
@@ -745,7 +1039,15 @@
         "Hydroxocobalamin",
         "Adenosylcobalamin"
       ],
-      "label": "Vitamin B12"
+      "label": "Vitamin B12",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33809274/"
+      ],
+      "formRefs": {
+        "Methylcobalamin (sublingual)": "https://pubmed.ncbi.nlm.nih.gov/34871525/",
+        "Hydroxocobalamin": "https://pubmed.ncbi.nlm.nih.gov/3604755/",
+        "Adenosylcobalamin": "https://pubmed.ncbi.nlm.nih.gov/28223907/"
+      }
     },
     "vitamins.folate": {
       "freeActions": [
@@ -763,7 +1065,15 @@
         "Folinic acid (leucovorin)",
         "5-MTHF + B12 combo"
       ],
-      "label": "Folate"
+      "label": "Folate",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/34794190/"
+      ],
+      "formRefs": {
+        "5-MTHF (Methylfolate)": "https://pubmed.ncbi.nlm.nih.gov/34794190/",
+        "Folinic acid (leucovorin)": "https://pubmed.ncbi.nlm.nih.gov/34834493/",
+        "5-MTHF + B12 combo": "https://pubmed.ncbi.nlm.nih.gov/29498933/"
+      }
     },
     "coagulation.homocysteine": {
       "foodForms": [
@@ -781,7 +1091,15 @@
       "freeActions": [
         "Morning sunlight (supports methylation pathways)",
         "Reduce nnEMF (oxidative stress depletes B vitamins)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/11339443/"
+      ],
+      "formRefs": {
+        "B12 + Folate + B6 (P5P)": "https://pubmed.ncbi.nlm.nih.gov/11339443/",
+        "TMG (Betaine)": "https://pubmed.ncbi.nlm.nih.gov/14652361/",
+        "Riboflavin (B2)": "https://pubmed.ncbi.nlm.nih.gov/16380544/"
+      }
     },
     "hematology.mcv": {
       "foodForms": [
@@ -796,7 +1114,15 @@
       "label": "MCV (macrocytic)",
       "freeActions": [
         "Morning sunlight (supports B12 and folate metabolism)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/19202968/"
+      ],
+      "formRefs": {
+        "Methylcobalamin sublingual": "https://pubmed.ncbi.nlm.nih.gov/34871525/",
+        "5-MTHF (Methylfolate)": "https://pubmed.ncbi.nlm.nih.gov/34794190/",
+        "B12 + Folate combo": "https://pubmed.ncbi.nlm.nih.gov/28223907/"
+      }
     },
     "hematology.rdwcv": {
       "freeActions": [
@@ -808,11 +1134,19 @@
         "Sardines (B12 + heme iron in one food)"
       ],
       "forms": [
-        "Iron Bisglycinate",
+        "Iron Bisglycinate (only if deficient)",
         "B12 + Folate",
-        "Iron + B12 + Folate combo"
+        "Iron + B12 + Folate combo (only if deficient)"
       ],
-      "label": "RDW-CV (red cell variation)"
+      "label": "RDW-CV (red cell variation)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23639779/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "B12 + Folate": "https://pubmed.ncbi.nlm.nih.gov/28223907/",
+        "Iron + B12 + Folate combo (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/"
+      }
     },
     "fattyAcids.omega3Index": {
       "foodForms": [
@@ -832,7 +1166,16 @@
         "Eat seafood 3-5x/week — DHA from fish is fundamentally different from fish oil pills",
         "Morning sunlight (DHA in cell membranes converts photons to DC electric current)",
         "Cold exposure (cold activates DHA-rich brown fat)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36742439/"
+      ],
+      "formRefs": {
+        "Triglyceride-form fish oil": "https://pubmed.ncbi.nlm.nih.gov/21063431/",
+        "High-EPA concentrate": "https://pubmed.ncbi.nlm.nih.gov/31422671/",
+        "High-DHA concentrate": "https://pubmed.ncbi.nlm.nih.gov/32060571/",
+        "Algal DHA/EPA": "https://pubmed.ncbi.nlm.nih.gov/28417511/"
+      }
     },
     "boneMetabolism.osteocalcin": {
       "freeActions": [
@@ -845,11 +1188,19 @@
         "Grass-fed butter/ghee"
       ],
       "forms": [
-        "K2 MK-7 (100-200mcg)",
+        "K2 MK-7",
         "K2 MK-4 (high-dose)",
         "D3 + K2 combo"
       ],
-      "label": "Vitamin K2 (bone)"
+      "label": "Vitamin K2 (bone)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/26875489/"
+      ],
+      "formRefs": {
+        "K2 MK-7": "https://pubmed.ncbi.nlm.nih.gov/26875489/",
+        "K2 MK-4 (high-dose)": "https://pubmed.ncbi.nlm.nih.gov/17287908/",
+        "D3 + K2 combo": "https://pubmed.ncbi.nlm.nih.gov/32219282/"
+      }
     },
     "calculatedRatios.tgHdlRatio": {
       "freeActions": [
@@ -865,7 +1216,15 @@
         "Omega-3 alone",
         "Berberine alone"
       ],
-      "label": "TG/HDL ratio"
+      "label": "TG/HDL ratio",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/37264945/"
+      ],
+      "formRefs": {
+        "High-EPA fish oil + Berberine": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Omega-3 alone": "https://pubmed.ncbi.nlm.nih.gov/18774613/",
+        "Berberine alone": "https://pubmed.ncbi.nlm.nih.gov/30466986/"
+      }
     },
     "calculatedRatios.copperZincRatio": {
       "foodForms": [
@@ -879,7 +1238,13 @@
       "freeActions": [
         "Morning sunlight (copper enzymes are light-activated)",
         "Reduce nnEMF (zinc depleted by EMF-driven oxidative stress)"
-      ]
+      ],
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23289009/"
+      ],
+      "formRefs": {
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/"
+      }
     },
     "calculatedRatios.nlr": {
       "freeActions": [
@@ -900,7 +1265,15 @@
         "Curcumin (liposomal)",
         "Vitamin D3"
       ],
-      "label": "NLR (inflammation)"
+      "label": "NLR (inflammation)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35033882/"
+      ],
+      "formRefs": {
+        "Omega-3 (high-EPA)": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Curcumin (liposomal)": "https://pubmed.ncbi.nlm.nih.gov/36804260/",
+        "Vitamin D3": "https://pubmed.ncbi.nlm.nih.gov/32972636/"
+      }
     },
     "light.blueBlockers": {
       "freeActions": [
@@ -914,7 +1287,15 @@
         "Blue light glasses (daytime/clear)",
         "Red/amber book light"
       ],
-      "label": "Blue light blocking"
+      "label": "Blue light blocking",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/20030543/"
+      ],
+      "formRefs": {
+        "Blue light glasses (evening/red)": "https://pubmed.ncbi.nlm.nih.gov/20030543/",
+        "Blue light glasses (daytime/clear)": "https://pubmed.ncbi.nlm.nih.gov/37593770/",
+        "Red/amber book light": "https://pubmed.ncbi.nlm.nih.gov/30311830/"
+      }
     },
     "light.morningLight": {
       "freeActions": [
@@ -927,7 +1308,14 @@
         "10,000 lux light therapy lamp",
         "Dawn simulator alarm clock"
       ],
-      "label": "Morning light therapy"
+      "label": "Morning light therapy",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/26606319/"
+      ],
+      "formRefs": {
+        "10,000 lux light therapy lamp": "https://pubmed.ncbi.nlm.nih.gov/31574513/",
+        "Dawn simulator alarm clock": "https://pubmed.ncbi.nlm.nih.gov/17151164/"
+      }
     },
     "light.coldExposure": {
       "freeActions": [
@@ -942,7 +1330,15 @@
         "Portable ice bath barrel",
         "Cold face immersion bowl"
       ],
-      "label": "Cold exposure"
+      "label": "Cold exposure",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/39879231/"
+      ],
+      "formRefs": {
+        "Cold plunge tub": "https://pubmed.ncbi.nlm.nih.gov/39879231/",
+        "Portable ice bath barrel": "https://pubmed.ncbi.nlm.nih.gov/35157264/",
+        "Cold face immersion bowl": "https://pubmed.ncbi.nlm.nih.gov/36527593/"
+      }
     },
     "light.grounding": {
       "freeActions": [
@@ -956,7 +1352,15 @@
         "Grounding sheet (bed)",
         "Grounding shoes"
       ],
-      "label": "Grounding / Earthing"
+      "label": "Grounding / Earthing",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/25848315/"
+      ],
+      "formRefs": {
+        "Grounding mat (desk/floor)": "https://pubmed.ncbi.nlm.nih.gov/25848315/",
+        "Grounding sheet (bed)": "https://pubmed.ncbi.nlm.nih.gov/22291721/",
+        "Grounding shoes": "https://pubmed.ncbi.nlm.nih.gov/28987038/"
+      }
     },
     "light.screenTime": {
       "freeActions": [
@@ -970,7 +1374,15 @@
         "Monitor light bar",
         "E-ink monitor/tablet"
       ],
-      "label": "Screen time mitigation"
+      "label": "Screen time mitigation",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35809192/"
+      ],
+      "formRefs": {
+        "Daytime blue light glasses": "https://pubmed.ncbi.nlm.nih.gov/37593770/",
+        "Monitor light bar": "https://pubmed.ncbi.nlm.nih.gov/30311830/",
+        "E-ink monitor/tablet": "https://pubmed.ncbi.nlm.nih.gov/25535358/"
+      }
     },
     "sleep.blackout": {
       "freeActions": [
@@ -983,7 +1395,14 @@
         "Blackout curtains",
         "Sleep mask (contoured)"
       ],
-      "label": "Blackout / light blocking"
+      "label": "Blackout / light blocking",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/21193540/"
+      ],
+      "formRefs": {
+        "Blackout curtains": "https://pubmed.ncbi.nlm.nih.gov/21193540/",
+        "Sleep mask (contoured)": "https://pubmed.ncbi.nlm.nih.gov/36521010/"
+      }
     },
     "sleep.mouthTape": {
       "freeActions": [
@@ -994,7 +1413,13 @@
       "forms": [
         "Sleep mouth tape (hypoallergenic)"
       ],
-      "label": "Nasal breathing (sleep)"
+      "label": "Nasal breathing (sleep)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36141367/"
+      ],
+      "formRefs": {
+        "Sleep mouth tape (hypoallergenic)": "https://pubmed.ncbi.nlm.nih.gov/36141367/"
+      }
     },
     "sleep.cooling": {
       "freeActions": [
@@ -1008,7 +1433,15 @@
         "Cooling pillow",
         "Bedroom fan"
       ],
-      "label": "Sleep cooling"
+      "label": "Sleep cooling",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/22738673/"
+      ],
+      "formRefs": {
+        "Cooling mattress pad (water-based)": "https://pubmed.ncbi.nlm.nih.gov/38671774/",
+        "Cooling pillow": "https://pubmed.ncbi.nlm.nih.gov/8917933/",
+        "Bedroom fan": "https://pubmed.ncbi.nlm.nih.gov/22738673/"
+      }
     },
     "env.waterFilter": {
       "freeActions": [
@@ -1022,7 +1455,16 @@
         "Countertop RO",
         "Shower filter"
       ],
-      "label": "Water filtration"
+      "label": "Water filtration",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28596086/"
+      ],
+      "formRefs": {
+        "Reverse osmosis (under-sink)": "https://pubmed.ncbi.nlm.nih.gov/33908956/",
+        "Gravity-fed filter": "https://pubmed.ncbi.nlm.nih.gov/28596086/",
+        "Countertop RO": "https://pubmed.ncbi.nlm.nih.gov/18408264/",
+        "Shower filter": "https://pubmed.ncbi.nlm.nih.gov/34597567/"
+      }
     },
     "env.cookware": {
       "freeActions": [
@@ -1036,7 +1478,15 @@
         "Stainless steel cookware",
         "Carbon steel pan"
       ],
-      "label": "PFAS-free cookware"
+      "label": "PFAS-free cookware",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/28913736/"
+      ],
+      "formRefs": {
+        "Cast iron skillet": "https://pubmed.ncbi.nlm.nih.gov/28913736/",
+        "Stainless steel cookware": "https://pubmed.ncbi.nlm.nih.gov/28913736/",
+        "Carbon steel pan": "https://pubmed.ncbi.nlm.nih.gov/28913736/"
+      }
     },
     "env.glassContainers": {
       "freeActions": [
@@ -1049,7 +1499,15 @@
         "Stainless steel containers",
         "Glass water bottle"
       ],
-      "label": "Glass/steel food storage"
+      "label": "Glass/steel food storage",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/34601394/"
+      ],
+      "formRefs": {
+        "Glass food storage containers": "https://pubmed.ncbi.nlm.nih.gov/34601394/",
+        "Stainless steel containers": "https://pubmed.ncbi.nlm.nih.gov/21400322/",
+        "Glass water bottle": "https://pubmed.ncbi.nlm.nih.gov/24380980/"
+      }
     },
     "env.wifiTimer": {
       "freeActions": [
@@ -1063,7 +1521,14 @@
         "WiFi outlet timer",
         "Ethernet adapter + cable"
       ],
-      "label": "EMF reduction (WiFi)"
+      "label": "EMF reduction (WiFi)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/35648738/"
+      ],
+      "formRefs": {
+        "WiFi outlet timer": "https://pubmed.ncbi.nlm.nih.gov/35648738/",
+        "Ethernet adapter + cable": "https://pubmed.ncbi.nlm.nih.gov/23051584/"
+      }
     },
     "env.airPurifier": {
       "freeActions": [
@@ -1075,7 +1540,14 @@
         "HEPA air purifier",
         "Air quality monitor"
       ],
-      "label": "Air purification"
+      "label": "Air purification",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33121763/"
+      ],
+      "formRefs": {
+        "HEPA air purifier": "https://pubmed.ncbi.nlm.nih.gov/34449285/",
+        "Air quality monitor": "https://pubmed.ncbi.nlm.nih.gov/33121763/"
+      }
     },
     "env.moldTest": {
       "freeActions": [
@@ -1087,7 +1559,14 @@
         "ERMI / HERTSMI-2 mold test kit",
         "HEPA + carbon filter purifier"
       ],
-      "label": "Mold testing"
+      "label": "Mold testing",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/17661925/"
+      ],
+      "formRefs": {
+        "ERMI / HERTSMI-2 mold test kit": "https://pubmed.ncbi.nlm.nih.gov/17661925/",
+        "HEPA + carbon filter purifier": "https://pubmed.ncbi.nlm.nih.gov/34449285/"
+      }
     },
     "env.lighting": {
       "freeActions": [
@@ -1101,7 +1580,15 @@
         "Low-blue LED bulbs (<2700K)",
         "Red LED bulbs"
       ],
-      "label": "Healthier indoor lighting"
+      "label": "Healthier indoor lighting",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/30311830/"
+      ],
+      "formRefs": {
+        "Incandescent bulbs": "https://pubmed.ncbi.nlm.nih.gov/30311830/",
+        "Low-blue LED bulbs (<2700K)": "https://pubmed.ncbi.nlm.nih.gov/30311830/",
+        "Red LED bulbs": "https://pubmed.ncbi.nlm.nih.gov/30311830/"
+      }
     },
     "exercise.standingDesk": {
       "freeActions": [
@@ -1114,7 +1601,14 @@
         "Standing desk converter",
         "Under-desk walking pad"
       ],
-      "label": "Movement at desk"
+      "label": "Movement at desk",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/39626101/"
+      ],
+      "formRefs": {
+        "Standing desk converter": "https://pubmed.ncbi.nlm.nih.gov/39626101/",
+        "Under-desk walking pad": "https://pubmed.ncbi.nlm.nih.gov/34774020/"
+      }
     },
     "diet.digestiveEnzymes": {
       "freeActions": [
@@ -1129,7 +1623,15 @@
         "Betaine HCl + Pepsin",
         "Ox bile supplement"
       ],
-      "label": "Digestive enzyme support"
+      "label": "Digestive enzyme support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/37976892/"
+      ],
+      "formRefs": {
+        "Broad-spectrum digestive enzymes": "https://pubmed.ncbi.nlm.nih.gov/37976892/",
+        "Betaine HCl + Pepsin": "https://pubmed.ncbi.nlm.nih.gov/23980906/",
+        "Ox bile supplement": "https://pubmed.ncbi.nlm.nih.gov/9869597/"
+      }
     },
     "diet.lactase": {
       "freeActions": [
@@ -1139,7 +1641,13 @@
       "forms": [
         "Lactase enzyme"
       ],
-      "label": "Lactose/dairy support"
+      "label": "Lactose/dairy support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/20404262/"
+      ],
+      "formRefs": {
+        "Lactase enzyme": "https://pubmed.ncbi.nlm.nih.gov/20404262/"
+      }
     },
     "diet.dao": {
       "freeActions": [
@@ -1152,7 +1660,14 @@
         "DAO enzyme supplement",
         "Quercetin + Vitamin C"
       ],
-      "label": "Histamine intolerance"
+      "label": "Histamine intolerance",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/31807350/"
+      ],
+      "formRefs": {
+        "DAO enzyme supplement": "https://pubmed.ncbi.nlm.nih.gov/31807350/",
+        "Quercetin + Vitamin C": "https://pubmed.ncbi.nlm.nih.gov/27187333/"
+      }
     },
     "diet.reflux": {
       "freeActions": [
@@ -1166,7 +1681,15 @@
         "DGL (Deglycyrrhizinated Licorice)",
         "Zinc Carnosine"
       ],
-      "label": "Reflux support"
+      "label": "Reflux support",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23980906/"
+      ],
+      "formRefs": {
+        "Betaine HCl + Pepsin": "https://pubmed.ncbi.nlm.nih.gov/23980906/",
+        "DGL (Deglycyrrhizinated Licorice)": "https://pubmed.ncbi.nlm.nih.gov/4584640/",
+        "Zinc Carnosine": "https://pubmed.ncbi.nlm.nih.gov/16777920/"
+      }
     },
     "stress.adaptogens": {
       "freeActions": [
@@ -1177,12 +1700,21 @@
       ],
       "card": "Stress",
       "forms": [
-        "Ashwagandha (KSM-66)",
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication",
         "L-Theanine",
         "Magnesium Glycinate",
         "HRV biofeedback device"
       ],
-      "label": "Stress / HPA axis"
+      "label": "Stress / HPA axis",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/39348746/"
+      ],
+      "formRefs": {
+        "L-Theanine": "https://pubmed.ncbi.nlm.nih.gov/31758301/",
+        "Magnesium Glycinate": "https://pubmed.ncbi.nlm.nih.gov/7815675/",
+        "HRV biofeedback device": "https://pubmed.ncbi.nlm.nih.gov/28478782/",
+        "Ashwagandha (KSM-66) — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication": "https://pubmed.ncbi.nlm.nih.gov/39348746/"
+      }
     },
     "electrolytes.sodium": {
       "freeActions": [
@@ -1203,7 +1735,15 @@
         "Sodium chloride + sodium bicarbonate (for heavy sweaters)",
         "Celtic sea salt or Redmond Real Salt capsules"
       ],
-      "label": "Sodium (low support)"
+      "label": "Sodium (low support)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/25683094/"
+      ],
+      "formRefs": {
+        "Electrolyte mix (sodium + potassium + magnesium — balanced ratio)": "https://pubmed.ncbi.nlm.nih.gov/17277604/",
+        "Sodium chloride + sodium bicarbonate (for heavy sweaters)": "https://pubmed.ncbi.nlm.nih.gov/10919961/",
+        "Celtic sea salt or Redmond Real Salt capsules": "https://pubmed.ncbi.nlm.nih.gov/25683094/"
+      }
     },
     "electrolytes.calciumTotal": {
       "freeActions": [
@@ -1219,11 +1759,19 @@
         "Bone broth (calcium + collagen + minerals in bioavailable form)"
       ],
       "forms": [
-        "D3 + K2 combo (D3 absorbs calcium, K2 MK-7 directs it to bone and away from arteries — PMC5613455)",
-        "Calcium hydroxyapatite (MCHC — whole-bone extract, most bioavailable form)",
-        "Magnesium + calcium combo (magnesium needed for PTH secretion and calcium metabolism)"
+        "D3 + K2 combo",
+        "Calcium hydroxyapatite (MCHC)",
+        "Magnesium + calcium combo"
       ],
-      "label": "Calcium balance"
+      "label": "Calcium balance",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/32219282/"
+      ],
+      "formRefs": {
+        "D3 + K2 combo": "https://pubmed.ncbi.nlm.nih.gov/32219282/",
+        "Calcium hydroxyapatite (MCHC)": "https://pubmed.ncbi.nlm.nih.gov/25274192/",
+        "Magnesium + calcium combo": "https://pubmed.ncbi.nlm.nih.gov/34111673/"
+      }
     },
     "biochemistry.alp": {
       "freeActions": [
@@ -1239,11 +1787,19 @@
         "Dark chocolate 85%+ (magnesium + zinc)"
       ],
       "forms": [
-        "Zinc picolinate (30-50mg — zinc supplementation increases bone ALP in healthy men, PMID 11787985)",
-        "Magnesium glycinate (Mg is the second cofactor at the ALP active site)",
-        "D3 + K2 (if ALP elevation is bone-origin, supports proper mineralization)"
+        "Zinc picolinate",
+        "Magnesium glycinate",
+        "D3 + K2"
       ],
-      "label": "ALP (zinc cofactor)"
+      "label": "ALP (zinc cofactor)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/11787985/"
+      ],
+      "formRefs": {
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/",
+        "Magnesium glycinate": "https://pubmed.ncbi.nlm.nih.gov/7815675/",
+        "D3 + K2": "https://pubmed.ncbi.nlm.nih.gov/32219282/"
+      }
     },
     "biochemistry.creatineKinase": {
       "freeActions": [
@@ -1260,12 +1816,21 @@
         "Berries (anthocyanins reduce oxidative muscle damage)"
       ],
       "forms": [
-        "Creatine monohydrate (pre-loading reduced CK ~84% after eccentric damage in untrained individuals — PMC2697134)",
-        "Taurine (2g/day — expedites eccentric force recovery at 48h by mitigating secondary inflammation damage, PMC5745489)",
-        "Magnesium (deficiency worsens muscle damage; supplementation has protective effect — PMC11227245)",
-        "CoQ10 (supports mitochondrial function, reduces oxidative damage in exercising muscle)"
+        "Creatine monohydrate",
+        "Taurine",
+        "Magnesium",
+        "CoQ10"
       ],
-      "label": "Recovery / CK"
+      "label": "Recovery / CK",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33631721/"
+      ],
+      "formRefs": {
+        "Creatine monohydrate": "https://pubmed.ncbi.nlm.nih.gov/33631721/",
+        "Taurine": "https://pubmed.ncbi.nlm.nih.gov/25833543/",
+        "Magnesium": "https://pubmed.ncbi.nlm.nih.gov/34111673/",
+        "CoQ10": "https://pubmed.ncbi.nlm.nih.gov/38479900/"
+      }
     },
     "hematology.rbc": {
       "freeActions": [
@@ -1282,11 +1847,19 @@
         "Dark leafy greens + bell pepper (non-heme iron + vitamin C for maximum absorption)"
       ],
       "forms": [
-        "Iron Bisglycinate (gentlest form, best absorbed — only if iron-deficient)",
-        "B12 + Folate combo (erythroblasts require both for proliferation; deficiency causes apoptosis and ineffective erythropoiesis)",
-        "EPO-supporting nutrients: copper + B6 (copper needed for ceruloplasmin iron mobilization; B6 for heme synthesis)"
+        "Iron Bisglycinate (only if deficient)",
+        "B12 + Folate combo",
+        "Copper + B6"
       ],
-      "label": "RBC production"
+      "label": "RBC production",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36728680/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "B12 + Folate combo": "https://pubmed.ncbi.nlm.nih.gov/28223907/",
+        "Copper + B6": "https://pubmed.ncbi.nlm.nih.gov/22444781/"
+      }
     },
     "hematology.hematocrit": {
       "freeActions": [
@@ -1303,11 +1876,19 @@
         "Spring water (proper mineral-balanced hydration prevents both dehydration and dilution artifacts)"
       ],
       "forms": [
-        "Iron Bisglycinate (only if low due to iron deficiency — do not supplement iron without testing)",
-        "B12 + Folate (if low hematocrit with high MCV — suggests megaloblastic anemia)",
-        "Electrolyte mix (if hematocrit fluctuates with hydration status)"
+        "Iron Bisglycinate (only if deficient)",
+        "B12 + Folate",
+        "Electrolyte mix"
       ],
-      "label": "Hematocrit (hydration check)"
+      "label": "Hematocrit (hydration check)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/22932280/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "B12 + Folate": "https://pubmed.ncbi.nlm.nih.gov/28223907/",
+        "Electrolyte mix": "https://pubmed.ncbi.nlm.nih.gov/17277604/"
+      }
     },
     "hematology.platelets": {
       "freeActions": [
@@ -1324,11 +1905,19 @@
         "Berries (anthocyanins reduce platelet activation via COX-1 pathway)"
       ],
       "forms": [
-        "Omega-3 (EPA/DHA — incorporated into platelet membrane phospholipids, shifting thromboxane balance toward anti-aggregatory, PMC6300962)",
-        "Vitamin D3 (vitamin D receptors on megakaryocytes; deficiency associated with altered platelet counts)",
-        "Folate + B12 (support healthy megakaryocyte maturation and platelet production in bone marrow)"
+        "Omega-3 (EPA/DHA)",
+        "Vitamin D3",
+        "Folate + B12"
       ],
-      "label": "Platelet balance"
+      "label": "Platelet balance",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/23153623/"
+      ],
+      "formRefs": {
+        "Omega-3 (EPA/DHA)": "https://pubmed.ncbi.nlm.nih.gov/37264945/",
+        "Vitamin D3": "https://pubmed.ncbi.nlm.nih.gov/32972636/",
+        "Folate + B12": "https://pubmed.ncbi.nlm.nih.gov/28223907/"
+      }
     },
     "iron.iron": {
       "freeActions": [
@@ -1345,12 +1934,21 @@
         "Dark leafy greens + bell pepper (non-heme iron + vitamin C at same meal for maximum absorption)"
       ],
       "forms": [
-        "Iron Bisglycinate (best absorbed, least GI side effects; take on alternate days — alternate-day dosing absorbs more due to hepcidin kinetics, PMC7193469)",
-        "Heme iron polypeptide (mimics food-form heme; bypasses non-heme absorption inhibitors)",
-        "Lactoferrin + iron (lactoferrin enhances iron uptake + has anti-inflammatory effects)",
-        "Vitamin C (500-1000mg with iron — directly inhibits hepcidin expression in liver, boosting absorption, PMID 22227182)"
+        "Iron Bisglycinate (only if deficient)",
+        "Heme iron polypeptide (only if deficient)",
+        "Lactoferrin + iron (only if deficient)",
+        "Vitamin C (take with iron)"
       ],
-      "label": "Serum Iron"
+      "label": "Serum Iron",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/24152889/"
+      ],
+      "formRefs": {
+        "Iron Bisglycinate (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/36728680/",
+        "Heme iron polypeptide (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/23514036/",
+        "Lactoferrin + iron (only if deficient)": "https://pubmed.ncbi.nlm.nih.gov/35276902/",
+        "Vitamin C (take with iron)": "https://pubmed.ncbi.nlm.nih.gov/21671418/"
+      }
     },
     "lipids.apoB": {
       "freeActions": [
@@ -1367,12 +1965,19 @@
         "Cruciferous vegetables (support bile acid metabolism and estrogen clearance, both linked to ApoB particle clearance)"
       ],
       "forms": [
-        "Citrus Bergamot (500-1000mg — reduced LDL-C 24% and TG 30% via HMG-CoA reductase modulation, PMC6497409)",
-        "Berberine HCl (upregulates hepatic LDL receptors, increasing ApoB particle clearance — meta-analysis shows LDL-C reduction 10-15%, PMC5871262)",
-        "Plant sterols/stanols (2g/day — compete with cholesterol for intestinal absorption, reduce ApoB secretion from enterocytes)",
-        "Niacin (inhibits diacylglycerol acyltransferase-2, decreasing TG synthesis and increasing hepatic ApoB degradation)"
+        "Citrus Bergamot",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician",
+        "Plant sterols/stanols"
       ],
-      "label": "ApoB (particle count)"
+      "label": "ApoB (particle count)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/36941490/"
+      ],
+      "formRefs": {
+        "Citrus Bergamot": "https://pubmed.ncbi.nlm.nih.gov/31670973/",
+        "Plant sterols/stanols": "https://pubmed.ncbi.nlm.nih.gov/24780090/",
+        "Berberine HCl — interacts with metformin, statins, and cyclosporine; consult physician": "https://pubmed.ncbi.nlm.nih.gov/36941490/"
+      }
     },
     "hormones.lh": {
       "freeActions": [
@@ -1389,12 +1994,21 @@
         "Pomegranate (reduces cortisol ~12%, relieving HPA-mediated GnRH suppression)"
       ],
       "forms": [
-        "Tongkat Ali (standardized extract — shown to raise LH and testosterone in clinical trials)",
-        "Ashwagandha KSM-66 (reduces cortisol, relieving HPA suppression of the HPG axis; raises LH in stressed men)",
-        "Zinc picolinate (30-50mg — restores LH signaling and Leydig cell testosterone response in deficiency)",
-        "Vitamin D3 (VDR expressed on pituitary gonadotropes; deficiency associated with lower LH and testosterone)"
+        "Tongkat Ali",
+        "Ashwagandha KSM-66 — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication",
+        "Zinc picolinate",
+        "Vitamin D3"
       ],
-      "label": "LH (pituitary→gonad)"
+      "label": "LH (pituitary→gonad)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/33559971/"
+      ],
+      "formRefs": {
+        "Tongkat Ali": "https://pubmed.ncbi.nlm.nih.gov/33559971/",
+        "Zinc picolinate": "https://pubmed.ncbi.nlm.nih.gov/3630857/",
+        "Vitamin D3": "https://pubmed.ncbi.nlm.nih.gov/32972636/",
+        "Ashwagandha KSM-66 — may stimulate thyroid; avoid with hyperthyroidism or thyroid medication": "https://pubmed.ncbi.nlm.nih.gov/39348746/"
+      }
     },
     "hormones.fsh": {
       "freeActions": [
@@ -1411,12 +2025,21 @@
         "Cruciferous vegetables (support estrogen metabolism — proper estrogen clearance normalizes FSH feedback)"
       ],
       "forms": [
-        "Myo-inositol (4g/day — improves FSH receptor sensitivity and aromatase expression in granulosa cells; reduced FSH dose needed for follicular maturation, PMC8227031)",
-        "CoQ10 (200-600mg — antioxidant support for ovarian/testicular mitochondria; reduces oxidative damage that drives compensatory FSH elevation)",
-        "Vitamin D3 (VDR on gonadotropes and gonads; deficiency associated with dysregulated FSH)",
-        "Folate + B12 (methylation support for HPG axis signaling; deficiency disrupts gonadal feedback)"
+        "Myo-inositol",
+        "CoQ10",
+        "Vitamin D3",
+        "Folate + B12"
       ],
-      "label": "FSH (pituitary→gonad)"
+      "label": "FSH (pituitary→gonad)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/38163998/"
+      ],
+      "formRefs": {
+        "Myo-inositol": "https://pubmed.ncbi.nlm.nih.gov/38163998/",
+        "CoQ10": "https://pubmed.ncbi.nlm.nih.gov/38479900/",
+        "Vitamin D3": "https://pubmed.ncbi.nlm.nih.gov/32972636/",
+        "Folate + B12": "https://pubmed.ncbi.nlm.nih.gov/28223907/"
+      }
     },
     "hormones.prolactin": {
       "freeActions": [
@@ -1433,12 +2056,21 @@
         "Dark chocolate (contains phenylethylamine, a dopamine precursor; also magnesium for HPA axis calming)"
       ],
       "forms": [
-        "Vitamin B6 P5P form (50-300mg — B6 reduces prolactin similarly to cabergoline in reproductive-age women; PLP activates dopamine synthesis, PMC8426548)",
-        "Vitex / Chasteberry (high-dose — binds D2 dopamine receptors on lactotrophs, inhibiting prolactin release; low dose may paradoxically increase it, PMC10702745)",
-        "Mucuna pruriens extract (standardized L-DOPA — directly increases dopamine, shown to reduce prolactin in infertile men, PMID 18973898)",
-        "Vitamin E (400 IU — modest prolactin reduction via antioxidant protection of dopaminergic neurons)"
+        "Vitamin B6 (P5P) — low dose only; high doses cause nerve damage",
+        "Vitex / Chasteberry — may reduce hormonal contraceptive efficacy",
+        "Mucuna pruriens — interacts with psychiatric medications; consult physician",
+        "Vitamin E"
       ],
-      "label": "Prolactin (dopamine link)"
+      "label": "Prolactin (dopamine link)",
+      "references": [
+        "https://pubmed.ncbi.nlm.nih.gov/31464546/"
+      ],
+      "formRefs": {
+        "Vitamin B6 (P5P) — low dose only; high doses cause nerve damage": "https://pubmed.ncbi.nlm.nih.gov/28716455/",
+        "Mucuna pruriens — interacts with psychiatric medications; consult physician": "https://pubmed.ncbi.nlm.nih.gov/18973898/",
+        "Vitamin E": "https://pubmed.ncbi.nlm.nih.gov/1490755/",
+        "Vitex / Chasteberry — may reduce hormonal contraceptive efficacy": "https://pubmed.ncbi.nlm.nih.gov/23136064/"
+      }
     }
   },
   "shops": [

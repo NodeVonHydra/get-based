@@ -177,8 +177,8 @@
   // ═══════════════════════════════════════
   console.log('%c 10. Settings Toggle ', 'font-weight:bold;color:#f59e0b');
 
-  assert('Settings has Product Recommendations section', settingsSrc.includes('Product Recommendations'));
-  assert('Settings has product-recs checkbox', settingsSrc.includes('settings-product-recs'));
+  assert('Settings has Tips & Recommendations toggle', settingsSrc.includes('Tips & Recommendations'));
+  assert('Settings has product-recs toggle', settingsSrc.includes('settings-product-recs'));
   assert('Settings calls setProductRecsEnabled', settingsSrc.includes('setProductRecsEnabled'));
 
   // ═══════════════════════════════════════

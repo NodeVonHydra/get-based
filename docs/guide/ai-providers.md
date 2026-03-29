@@ -95,12 +95,17 @@ Ollama supports `:cloud` models that run on Ollama's servers, not your machine. 
 When enabled in Settings → Privacy, your local server is used to intelligently strip personal information from PDFs before analysis. See [PII Obfuscation](./pii-obfuscation.md) for details.
 :::
 
-::: tip Cross-origin access requires OLLAMA_ORIGINS
-Ollama blocks requests from web pages by default. When using getbased (whether hosted or local dev server), start Ollama with:
-```
-OLLAMA_ORIGINS=* ollama serve
-```
-LM Studio, Jan, and other servers typically allow all origins by default.
+::: tip Cross-origin (CORS) access
+Local AI servers block requests from web pages by default. The app detects this and shows OS-specific instructions, but here's the quick reference:
+
+**Ollama:**
+- **Linux**: `OLLAMA_ORIGINS=* ollama serve`
+- **macOS**: `launchctl setenv OLLAMA_ORIGINS "*"` then restart Ollama.app
+- **Windows**: Add `OLLAMA_ORIGINS` = `*` as a system environment variable, then restart Ollama
+
+**LM Studio:** Settings → Enable CORS
+
+**Jan:** Settings → Advanced → Enable CORS
 :::
 
 ::: warning HTTPS limits Local AI to localhost

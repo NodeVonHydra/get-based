@@ -95,6 +95,18 @@ export function openSettingsModal(tab) {
             <button class="time-toggle-btn${getTimeFormat() === '12h' ? ' active' : ''}" data-timefmt="12h" onclick="setTimeFormat('12h');updateSettingsUI()">12h (AM/PM)</button>
           </div>
         </div>
+        <div class="settings-section">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <label class="settings-label" style="margin-bottom:2px">Tips & Recommendations</label>
+              <div style="font-size:11px;color:var(--text-muted)">Supplement, food, and lifestyle guidance on markers</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked);if(window.navigate)window.navigate('dashboard')">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="settings-group-title">Resources</div>
@@ -103,15 +115,6 @@ export function openSettingsModal(tab) {
         <a href="/docs" class="settings-link-btn">Documentation</a>
         <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>startTour(false),300)">Guided Tour</button>
         <button class="settings-link-btn" onclick="closeSettingsModal();setTimeout(()=>openChangelog(true),300)">What's New</button>
-      </div>
-
-      <div class="settings-section">
-        <label class="settings-label">Product Recommendations</label>
-        <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px">
-          <input type="checkbox" id="settings-product-recs" ${window.isProductRecsEnabled && window.isProductRecsEnabled() ? 'checked' : ''} onchange="setProductRecsEnabled(this.checked);if(window.navigate)window.navigate('dashboard')">
-          Show vetted supplement and product options
-        </label>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Suggestions are for informational purposes only and do not constitute medical advice.</div>
       </div>
 
       <div style="margin-top:16px;text-align:center;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);opacity:0.6">v${escapeHTML(window.APP_VERSION || '')} · <span id="settings-commit-hash">···</span></div>
@@ -718,6 +721,21 @@ function isHttpsToNonLocalhost(url) {
   } catch { return false; }
 }
 
+function isCORSError(e) {
+  if (e instanceof TypeError) return true;
+  const m = e.message || '';
+  return m.includes('Failed to fetch') || m.includes('Load failed') || m.includes('NetworkError');
+}
+
+function getCORSHelpText() {
+  const ua = navigator.userAgent || '';
+  const isMac = /Mac/i.test(ua);
+  const isWin = /Win/i.test(ua);
+  if (isMac) return 'Blocked by CORS — Ollama: run launchctl setenv OLLAMA_ORIGINS "*" and restart. LM Studio: Settings → Enable CORS';
+  if (isWin) return 'Blocked by CORS — Ollama: set OLLAMA_ORIGINS=* as system env var and restart. LM Studio: Settings → Enable CORS';
+  return 'Blocked by CORS — Ollama: OLLAMA_ORIGINS=* ollama serve. LM Studio: Settings → Enable CORS';
+}
+
 export async function testOllamaConnection() {
   const urlInput = document.getElementById('local-ai-url-input');
   const dot = document.getElementById('local-ai-dot');
@@ -737,6 +755,9 @@ export async function testOllamaConnection() {
     return;
   }
   try {
+    // Pre-flight CORS check — fetch a lightweight endpoint to detect CORS before check functions swallow the error
+    try { await fetch(`${url}/v1/models`, { method: 'HEAD', signal: AbortSignal.timeout(3000), ...(apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}) }); }
+    catch (preErr) { if (isCORSError(preErr)) { dot.classList.add('disconnected'); text.textContent = getCORSHelpText(); return; } }
     const [result, ollamaResult] = await Promise.all([
       checkOpenAICompatible(url, apiKey),
       checkOllama(url).catch(() => ({ available: false, models: [], modelDetails: [] })),
@@ -772,9 +793,7 @@ export async function testOllamaConnection() {
     _returnToChatIfOnboarding();
   } catch (e) {
     dot.classList.add('disconnected');
-    text.textContent = (e instanceof TypeError || e.message?.includes('Failed to fetch'))
-      ? 'Blocked by CORS — start Ollama with OLLAMA_ORIGINS=* ollama serve'
-      : 'Not connected — check URL and ensure your server is running';
+    text.textContent = isCORSError(e) ? getCORSHelpText() : 'Not connected — check URL and ensure your server is running';
   }
 }
 
@@ -795,6 +814,8 @@ export async function testPIIOllamaConnection() {
     return;
   }
   try {
+    try { await fetch(`${url}/v1/models`, { method: 'HEAD', signal: AbortSignal.timeout(3000), ...(config.apiKey ? { headers: { Authorization: `Bearer ${config.apiKey}` } } : {}) }); }
+    catch (preErr) { if (isCORSError(preErr)) { dot.classList.add('disconnected'); text.textContent = getCORSHelpText(); return; } }
     const result = await checkOpenAICompatible(url, config.apiKey);
     if (!result.available) throw new Error('Not reachable');
     const models = result.models;
@@ -818,9 +839,7 @@ export async function testPIIOllamaConnection() {
     updatePrivacyStatusCard();
   } catch (e) {
     dot.classList.add('disconnected');
-    text.textContent = (e instanceof TypeError || e.message?.includes('Failed to fetch'))
-      ? 'Blocked by CORS — start Ollama with OLLAMA_ORIGINS=* ollama serve'
-      : 'Not connected — check URL and ensure your server is running';
+    text.textContent = isCORSError(e) ? getCORSHelpText() : 'Not connected — check URL and ensure your server is running';
     updatePrivacyStatusCard();
   }
 }

@@ -888,6 +888,12 @@ body {
   cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
 }
 .ctx-btn-option:hover { border-color: var(--accent); color: var(--accent); }
+.ctx-skin-slider-wrap { padding: 4px 0; }
+.ctx-skin-emojis { display: flex; justify-content: space-between; padding: 0 4px; }
+.ctx-skin-face { font-size: 28px; opacity: 0.4; transition: all 0.15s; cursor: default; }
+.ctx-skin-face.active { opacity: 1; transform: scale(1.25); }
+.ctx-skin-range { width: 100%; margin: 4px 0 0; accent-color: var(--accent); }
+.ctx-skin-label { font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 2px; }
 .ctx-btn-option.active {
   background: var(--accent-gradient); border-color: transparent; color: white; font-weight: 600;
 }
@@ -3589,6 +3595,8 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 /* Recommendation sections */
 .rec-section { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
 .rec-section-header { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.rec-ref-link { font-size: 11px; color: var(--text-muted); text-decoration: none; }
+.rec-ref-link:hover { color: var(--accent); }
 .rec-content { }
 .rec-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin: 8px 0 3px; font-weight: 600; }
 .rec-section-label:first-child { margin-top: 0; }
@@ -3598,9 +3606,14 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-item-form { color: var(--text-muted); font-size: 13px; padding: 2px 0; font-style: italic; }
 .rec-product { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding: 3px 0; flex-wrap: wrap; }
 .rec-product-info { color: var(--text-secondary); flex: 1; min-width: 0; }
-.rec-product-link { color: var(--accent); text-decoration: none; font-size: 12px; white-space: nowrap; }
+.rec-product-link { color: var(--accent); text-decoration: none; font-size: 12px; white-space: nowrap; padding: 6px 12px; }
 .rec-product-link:hover { text-decoration: underline; }
 .rec-disclosure { font-size: 10px; color: var(--text-muted); margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--border); }
+.rec-suggest { font-size: 10px; margin-top: 8px; }
+.rec-suggest a { color: var(--text-muted); text-decoration: none; }
+.rec-suggest a:hover { color: var(--accent); }
+.rec-mini-disclaimer { font-size: 9px; color: var(--text-muted); margin-top: 8px; opacity: 0.7; }
+.rec-in-range-note { font-size: 12px; color: var(--green); margin-bottom: 8px; }
 .rec-chat-wrapper { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
 .rec-chat-summary {
   font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
@@ -3612,6 +3625,8 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 .rec-chat-wrapper[open] > .rec-chat-summary::before { transform: rotate(90deg); }
 .rec-chat-summary:hover { color: var(--text-primary); }
 .rec-chat-subheading { font-size: 13px; font-weight: 600; color: var(--accent); margin-top: 8px; }
+/* Rec gated — hidden until disclosure accepted */
+.rec-section-gated { display: none; }
 /* Rec disclosure & warnings */
 .rec-disclosure-banner {
   background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);
@@ -3632,7 +3647,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 /* DNA-aware recommendation hints */
 .rec-dna-hints { border-left: 3px solid var(--accent); padding: 8px 12px; margin-bottom: 10px; background: rgba(99, 102, 241, 0.04); border-radius: 0 var(--radius) var(--radius) 0; }
 .rec-dna-row { font-size: 13px; padding: 4px 0; color: var(--text-secondary); line-height: 1.5; }
-.rec-dna-avoid { border-left: 3px solid var(--orange); padding: 4px 12px; margin: 4px 0 4px -15px; background: rgba(251, 191, 36, 0.06); border-radius: 0 var(--radius) var(--radius) 0; }
+.rec-dna-avoid { border-left: 3px solid var(--orange); padding: 4px 12px; margin: 4px 0; background: rgba(251, 191, 36, 0.06); border-radius: 0 var(--radius) var(--radius) 0; }
 .rec-dna-ref { font-size: 11px; color: var(--accent); text-decoration: none; margin-left: 4px; opacity: 0.6; }
 .rec-dna-ref:hover { text-decoration: underline; opacity: 1; }
 /* Tips badge on chart cards and context cards */

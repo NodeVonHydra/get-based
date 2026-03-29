@@ -156,7 +156,8 @@ export function renderCardTipsModal(cardKey) {
   if (!items) return '';
   return `<button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('show')">\u00D7</button>
     <div class="ctx-tips-modal-header">${cardInfo.emoji} ${escapeHTML(cardInfo.label)} \u2014 Tips</div>
-    <div class="ctx-tips-modal-body">${items}</div>`;
+    <div class="ctx-tips-modal-body">${items}</div>
+    <div class="rec-mini-disclaimer" style="margin-top:12px">For informational purposes only. Not medical advice. Consult your healthcare provider before starting any supplement.</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -233,14 +234,18 @@ function buildProductRow(product) {
 }
 
 function buildDisclosureFooter() {
-  return `<div class="rec-disclosure">Some links may be affiliate links. Brands cannot pay for placement.</div>`;
+  return `<div class="rec-disclosure">Affiliate links are marked. Brands cannot pay for placement.</div>`;
+}
+
+function _buildMiniDisclaimer() {
+  return `<div class="rec-mini-disclaimer">For informational purposes only. Not medical advice. Consult your healthcare provider before starting any supplement.</div>`;
 }
 
 function _buildDisclosureBanner() {
   if (hasSeenDisclosure()) return '';
   return `<div class="rec-disclosure-banner">
-    These suggestions are informational, not medical advice. Always consult your healthcare provider before starting supplements. Affiliate links earn a small commission\u00a0\u2014 brands cannot pay for placement.
-    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();this.closest('.rec-disclosure-banner').remove()">Got it</button>
+    For informational purposes only. This is not a medical device and does not diagnose, treat, or prevent disease. Consult your healthcare provider before starting any supplement, especially if pregnant, nursing, or taking medications. Intended for adults. Affiliate links are marked \u2014 brands cannot pay for placement.
+    <button class="rec-disclosure-btn" onclick="event.stopPropagation();markRecDisclosureSeen();this.closest('.rec-disclosure-banner').remove();for(const el of document.querySelectorAll('.rec-section-gated'))el.classList.remove('rec-section-gated')">Got it</button>
   </div>`;
 }
 
@@ -255,6 +260,7 @@ function _renderRecSection(slotKey, opts = {}) {
   const region = getUserRegion();
   const products = slot ? getProductsForSlot(_catalog, slotKey, region) : [];
 
+  const isNormal = opts.markerStatus === 'normal';
   const knownTypes = ['food', 'supplement', 'product', 'drug'];
   const foodProducts = products.filter(p => p.type === 'food').slice(0, maxProducts);
   const toolProducts = products.filter(p => p.type === 'product').slice(0, maxProducts);
@@ -321,7 +327,12 @@ function _renderRecSection(slotKey, opts = {}) {
     for (const sp of suppProducts) inner += buildProductRow(sp);
   } else if (slot?.forms?.length) {
     inner += `<div class="rec-section-label">SUPPLEMENTS <span class="rec-tier-hint">last resort</span></div>`;
-    inner += `<div class="rec-item-form">${slot.forms.map(f => escapeHTML(f)).join(', ')}</div>`;
+    const formRefs = slot.formRefs || {};
+    inner += `<div class="rec-item-form">${slot.forms.map(f => {
+      const ref = formRefs[f];
+      const studyLink = ref && /^https?:\/\//.test(ref) ? ` <a href="${escapeHTML(ref)}" target="_blank" rel="noopener" class="rec-ref-link">(study)</a>` : '';
+      return escapeHTML(f) + studyLink;
+    }).join(', ')}</div>`;
   }
 
   if (drugProducts.length) {
@@ -337,9 +348,14 @@ function _renderRecSection(slotKey, opts = {}) {
 
   if (!inner) return '';
   const hasProducts = products.length > 0;
-  return `${_buildDisclosureBanner()}<div class="rec-section" onclick="event.stopPropagation()">
+  const gated = !hasSeenDisclosure() ? ' rec-section-gated' : '';
+  const issueTitle = encodeURIComponent(`[Rec] ${slot?.label || slotKey}: better study / correction`);
+  const issueBody = encodeURIComponent(`**Slot:** \`${slotKey}\`\n**Current forms:** ${(slot?.forms || []).join(', ')}\n\n**What's wrong or what's better:**\n\n`);
+  const suggestLink = `<div class="rec-suggest"><a href="https://github.com/elkimek/get-based/issues/new?title=${issueTitle}&body=${issueBody}&labels=recommendations" target="_blank" rel="noopener">Suggest a better study</a></div>`;
+  const statusNote = isNormal ? `<div class="rec-in-range-note">Your value is in range. These tips are for general reference.</div>` : '';
+  return `${_buildDisclosureBanner()}<div class="rec-section${gated}" onclick="event.stopPropagation()">
     <div class="rec-section-header">${escapeHTML(label)}</div>
-    <div class="rec-content">${inner}${hasProducts ? buildDisclosureFooter() : ''}</div>
+    <div class="rec-content">${statusNote}${inner}${suggestLink}${hasProducts ? buildDisclosureFooter() : ''}${_buildMiniDisclaimer()}</div>
   </div>`;
 }
 
@@ -376,7 +392,7 @@ const EXTRA_TERMS = {
   'homocysteine': ['methylation', 'b12 + folate'],
   'berberine': ['dihydroberberine'],
   'ashwagandha': ['ksm-66'],
-  'testosterone': ['tongkat ali', 'fadogia'],
+  'testosterone': ['tongkat ali'],
   'insulin': ['blood sugar', 'glucose spike'],
   'inflammation': ['hs-crp', 'hsCRP'],
   'liver support': [/\balt\b/, 'alanine aminotransferase', 'fatty liver', /\bnafld\b/, /\bmasld\b/],

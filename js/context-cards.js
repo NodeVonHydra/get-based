@@ -1,7 +1,7 @@
 // context-cards.js — 9 context card editors, summaries, health dots, interpretive lens
 
 import { state } from './state.js';
-import { COMMON_CONDITIONS, DIET_TYPES, DIET_RESTRICTIONS, DIET_PATTERNS, BOWEL_FREQUENCY, STOOL_CONSISTENCY, BLOATING_SEVERITY, GAS_SEVERITY, ACID_REFLUX, BURPING, NAUSEA, APPETITE, ABDOMINAL_PAIN, FOOD_SENSITIVITIES, EXERCISE_FREQ, EXERCISE_TYPES, EXERCISE_INTENSITY, DAILY_MOVEMENT, SLEEP_DURATIONS, SLEEP_QUALITY, SLEEP_SCHEDULE, SLEEP_ROOM_TEMP, SLEEP_ISSUES, SLEEP_ENVIRONMENT, SLEEP_PRACTICES, LIGHT_AM, LIGHT_DAYTIME, LIGHT_UV, LIGHT_EVENING, LIGHT_COLD, LIGHT_GROUNDING, LIGHT_SCREEN_TIME, LIGHT_TECH_ENV, LIGHT_MEAL_TIMING, STRESS_LEVELS, STRESS_SOURCES, STRESS_MGMT, LOVE_STATUS, LOVE_SATISFACTION, LOVE_LIBIDO, LOVE_FREQUENCY, LOVE_ORGASM, LOVE_RELATIONSHIP, LOVE_CONCERNS, ENV_SETTING, ENV_CLIMATE, ENV_WATER, ENV_WATER_CONCERNS, ENV_EMF, ENV_EMF_MITIGATION, ENV_HOME_LIGHT, ENV_AIR, ENV_TOXINS, ENV_BUILDING } from './constants.js';
+import { COMMON_CONDITIONS, DIET_TYPES, DIET_RESTRICTIONS, DIET_PATTERNS, BOWEL_FREQUENCY, STOOL_CONSISTENCY, BLOATING_SEVERITY, GAS_SEVERITY, ACID_REFLUX, BURPING, NAUSEA, APPETITE, ABDOMINAL_PAIN, FOOD_SENSITIVITIES, EXERCISE_FREQ, EXERCISE_TYPES, EXERCISE_INTENSITY, DAILY_MOVEMENT, SLEEP_DURATIONS, SLEEP_QUALITY, SLEEP_SCHEDULE, SLEEP_ROOM_TEMP, SLEEP_ISSUES, SLEEP_ENVIRONMENT, SLEEP_PRACTICES, LIGHT_AM, LIGHT_DAYTIME, LIGHT_UV, LIGHT_EVENING, LIGHT_COLD, LIGHT_GROUNDING, LIGHT_SCREEN_TIME, LIGHT_TECH_ENV, LIGHT_MEAL_TIMING, SKIN_TYPE, STRESS_LEVELS, STRESS_SOURCES, STRESS_MGMT, LOVE_STATUS, LOVE_SATISFACTION, LOVE_LIBIDO, LOVE_FREQUENCY, LOVE_ORGASM, LOVE_RELATIONSHIP, LOVE_CONCERNS, ENV_SETTING, ENV_CLIMATE, ENV_WATER, ENV_WATER_CONCERNS, ENV_EMF, ENV_EMF_MITIGATION, ENV_HOME_LIGHT, ENV_AIR, ENV_TOXINS, ENV_BUILDING } from './constants.js';
 import { escapeHTML, hashString, showNotification, hasCardContent } from './utils.js';
 import { formatTime, getTimeFormat, parseTimeInput } from './theme.js';
 import { saveImportedData, getActiveData } from './data.js';
@@ -108,6 +108,7 @@ export function getLightCircadianSummary(d) {
   if (d.amLight) parts.push(d.amLight);
   if (d.daytime) parts.push(d.daytime);
   if (d.uvExposure) parts.push(d.uvExposure);
+  if (d.skinType) parts.push('skin ' + d.skinType);
   if (d.evening && d.evening.length) parts.push(d.evening.join(', '));
   if (d.screenTime) parts.push(d.screenTime + ' screens');
   if (d.techEnv && d.techEnv.length) parts.push(d.techEnv.join(', '));
@@ -774,7 +775,7 @@ export function clearSleepRest() {
 export function openLightCircadianEditor() {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
-  const current = state.importedData.lightCircadian || { amLight: null, daytime: null, uvExposure: null, evening: [], screenTime: null, techEnv: [], cold: null, grounding: null, mealTiming: [], note: '' };
+  const current = state.importedData.lightCircadian || { amLight: null, daytime: null, uvExposure: null, skinType: null, evening: [], screenTime: null, techEnv: [], cold: null, grounding: null, mealTiming: [], note: '' };
   const lat = getLatitudeFromLocation();
   modal.innerHTML = `<button class="modal-close" onclick="closeModal()">&times;</button>
     <h3>Light & Circadian</h3>
@@ -782,6 +783,14 @@ export function openLightCircadianEditor() {
     ${renderSelectField('Morning light', 'light-am', LIGHT_AM, current.amLight)}
     ${renderSelectField('Daytime outdoor exposure', 'light-daytime', LIGHT_DAYTIME, current.daytime)}
     ${renderSelectField('UV / sun exposure', 'light-uv', LIGHT_UV, current.uvExposure)}
+    <div class="ctx-field-group"><label class="ctx-field-label">Skin type</label>
+      <div class="ctx-skin-slider-wrap">
+        <div class="ctx-skin-emojis">${['\uD83E\uDDD1\uD83C\uDFFB','\uD83E\uDDD1\uD83C\uDFFC','\uD83E\uDDD1\uD83C\uDFFD','\uD83E\uDDD1\uD83C\uDFFE','\uD83E\uDDD1\uD83C\uDFFF','\uD83E\uDDD1\uD83C\uDFFF'].map((e, i) => `<span class="ctx-skin-face${current.skinType === SKIN_TYPE[i] ? ' active' : ''}" data-idx="${i}">${e}</span>`).join('')}</div>
+        <input type="range" min="0" max="5" value="${current.skinType ? SKIN_TYPE.indexOf(current.skinType) : -1}" class="ctx-skin-range" id="light-skin-range" oninput="updateSkinSlider(this.value)">
+        <div class="ctx-skin-label" id="light-skin-label">${current.skinType ? escapeHTML(current.skinType) : 'Not set'}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Affects vitamin D synthesis and UV tolerance.</div>
+    </div>
     ${renderTagsField('Evening light discipline', 'light-evening', LIGHT_EVENING, current.evening)}
     <div class="ctx-editor-divider"></div>
     ${renderSelectField('Daily screen time', 'light-screen', LIGHT_SCREEN_TIME, current.screenTime)}
@@ -796,10 +805,21 @@ export function openLightCircadianEditor() {
   overlay.classList.add("show");
 }
 
+function updateSkinSlider(val) {
+  const idx = parseInt(val);
+  const faces = document.querySelectorAll('.ctx-skin-face');
+  faces.forEach((f, i) => f.classList.toggle('active', i === idx));
+  const label = document.getElementById('light-skin-label');
+  if (label) label.textContent = idx >= 0 && idx < SKIN_TYPE.length ? SKIN_TYPE[idx] : 'Not set';
+}
+
 export function saveLightCircadian() {
   const amLight = getSelectedOption('light-am');
   const daytime = getSelectedOption('light-daytime');
   const uvExposure = getSelectedOption('light-uv');
+  const skinRangeEl = document.getElementById('light-skin-range');
+  const skinIdx = skinRangeEl ? parseInt(skinRangeEl.value) : -1;
+  const skinType = skinIdx >= 0 && skinIdx < SKIN_TYPE.length ? SKIN_TYPE[skinIdx] : null;
   const evening = getSelectedTags('light-evening');
   const screenTime = getSelectedOption('light-screen');
   const techEnv = getSelectedTags('light-tech');
@@ -807,10 +827,10 @@ export function saveLightCircadian() {
   const grounding = getSelectedOption('light-grounding');
   const mealTiming = getSelectedTags('light-meal');
   const note = (document.getElementById('ctx-note-input') || {}).value || '';
-  if (!amLight && !daytime && !uvExposure && evening.length === 0 && !screenTime && techEnv.length === 0 && !cold && !grounding && mealTiming.length === 0 && !note.trim()) {
+  if (!amLight && !daytime && !uvExposure && !skinType && evening.length === 0 && !screenTime && techEnv.length === 0 && !cold && !grounding && mealTiming.length === 0 && !note.trim()) {
     state.importedData.lightCircadian = null;
   } else {
-    state.importedData.lightCircadian = { amLight, daytime, uvExposure, evening, screenTime, techEnv, cold, grounding, mealTiming, note: note.trim() };
+    state.importedData.lightCircadian = { amLight, daytime, uvExposure, skinType, evening, screenTime, techEnv, cold, grounding, mealTiming, note: note.trim() };
   }
   saveAndRefresh('Light & circadian saved', 'lightCircadian');
 }
@@ -1302,4 +1322,5 @@ Object.assign(window, {
   showDietContaminantsModal,
   openCardTipsModal,
   loadContextCardTips,
+  updateSkinSlider,
 });

@@ -2662,7 +2662,11 @@ export function renderChatMessages() {
         }).filter(Boolean);
         if (recSections.length) {
           html += `<details class="rec-chat-wrapper" onclick="event.stopPropagation()"><summary class="rec-chat-summary">What can help</summary>`;
-          html += recSections.map(s => s.replace('rec-section-header', 'rec-chat-subheading')).join('');
+          let recBody = recSections.map(s => s.replace('rec-section-header', 'rec-chat-subheading')).join('');
+          // Deduplicate disclosure banners (each renderRecommendationSectionSync prepends one)
+          let bannerCount = 0;
+          recBody = recBody.replace(/<div class="rec-disclosure-banner">[\s\S]*?<\/div>/g, m => ++bannerCount > 1 ? '' : m);
+          html += recBody;
           html += `</details>`;
         }
       }

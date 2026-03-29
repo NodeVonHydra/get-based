@@ -66,6 +66,7 @@ export default defineConfig({
             { text: 'Focus Card', link: '/guide/focus-card' },
             { text: 'Menstrual Cycle', link: '/guide/menstrual-cycle' },
             { text: 'Supplements', link: '/guide/supplements' },
+            { text: 'Tips & Recommendations', link: '/guide/tips-recommendations' },
             { text: 'Notes', link: '/guide/notes' }
           ]
         },
