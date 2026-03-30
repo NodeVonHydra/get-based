@@ -100,6 +100,10 @@ Starts a local server, runs all tests via Puppeteer, exits 0/1.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Project board: [planned features](https://github.com/users/elkimek/projects/2).
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=elkimek/get-based&type=Date)](https://star-history.com/#elkimek/get-based&Date)
+
 ## License
 
 GPL-3.0. See [LICENSE](LICENSE).
