@@ -1,4 +1,4 @@
-# Contributing to Get Based
+# Contributing to getbased
 
 Thanks for wanting to help. Here's everything you need to know.
 
@@ -27,10 +27,10 @@ Open `http://localhost:8000`. That's it — no install step, no build step.
 
 ## Architecture overview
 
-Get Based has no build system. It's 24 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
+getbased has no build system. It's 36 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
 
 ```
-index.html        — HTML structure, script/CSS includes with SRI hashes
+index.html        — HTML structure, script/CSS includes
 styles.css        — all CSS, dark/light themes, 10 responsive breakpoints
 js/
   main.js         — DOMContentLoaded init, event listeners, entry point
@@ -39,7 +39,7 @@ js/
   api.js          — AI provider routing, all 4 providers, model management
   views.js        — dashboard, category views, modals, navigation
   data.js         — getActiveData() pipeline, unit conversion, storage
-  ... (19 more modules)
+  ... (30 more modules — see CLAUDE.md for full list)
 service-worker.js — PWA cache, API bypass strategies
 manifest.json     — PWA manifest
 ```
@@ -78,7 +78,7 @@ There is no linter. Just follow the patterns you see in the existing code.
 
 ## Tests
 
-There are 13 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
+There are 29 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
 
 Run all headlessly:
 
@@ -96,11 +96,7 @@ If you add a feature or fix a bug, add assertions to the relevant test file (or 
 
 - Keep PRs focused. One thing at a time is easier to review.
 - Test your changes with `./run-tests.sh` before opening a PR.
-- If you touch any app files (JS, CSS, HTML, manifest), bump the service worker cache version in `service-worker.js`. Find the line near the top:
-  ```js
-  const CACHE_NAME = 'labcharts-v49';
-  ```
-  Increment the number. This busts the cache for existing users.
+- If you touch any app files (JS, CSS, HTML, manifest), bump the version in `version.js`. This busts the service worker cache for existing users.
 - Update `CLAUDE.md` if you change architecture, add a module, or change how something works at a system level.
 
 ---

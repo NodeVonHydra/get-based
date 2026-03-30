@@ -79,7 +79,7 @@ Open `http://localhost:8000`. You need an AI provider API key or local AI server
 
 ## Tech stack
 
-No build tools, no bundler, no package manager. Pure ES modules — 33 files under `js/`.
+No build tools, no bundler, no package manager. Pure ES modules — 36 files under `js/`.
 
 - Chart.js for interactive charts
 - pdf.js for PDF text extraction
@@ -88,7 +88,7 @@ No build tools, no bundler, no package manager. Pure ES modules — 33 files und
 
 ## Testing
 
-26 browser-based test files run headlessly:
+29 browser-based test files run headlessly:
 
 ```bash
 ./run-tests.sh
