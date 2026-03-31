@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.13.2', date: '2026-03-31', title: 'Agent Access',
+    items: [
+      'ISO timestamps on all lab values in AI context \u2014 precise dates instead of month/year for better trend analysis',
+      'Delta indicators (\u2191/\u2193/\u2192) on all multi-reading markers \u2014 compares to previous reading for accurate recent-trend direction',
+      'Rename OpenClaw to Agent Access \u2014 works with getbased-mcp on Hermes Agent, OpenClaw, or any MCP-compatible agent',
+    ]
+  },
+  {
     version: '1.13.1', date: '2026-03-31', title: 'DEXA Scan Support',
     items: [
       'New Body Composition category \u2014 body fat %, lean mass, fat mass, BMI, android/gynoid fat, A/G ratio, visceral fat area',
