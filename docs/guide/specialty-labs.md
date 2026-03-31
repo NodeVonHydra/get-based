@@ -1,6 +1,6 @@
 # Specialty Labs
 
-Beyond standard blood work, getbased supports specialty lab tests. Two test types have dedicated support with built-in marker definitions; any other lab report goes through the generic custom marker pipeline where the AI extracts everything from your PDF.
+Beyond standard blood work, getbased supports specialty lab tests. Three test types have dedicated support with built-in marker definitions; any other lab report goes through the generic custom marker pipeline where the AI extracts everything from your PDF.
 
 ## Supported Test Types
 
@@ -8,6 +8,7 @@ Beyond standard blood work, getbased supports specialty lab tests. Two test type
 
 | Test Type | Examples | Built-in Markers |
 |---|---|---|
+| **DEXA Scan** | Hologic, GE Lunar Prodigy | 17 markers across 2 categories |
 | **Metabolomix+** | Genova Metabolomix+ combo profiles | 165 markers across 10 categories |
 | **Fatty Acids** | Spadia, ZinZino BalanceTest, OmegaQuant | 29 reference markers |
 
@@ -16,6 +17,41 @@ Beyond standard blood work, getbased supports specialty lab tests. Two test type
 Any other specialty lab report can be imported — the AI extracts marker names, units, and reference ranges directly from your PDF. No built-in definitions needed.
 
 Examples: DUTCH hormone panels, Hair Tissue Mineral Analysis (HTMA), GI-MAP, standalone OAT, and any other lab report.
+
+## DEXA Scans
+
+DEXA (dual-energy X-ray absorptiometry) results are organized under a collapsible **DEXA** sidebar group with two categories:
+
+**Body Composition** (8 markers)
+
+| Marker | Unit | Notes |
+|---|---|---|
+| Body Fat | % | Sex-specific reference and optimal ranges |
+| Lean Mass | kg | Trend-only (no universal reference) |
+| Fat Mass | kg | Trend-only |
+| BMI (DEXA) | kg/m² | WHO classification (18.5–24.9) |
+| Android Fat | % | Abdominal region |
+| Gynoid Fat | % | Hip/thigh region |
+| A/G Fat Ratio | ratio | Above 1.0 = higher cardiometabolic risk |
+| Visceral Fat Area | cm² | Below 100 cm² = normal |
+
+**Bone Density** (9 markers)
+
+| Marker | Unit | Notes |
+|---|---|---|
+| BMD Spine L1–L4 | g/cm² | Trend-only |
+| BMD Femur Total | g/cm² | Trend-only |
+| BMD Femur Neck | g/cm² | WHO diagnostic site |
+| T-score Spine | score | WHO: above −1 normal, −1 to −2.5 osteopenia, below −2.5 osteoporosis |
+| T-score Femur Total | score | Same WHO criteria |
+| T-score Femur Neck | score | WHO-preferred hip site |
+| Z-score Spine | score | Age-matched; below −2.0 = low for age |
+| Z-score Femur Total | score | Same criteria |
+| Z-score Femur Neck | score | Same criteria |
+
+::: tip Tracking over time
+DEXA scans are typically repeated annually. Each import adds a new data point, giving you trend charts for body composition and bone density changes over time — the same way blood work trends are tracked.
+:::
 
 ## Fatty Acid Labs
 

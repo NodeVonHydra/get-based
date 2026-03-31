@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.13.1', date: '2026-03-31', title: 'DEXA Scan Support',
+    items: [
+      'New Body Composition category \u2014 body fat %, lean mass, fat mass, BMI, android/gynoid fat, A/G ratio, visceral fat area',
+      'New Bone Density category \u2014 BMD spine/femur, T-scores and Z-scores (total + neck) with WHO classification ranges',
+      'Sex-specific reference and optimal ranges for body fat %',
+      'Detail modal: hide no-data date cards, color-coded top border (green/red/yellow by status)',
+    ]
+  },
+  {
     version: '1.13.0', date: '2026-03-29', title: 'Tips & Recommendations',
     items: [
       '80 tip slots across biomarkers and lifestyle — Nature \u2192 Whole Food \u2192 Tools \u2192 Supplements',

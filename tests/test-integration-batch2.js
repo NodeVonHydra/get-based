@@ -283,6 +283,14 @@
     'proteins.crp',
     // Urinalysis (unitless)
     'urinalysis.ph', 'urinalysis.specificGravity',
+    // Body Composition (%, unitless, or cm² — same in US; kg→lbs has conversion)
+    'bodyComposition.bodyFatPct', 'bodyComposition.bmiDexa',
+    'bodyComposition.androidFatPct', 'bodyComposition.gynoidFatPct',
+    'bodyComposition.agRatio', 'bodyComposition.visceralFatArea',
+    // Bone Density (g/cm², T/Z-scores — universal units)
+    'boneDensity.bmdSpine', 'boneDensity.bmdFemurTotal', 'boneDensity.bmdFemurNeck',
+    'boneDensity.tScoreSpine', 'boneDensity.tScoreFemurTotal', 'boneDensity.tScoreFemurNeck',
+    'boneDensity.zScoreSpine', 'boneDensity.zScoreFemurTotal', 'boneDensity.zScoreFemurNeck',
   ]);
 
   let unconverted = [];
