@@ -118,6 +118,10 @@ Lists all imported data entries by date, showing marker count, source filename(s
 
 Quick access to JSON export (current profile) and data clearing. For full export options including per-client and database bundles, see [JSON Export & Import](./json-export-import.md).
 
+### Agent Access
+
+Let AI agents query your labs via [getbased-mcp](https://github.com/elkimek/getbased-mcp). Works with [Hermes Agent](https://github.com/hermes-agent/hermes-agent), [OpenClaw](https://openclaw.ai), and any MCP-compatible agent. Toggle on to generate a read-only token, then paste it into your agent's config. See [Agent Access](./agent-access.md) for full details.
+
 ### Recommendations
 
 Toggle supplement and lifestyle recommendations on or off. When enabled, flagged markers show contextual suggestions in the detail modal, chat, and context card health dots.

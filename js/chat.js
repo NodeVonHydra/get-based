@@ -753,7 +753,7 @@ export function buildLabContext() {
 
   let ctx;
   if (hasLabData) {
-    ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dateLabels.join(', ')}):\n\n`;
+    ctx = `Lab data for current profile (sex: ${sexLabel}${age !== null ? ', age: ' + age : ''}, unit system: ${unitLabel}, today: ${today}, dates: ${data.dates.join(', ')}):\n\n`;
   } else {
     const missingDemo = [];
     if (sexLabel === 'not specified') missingDemo.push('sex');
@@ -833,17 +833,20 @@ export function buildLabContext() {
               const changePct = range > 0 ? Math.abs(diff) / range : 0;
               const latestStatus = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'normal';
               const isFlagged = latestStatus === 'high' || latestStatus === 'low';
-              // Only show trajectory for flagged markers or >25% change relative to ref range
+              const msSpan = new Date(last.d + 'T00:00:00') - new Date(first.d + 'T00:00:00');
+              const days = Math.round(msSpan / (24 * 3600 * 1000));
+              let durStr;
+              if (days < 30) durStr = `${days} day${days !== 1 ? 's' : ''}`;
+              else if (days < 90) { const w = Math.round(days / 7); durStr = `${w} week${w !== 1 ? 's' : ''}`; }
+              else if (days < 730) { const mo = Math.round(days / 30.44); durStr = `${mo} month${mo !== 1 ? 's' : ''}`; }
+              else { const yr = Math.round(days / 365.25 * 10) / 10; durStr = `${yr} year${yr !== 1 ? 's' : ''}`; }
+              // Verbose trajectory for flagged markers or >25% change; simple delta for the rest
               if (isFlagged || changePct > 0.25) {
                 const dir = diff > 0 ? '\u2191 rising' : '\u2193 declining';
-                const msSpan = new Date(last.d + 'T00:00:00') - new Date(first.d + 'T00:00:00');
-                const days = Math.round(msSpan / (24 * 3600 * 1000));
-                let durStr;
-                if (days < 30) durStr = `${days} day${days !== 1 ? 's' : ''}`;
-                else if (days < 90) { const w = Math.round(days / 7); durStr = `${w} week${w !== 1 ? 's' : ''}`; }
-                else if (days < 730) { const mo = Math.round(days / 30.44); durStr = `${mo} month${mo !== 1 ? 's' : ''}`; }
-                else { const yr = Math.round(days / 365.25 * 10) / 10; durStr = `${yr} year${yr !== 1 ? 's' : ''}`; }
                 trajectory = ` \u2014 ${dir} over ${durStr} (${points.length} readings)`;
+              } else {
+                const delta = diff > 0 ? '\u2191' : diff < 0 ? '\u2193' : '\u2192';
+                trajectory = ` ${delta} vs ${first.v} on ${first.d}`;
               }
             }
           }
@@ -853,7 +856,7 @@ export function buildLabContext() {
             if (v === null) return null;
             const phase = m.phaseLabels[i];
             const pr = m.phaseRefRanges[i];
-            const dateLabel = m.singlePoint ? '' : data.dateLabels[i];
+            const dateLabel = m.singlePoint ? '' : data.dates[i];
             const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
             const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
             return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
@@ -862,7 +865,7 @@ export function buildLabContext() {
         } else {
           const vals = m.singlePoint
             ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
-            : m.values.map((v, i) => v !== null ? `${data.dateLabels[i]}: ${v}` : null).filter(Boolean).join(', ');
+            : m.values.map((v, i) => v !== null ? `${data.dates[i]}: ${v}` : null).filter(Boolean).join(', ');
           const mr = getEffectiveRangeForDate(m, latestIdx);
           const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
           const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
@@ -3543,7 +3546,7 @@ export function askAIAboutMarker(markerId) {
   const marker = state.markerRegistry[markerId];
   if (!marker) return;
   const data = getActiveData();
-  const dates = marker.singlePoint ? [marker.singleDateLabel || 'N/A'] : data.dateLabels;
+  const dates = marker.singlePoint ? [marker.singleDateLabel || 'N/A'] : data.dates;
   const valuesText = marker.values
     .map((v, i) => {
       if (v === null) return null;
@@ -3583,7 +3586,7 @@ export function askAIAboutCorrelations() {
     const marker = data.categories[catKey]?.markers[markerKey];
     if (!marker) return null;
     const valuesText = marker.values
-      .map((v, i) => v !== null ? `${data.dateLabels[i]}: ${formatValue(v)} ${marker.unit}` : null)
+      .map((v, i) => v !== null ? `${data.dates[i]}: ${formatValue(v)} ${marker.unit}` : null)
       .filter(Boolean).join(', ');
     const mr = getEffectiveRange(marker);
     const latestIdx = getLatestValueIndex(marker.values);

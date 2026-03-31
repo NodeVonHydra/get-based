@@ -68,7 +68,7 @@ Everything the AI can know about the user comes from these sources:
 
 Sections are ordered by priority — the AI sees "what are you trying to solve?" first, then "what do the numbers say?", then medical/lifestyle context. This exploits primacy bias in LLMs.
 
-Each section is wrapped in `[section:name]...[/section:name]` tags for machine-parsable extraction (used by OpenClaw bot). Flagged results use `[critical]...[/critical]`. Lab sections include an `updated:date` attribute.
+Each section is wrapped in `[section:name]...[/section:name]` tags for machine-parsable extraction (used by getbased-mcp, Hermes Agent, OpenClaw). Flagged results use `[critical]...[/critical]`. Lab sections include an `updated:date` attribute.
 
 ```
 Lab data for current profile (sex: female, age: 34, unit system: SI, today: 2026-02-24,
@@ -579,7 +579,7 @@ Each entry documents:
 ### 2026-03b — Section Tags
 
 **Machine-parsable section tags** (`buildLabContext`)
-- Every section wrapped in `[section:name]...[/section:name]` tags for programmatic extraction (used by OpenClaw bot)
+- Every section wrapped in `[section:name]...[/section:name]` tags for programmatic extraction (used by getbased-mcp, Hermes Agent, OpenClaw)
 - Flagged results wrapped in `[critical]...[/critical]`
 - Lab category sections include `updated:date` attribute with last data date
 - New `[index]` block listing available lab category keys

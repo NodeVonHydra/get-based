@@ -39,14 +39,14 @@
 - Run a local AI server and nothing leaves your machine at all
 - No account, no sign-up, no tracking
 
-## Messenger Access
+## Agent Access
 
-Opt-in feature that lets external bots read your AI-generated health context so they can answer questions on your behalf — your mnemonic and raw data never leave the browser.
+Opt-in feature that lets AI agents query your lab context — coding agents (Claude Code, Cursor), messenger bots (Hermes Agent, OpenClaw), or any MCP-compatible tool.
 
-- Enable in **Settings → Data → Messenger Access** to generate a read-only token
+- Enable in **Settings → Data → Agent Access** to generate a read-only token
 - Context is pushed to a lightweight gateway on every save and profile switch
-- Per-profile: each profile's context is stored separately; bots can query any profile by ID
-- Compatible with [getbased-mcp](https://github.com/elkimek/getbased-mcp) (MCP servers) and [getbased-openclaw](https://github.com/elkimek/getbased-openclaw) (OpenClaw plugins)
+- Per-profile: each profile's context is stored separately; agents can query any profile by ID
+- Use [getbased-mcp](https://github.com/elkimek/getbased-mcp) to connect [Hermes Agent](https://github.com/hermes-agent/hermes-agent), [OpenClaw](https://openclaw.ai), or any MCP-compatible agent
 - Only the AI-readable context text is shared — never your mnemonic or raw lab data
 - Token is revocable at any time from the same settings panel
 
