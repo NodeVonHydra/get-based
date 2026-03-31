@@ -411,6 +411,8 @@ export function switchProfile(profileId) {
   const profiles = getProfiles();
   const p = profiles.find(p => p.id === profileId);
   showNotification(`Switched to ${p ? p.name : 'profile'}`, 'info');
+  // Push updated context to messenger gateway so bots see the new profile
+  import('./sync.js').then(m => m.pushContextToGateway()).catch(() => {});
 }
 
 export function getProfileSex(profileId) {

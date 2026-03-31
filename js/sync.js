@@ -778,6 +778,7 @@ export function pushContextToGateway() {
     try {
       const { buildLabContext } = await import('./chat.js');
       const context = buildLabContext();
+      const profileId = state.currentProfile || 'default';
       const profiles = getProfiles().map(p => ({ id: p.id, name: p.name }));
       const relay = getSyncRelay().replace(/^wss:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
 
@@ -787,9 +788,9 @@ export function pushContextToGateway() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ context, profiles }),
+        body: JSON.stringify({ context, profileId, profiles }),
       });
-      dbg('Context pushed to gateway');
+      dbg(`Context pushed to gateway (profile: ${profileId})`);
     } catch (e) {
       console.warn('[sync] Context push failed:', e);
     }
