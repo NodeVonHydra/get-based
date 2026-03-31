@@ -39,6 +39,17 @@
 - Run a local AI server and nothing leaves your machine at all
 - No account, no sign-up, no tracking
 
+## Messenger Access
+
+Opt-in feature that lets external bots read your AI-generated health context so they can answer questions on your behalf — your mnemonic and raw data never leave the browser.
+
+- Enable in **Settings → Data → Messenger Access** to generate a read-only token
+- Context is pushed to a lightweight gateway on every save and profile switch
+- Per-profile: each profile's context is stored separately; bots can query any profile by ID
+- Compatible with [getbased-mcp](https://github.com/elkimek/getbased-mcp) (MCP servers) and [getbased-openclaw](https://github.com/elkimek/getbased-openclaw) (OpenClaw plugins)
+- Only the AI-readable context text is shared — never your mnemonic or raw lab data
+- Token is revocable at any time from the same settings panel
+
 ## AI providers
 
 | Provider | Description |
