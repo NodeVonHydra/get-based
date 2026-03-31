@@ -552,6 +552,7 @@ async function pushProfile(profileId, importedData) {
 
 export async function pushCurrentProfile() {
   await pushProfile(state.currentProfile, state.importedData);
+  pushContextToGateway();
 }
 
 // Push all profiles on first enable
