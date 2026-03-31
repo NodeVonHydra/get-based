@@ -1457,7 +1457,7 @@ function renderMessengerSection() {
         <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Agent Access</div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Let AI agents query your labs via MCP, Hermes Agent, or OpenClaw</div>
       </div>
-      <label class="chat-websearch-toggle-label" style="display:flex" aria-label="Toggle OpenClaw access">
+      <label class="chat-websearch-toggle-label" style="display:flex" aria-label="Toggle Agent Access">
         <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleMessenger(this.checked)" style="display:none">
         <span class="chat-toggle-slider"></span>
       </label>
@@ -1471,7 +1471,7 @@ function renderMessengerSection() {
             <button class="import-btn import-btn-secondary" style="font-size:11px;padding:2px 10px" onclick="copyMessengerToken()" aria-label="Copy token">Copy</button>
           </div>
         </div>
-        <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Messenger token">${'\u2022'.repeat(64)}</div>
+        <div id="messenger-token" data-masked="true" style="font-family:var(--font-mono, monospace);font-size:11.5px;background:var(--bg-secondary);padding:10px 12px;border-radius:8px;border:1px solid var(--border);word-break:break-all;line-height:1.6;min-height:20px;user-select:none" aria-label="Agent Access token">${'\u2022'.repeat(64)}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">Use <a href="https://github.com/elkimek/getbased-mcp" target="_blank" rel="noopener" style="color:var(--accent)">getbased-mcp</a> to connect <a href="https://github.com/hermes-agent/hermes-agent" target="_blank" rel="noopener" style="color:var(--accent)">Hermes Agent</a>, <a href="https://openclaw.ai" target="_blank" rel="noopener" style="color:var(--accent)">OpenClaw</a>, or any MCP-compatible agent. Paste this token into your agent's config.</div>
       </div>
       <button class="import-btn import-btn-secondary" style="font-size:12px;padding:5px 14px;width:100%" onclick="regenerateMessengerToken()">Regenerate token</button>

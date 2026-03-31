@@ -82,7 +82,7 @@ export default defineConfig({
           items: [
             { text: 'Encryption', link: '/guide/encryption' },
             { text: 'Cross-Device Sync', link: '/guide/cross-device-sync' },
-            { text: 'Messenger Access', link: '/guide/messenger-access' },
+            { text: 'Agent Access', link: '/guide/agent-access' },
             { text: 'OpenClaw', link: '/guide/openclaw' },
             { text: 'Folder Backup', link: '/guide/folder-backup' }
           ]
