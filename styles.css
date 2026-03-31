@@ -409,8 +409,11 @@ body {
 }
 .modal-value-card {
   background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px; text-align: center;
-  position: relative;
+  position: relative; border-top: 3px solid var(--text-muted);
 }
+.modal-value-card.status-normal { border-top-color: var(--green); }
+.modal-value-card.status-high { border-top-color: var(--red); }
+.modal-value-card.status-low { border-top-color: var(--yellow); }
 .mv-delete {
   position: absolute; top: 4px; right: 4px; background: none; border: none;
   color: var(--text-muted); font-size: 16px; cursor: pointer; padding: 0 4px;

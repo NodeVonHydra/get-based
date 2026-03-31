@@ -1048,9 +1048,10 @@ export function showDetailModal(id, opts = {}) {
     <div class="modal-values-grid">`;
   for (let i = 0; i < marker.values.length; i++) {
     const v = marker.values[i];
+    if (v === null) continue;
     const ri = getEffectiveRangeForDate(marker, i);
-    const s = v !== null ? getStatus(v, ri.min, ri.max) : "missing";
-    const sl = s==="normal"?"\u2713 In Range":s==="high"?"\u25B2 Above Range":s==="low"?"\u25BC Below Range":"N/A";
+    const s = getStatus(v, ri.min, ri.max);
+    const sl = s==="normal"?"\u2713 In Range":s==="high"?"\u25B2 Above Range":s==="low"?"\u25BC Below Range":"Unknown";
     const phaseLabel = marker.phaseLabels && marker.phaseLabels[i];
     const phaseInfo = phaseLabel ? `<div class="mv-phase">${phaseLabel} \u2022 ${formatValue(ri.min)}\u2013${formatValue(ri.max)}</div>` : '';
     const rawDate = marker.singlePoint ? null : data.dates[i];
@@ -1063,10 +1064,10 @@ export function showDetailModal(id, opts = {}) {
     const manualBadge = canRevert
       ? ` <span class="ref-edited-badge" title="Edited — click to revert" onclick="event.stopPropagation();revertMarkerValue('${id}','${rawDate}')">edited \u00d7</span>`
       : isManual ? ' <span class="ref-edited-badge" title="Manually entered">manual</span>' : '';
-    const deleteBtn = (v !== null) ? `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>` : '';
-    const editClick = rawDate && v !== null ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
-    html += `<div class="modal-value-card">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
-      <div class="mv-value val-${s}"${editClick}>${v !== null ? formatValue(v) : "\u2014"}${manualBadge}</div>
+    const deleteBtn = `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>`;
+    const editClick = rawDate ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
+    html += `<div class="modal-value-card status-${s}">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
+      <div class="mv-value val-${s}"${editClick}>${formatValue(v)}${manualBadge}</div>
       <div class="mv-status val-${s}">${sl}</div>${phaseInfo}</div>`;
   }
   html += `</div>`;
