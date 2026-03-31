@@ -845,8 +845,10 @@ export function buildLabContext() {
                 const dir = diff > 0 ? '\u2191 rising' : '\u2193 declining';
                 trajectory = ` \u2014 ${dir} over ${durStr} (${points.length} readings)`;
               } else {
-                const delta = diff > 0 ? '\u2191' : diff < 0 ? '\u2193' : '\u2192';
-                trajectory = ` ${delta} vs ${first.v} on ${first.d}`;
+                const prev = points[points.length - 2];
+                const prevDiff = last.v - prev.v;
+                const delta = prevDiff > 0 ? '\u2191' : prevDiff < 0 ? '\u2193' : '\u2192';
+                trajectory = ` ${delta} vs ${prev.v} on ${prev.d}`;
               }
             }
           }
