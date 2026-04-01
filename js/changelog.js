@@ -13,18 +13,6 @@ const CHANGELOG = [
     ]
   },
   {
-    version: '1.13.4', date: '2026-04-01', title: 'Codebase Audit',
-    items: [
-      'Fix encryption crash on large profiles and enforce passphrase strength on change',
-      'Free Water Deficit now uses actual body weight instead of hardcoded 70kg',
-      'AI streaming errors now surface instead of showing blank responses',
-      'Fix DNA import timeout when dropping two files quickly',
-      'Fix chat import and data clearing when encryption is enabled',
-      'WCAG AA text contrast, light theme chat visibility, mobile scroll lock, 44px touch targets',
-      'Dead code cleanup \u2014 6 unused functions, 6 CSS classes, 3 orphaned files removed',
-    ]
-  },
-  {
     version: '1.13.2', date: '2026-03-31', title: 'Agent Access',
     items: [
       'ISO timestamps on all lab values in AI context \u2014 precise dates instead of month/year for better trend analysis',
