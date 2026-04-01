@@ -67,11 +67,14 @@ function getSyncDisplayState() {
 const SYNC_STORAGE_KEY = 'labcharts-sync-enabled';
 const SYNC_RELAY_KEY = 'labcharts-sync-relay';
 const DEFAULT_RELAY = 'wss://sync.getbased.health';
+const ONION_RELAY = 'ws://udou6gehyfpfccdjpibmuttaoauawmh5cgzszffnskbvczppvr2sfjad.onion';
 
 export function isSyncEnabled() { return _syncEnabled; }
 
 export function getSyncRelay() {
-  return localStorage.getItem(SYNC_RELAY_KEY) || DEFAULT_RELAY;
+  const custom = localStorage.getItem(SYNC_RELAY_KEY);
+  if (custom) return custom;
+  return window.location.hostname.endsWith('.onion') ? ONION_RELAY : DEFAULT_RELAY;
 }
 
 export function setSyncRelay(url) {

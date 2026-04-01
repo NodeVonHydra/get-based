@@ -349,7 +349,7 @@ export async function validateApiKey(key) {
 // /api/proxy to eliminate CORS restrictions. Local AI skips the proxy.
 function _useProxy() {
   const h = window.location.hostname;
-  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.');
+  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.') && !h.endsWith('.onion');
 }
 
 function _proxyFetch(url, options) {
