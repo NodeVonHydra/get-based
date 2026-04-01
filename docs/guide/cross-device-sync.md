@@ -89,7 +89,7 @@ Sync uses **last-write-wins** at the profile level, based on timestamps. This is
 
 The relay is a blind store-and-forward server — it holds encrypted blobs and broadcasts them to your other devices. It never sees your plaintext data.
 
-By default, sync connects to `wss://sync.getbased.health`. You can change this in **Settings → Data → Advanced** to point to your own relay. A status indicator (green/red dot) shows whether the relay is reachable.
+By default, sync connects to `wss://sync.getbased.health`. When accessing the app via [Tor](./tor-access.md), the relay automatically switches to the .onion address (`ws://`). You can also change the relay in **Settings → Data → Advanced** to point to your own. A status indicator (green/red dot) shows whether the relay is reachable.
 
 ### Running Your Own Relay
 

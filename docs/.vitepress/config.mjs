@@ -84,7 +84,8 @@ export default defineConfig({
             { text: 'Cross-Device Sync', link: '/guide/cross-device-sync' },
             { text: 'Agent Access', link: '/guide/agent-access' },
             { text: 'OpenClaw', link: '/guide/openclaw' },
-            { text: 'Folder Backup', link: '/guide/folder-backup' }
+            { text: 'Folder Backup', link: '/guide/folder-backup' },
+            { text: 'Tor Access', link: '/guide/tor-access' }
           ]
         }
       ],

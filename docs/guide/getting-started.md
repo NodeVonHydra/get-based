@@ -6,6 +6,10 @@ getbased is a blood work dashboard that turns your lab reports into interactive 
 
 The easiest way to get started is the hosted version at **[getbased.health](https://getbased.health)**. No installation required.
 
+### Tor
+
+getbased is available as a Tor hidden service. Open the app in [Tor Browser](https://www.torproject.org/download/) and click the ".onion available" badge in the address bar, or go directly to the [.onion address](./tor-access.md). Sync, AI chat, and all features work over Tor.
+
 ### Self-host
 
 If you prefer to run it yourself, clone the repository and start a local server:
