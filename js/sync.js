@@ -73,8 +73,9 @@ export function isSyncEnabled() { return _syncEnabled; }
 
 export function getSyncRelay() {
   const custom = localStorage.getItem(SYNC_RELAY_KEY);
-  if (custom) return custom;
-  return window.location.hostname.endsWith('.onion') ? ONION_RELAY : DEFAULT_RELAY;
+  // On .onion, always use the onion relay (ignore stored clearnet relay)
+  if (window.location.hostname.endsWith('.onion')) return ONION_RELAY;
+  return custom || DEFAULT_RELAY;
 }
 
 export function setSyncRelay(url) {
