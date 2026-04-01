@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.14.0', date: '2026-04-01', title: 'Routstr + Tor + Audit',
+    items: [
+      'New AI provider: Routstr \u2014 pay with Bitcoin eCash or Lightning. No account, no subscription',
+      'Tor hidden service \u2014 full app accessible via .onion. Sync relay auto-switches to .onion. Tor Browser shows ".onion available" badge on clearnet',
+      'Codebase audit \u2014 8 bug fixes, 6 accessibility fixes, 2 security hardening, dead code cleanup',
+    ]
+  },
+  {
     version: '1.13.4', date: '2026-04-01', title: 'Codebase Audit',
     items: [
       'Fix encryption crash on large profiles and enforce passphrase strength on change',
