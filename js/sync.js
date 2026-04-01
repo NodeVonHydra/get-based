@@ -362,10 +362,12 @@ const AI_SETTINGS_KEYS = [
   'labcharts-api-key',           // Anthropic key (encrypted)
   'labcharts-openrouter-key',    // OpenRouter key (encrypted)
   'labcharts-venice-key',        // Venice key (encrypted)
+  'labcharts-routstr-key',       // Routstr key (encrypted)
   'labcharts-ollama',            // Local AI server config (encrypted)
   'labcharts-anthropic-model',
   'labcharts-openrouter-model',
   'labcharts-venice-model',
+  'labcharts-routstr-model',
   'labcharts-venice-e2ee',
   'labcharts-ollama-model',
   'labcharts-ollama-pii-url',
@@ -381,7 +383,7 @@ async function collectAISettings() {
   return settings;
 }
 
-const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key', 'labcharts-ollama'];
+const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key', 'labcharts-routstr-key', 'labcharts-ollama'];
 
 async function applyAISettings(settings) {
   if (!settings) return;

@@ -356,9 +356,10 @@ export const MODEL_PRICING = {
   },
 };
 export function getModelPricing(provider, modelId) {
-  // OpenRouter: check dynamic API-sourced pricing first
-  if (provider === 'openrouter' && modelId) {
-    const cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing') || '{}');
+  // OpenRouter/Routstr: check dynamic API-sourced pricing first
+  if ((provider === 'openrouter' || provider === 'routstr') && modelId) {
+    const cacheKey = provider === 'routstr' ? 'labcharts-routstr-pricing' : 'labcharts-openrouter-pricing';
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
     if (cached[modelId]) return cached[modelId];
   }
   if (!MODEL_PRICING[provider]) return { input: 0, output: 0 };

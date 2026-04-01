@@ -2404,6 +2404,11 @@ export function renderChatMessages() {
               <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
             </div>
             <div class="chat-setup-provider">
+              <strong>Routstr</strong><br>
+              <span class="chat-setup-detail">Pay with Bitcoin. No account needed — use Lightning or Cashu eCash.</span><br>
+              <a href="https://routstr.com" target="_blank" rel="noopener">Get started &rarr;</a>
+            </div>
+            <div class="chat-setup-provider">
               <strong>Venice</strong><br>
               <span class="chat-setup-detail">Privacy-focused cloud. Access to Claude, GPT, and open models.</span><br>
               <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>

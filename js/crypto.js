@@ -16,6 +16,7 @@ const SENSITIVE_PATTERNS = [
   /^labcharts-api-key$/,
   /^labcharts-venice-key$/,
   /^labcharts-openrouter-key$/,
+  /^labcharts-routstr-key$/,
   /^labcharts-ollama$/,
 ];
 
@@ -31,7 +32,7 @@ let _sessionKey = null;
 // ═══════════════════════════════════════════════
 // API KEY CACHE — sync access to decrypted API keys
 // ═══════════════════════════════════════════════
-const API_KEY_LS_KEYS = ['labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', 'labcharts-ollama'];
+const API_KEY_LS_KEYS = ['labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', 'labcharts-routstr-key', 'labcharts-ollama'];
 const _keyCache = new Map();
 
 export async function decryptKeyCache() {
@@ -648,9 +649,9 @@ export async function changePassphrase() {
 // BACKUP / RESTORE
 // ═══════════════════════════════════════════════
 const GLOBAL_SETTINGS_KEYS = [
-  'labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key',
+  'labcharts-api-key', 'labcharts-venice-key', 'labcharts-openrouter-key', 'labcharts-routstr-key',
   'labcharts-ai-provider',
-  'labcharts-anthropic-model', 'labcharts-venice-model', 'labcharts-openrouter-model',
+  'labcharts-anthropic-model', 'labcharts-venice-model', 'labcharts-openrouter-model', 'labcharts-routstr-model',
   'labcharts-ollama', 'labcharts-ollama-model',
   'labcharts-ollama-pii-url', 'labcharts-ollama-pii-model',
   'labcharts-time-format', 'labcharts-theme', 'labcharts-debug',

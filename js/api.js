@@ -60,6 +60,7 @@ export function hasAIProvider() {
   if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();
   if (provider === 'openrouter') return hasOpenRouterKey();
+  if (provider === 'routstr') return hasRoutstrKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -88,6 +89,19 @@ export function setVeniceE2EE(on) { localStorage.setItem('labcharts-venice-e2ee'
 export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
 export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
+
+// ─── Routstr ───
+export function getRoutstrKey() { return getCachedKey('labcharts-routstr-key') || ''; }
+export async function saveRoutstrKey(key) { await encryptedSetItem('labcharts-routstr-key', key); updateKeyCache('labcharts-routstr-key', key); }
+export function hasRoutstrKey() { return !!getRoutstrKey(); }
+export function getRoutstrModel() { return localStorage.getItem('labcharts-routstr-model') || 'claude-sonnet-4.6'; }
+export function setRoutstrModel(model) { localStorage.setItem('labcharts-routstr-model', model); }
+export function getRoutstrModelDisplay() {
+  const id = getRoutstrModel();
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-routstr-models') || '[]'); } catch(e) {}
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
 export function getOpenRouterModel() {
   let m = localStorage.getItem('labcharts-openrouter-model');
   // Fix legacy hyphenated IDs (OpenRouter uses dots: anthropic/claude-sonnet-4.6)
@@ -162,6 +176,9 @@ const OPENROUTER_RECOMMENDED = [
   'google/gemini-3.1-pro',
   'x-ai/grok-4',
 ];
+// Routstr uses bare model IDs (no provider prefix, dots: claude-sonnet-4.6)
+const ROUTSTR_CURATED = ['claude-', 'gpt-5', 'gpt-4', 'gemini-3', 'gemini-2', 'grok-4', 'grok-3', 'llama-', 'qwen', 'deepseek-', 'mistral-', 'mimo-'];
+const ROUTSTR_RECOMMENDED = ['claude-sonnet-4.6', 'claude-opus-4.6', 'gpt-5.4', 'gemini-3.1-pro', 'grok-4'];
 export function isRecommendedModel(provider, modelId) {
   if (provider === 'openrouter') return OPENROUTER_RECOMMENDED.some(function(prefix) { return modelId.startsWith(prefix); });
   if (provider === 'anthropic') return /sonnet-4-6|opus-4-6/.test(modelId);
@@ -169,6 +186,7 @@ export function isRecommendedModel(provider, modelId) {
     if (modelId.startsWith('e2ee-')) return /qwen3-5-122b|gpt-oss-120b|qwen3-30b|glm-5/.test(modelId);
     return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[234](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
   }
+  if (provider === 'routstr') return ROUTSTR_RECOMMENDED.some(function(r) { return modelId === r || modelId.startsWith(r); });
   return false; // Ollama — local models, can't tier
 }
 export function getActiveModelId() {
@@ -176,6 +194,7 @@ export function getActiveModelId() {
   if (provider === 'anthropic') return getAnthropicModel();
   if (provider === 'venice') return getVeniceModel();
   if (provider === 'openrouter') return getOpenRouterModel();
+  if (provider === 'routstr') return getRoutstrModel();
   return getOllamaMainModel();
 }
 export function getActiveModelDisplay() {
@@ -183,6 +202,7 @@ export function getActiveModelDisplay() {
   if (provider === 'anthropic') return getAnthropicModelDisplay();
   if (provider === 'venice') return getVeniceModelDisplay();
   if (provider === 'openrouter') return getOpenRouterModelDisplay();
+  if (provider === 'routstr') return getRoutstrModelDisplay();
   return getOllamaMainModel();
 }
 // Exclude specialized variants not suited for medical analysis
@@ -388,6 +408,7 @@ async function _fetchWithRetry(url, options, retries = 2, useProxy = true) {
 export function supportsWebSearch() {
   const provider = getAIProvider();
   if (provider === 'venice') return !isVeniceE2EEActive();
+  if (provider === 'routstr') return false;
   return provider === 'openrouter';
 }
 
@@ -420,6 +441,13 @@ export function supportsVision() {
   if (provider === 'venice') {
     if (isVeniceE2EEActive()) return false;
     return /qwen.*vl|llava|vision/i.test(getVeniceModel());
+  }
+  if (provider === 'routstr') {
+    const modelId = getRoutstrModel();
+    try {
+      const visionIds = JSON.parse(localStorage.getItem('labcharts-routstr-vision-models') || '[]');
+      return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/-\d{8}$/, '')); });
+    } catch { return false; }
   }
   // Local AI — optimistic (user's responsibility)
   return true;
@@ -619,7 +647,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
 
   if (!res.ok) {
     if (res.status === 401) throw new Error(`Invalid ${providerName} API key. Check your settings.`);
-    if (res.status === 402) throw new Error(`Insufficient ${providerName} credits. Add credits at openrouter.ai/settings/credits`);
+    if (res.status === 402) throw new Error(`Insufficient ${providerName} balance.${providerName === 'Routstr' ? ' Top up with Lightning or Cashu.' : ' Add credits at openrouter.ai/settings/credits'}`);
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
     let errMsg = `${providerName} API error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
@@ -788,11 +816,77 @@ export async function validateVeniceKey(key) {
   }
 }
 
+// ═══════════════════════════════════════════════
+// ROUTSTR (Bitcoin eCash micropayments, OpenAI-compatible)
+// ═══════════════════════════════════════════════
+const ROUTSTR_EXCLUDE = ['codex', 'audio', 'image', 'oss', 'safeguard', 'coder', 'embed', 'tts', 'whisper', 'beta', 'preview', 'free', 'gratis'];
+export async function fetchRoutstrModels() {
+  try {
+    const res = await fetch('https://api.routstr.com/v1/models');
+    if (!res.ok) return [];
+    const json = await res.json();
+    const all = (json.data || []).filter(function(m) {
+      if (!m.id || !m.enabled) return false;
+      if (ROUTSTR_EXCLUDE.some(function(ex) { return m.id.includes(ex); })) return false;
+      return ROUTSTR_CURATED.some(function(prefix) { return m.id.startsWith(prefix); });
+    }).sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    const models = deduplicateModels(all, function(id) {
+      return id.replace(/-\d{8}$/, '');
+    });
+    models.sort(function(a, b) {
+      const aRec = ROUTSTR_RECOMMENDED.some(function(r) { return a.id === r || a.id.startsWith(r); });
+      const bRec = ROUTSTR_RECOMMENDED.some(function(r) { return b.id === r || b.id.startsWith(r); });
+      if (aRec !== bRec) return aRec ? -1 : 1;
+      return (a.name || a.id).localeCompare(b.name || b.id);
+    });
+    const pricingCache = {};
+    for (const m of models) {
+      if (m.pricing && m.pricing.prompt && m.pricing.completion) {
+        pricingCache[m.id] = { input: parseFloat(m.pricing.prompt) * 1_000_000, output: parseFloat(m.pricing.completion) * 1_000_000 };
+      }
+    }
+    localStorage.setItem('labcharts-routstr-pricing', JSON.stringify(pricingCache));
+    const visionIds = (json.data || []).filter(function(m) {
+      if (!m.id || !m.architecture) return false;
+      return (m.architecture.modality || '').includes('image') || (m.architecture.input_modalities || []).includes('image');
+    }).map(function(m) { return m.id; });
+    localStorage.setItem('labcharts-routstr-vision-models', JSON.stringify(visionIds));
+    localStorage.setItem('labcharts-routstr-models', JSON.stringify(models));
+    if (!localStorage.getItem('labcharts-routstr-model') && models.length) {
+      const claude = models.find(function(m) { return m.id === 'claude-sonnet-4.6'; });
+      if (claude) setRoutstrModel(claude.id);
+    }
+    return models;
+  } catch (e) { return []; }
+}
+export function getRoutstrPricing(modelId) {
+  let cached = {}; try { cached = JSON.parse(localStorage.getItem('labcharts-routstr-pricing') || '{}'); } catch(e) {}
+  return cached[modelId] || null;
+}
+export async function validateRoutstrKey(key) {
+  // Routstr uses Cashu tokens or session keys — format check, then save optimistically.
+  // Models endpoint is public (no auth), so we can't validate keys via model fetch.
+  // Actual auth errors (401/402) surface when the user sends a message.
+  if (!key.startsWith('sk-') && !key.startsWith('cashu')) {
+    return { valid: false, error: 'Key should start with sk-... (session key) or cashuA... (eCash token)' };
+  }
+  return { valid: true };
+}
+export async function callRoutstrAPI(opts) {
+  const key = getRoutstrKey();
+  if (!key) throw new Error('No Routstr key configured. Add your Cashu token or session key in Settings.');
+  return callOpenAICompatibleAPI(
+    'https://api.routstr.com/v1/chat/completions',
+    key, getRoutstrModel(), 'Routstr', opts
+  );
+}
+
 export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
   if (provider === 'ollama') return callOpenAICompatibleLocalAPI(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
+  if (provider === 'routstr') return callRoutstrAPI(opts);
   return callAnthropicAPI(opts);
 }
 
@@ -803,10 +897,12 @@ Object.assign(window, {
   getVeniceModel, setVeniceModel, getVeniceModelDisplay,
   getOpenRouterKey, saveOpenRouterKey, hasOpenRouterKey,
   getOpenRouterModel, setOpenRouterModel, getOpenRouterModelDisplay,
+  getRoutstrKey, saveRoutstrKey, hasRoutstrKey,
+  getRoutstrModel, setRoutstrModel, getRoutstrModelDisplay,
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
-  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing,
+  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing, fetchRoutstrModels, getRoutstrPricing,
   generatePKCE, startOpenRouterOAuth, exchangeOpenRouterCode,
   deduplicateModels,
   isRecommendedModel,
@@ -814,6 +910,6 @@ Object.assign(window, {
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   supportsVision, supportsWebSearch, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE,
-  validateApiKey, validateVeniceKey, validateOpenRouterKey,
-  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callClaudeAPI
+  validateApiKey, validateVeniceKey, validateOpenRouterKey, validateRoutstrKey,
+  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callRoutstrAPI, callClaudeAPI
 });

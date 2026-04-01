@@ -1,6 +1,6 @@
 # AI Providers
 
-getbased supports four AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI**.
+getbased supports five AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI**.
 
 ## Which Features Need an AI Provider?
 
@@ -20,7 +20,7 @@ getbased supports four AI backends for PDF import, chat, and dashboard AI featur
 
 All non-AI features work fully without any provider configured.
 
-## The Four Providers
+## The Five Providers
 
 ### OpenRouter (Recommended)
 
@@ -54,6 +54,20 @@ Direct access to Claude models via the Anthropic API. Claude was specifically de
 
 ::: tip Pay per use
 Anthropic charges per token. A typical PDF import costs a few cents. Chat responses cost fractions of a cent each.
+:::
+
+### Routstr (Pay with Bitcoin)
+
+Pay-as-you-go AI using Bitcoin micropayments. No account, no sign-up, no subscription. Fund with a Lightning invoice or paste a Cashu eCash token directly. Routstr routes to the same top models (Claude, GPT, Gemini, Grok, Llama, etc.) via an OpenAI-compatible API.
+
+**Setup:**
+1. Get a session key or Cashu token at [routstr.com](https://routstr.com)
+2. In Settings, select **Routstr**
+3. Paste your key (`sk-...`) or Cashu token (`cashuA...`)
+4. Choose a model from the curated dropdown
+
+::: tip No account needed
+Your key is a prepaid balance. When it runs out, top up with another Lightning payment or Cashu token. No email, no password, no credit card.
 :::
 
 ### Venice AI (Best for privacy)
@@ -145,10 +159,10 @@ Here's what real usage costs with the recommended models:
 
 | Model | Provider | Import a lab PDF | Chat message | First-time setup\* | Ongoing month\*\* |
 |---|---|---|---|---|---|
-| Claude Sonnet 4.6 | Anthropic / OpenRouter | ~$0.04 | ~$0.02 | **~$1.00** | **~$0.50** |
-| GPT 5.2 | OpenRouter / Venice | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
-| Gemini 3 Pro | OpenRouter / Venice | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
-| Grok 4 | OpenRouter / Venice | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
+| Claude Sonnet 4.6 | Anthropic / OpenRouter / Routstr | ~$0.04 | ~$0.02 | **~$1.00** | **~$0.50** |
+| GPT 5.4 | OpenRouter / Venice / Routstr | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
+| Gemini 3.1 Pro | OpenRouter / Venice / Routstr | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
+| Grok 4 | OpenRouter / Venice / Routstr | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
 | Any local model | Local AI (Ollama, LM Studio) | Free | Free | **Free** | **Free** |
 
 \* _First-time setup: importing your first labs + setting up your profile through chat (health goals, context cards, interpretive lens) — typically 3–5 imports and 30+ chat messages._

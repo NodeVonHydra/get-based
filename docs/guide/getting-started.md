@@ -35,7 +35,7 @@ Once installed, the full app shell works offline. AI features (PDF import, chat)
 When you open the app for the first time, the chat panel guides you through setup in a conversational flow:
 
 1. **Profile** — name, sex, date of birth, height, weight, location
-2. **AI provider** — connect OpenRouter (one-click OAuth), Anthropic, Venice, or Local AI. You can skip this step and set it up later
+2. **AI provider** — connect OpenRouter (one-click OAuth), Anthropic, Routstr (Bitcoin), Venice, or Local AI. You can skip this step and set it up later
 3. **Extras** — menstrual cycle setup (female profiles), supplements & medications, lifestyle context cards
 
 Each step is optional and skippable. The onboarding adapts based on your profile — female users get cycle tracking options (regular periods, perimenopause, postmenopause, pregnant, breastfeeding).

@@ -482,7 +482,7 @@
   // 15. AI PROVIDER SYSTEM — basic checks
   // ═══════════════════════════════════════════════
   const provider = window.getAIProvider();
-  assert('getAIProvider returns valid provider', ['anthropic','venice','ollama'].includes(provider));
+  assert('getAIProvider returns valid provider', ['anthropic','openrouter','routstr','venice','ollama'].includes(provider));
   const hasAI = window.hasAIProvider();
   assert('hasAIProvider returns boolean', typeof hasAI === 'boolean');
 
