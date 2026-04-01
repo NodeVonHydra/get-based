@@ -7,16 +7,13 @@ const CHANGELOG = [
   {
     version: '1.13.4', date: '2026-04-01', title: 'Codebase Audit',
     items: [
-      '<strong>Encryption</strong> \u2014 Fix stack overflow when encrypting large profiles (toBase64 used spread operator, now loop-based). Change passphrase enforces same 8+ char strength rules as initial setup (was only 4 chars)',
-      '<strong>Calculated markers</strong> \u2014 Free Water Deficit uses actual body weight from biometrics instead of hardcoded 70kg. A 50kg person was getting results 40% off',
-      '<strong>AI streaming</strong> \u2014 Errors from all 3 provider types (Anthropic, Ollama, OpenAI-compatible) now surface to the user. Were silently swallowed by empty catch blocks \u2014 context overflow and rate limits showed as blank responses',
-      '<strong>DNA import</strong> \u2014 Worker created fresh per parse and terminated after. Previously reused a single worker \u2014 dropping two files quickly caused the first parse to hang for 30s',
-      '<strong>Chat + encryption</strong> \u2014 Chat import and Clear All Data now read/write through the encrypted store when encryption is enabled. Previously used plain localStorage, losing the thread index or orphaning encrypted keys',
-      '<strong>Accessibility</strong> \u2014 Text contrast (--text-muted) raised to WCAG AA in both dark and light themes. Chat personality selector now keyboard-accessible with tabindex, role, aria-expanded. Mobile sidebar locks body scroll on iOS',
-      '<strong>Light theme</strong> \u2014 Chat tables, callouts, and blockquotes were invisible (hardcoded rgba(255,255,255,...) backgrounds). Now use theme-aware var(--bg-hover)',
-      '<strong>Touch targets</strong> \u2014 18 interactive element types raised to 44px minimum tap target on touch devices (view toggles, context card pills, tags, chart layers, EMF tabs, date range, compare swap, thread buttons)',
-      '<strong>Security</strong> \u2014 EMF photo mediaType validated against image allowlist before img src injection. Chart note dots filtered when same-date interpolation produces NaN',
-      '<strong>Dead code</strong> \u2014 Removed 6 unused functions (switchSex, switchDob, updateLocationLat, countMissing, getAdapters, _resetCatalog), 6 dead CSS class blocks, 3 orphaned data files. Gated 4 ungated console.error/log calls behind isDebugMode()',
+      'Fix encryption crash on large profiles and enforce passphrase strength on change',
+      'Free Water Deficit now uses actual body weight instead of hardcoded 70kg',
+      'AI streaming errors now surface instead of showing blank responses',
+      'Fix DNA import timeout when dropping two files quickly',
+      'Fix chat import and data clearing when encryption is enabled',
+      'WCAG AA text contrast, light theme chat visibility, mobile scroll lock, 44px touch targets',
+      'Dead code cleanup \u2014 6 unused functions, 6 CSS classes, 3 orphaned files removed',
     ]
   },
   {
