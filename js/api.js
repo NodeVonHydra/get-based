@@ -478,6 +478,9 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
         if (data === '[DONE]') continue;
         try {
           const event = JSON.parse(data);
+          if (event.type === 'error') {
+            throw new Error(event.error?.message || 'Streaming error from Anthropic');
+          }
           if (event.type === 'content_block_delta' && event.delta?.text) {
             fullText += event.delta.text;
             onStream(fullText);
@@ -486,7 +489,7 @@ export async function callAnthropicAPI({ system, messages, maxTokens, onStream, 
           } else if (event.type === 'message_delta' && event.usage) {
             outputTokens = event.usage.output_tokens || 0;
           }
-        } catch {}
+        } catch (parseErr) { if (parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr; }
       }
     }
     return { text: fullText, usage: { inputTokens, outputTokens } };
@@ -568,6 +571,7 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
         if (!line.trim()) continue;
         try {
           const event = JSON.parse(line);
+          if (event.error) throw new Error(event.error);
           if (event.message?.content) {
             fullText += event.message.content;
             onStream(fullText);
@@ -576,7 +580,7 @@ export async function callOllamaChat({ system, messages, maxTokens, onStream, si
             inputTokens = event.prompt_eval_count || 0;
             outputTokens = event.eval_count || 0;
           }
-        } catch {}
+        } catch (parseErr) { if (parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr; }
       }
     }
     return { text: fullText, usage: { inputTokens, outputTokens } };
@@ -640,6 +644,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
         if (data === '[DONE]') continue;
         try {
           const event = JSON.parse(data);
+          if (event.error) throw new Error(event.error.message || JSON.stringify(event.error));
           if (event.choices?.[0]?.delta?.content) {
             fullText += event.choices[0].delta.content;
             onStream(fullText);
@@ -648,7 +653,7 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
             inputTokens = event.usage.prompt_tokens || inputTokens;
             outputTokens = event.usage.completion_tokens || outputTokens;
           }
-        } catch {}
+        } catch (parseErr) { if (parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr; }
       }
     }
     return { text: fullText, usage: { inputTokens, outputTokens } };

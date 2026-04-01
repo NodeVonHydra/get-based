@@ -108,7 +108,9 @@ async function decrypt(key, iv, ciphertext) {
 }
 
 function toBase64(arr) {
-  return btoa(String.fromCharCode(...arr));
+  let binary = '';
+  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+  return btoa(binary);
 }
 
 function fromBase64(str) {
@@ -597,7 +599,8 @@ export async function changePassphrase() {
     const newP = new1Input.value;
     const newP2 = new2Input.value;
     if (!oldP) { errorEl.textContent = 'Enter current passphrase'; return; }
-    if (!newP || newP.length < 4) { errorEl.textContent = 'New passphrase must be at least 4 characters'; return; }
+    const validation = validatePassphrase(newP);
+    if (!validation.valid) { errorEl.textContent = validation.message; return; }
     if (newP !== newP2) { errorEl.textContent = 'New passphrases do not match'; return; }
 
     btn.disabled = true;

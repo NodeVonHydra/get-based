@@ -113,7 +113,7 @@
     'renderDateRangeFilter','setDateRange',
     'renderChartLayersDropdown','toggleChartLayersDropdown','setSuppOverlay','setNoteOverlay',
     'destroyAllCharts',
-    'countFlagged','countMissing','getLatestValueIndex','getAllFlaggedMarkers',
+    'countFlagged','getLatestValueIndex','getAllFlaggedMarkers',
     'statusIcon',
     'detectTrendAlerts','getKeyTrendMarkers',
     'switchUnitSystem','getEffectiveRange','switchRangeMode',
@@ -167,10 +167,9 @@
     'getProfileSex','setProfileSex','getProfileDob','setProfileDob',
     'getProfileLocation','setProfileLocation',
     'getLocationCache','setLocationCache',
-    'latitudeToBand','updateLocationLat','getLatitudeFromLocation',
+    'latitudeToBand','getLatitudeFromLocation',
     'updateProfileMeta','getAllTags','touchProfileTimestamp',
     'loadProfile','getActiveProfileId','setActiveProfileId',
-    'switchSex','switchDob',
     'detectLatitudeWithAI'
   ];
 

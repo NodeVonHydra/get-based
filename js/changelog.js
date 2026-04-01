@@ -5,6 +5,22 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.13.4', date: '2026-04-01', title: 'Codebase Audit',
+    items: [
+      'Fix encryption stack overflow on large profiles \u2014 toBase64 now handles payloads of any size',
+      'Change passphrase now enforces same strength requirements as initial setup',
+      'Free Water Deficit uses actual body weight from biometrics instead of hardcoded 70kg',
+      'Improved text contrast in both dark and light themes (WCAG AA compliance)',
+      'Fix chat elements invisible in light theme (tables, callouts, blockquotes)',
+      'Fix mobile sidebar background scroll on iOS',
+      'Streaming errors from AI providers now surface instead of being silently swallowed',
+      'Fix DNA worker reuse bug causing timeout on rapid sequential imports',
+      'Chat import now works correctly when encryption is enabled',
+      'Touch targets enlarged to 44px minimum on all interactive elements',
+      'Dead code cleanup \u2014 removed 6 unused functions, 6 dead CSS classes, 3 orphaned data files',
+    ]
+  },
+  {
     version: '1.13.2', date: '2026-03-31', title: 'Agent Access',
     items: [
       'ISO timestamps on all lab values in AI context \u2014 precise dates instead of month/year for better trend analysis',

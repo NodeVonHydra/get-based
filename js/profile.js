@@ -427,17 +427,6 @@ export function setProfileSex(profileId, sex) {
   if (p) { p.sex = sex; saveProfiles(profiles); }
 }
 
-export function switchSex(sex) {
-  state.profileSex = sex;
-  setProfileSex(state.currentProfile, sex);
-  const data = window.getActiveData();
-  const activeNav = document.querySelector('.nav-item.active');
-  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
-  window.buildSidebar(data);
-  window.updateHeaderDates(data);
-  window.navigate(activeCat, data);
-}
-
 export function getProfileDob(profileId) {
   const profiles = getProfiles();
   const p = profiles.find(p => p.id === profileId);
@@ -633,17 +622,6 @@ export function getLatitudeFromLocation(optCountry, optZip) {
   return null;
 }
 
-export function switchDob(dob) {
-  state.profileDob = dob || null;
-  setProfileDob(state.currentProfile, state.profileDob);
-  const data = window.getActiveData();
-  const activeNav = document.querySelector('.nav-item.active');
-  const activeCat = activeNav ? activeNav.dataset.category : 'dashboard';
-  window.buildSidebar(data);
-  window.updateHeaderDates(data);
-  window.navigate(activeCat, data);
-}
-
 Object.assign(window, {
   profileStorageKey,
   getProfiles,
@@ -665,16 +643,12 @@ Object.assign(window, {
   getLocationCache,
   setLocationCache,
   latitudeToBand,
-  updateLocationLat,
   getLatitudeFromLocation,
   updateProfileMeta,
   getAllTags,
   touchProfileTimestamp,
-  // Additional functions needed by other modules or HTML handlers
   loadProfile,
   getActiveProfileId,
   setActiveProfileId,
-  switchSex,
-  switchDob,
   detectLatitudeWithAI,
 });

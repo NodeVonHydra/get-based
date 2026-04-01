@@ -119,7 +119,7 @@ export const noteAnnotationPlugin = {
           }
         }
       }
-      if (pixelX == null || pixelX < left || pixelX > right) continue;
+      if (pixelX == null || isNaN(pixelX) || pixelX < left || pixelX > right) continue;
       dots.push({ x: pixelX, y: DOT_Y, radius: DOT_RADIUS, note });
     }
     return dots;

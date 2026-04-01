@@ -1709,6 +1709,8 @@ export function togglePersonalityBar() {
   const bar = document.querySelector('.chat-personality-bar');
   if (options && bar) {
     bar.classList.toggle('open');
+    const trigger = document.querySelector('.chat-personality-current');
+    if (trigger) trigger.setAttribute('aria-expanded', bar.classList.contains('open'));
   }
 }
 

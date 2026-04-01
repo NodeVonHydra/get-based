@@ -134,7 +134,7 @@
         </div>
       </div>
       <div class="chat-personality-bar">
-        <div class="chat-personality-current" onclick="togglePersonalityBar()">
+        <div class="chat-personality-current" tabindex="0" role="button" aria-expanded="false" onclick="togglePersonalityBar()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePersonalityBar()}">
           <span class="chat-personality-current-icon">&#128300;</span>
           <span class="chat-personality-current-name">AI Lab Analyst</span>
           <span class="chat-personality-current-arrow">&#9662;</span>

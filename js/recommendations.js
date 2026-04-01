@@ -29,9 +29,6 @@ export async function loadCatalog() {
   return _catalogPromise;
 }
 
-// For tests — reset cached catalog
-export function _resetCatalog() { _catalog = undefined; _catalogPromise = null; }
-
 // ═══════════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════════

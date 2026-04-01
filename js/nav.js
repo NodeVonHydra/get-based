@@ -194,12 +194,14 @@ export function toggleMobileSidebar() {
   } else {
     sidebar.classList.add('mobile-open');
     backdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
   }
 }
 
 export function closeMobileSidebar() {
   document.getElementById('sidebar-nav').classList.remove('mobile-open');
   document.getElementById('sidebar-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
 Object.assign(window, { buildSidebar, filterSidebar, toggleNavGroup, toggleGroupAIContext, renderProfileDropdown, renderProfileButton, getAvatarColor, toggleMobileSidebar, closeMobileSidebar });

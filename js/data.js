@@ -330,13 +330,15 @@ export function getActiveData() {
       return Math.round((u * 2.801) / (c * 0.01131) * 10) / 10;
     });
 
-    // Free Water Deficit — TBW × (Na/140 − 1), assumes 70kg body weight
+    // Free Water Deficit — TBW × (Na/140 − 1), uses latest weight or 70kg fallback
     const sodiumVals = getVals('electrolytes', 'sodium');
+    const weightArr = state.importedData?.biometrics?.weight;
+    const latestWeight = Array.isArray(weightArr) && weightArr.length > 0 ? weightArr[weightArr.length - 1].value : null;
     ratios.markers.freeWaterDeficit.values = sortedDates.map((_, i) => {
       const na = sodiumVals ? sodiumVals[i] : null;
       if (na == null || na <= 0) return null;
       const tbwFactor = state.profileSex === 'female' ? 0.5 : 0.6;
-      const tbw = 70 * tbwFactor;
+      const tbw = (latestWeight || 70) * tbwFactor;
       const fwd = tbw * (na / 140 - 1);
       return Math.round(fwd * 100) / 100;
     });
@@ -669,12 +671,6 @@ export function countFlagged(markers) {
   return c;
 }
 
-export function countMissing(markers) {
-  let c = 0;
-  for (const m of markers) { if (m.values.every(v=>v===null)) c++; }
-  return c;
-}
-
 export function getLatestValueIndex(values) {
   for (let i=values.length-1;i>=0;i--) if (values[i]!==null) return i;
   return -1;
@@ -888,4 +884,4 @@ export function updateHeaderRangeToggle() {
   ).join('');
 }
 
-Object.assign(window, { saveImportedData, getFocusCardFingerprint, getActiveData, applyUnitConversion, filterDatesByRange, recalculateHOMAIR, renderDateRangeFilter, setDateRange, renderChartLayersDropdown, toggleChartLayersDropdown, setSuppOverlay, setNoteOverlay, setPhaseOverlay, destroyAllCharts, countFlagged, countMissing, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, switchUnitSystem, getEffectiveRange, getEffectiveRangeForDate, getPhaseRefEnvelope, switchRangeMode, updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback });
+Object.assign(window, { saveImportedData, getFocusCardFingerprint, getActiveData, applyUnitConversion, filterDatesByRange, recalculateHOMAIR, renderDateRangeFilter, setDateRange, renderChartLayersDropdown, toggleChartLayersDropdown, setSuppOverlay, setNoteOverlay, setPhaseOverlay, destroyAllCharts, countFlagged, getLatestValueIndex, getAllFlaggedMarkers, statusIcon, detectTrendAlerts, getKeyTrendMarkers, switchUnitSystem, getEffectiveRange, getEffectiveRangeForDate, getPhaseRefEnvelope, switchRangeMode, updateHeaderDates, updateHeaderRangeToggle, registerRefreshCallback });

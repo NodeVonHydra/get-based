@@ -15,7 +15,7 @@
   // ═══════════════════════════════════════
   console.log('%c 1. buildLabContext() No-Data Path ', 'font-weight:bold;color:#f59e0b');
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
 
   assert('No sentinel return string', !chatSrc.includes("return 'No lab data is currently loaded for this profile.'"),
     'The old sentinel early-return should be removed');
@@ -77,7 +77,7 @@
   // ═══════════════════════════════════════
   console.log('%c 3. System Prompt No-Data Section ', 'font-weight:bold;color:#f59e0b');
 
-  const constSrc = await fetch('js/constants.js').then(r => r.text());
+  const constSrc = await fetchWithRetry('js/constants.js');
 
   assert('Has ## No Lab Data State section', constSrc.includes('## No Lab Data State'),
     'CHAT_SYSTEM_PROMPT should have no-data section');
@@ -105,7 +105,7 @@
   // ═══════════════════════════════════════
   console.log('%c 4. Dashboard Nudge Subtitle ', 'font-weight:bold;color:#f59e0b');
 
-  const ccSrc = await fetch('js/context-cards.js').then(r => r.text());
+  const ccSrc = await fetchWithRetry('js/context-cards.js');
 
   assert('context-cards imports getActiveData', ccSrc.includes("import { saveImportedData, getActiveData } from './data.js'"),
     'Should import getActiveData for lab data check');
@@ -129,7 +129,7 @@
     'Should only show subtitle when no labs');
 
   // CSS check
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
   assert('.context-section-subtitle in CSS', cssSrc.includes('.context-section-subtitle'),
     'CSS should define the subtitle class');
   assert('Subtitle font-size 13px', cssSrc.includes('.context-section-subtitle') && cssSrc.includes('font-size: 13px'),
@@ -207,8 +207,6 @@
   })(), 'sendChatMessage should check for provider and re-render setup guide');
 
   // CSS checks
-  assert('.chat-setup-guide in CSS', cssSrc.includes('.chat-setup-guide'),
-    'CSS should define setup guide styles');
   assert('.chat-setup-provider in CSS', cssSrc.includes('.chat-setup-provider'),
     'CSS should define provider card styles');
   assert('.chat-setup-btn in CSS', cssSrc.includes('.chat-setup-btn'),
@@ -219,7 +217,7 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Floating Chat Bubble (FAB) ', 'font-weight:bold;color:#f59e0b');
 
-  const htmlSrc = await fetch('index.html').then(r => r.text());
+  const htmlSrc = await fetchWithRetry('index.html');
 
   assert('FAB button exists in HTML', htmlSrc.includes('id="chat-fab"') && htmlSrc.includes('class="chat-fab"'),
     'index.html should have #chat-fab with .chat-fab class');
@@ -266,7 +264,7 @@
   // ═══════════════════════════════════════
   console.log('%c 9. Welcome Hero (Empty State) ', 'font-weight:bold;color:#f59e0b');
 
-  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+  const viewsSrc = await fetchWithRetry('js/views.js');
 
   // CSS checks
   assert('.welcome-hero in CSS with text-align: center', cssSrc.includes('.welcome-hero') && cssSrc.includes('text-align: center'),

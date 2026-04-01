@@ -613,7 +613,7 @@ async function onSyncReceived() {
           dbg(`Row ${profileId}: skip (remote ${remoteUpdated} <= local ${localUpdated})`);
           continue;
         }
-        console.log(`[sync] Row ${profileId}: PULLING (remote ${remoteUpdated} > local ${localUpdated})`);
+        dbg(`Row ${profileId}: PULLING (remote ${remoteUpdated} > local ${localUpdated})`);
 
         // Remote is newer — parse payload
         const { importedData, profile, aiSettings, chatData, displayPrefs } = parseSyncPayload(row.dataJson);

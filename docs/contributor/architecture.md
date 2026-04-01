@@ -19,7 +19,6 @@ styles.css          — All CSS: dark/light themes, 10 responsive breakpoints, a
 manifest.json       — PWA manifest (installable as a native app)
 service-worker.js   — PWA cache strategies, API bypass rules
 data/
-  seed-data.json    — Baseline importable JSON with 4 lab entries
   demo-female.json  — Female demo profile (Sarah)
   demo-male.json    — Male demo profile (Alex)
 

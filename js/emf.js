@@ -3,6 +3,9 @@
 
 import { state } from './state.js';
 import { SBM_2015_THRESHOLDS, getEMFSeverity, calculateCost, formatCost, trackUsage } from './schema.js';
+
+const SAFE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+function safeMediaType(t) { return SAFE_IMAGE_TYPES.includes(t) ? t : 'image/png'; }
 import { EMF_ROOM_PRESETS, EMF_SOURCES, EMF_MITIGATIONS, EMF_METER_PRESETS } from './constants.js';
 import { escapeHTML, showNotification, showConfirmDialog, isPIIReviewEnabled } from './utils.js';
 import { saveImportedData } from './data.js';
@@ -290,7 +293,7 @@ function renderRoomContent(assessmentId, roomIdx, room, roomCount) {
     <label class="emf-tags-label">Photos</label>
     <div class="emf-photos-grid">
       ${photos.map((p, pi) => `<div class="emf-photo-thumb">
-        <img src="data:${p.mediaType};base64,${p.base64}" alt="${escapeHTML(p.name || 'Photo')}" onclick="viewEMFPhoto('${assessmentId}',${roomIdx},${pi})">
+        <img src="data:${safeMediaType(p.mediaType)};base64,${p.base64}" alt="${escapeHTML(p.name || 'Photo')}" onclick="viewEMFPhoto('${assessmentId}',${roomIdx},${pi})">
         <button class="emf-photo-remove" onclick="removeEMFPhoto('${assessmentId}',${roomIdx},${pi})" title="Remove">&times;</button>
       </div>`).join('')}
       <label class="emf-photo-add" title="Add photo">
@@ -1007,7 +1010,7 @@ export function viewEMFPhoto(assessmentId, roomIdx, photoIdx) {
   const overlay = document.createElement('div');
   overlay.className = 'emf-lightbox';
   overlay.onclick = () => overlay.remove();
-  overlay.innerHTML = `<img src="data:${photo.mediaType};base64,${photo.base64}" alt="${escapeHTML(photo.name || 'Photo')}">`;
+  overlay.innerHTML = `<img src="data:${safeMediaType(photo.mediaType)};base64,${photo.base64}" alt="${escapeHTML(photo.name || 'Photo')}">`;
   document.body.appendChild(overlay);
 }
 

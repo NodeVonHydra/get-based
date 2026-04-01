@@ -79,6 +79,7 @@ export function setPIIReviewEnabled(on) { localStorage.setItem('labcharts-pii-re
 export function showNotification(message, type, duration) {
   type = type || "info";
   const container = document.getElementById("notification-container");
+  if (!container) return;
   const toast = document.createElement("div");
   toast.className = `notification-toast ${type}`;
   if (type === 'error') toast.setAttribute('role', 'alert');

@@ -356,7 +356,12 @@ async function _exportChatData(profileId) {
 async function _importChatData(profileId, chat) {
   if (!chat || !Array.isArray(chat.threads)) return;
   // Read existing threads to merge
-  const existingRaw = localStorage.getItem(`labcharts-${profileId}-chat-threads`);
+  let existingRaw;
+  if (getEncryptionEnabled()) {
+    try { existingRaw = await encryptedGetItem(`labcharts-${profileId}-chat-threads`); } catch { existingRaw = null; }
+  } else {
+    existingRaw = localStorage.getItem(`labcharts-${profileId}-chat-threads`);
+  }
   let existing;
   try { existing = existingRaw ? JSON.parse(existingRaw) : []; } catch { existing = []; }
   const existingIds = new Set(existing.map(t => t.id));
@@ -369,7 +374,9 @@ async function _importChatData(profileId, chat) {
     if (getEncryptionEnabled()) { await encryptedSetItem(`labcharts-${profileId}-chat-t_${t.id}`, value); }
     else { localStorage.setItem(`labcharts-${profileId}-chat-t_${t.id}`, value); }
   }
-  localStorage.setItem(`labcharts-${profileId}-chat-threads`, JSON.stringify(existing));
+  const threadsJson = JSON.stringify(existing);
+  if (getEncryptionEnabled()) { await encryptedSetItem(`labcharts-${profileId}-chat-threads`, threadsJson); }
+  else { localStorage.setItem(`labcharts-${profileId}-chat-threads`, threadsJson); }
   // Restore personality + custom personas (only if not already set)
   if (chat.personality && !localStorage.getItem(`labcharts-${profileId}-chatPersonality`)) {
     localStorage.setItem(`labcharts-${profileId}-chatPersonality`, chat.personality);
@@ -882,7 +889,7 @@ export function clearAllData() {
   const msg = profiles.length > 1
     ? `Clear ALL data across ${profiles.length} profiles? This cannot be undone.`
     : 'Are you sure you want to clear all imported data? This cannot be undone.';
-  showConfirmDialog(msg, () => {
+  showConfirmDialog(msg, async () => {
     // Wipe storage for every profile
     for (const p of profiles) {
       const id = p.id;
@@ -892,7 +899,12 @@ export function clearAllData() {
       localStorage.removeItem(profileStorageKey(id, 'noteOverlay'));
       localStorage.removeItem(profileStorageKey(id, 'rangeMode'));
       localStorage.removeItem(`labcharts-${id}-chat`);
-      const threadIndexRaw = localStorage.getItem(`labcharts-${id}-chat-threads`);
+      let threadIndexRaw;
+      if (getEncryptionEnabled()) {
+        try { threadIndexRaw = await encryptedGetItem(`labcharts-${id}-chat-threads`); } catch { threadIndexRaw = null; }
+      } else {
+        threadIndexRaw = localStorage.getItem(`labcharts-${id}-chat-threads`);
+      }
       if (threadIndexRaw) {
         try { for (const t of JSON.parse(threadIndexRaw)) localStorage.removeItem(`labcharts-${id}-chat-t_${t.id}`); } catch {}
         localStorage.removeItem(`labcharts-${id}-chat-threads`);
