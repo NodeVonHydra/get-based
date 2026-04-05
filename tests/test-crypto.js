@@ -308,7 +308,7 @@
   // 14. crypto.js source inspection
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/crypto.js').then(r => r.text());
+    const src = await fetchWithRetry('js/crypto.js');
     assert('crypto.js uses PBKDF2', src.includes('PBKDF2'));
     assert('crypto.js uses AES-GCM', src.includes('AES-GCM'));
     assert('crypto.js has 600000 iterations', src.includes('600000'));
@@ -352,7 +352,7 @@
   // 16. saveImportedData is async
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('saveImportedData is async', src.includes('async function saveImportedData'));
     assert('saveImportedData calls broadcastDataChanged', src.includes('broadcastDataChanged'));
     assert('saveImportedData calls encryptedSetItem', src.includes('encryptedSetItem'));
@@ -364,7 +364,7 @@
   // 17. Profile loadProfile is async
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/profile.js').then(r => r.text());
+    const src = await fetchWithRetry('js/profile.js');
     assert('loadProfile is async', src.includes('async function loadProfile'));
     assert('saveProfiles is async', src.includes('async function saveProfiles'));
     assert('initProfilesCache exists', src.includes('async function initProfilesCache'));
@@ -377,7 +377,7 @@
   // 18. main.js async init
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/main.js').then(r => r.text());
+    const src = await fetchWithRetry('js/main.js');
     assert('DOMContentLoaded is async', src.includes('async ()'));
     assert('main.js awaits initEncryption', src.includes('await initEncryption()'));
     assert('main.js calls initBroadcastChannel', src.includes('initBroadcastChannel()'));
@@ -392,7 +392,7 @@
   // 19. Settings modal includes security + backup
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/settings.js').then(r => r.text());
+    const src = await fetchWithRetry('js/settings.js');
     assert('settings.js imports renderEncryptionSection', src.includes('renderEncryptionSection'));
     assert('settings.js imports renderBackupSection', src.includes('renderBackupSection'));
     assert('settings.js has Security group', src.includes('Security'));
@@ -428,7 +428,7 @@
   // 22. buildBackupSnapshot includes per-profile prefs
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/crypto.js').then(r => r.text());
+    const src = await fetchWithRetry('js/crypto.js');
     assert('crypto.js has PER_PROFILE_PREF_SUFFIXES', src.includes('PER_PROFILE_PREF_SUFFIXES'));
     assert('crypto.js includes units in prefs', src.includes("'units'"));
     assert('crypto.js includes rangeMode in prefs', src.includes("'rangeMode'"));
@@ -452,7 +452,7 @@
   // 23. data.js calls scheduleAutoBackup
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('data.js imports scheduleAutoBackup', src.includes('scheduleAutoBackup'));
     assert('data.js calls scheduleAutoBackup in saveImportedData', src.includes('scheduleAutoBackup()'));
   } catch (e) {

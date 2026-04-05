@@ -359,15 +359,16 @@ export async function restoreFromMnemonic(mnemonic) {
 // AI settings keys to sync (global, not per-profile)
 const AI_SETTINGS_KEYS = [
   'labcharts-ai-provider',
-  'labcharts-api-key',           // Anthropic key (encrypted)
   'labcharts-openrouter-key',    // OpenRouter key (encrypted)
   'labcharts-venice-key',        // Venice key (encrypted)
   'labcharts-routstr-key',       // Routstr key (encrypted)
+  'labcharts-ppq-key',           // PPQ key (encrypted)
+  'labcharts-ppq-credit-id',     // PPQ credit ID (for balance/topup)
   'labcharts-ollama',            // Local AI server config (encrypted)
-  'labcharts-anthropic-model',
   'labcharts-openrouter-model',
   'labcharts-venice-model',
   'labcharts-routstr-model',
+  'labcharts-ppq-model',
   'labcharts-venice-e2ee',
   'labcharts-ollama-model',
   'labcharts-ollama-pii-url',
@@ -383,7 +384,7 @@ async function collectAISettings() {
   return settings;
 }
 
-const ENCRYPTED_AI_KEYS = ['labcharts-api-key', 'labcharts-openrouter-key', 'labcharts-venice-key', 'labcharts-routstr-key', 'labcharts-ollama'];
+const ENCRYPTED_AI_KEYS = ['labcharts-openrouter-key', 'labcharts-venice-key', 'labcharts-routstr-key', 'labcharts-ppq-key', 'labcharts-ollama'];
 
 async function applyAISettings(settings) {
   if (!settings) return;

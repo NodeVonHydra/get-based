@@ -10,14 +10,14 @@
 
   console.log('%c Supplement & Lifestyle Recommendations Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const recSrc = await fetch('js/recommendations.js').then(r => r.text());
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
-  const viewsSrc = await fetch('js/views.js').then(r => r.text());
-  const contextSrc = await fetch('js/context-cards.js').then(r => r.text());
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
-  const constantsSrc = await fetch('js/constants.js').then(r => r.text());
-  const swSrc = await fetch('service-worker.js').then(r => r.text());
+  const recSrc = await fetchWithRetry('js/recommendations.js');
+  const mainSrc = await fetchWithRetry('js/main.js');
+  const chatSrc = await fetchWithRetry('js/chat.js');
+  const viewsSrc = await fetchWithRetry('js/views.js');
+  const contextSrc = await fetchWithRetry('js/context-cards.js');
+  const settingsSrc = await fetchWithRetry('js/settings.js');
+  const constantsSrc = await fetchWithRetry('js/constants.js');
+  const swSrc = await fetchWithRetry('service-worker.js');
 
   // ═══════════════════════════════════════
   // 1. Module structure
@@ -141,7 +141,7 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Schema & Keyword Safety ', 'font-weight:bold;color:#f59e0b');
 
-  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  const schemaSrc = await fetchWithRetry('js/schema.js');
   assert('MARKER_SCHEMA has vitamins.vitaminB12', schemaSrc.includes("vitaminB12: { name:"));
   assert('MARKER_SCHEMA has vitamins.folate', schemaSrc.includes("folate: { name:"));
   assert('UNIT_CONVERSIONS has vitaminB12', schemaSrc.includes("'vitamins.vitaminB12'"));

@@ -45,11 +45,6 @@
   console.log('%c 3. formatImageBlock ', 'font-weight:bold;color:#f59e0b');
 
   const b64 = 'dGVzdA=='; // "test" in base64
-  const anthropicBlock = window.formatImageBlock(b64, 'image/jpeg', 'anthropic');
-  assert('Anthropic block type', anthropicBlock.type === 'image');
-  assert('Anthropic source type', anthropicBlock.source.type === 'base64');
-  assert('Anthropic media_type', anthropicBlock.source.media_type === 'image/jpeg');
-  assert('Anthropic data', anthropicBlock.source.data === b64);
 
   const openaiBlock = window.formatImageBlock(b64, 'image/png', 'openrouter');
   assert('OpenAI block type', openaiBlock.type === 'image_url');
@@ -67,12 +62,12 @@
   // ═══════════════════════════════════════
   console.log('%c 4. buildVisionContent ', 'font-weight:bold;color:#f59e0b');
 
-  const imgBlocks = [anthropicBlock, anthropicBlock];
+  const imgBlocks = [openaiBlock, openaiBlock];
   const content = window.buildVisionContent(imgBlocks, 'What is this?', 'anthropic');
   assert('Vision content has images + text', content.length === 3);
   assert('Last element is text', content[2].type === 'text' && content[2].text === 'What is this?');
 
-  const noText = window.buildVisionContent([anthropicBlock], '', 'anthropic');
+  const noText = window.buildVisionContent([openaiBlock], '', 'openrouter');
   assert('Empty text omitted', noText.length === 1);
 
   // ═══════════════════════════════════════
@@ -128,19 +123,19 @@
   // ═══════════════════════════════════════
   console.log('%c 9. Source Code ', 'font-weight:bold;color:#f59e0b');
 
-  const apiSrc = await fetch('js/api.js').then(r => r.text());
+  const apiSrc = await fetchWithRetry('js/api.js');
   assert('supportsVision function in api.js', apiSrc.includes('export function supportsVision'));
   assert('Vision models cached in fetchOpenRouterModels', apiSrc.includes('labcharts-openrouter-vision-models'));
   assert('Ollama image normalization', apiSrc.includes('ollamaMsg.images = images'));
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
   assert('Chat imports supportsVision', chatSrc.includes('supportsVision'));
   assert('Chat imports image-utils', chatSrc.includes("from './image-utils.js'"));
   assert('Pending attachments variable', chatSrc.includes('_pendingAttachments'));
   assert('Image badge in renderChatMessages', chatSrc.includes('chat-image-badge'));
   assert('buildVisionContent used in sendChatMessage', chatSrc.includes('buildVisionContent(imageBlocks'));
 
-  const pdfSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  const pdfSrc = await fetchWithRetry('js/pdf-import.js');
   assert('assessTextQuality in pdf-import', pdfSrc.includes('export function assessTextQuality'));
   assert('extractPDFImages in pdf-import', pdfSrc.includes('export async function extractPDFImages'));
   assert('parseLabPDFWithAIImages in pdf-import', pdfSrc.includes('export async function parseLabPDFWithAIImages'));

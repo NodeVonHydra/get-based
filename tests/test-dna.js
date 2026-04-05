@@ -194,18 +194,18 @@ i123456\t1\t100\tAA
   // ═══════════════════════════════════════
   console.log('%c 12. Source Integration ', 'font-weight:bold;color:#f59e0b');
 
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  const mainSrc = await fetchWithRetry('js/main.js');
   assert('main.js imports dna.js', mainSrc.includes("'./dna.js'"));
   assert('main.js checks isDNAFile', mainSrc.includes('isDNAFile'));
   assert('main.js calls handleDNAFile', mainSrc.includes('handleDNAFile'));
 
-  const pdfSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  const pdfSrc = await fetchWithRetry('js/pdf-import.js');
   assert('pdf-import.js checks isDNAFile in drop', pdfSrc.includes('isDNAFile'));
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
   assert('chat.js includes genetics in context', chatSrc.includes('_buildGeneticsContext'));
 
-  const indexSrc = await fetch('/app').then(r => r.text());
+  const indexSrc = await fetchWithRetry('/app');
   assert('File input accepts .txt', indexSrc.includes('.txt'));
 
   // ═══════════════════════════════════════

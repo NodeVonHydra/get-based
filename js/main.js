@@ -157,9 +157,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       for (const f of jsonFiles) window.importDataJSON(f);
       if (dnaFiles.length > 0) {
         for (const f of dnaFiles) {
-          const header = await f.slice(0, 500).text();
+          const header = await f.slice(0, 1500).text();
           const fmt = window.detectDNAFile ? window.detectDNAFile(header) : null;
-          if (fmt === 'mtdna' && window.handleMtDNAFile) await window.handleMtDNAFile(f);
+          if ((fmt === 'mtdna' || fmt === '23andme-mito') && window.handleMtDNAFile) await window.handleMtDNAFile(f);
+          else if (fmt === '23andme-y') { showNotification('Y-chromosome DNA files are not supported', 'info'); }
           else await window.handleDNAFile(f);
         }
       }

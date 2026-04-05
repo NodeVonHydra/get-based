@@ -15,7 +15,7 @@
   // ═══════════════════════════════════════
   console.log('%c 1. PhenoAge SI Coefficients ', 'font-weight:bold;color:#f59e0b');
 
-  const dataSrc = await fetch('js/data.js').then(r => r.text());
+  const dataSrc = await fetchWithRetry('js/data.js');
   assert('PhenoAge uses SI albumin directly', dataSrc.includes('0.0336  * albumin_si'));
   assert('PhenoAge uses SI creatinine directly', dataSrc.includes('0.0095  * creatinine_si'));
   assert('PhenoAge uses SI glucose directly', dataSrc.includes('0.1953  * glucose_si'));
@@ -27,10 +27,10 @@
   // ═══════════════════════════════════════
   console.log('%c 2. Service Worker Registration ', 'font-weight:bold;color:#f59e0b');
 
-  const indexSrc = await fetch('/app').then(r => r.text());
+  const indexSrc = await fetchWithRetry('/app');
   assert('SW registration uses absolute path', indexSrc.includes("'/service-worker.js'") || indexSrc.includes('"/service-worker.js"'));
   assert('SW registration has catch handler', indexSrc.includes('.catch('));
-  const swAuditSrc = await fetch('service-worker.js').then(r => r.text());
+  const swAuditSrc = await fetchWithRetry('service-worker.js');
   assert('SW uses importScripts for version', swAuditSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swAuditSrc.includes('`labcharts-v${self.APP_VERSION}`'));
   assert('Umami analytics script present (self-hosted)', indexSrc.includes('umami-iota-olive.vercel.app/script.js'));
@@ -41,7 +41,7 @@
   // ═══════════════════════════════════════
   console.log('%c 3. XSS Prevention ', 'font-weight:bold;color:#f59e0b');
 
-  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+  const viewsSrc = await fetchWithRetry('js/views.js');
   assert('Trend alert name escaped', viewsSrc.includes('escapeHTML(alert.name)'));
   assert('Trend alert category escaped', viewsSrc.includes('escapeHTML(alert.category)'));
   assert('Flagged marker name escaped', /escapeHTML\(f\.name\)/.test(viewsSrc));
@@ -49,7 +49,7 @@
   assert('marker.unit escaped in detail modal', /escapeHTML\(marker\.unit\)/.test(viewsSrc));
   assert('Correlation option names escaped', /escapeHTML\(marker\.name\)/.test(viewsSrc));
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
   assert('Markdown URL has quote escaping', chatSrc.includes('.replace(/"/g, \'&quot;\')'));
   assert('Clipboard has navigator.clipboard guard', chatSrc.includes('if (!navigator.clipboard)'));
 
@@ -58,7 +58,7 @@
   // ═══════════════════════════════════════
   console.log('%c 4. Division by Zero Guards ', 'font-weight:bold;color:#f59e0b');
 
-  const utilsSrc = await fetch('js/utils.js').then(r => r.text());
+  const utilsSrc = await fetchWithRetry('js/utils.js');
   assert('getRangePosition guards refMax === refMin', utilsSrc.includes('refMax === refMin'));
   assert('getTrend guards prev === 0', utilsSrc.includes('prev === 0'));
 
@@ -67,7 +67,7 @@
   // ═══════════════════════════════════════
   console.log('%c 5. CSS Variable Fixes ', 'font-weight:bold;color:#f59e0b');
 
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
   assert('No var(--card-bg) reference', !cssSrc.includes('var(--card-bg)'));
   assert('No var(--text) without suffix', !/(var\(--text\))(?!-)/.test(cssSrc));
   assert('Dead overview-grid CSS removed', !cssSrc.includes('.overview-grid'));
@@ -82,7 +82,7 @@
   assert('Unit conversion guards null refMin', dataSrc.includes('if (marker.refMin != null) marker.refMin = parseFloat'));
   assert('Unit conversion guards null refMax', dataSrc.includes('if (marker.refMax != null) marker.refMax = parseFloat'));
 
-  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
+  const schemaSrc = await fetchWithRetry('js/schema.js');
   // Check apoAI optimalMax <= refMax
   const apoMatch = schemaSrc.match(/lipids\.apoAI.*?optimalMax:\s*([\d.]+)/);
   if (apoMatch) {
@@ -95,17 +95,16 @@
   // ═══════════════════════════════════════
   console.log('%c 7. Error Handling ', 'font-weight:bold;color:#f59e0b');
 
-  const apiSrc = await fetch('js/api.js').then(r => r.text());
-  assert('Anthropic models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models')"));
+  const apiSrc = await fetchWithRetry('js/api.js');
   assert('Venice models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-venice-models')"));
   assert('OpenRouter models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models')"));
   assert('OpenRouter pricing JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing')"));
 
-  const exportSrc = await fetch('js/export.js').then(r => r.text());
+  const exportSrc = await fetchWithRetry('js/export.js');
   assert('PDF report null popup guard', exportSrc.includes('if (!win)'));
   assert('PDF report context serialization', exportSrc.includes('fmtCtx'));
 
-  const pdfSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  const pdfSrc = await fetchWithRetry('js/pdf-import.js');
   assert('NaN markers filtered out', pdfSrc.includes('filter(m => !isNaN(m.value))'));
 
   // ═══════════════════════════════════════
@@ -140,13 +139,13 @@
   assert('Skip link targets #main-content', indexSrc.includes('href="#main-content"'));
   assert('Skip link CSS', cssSrc.includes('.skip-link'));
 
-  const navSrc = await fetch('js/nav.js').then(r => r.text());
+  const navSrc = await fetchWithRetry('js/nav.js');
   assert('Nav items have tabindex', navSrc.includes('tabindex="0"'));
   assert('Nav items have role=button', navSrc.includes('role="button"'));
   assert('Nav items have keyboard handler', navSrc.includes('onkeydown'));
   assert('Category labels escaped in sidebar', navSrc.includes('escapeHTML(label)') || navSrc.includes('escapeHTML(cat.label)'));
 
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  const mainSrc = await fetchWithRetry('js/main.js');
   assert('Focus trap for modals', mainSrc.includes('e.key === "Tab"') && mainSrc.includes('focusable'));
 
   // ═══════════════════════════════════════
@@ -154,7 +153,7 @@
   // ═══════════════════════════════════════
   console.log('%c 11. Event Listener Leak Fix ', 'font-weight:bold;color:#f59e0b');
 
-  const ctxSrc = await fetch('js/context-cards.js').then(r => r.text());
+  const ctxSrc = await fetchWithRetry('js/context-cards.js');
   assert('Diagnoses editor removes old listener before adding', ctxSrc.includes('document.removeEventListener(\'click\', closeSuggestionsOnClickOutside)'));
 
   // ═══════════════════════════════════════
@@ -162,7 +161,7 @@
   // ═══════════════════════════════════════
   console.log('%c 12. Cycle Stats Guard ', 'font-weight:bold;color:#f59e0b');
 
-  const cycleSrc = await fetch('js/cycle.js').then(r => r.text());
+  const cycleSrc = await fetchWithRetry('js/cycle.js');
   assert('Cycle stats filters periods with endDate', cycleSrc.includes('filter(p => p.endDate)'));
   assert('Period length guards empty array', cycleSrc.includes('if (periodLengths.length > 0)'));
 
@@ -171,11 +170,12 @@
   // ═══════════════════════════════════════
   console.log('%c 13. Security Headers ', 'font-weight:bold;color:#f59e0b');
 
-  const vercelSrc = await fetch('/vercel.json').then(r => r.text());
+  const vercelSrc = await fetchWithRetry('/vercel.json');
   assert('CSP header in vercel.json', vercelSrc.includes('Content-Security-Policy'));
   assert('CSP has no external CDN (vendor bundled)', !vercelSrc.includes('cdn.jsdelivr.net') && !vercelSrc.includes('fonts.googleapis.com'));
-  assert('CSP allows Anthropic API', vercelSrc.includes('api.anthropic.com'));
   assert('CSP allows OpenRouter API', vercelSrc.includes('openrouter.ai'));
+  assert('CSP allows Routstr API', vercelSrc.includes('api.routstr.com'));
+  assert('CSP allows PPQ API', vercelSrc.includes('api.ppq.ai'));
   assert('CSP allows Venice API', vercelSrc.includes('api.venice.ai'));
   assert('CSP allows localhost for Local AI', vercelSrc.includes('localhost:*'));
   assert('X-Frame-Options DENY', vercelSrc.includes('DENY'));
@@ -188,7 +188,7 @@
 
   assert('Notification container has aria-live', indexSrc.includes('aria-live="polite"'));
   assert('Notification container has role=status', indexSrc.includes('role="status"'));
-  const utilsSrc2 = await fetch('js/utils.js').then(r => r.text());
+  const utilsSrc2 = await fetchWithRetry('js/utils.js');
   assert('Error toasts get role=alert', utilsSrc2.includes("role', 'alert'"));
   assert('Confirm dialog has role=alertdialog', utilsSrc2.includes('role="alertdialog"'));
 
@@ -209,15 +209,15 @@
   assert('Health dot yellow has glow', cssSrc.includes('.ctx-health-dot-yellow') && cssSrc.includes('box-shadow'));
   assert('Health dot red has glow', cssSrc.includes('.ctx-health-dot-red') && cssSrc.includes('box-shadow'));
 
-  const chartsSrc = await fetch('js/charts.js').then(r => r.text());
+  const chartsSrc = await fetchWithRetry('js/charts.js');
   assert('Chart.js pointStyle per status', chartsSrc.includes('ptStyles') && chartsSrc.includes('pointStyle'));
 
-  const ctxSrc2 = await fetch('js/context-cards.js').then(r => r.text());
+  const ctxSrc2 = await fetchWithRetry('js/context-cards.js');
   assert('Health dots have title attribute', ctxSrc2.includes('dot.title'));
   assert('Health dots have aria-label', ctxSrc2.includes("dot.setAttribute('aria-label'"));
   assert('AI tips have severity prefix', ctxSrc2.includes('prefixes'));
 
-  const exportSrc2 = await fetch('js/export.js').then(r => r.text());
+  const exportSrc2 = await fetchWithRetry('js/export.js');
   assert('PDF report values have status prefix', exportSrc2.includes('sPrefix'));
 
   // ═══════════════════════════════════════
@@ -263,11 +263,11 @@
   // Light & Circadian still uses custom gate (external latitude data)
   assert('Light still uses lc || autoLat gate', chatSrc.includes('lc || autoLat'));
   // hasCardContent in utils.js
-  const utilsSrc3 = await fetch('js/utils.js').then(r => r.text());
+  const utilsSrc3 = await fetchWithRetry('js/utils.js');
   assert('hasCardContent exported from utils.js', utilsSrc3.includes('export function hasCardContent'));
 
   // System prompt restructure
-  const constSrc = await fetch('js/constants.js').then(r => r.text());
+  const constSrc = await fetchWithRetry('js/constants.js');
 
   // System prompt staleness + absent field instructions
   assert('System prompt has per-category staleness instruction', constSrc.includes('stale data') && constSrc.includes('recommend retesting'));

@@ -87,7 +87,7 @@
   // 6. CSS has folder backup styles
   // ═══════════════════════════════════════════════
   try {
-    const cssText = await fetch('/styles.css').then(r => r.text());
+    const cssText = await fetchWithRetry('/styles.css');
     assert('CSS has .backup-folder-section', cssText.includes('.backup-folder-section'));
     assert('CSS has .backup-folder-desc', cssText.includes('.backup-folder-desc'));
     assert('CSS has .backup-folder-status', cssText.includes('.backup-folder-status'));
@@ -102,7 +102,7 @@
   // 7. crypto.js source has folder backup functions
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('/js/crypto.js').then(r => r.text());
+    const src = await fetchWithRetry('/js/crypto.js');
     assert('crypto.js has initFolderBackup', src.includes('async function initFolderBackup'));
     assert('crypto.js has pickFolderForBackup', src.includes('async function pickFolderForBackup'));
     assert('crypto.js has reauthorizeFolderBackup', src.includes('async function reauthorizeFolderBackup'));
@@ -122,7 +122,7 @@
   // ═══════════════════════════════════════════════
   assert('window.maybeShowBackupNudge exists', typeof window.maybeShowBackupNudge === 'function');
   try {
-    const src = await fetch('/js/crypto.js').then(r => r.text());
+    const src = await fetchWithRetry('/js/crypto.js');
     assert('crypto.js has labcharts-last-manual-backup', src.includes('labcharts-last-manual-backup'));
     assert('crypto.js has backup-nudge-snoozed-until', src.includes('backup-nudge-snoozed-until'));
     assert('crypto.js has maybeShowBackupNudge function', src.includes('function maybeShowBackupNudge'));
@@ -134,7 +134,7 @@
   // 9. main.js calls initFolderBackup and maybeShowBackupNudge
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('/js/main.js').then(r => r.text());
+    const src = await fetchWithRetry('/js/main.js');
     assert('main.js imports initFolderBackup', src.includes('initFolderBackup'));
     assert('main.js awaits initFolderBackup', src.includes('await initFolderBackup()'));
     assert('main.js imports maybeShowBackupNudge', src.includes('maybeShowBackupNudge'));
@@ -146,7 +146,7 @@
   // 10. export.js has buildAllDataBundle
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetch('/js/export.js').then(r => r.text());
+    const src = await fetchWithRetry('/js/export.js');
     assert('export.js has buildAllDataBundle function', src.includes('async function buildAllDataBundle'));
     assert('export.js exposes buildAllDataBundle on window', src.includes('buildAllDataBundle'));
     assert('exportAllDataJSON uses buildAllDataBundle', src.includes('await buildAllDataBundle()'));

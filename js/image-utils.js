@@ -108,13 +108,10 @@ export function isValidImageType(type) {
  * Returns a single image content block in the format expected by the provider.
  * @param {string} base64 - raw base64 data (no prefix)
  * @param {string} mediaType - e.g. 'image/jpeg'
- * @param {string} provider - 'anthropic', 'openrouter', 'venice', 'ollama'
+ * @param {string} provider - 'openrouter', 'venice', 'routstr', 'ppq', 'ollama'
  */
 export function formatImageBlock(base64, mediaType, provider) {
-  if (provider === 'anthropic') {
-    return { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } };
-  }
-  // OpenAI-compatible (OpenRouter, Venice, Local AI)
+  // All providers use OpenAI-compatible format
   return { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } };
 }
 

@@ -65,5 +65,5 @@ When using the hosted app (`app.getbased.health`), the Local AI server must run 
 :::
 
 ::: warning Your AI provider still receives text
-Even with PII obfuscation, the anonymized lab text is sent to your configured AI provider (Anthropic, OpenRouter, or Venice) for marker extraction. The obfuscation step ensures that text contains no personal identifiers. If you want nothing sent over the network at all, use a local server as both your PII model and your main AI provider.
+Even with PII obfuscation, the anonymized lab text is sent to your configured AI provider (OpenRouter, Routstr, PPQ, or Venice) for marker extraction. The obfuscation step ensures that text contains no personal identifiers. If you want nothing sent over the network at all, use a local server as both your PII model and your main AI provider.
 :::

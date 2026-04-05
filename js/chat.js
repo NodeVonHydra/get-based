@@ -8,7 +8,7 @@ import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
 import { getProfileLocation, setProfileLocation, getLatitudeFromLocation, getLocationCache, latitudeToBand, detectLatitudeWithAI, getProfiles, renameProfile, setProfileSex, setProfileDob } from './profile.js';
-import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getAnthropicModel, getVeniceModel, getOpenRouterModel, getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
+import { callClaudeAPI, hasAIProvider, isAIPaused, setAIPaused, getAIProvider, getVeniceModel, getOpenRouterModel, getOllamaMainModel, getActiveModelId, getActiveModelDisplay, supportsVision, supportsWebSearch, isVeniceE2EEActive } from './api.js';
 import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 import { onChatSaved } from './sync.js';
@@ -2390,33 +2390,33 @@ export function renderChatMessages() {
       const name = currentP?.name || 'there';
       container.innerHTML = `<div class="chat-persona-label">${personality.icon} ${escapeHTML(personality.name)}</div>
         <div class="chat-msg chat-ai">
-          <p>Nice to meet you, ${escapeHTML(name)}! I need an AI brain to analyze your labs. Pick a provider — OpenRouter is the easiest to get started:</p>
+          <p>Nice to meet you, ${escapeHTML(name)}! I need an AI brain to analyze your labs. Pick a provider:</p>
           <div class="chat-setup-providers">
             <div class="chat-setup-provider">
-              <strong>OpenRouter</strong> <span class="chat-setup-rec">(Recommended)</span><br>
-              <span class="chat-setup-detail">One key, 200+ models (Claude, GPT, Gemini, etc.). Free tier available.</span><br>
+              <strong>PPQ</strong> <span class="chat-setup-rec">(Anonymous)</span><br>
+              <span class="chat-setup-detail">300+ models, no KYC. Bitcoin, Lightning, Monero, Litecoin. Top up in the app.</span><br>
+              <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('ppq')},300)" style="color:var(--accent)">Set up PPQ &rarr;</a>
+            </div>
+            <div class="chat-setup-provider">
+              <strong>Routstr</strong> <span class="chat-setup-rec">(Bitcoin)</span><br>
+              <span class="chat-setup-detail">Lightning and Cashu eCash. No account needed. Top up with QR codes in the app.</span><br>
+              <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('routstr')},300)" style="color:var(--accent)">Set up Routstr &rarr;</a>
+            </div>
+            <div class="chat-setup-provider">
+              <strong>OpenRouter</strong> <span class="chat-setup-rec">(Most models)</span><br>
+              <span class="chat-setup-detail">200+ models. Pay with card or USDC. One-click login.</span><br>
               <button class="or-oauth-btn" style="margin-top:8px" onclick="startOpenRouterOAuth()">Connect with OpenRouter</button>
               <div style="font-size:11px;color:var(--text-muted);margin-top:6px">or <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('openrouter')},300)" style="color:var(--accent)">paste a key manually</a></div>
             </div>
             <div class="chat-setup-provider">
-              <strong>Anthropic</strong><br>
-              <span class="chat-setup-detail">Direct access to Claude models.</span><br>
-              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get your key &rarr;</a>
-            </div>
-            <div class="chat-setup-provider">
-              <strong>Routstr</strong><br>
-              <span class="chat-setup-detail">Pay with Bitcoin. No account needed — use Lightning or Cashu eCash.</span><br>
-              <a href="https://routstr.com" target="_blank" rel="noopener">Get started &rarr;</a>
-            </div>
-            <div class="chat-setup-provider">
               <strong>Venice</strong><br>
-              <span class="chat-setup-detail">Privacy-focused cloud. Access to Claude, GPT, and open models.</span><br>
-              <a href="https://venice.ai/settings/api" target="_blank" rel="noopener">Get your key &rarr;</a>
+              <span class="chat-setup-detail">Uncensored models with optional E2EE. No-log policy.</span><br>
+              <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('venice')},300)" style="color:var(--accent)">Set up Venice &rarr;</a>
             </div>
             <div class="chat-setup-provider">
               <strong>Local AI</strong><br>
-              <span class="chat-setup-detail">Run models locally with Ollama, LM Studio, or any OpenAI-compatible server.</span><br>
-              <a href="https://ollama.com" target="_blank" rel="noopener">Download Ollama &rarr;</a>
+              <span class="chat-setup-detail">Ollama, LM Studio, or Jan. Fully offline. Free forever.</span><br>
+              <a href="#" onclick="event.preventDefault();closeChatPanel();setTimeout(()=>{window.openSettingsModal('ai');window.switchAIProvider('ollama')},300)" style="color:var(--accent)">Set up Local AI &rarr;</a>
             </div>
           </div>
           <p style="font-size:13px">Got a key from one of these? Paste it here:</p>

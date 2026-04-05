@@ -12,7 +12,7 @@ getbased is fully accessible as a Tor hidden service. When you visit the clearne
 
 ## What Changes on .onion
 
-- **AI API calls** go directly to your provider (Anthropic, OpenRouter, Venice) over HTTPS — the Vercel proxy is bypassed
+- **AI API calls** go directly to your provider (OpenRouter, Routstr, PPQ, Venice) over HTTPS — the Vercel proxy is bypassed
 - **Sync relay** automatically switches to the .onion relay address (`ws://`) instead of the clearnet relay (`wss://`)
 - **All app features work** — PDF import, AI chat, encryption, DNA import, everything
 

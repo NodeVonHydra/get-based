@@ -106,7 +106,7 @@
 
   // ═══ Section 13: Service worker cache version ═══
   console.log('%c[13] Service Worker', 'font-weight:bold');
-  const swMobileSrc = await fetch('service-worker.js').then(r => r.text());
+  const swMobileSrc = await fetchWithRetry('service-worker.js');
   assert('SW uses importScripts for version', swMobileSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swMobileSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 

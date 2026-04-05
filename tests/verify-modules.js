@@ -27,19 +27,23 @@
   // 2. WINDOW EXPORTS — all 300+ functions registered
   // ═══════════════════════════════════════════════
 
-  // api.js (26)
+  // api.js
   const apiExports = [
-    'getApiKey','saveApiKey','hasApiKey',
-    'getAnthropicModel','setAnthropicModel','getAnthropicModelDisplay',
     'getVeniceKey','saveVeniceKey','hasVeniceKey',
     'getVeniceModel','setVeniceModel','getVeniceModelDisplay',
+    'getOpenRouterKey','saveOpenRouterKey','hasOpenRouterKey',
+    'getOpenRouterModel','setOpenRouterModel','getOpenRouterModelDisplay',
+    'getRoutstrKey','saveRoutstrKey','hasRoutstrKey',
+    'getRoutstrModel','setRoutstrModel','getRoutstrModelDisplay',
+    'getPpqKey','savePpqKey','hasPpqKey',
+    'getPpqModel','setPpqModel','getPpqModelDisplay',
     'getOllamaMainModel','setOllamaMainModel',
     'getOllamaPIIUrl','setOllamaPIIUrl','getOllamaPIIModel','setOllamaPIIModel',
-    'fetchAnthropicModels','fetchVeniceModels','deduplicateModels',
-    'renderModelPricingHint',
+    'fetchVeniceModels','fetchOpenRouterModels','fetchRoutstrModels','fetchPpqModels',
+    'deduplicateModels','renderModelPricingHint',
     'getAIProvider','setAIProvider','hasAIProvider',
-    'validateApiKey','validateVeniceKey',
-    'callAnthropicAPI','callOllamaChat','callVeniceAPI','callClaudeAPI'
+    'validateVeniceKey','validateOpenRouterKey','validateRoutstrKey','validatePpqKey',
+    'callOllamaChat','callVeniceAPI','callOpenRouterAPI','callRoutstrAPI','callPpqAPI','callClaudeAPI'
   ];
 
   // charts.js (8)
@@ -181,11 +185,12 @@
     'switchAIProvider',
     'initSettingsModelFetch','initSettingsOllamaCheck','updateSettingsUI',
     'testOllamaConnection','testPIIOllamaConnection',
-    'updateAnthropicModelPricing','updateVeniceModelPricing',
-    'handleSaveApiKey','handleRemoveApiKey',
-    'renderAnthropicModelDropdown',
+    'updateVeniceModelPricing',
     'handleSaveVeniceKey','handleRemoveVeniceKey',
-    'renderVeniceModelDropdown'
+    'renderVeniceModelDropdown',
+    'handleSaveRoutstrKey','handleRemoveRoutstrKey',
+    'renderRoutstrModelDropdown','refreshRoutstrBalance',
+    'refreshOpenRouterBalance'
   ];
 
   // supplements.js (4)
@@ -482,7 +487,7 @@
   // 15. AI PROVIDER SYSTEM — basic checks
   // ═══════════════════════════════════════════════
   const provider = window.getAIProvider();
-  assert('getAIProvider returns valid provider', ['anthropic','openrouter','routstr','venice','ollama'].includes(provider));
+  assert('getAIProvider returns valid provider', ['openrouter','ppq','routstr','venice','ollama'].includes(provider));
   const hasAI = window.hasAIProvider();
   assert('hasAIProvider returns boolean', typeof hasAI === 'boolean');
 

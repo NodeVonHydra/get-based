@@ -2,7 +2,7 @@
 
 **getbased** is a free, open-source health dashboard that turns lab PDFs into interactive charts and AI-powered health insights. Track 287+ biomarkers over time, detect trends, and get personalized interpretations — all stored locally in your browser with no account required.
 
-**[Live app](https://app.getbased.health)** · **[Documentation](https://getbased.health/docs)** · **[Discord](https://discord.gg/zJdVB9zgQB)**
+**[Live app](https://app.getbased.health)** · **[Documentation](https://getbased.health/docs)** · **[Discord](https://discord.gg/zJdVB9zgQB)** · **[Nostr](https://njump.me/npub13xgjkyve82xesxxzvy52vz99z5fcuusda4cytekct2tw800kepas498nt2)**
 
 ![getbased Dashboard](dashboard.png)
 
@@ -54,9 +54,10 @@ Opt-in feature that lets AI agents query your lab context — coding agents (Cla
 
 | Provider | Description |
 |---|---|
-| **OpenRouter** | Model marketplace — one key, 200+ models (Claude, GPT, Gemini, Grok, DeepSeek). One-click OAuth connect. Recommended for most users. |
-| **Anthropic** | Direct Claude API. Best accuracy on medical data. |
-| **Venice AI** | Privacy cloud with optional end-to-end encryption — prompts encrypted client-side, decrypted only in a TEE. |
+| **PPQ** | 300+ models, no KYC. Bitcoin, Lightning, Monero, Litecoin. Top up directly in the app. |
+| **Routstr** | Bitcoin Lightning and Cashu eCash. Top up with QR codes directly in the app. |
+| **OpenRouter** | 200+ models (Claude, GPT, Gemini, Grok). Pay with card or USDC. One-click OAuth. |
+| **Venice AI** | Uncensored models with optional E2EE. No-log policy. |
 | **Local AI** | Any OpenAI-compatible server — Ollama, LM Studio, Jan, llama.cpp. Fully offline. Free forever. |
 
 Switch providers anytime. All non-AI features work without a provider configured.
@@ -68,7 +69,7 @@ Switch providers anytime. All non-AI features work without a provider configured
 | Open source | GPL-3.0 | Closed source |
 | Cost | Free | Free tier + paid upsell |
 | Data storage | Local browser, encrypted | Cloud (their servers) |
-| AI providers | 4 choices (including fully local) | Locked to one |
+| AI providers | 5 choices (including fully local) | Locked to one |
 | Lab import | Any PDF, any format, any language | Specific labs/formats only |
 | Biomarkers | 287+ standard + unlimited custom | Limited set |
 | Specialty labs | OAT, fatty acids + custom marker pipeline for any test | Blood only |

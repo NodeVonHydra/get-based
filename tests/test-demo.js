@@ -12,7 +12,7 @@
 
   // ── 1. Source: views.js ──
   console.log('\n%c1. views.js — Onboarding HTML', 'font-weight:bold');
-  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+  const viewsSrc = await fetchWithRetry('js/views.js');
   assert('Has onboarding-divider', viewsSrc.includes('onboarding-divider'));
   assert('Has onboarding-divider-line', viewsSrc.includes('onboarding-divider-line'));
   assert('Has onboarding-divider-text', viewsSrc.includes('onboarding-divider-text'));
@@ -29,7 +29,7 @@
 
   // ── 2. Source: export.js ──
   console.log('\n%c2. export.js — loadDemoData(sex)', 'font-weight:bold');
-  const exportSrc = await fetch('js/export.js').then(r => r.text());
+  const exportSrc = await fetchWithRetry('js/export.js');
   assert('loadDemoData accepts sex param', exportSrc.includes("loadDemoData(sex = 'male')"));
   assert('References demo-female.json', exportSrc.includes('demo-female.json'));
   assert('References demo-male.json', exportSrc.includes('demo-male.json'));
@@ -42,7 +42,7 @@
 
   // ── 3. Source: styles.css ──
   console.log('\n%c3. styles.css — Demo card styles', 'font-weight:bold');
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
   assert('Has .onboarding-divider rule', cssSrc.includes('.onboarding-divider'));
   assert('Has .onboarding-divider-line rule', cssSrc.includes('.onboarding-divider-line'));
   assert('Has .onboarding-divider-text rule', cssSrc.includes('.onboarding-divider-text'));
@@ -96,7 +96,7 @@
 
   // ── 6. Service worker ──
   console.log('\n%c6. service-worker.js — Cache version', 'font-weight:bold');
-  const swSrc = await fetch('service-worker.js').then(r => r.text());
+  const swSrc = await fetchWithRetry('service-worker.js');
   assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 

@@ -156,7 +156,7 @@
   // ═══════════════════════════════════════
   console.log('%c 7. checkOllama Return Shape ', 'font-weight:bold;color:#f59e0b');
 
-  const piiSrc = await fetch('js/pii.js').then(r => r.text());
+  const piiSrc = await fetchWithRetry('js/pii.js');
   assert('checkOllama returns modelDetails', piiSrc.includes('modelDetails'));
   assert('modelDetails includes size', piiSrc.includes('size: m.size'));
   assert('modelDetails includes quantLevel', piiSrc.includes('quantization_level'));
@@ -167,7 +167,7 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Settings Integration ', 'font-weight:bold;color:#f59e0b');
 
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
+  const settingsSrc = await fetchWithRetry('js/settings.js');
   assert('Settings imports hardware.js', settingsSrc.includes("from './hardware.js'"));
   assert('Settings has advisor placeholder', settingsSrc.includes('local-ai-advisor'));
   assert('Settings calls renderModelAdvisor', settingsSrc.includes('renderModelAdvisor'));

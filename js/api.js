@@ -1,4 +1,4 @@
-// api.js — AI provider management, API calls (Anthropic, Venice, Ollama)
+// api.js — AI provider management, API calls (OpenRouter, Venice, Routstr, PPQ, Local)
 
 import { getModelPricing } from './schema.js';
 import { isDebugMode, showNotification } from './utils.js';
@@ -7,17 +7,6 @@ import { getCachedKey, updateKeyCache, encryptedSetItem } from './crypto.js';
 // ═══════════════════════════════════════════════
 // AI PROVIDER MANAGEMENT
 // ═══════════════════════════════════════════════
-export function getApiKey() { return getCachedKey('labcharts-api-key') || ''; }
-export async function saveApiKey(key) { await encryptedSetItem('labcharts-api-key', key); updateKeyCache('labcharts-api-key', key); }
-export function hasApiKey() { return !!getApiKey(); }
-export function getAnthropicModel() { return localStorage.getItem('labcharts-anthropic-model') || 'claude-sonnet-4-6'; }
-export function setAnthropicModel(id) { localStorage.setItem('labcharts-anthropic-model', id); }
-export function getAnthropicModelDisplay() {
-  const id = getAnthropicModel();
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? m.display_name || m.id : id;
-}
 export function deduplicateModels(models, familyFn) {
   const seen = {};
   return models.filter(function(m) {
@@ -27,29 +16,7 @@ export function deduplicateModels(models, familyFn) {
     return true;
   });
 }
-export async function fetchAnthropicModels(key) {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/models?limit=100', {
-      headers: { 'x-api-key': key || getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    // Sort descending so latest version comes first per family
-    const all = (json.data || []).filter(function(m) { return m.id && !m.id.includes('pdl-'); }).sort(function(a, b) { return b.id.localeCompare(a.id); });
-    // Deduplicate: strip date suffix to keep one per version (e.g., claude-sonnet-4-5, claude-sonnet-4-6)
-    const models = deduplicateModels(all, function(id) {
-      return id.replace(/-\d{8}$/, '');
-    });
-    localStorage.setItem('labcharts-anthropic-models', JSON.stringify(models));
-    if (!localStorage.getItem('labcharts-anthropic-model') && models.length) {
-      const sonnet = models.find(function(m) { return m.id.includes('sonnet'); });
-      if (sonnet) setAnthropicModel(sonnet.id);
-    }
-    return models;
-  } catch (e) { return []; }
-}
-
-export function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'anthropic'; }
+export function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'openrouter'; }
 export function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
 export function isAIPaused() { return localStorage.getItem('labcharts-ai-paused') === 'true'; }
 export function setAIPaused(v) { localStorage.setItem('labcharts-ai-paused', v ? 'true' : 'false'); }
@@ -57,10 +24,10 @@ export function setAIPaused(v) { localStorage.setItem('labcharts-ai-paused', v ?
 export function hasAIProvider() {
   if (isAIPaused()) return false;
   const provider = getAIProvider();
-  if (provider === 'anthropic') return hasApiKey();
   if (provider === 'venice') return hasVeniceKey();
   if (provider === 'openrouter') return hasOpenRouterKey();
   if (provider === 'routstr') return hasRoutstrKey();
+  if (provider === 'ppq') return hasPpqKey();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -74,6 +41,24 @@ export function setOllamaPIIModel(model) { localStorage.setItem('labcharts-ollam
 export function getVeniceKey() { return getCachedKey('labcharts-venice-key') || ''; }
 export async function saveVeniceKey(key) { await encryptedSetItem('labcharts-venice-key', key); updateKeyCache('labcharts-venice-key', key); }
 export function hasVeniceKey() { return !!getVeniceKey(); }
+export async function getVeniceBalance() {
+  const key = getVeniceKey();
+  if (!key) return null;
+  try {
+    // Venice returns balance in x-venice-balance-diem header on completions
+    const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'llama-3.3-70b', messages: [{ role: 'user', content: '' }], max_tokens: 1 })
+    });
+    if (!res.ok) return null;
+    // Drain response body
+    await res.text();
+    const diem = res.headers.get('x-venice-balance-diem');
+    if (diem != null) return { diem: parseFloat(diem), canConsume: true };
+    return null;
+  } catch { return null; }
+}
 export function getVeniceModel() { return localStorage.getItem('labcharts-venice-model') || 'llama-3.3-70b'; }
 export function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
 export function getVeniceModelDisplay() {
@@ -89,6 +74,20 @@ export function setVeniceE2EE(on) { localStorage.setItem('labcharts-venice-e2ee'
 export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
 export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
+export async function getOpenRouterBalance() {
+  const key = getOpenRouterKey();
+  if (!key) return null;
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/credits', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const d = json.data;
+    if (d && d.total_credits != null) return { total: d.total_credits, used: d.total_usage, remaining: d.total_credits - d.total_usage };
+    return null;
+  } catch { return null; }
+}
 
 // ─── Routstr ───
 export function getRoutstrKey() { return getCachedKey('labcharts-routstr-key') || ''; }
@@ -102,6 +101,21 @@ export function getRoutstrModelDisplay() {
   const m = cached.find(function(x) { return x.id === id; });
   return m ? (m.name || m.id) : id;
 }
+
+// ─── PPQ (PayPerQ — pay-per-prompt, crypto + fiat) ───
+export function getPpqKey() { return getCachedKey('labcharts-ppq-key') || ''; }
+export async function savePpqKey(key) { await encryptedSetItem('labcharts-ppq-key', key); updateKeyCache('labcharts-ppq-key', key); }
+export function hasPpqKey() { return !!getPpqKey(); }
+export function getPpqModel() { return localStorage.getItem('labcharts-ppq-model') || 'claude-sonnet-4.6'; }
+export function setPpqModel(model) { localStorage.setItem('labcharts-ppq-model', model); }
+export function getPpqModelDisplay() {
+  const id = getPpqModel();
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-ppq-models') || '[]'); } catch(e) {}
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
+export function getPpqCreditId() { return localStorage.getItem('labcharts-ppq-credit-id') || ''; }
+export function savePpqCreditId(id) { localStorage.setItem('labcharts-ppq-credit-id', id); }
 export function getOpenRouterModel() {
   let m = localStorage.getItem('labcharts-openrouter-model');
   // Fix legacy hyphenated IDs (OpenRouter uses dots: anthropic/claude-sonnet-4.6)
@@ -179,30 +193,35 @@ const OPENROUTER_RECOMMENDED = [
 // Routstr uses bare model IDs (no provider prefix, dots: claude-sonnet-4.6)
 const ROUTSTR_CURATED = ['claude-', 'gpt-5', 'gpt-4', 'gemini-3', 'gemini-2', 'grok-4', 'grok-3', 'llama-', 'qwen', 'deepseek-', 'mistral-', 'mimo-'];
 const ROUTSTR_RECOMMENDED = ['claude-sonnet-4.6', 'claude-opus-4.6', 'gpt-5.4', 'gemini-3.1-pro', 'grok-4'];
+// PPQ uses bare model IDs (same as Routstr)
+// private/ models (Tinfoil TEE) listed in API but require EHBP protocol, not standard completions
+const PPQ_CURATED = ['claude-', 'gpt-5', 'gpt-4', 'gpt-oss', 'gemini-3', 'gemini-2', 'grok-', 'llama-', 'qwen', 'deepseek-', 'mistral-', 'kimi', 'perplexity'];
+const PPQ_RECOMMENDED = ['claude-sonnet-4.6', 'claude-opus-4.6', 'gpt-5.4', 'gemini-3-flash-preview', 'grok-4'];
+const PPQ_EXCLUDE = ['codex', 'audio', 'image', 'embed', 'tts', 'whisper', 'video', 'nano-banana'];
 export function isRecommendedModel(provider, modelId) {
   if (provider === 'openrouter') return OPENROUTER_RECOMMENDED.some(function(prefix) { return modelId.startsWith(prefix); });
-  if (provider === 'anthropic') return /sonnet-4-6|opus-4-6/.test(modelId);
   if (provider === 'venice') {
     if (modelId.startsWith('e2ee-')) return /qwen3-5-122b|gpt-oss-120b|qwen3-30b|glm-5/.test(modelId);
     return /^(claude-(sonnet|opus)-4-6|openai-gpt-5[234](-codex)?|gemini-3(-1)?-pro|grok-4[1-9]?)(-|$)/.test(modelId);
   }
   if (provider === 'routstr') return ROUTSTR_RECOMMENDED.some(function(r) { return modelId === r || modelId.startsWith(r); });
+  if (provider === 'ppq') return PPQ_RECOMMENDED.some(function(r) { return modelId === r || modelId.startsWith(r); });
   return false; // Ollama — local models, can't tier
 }
 export function getActiveModelId() {
   const provider = getAIProvider();
-  if (provider === 'anthropic') return getAnthropicModel();
   if (provider === 'venice') return getVeniceModel();
   if (provider === 'openrouter') return getOpenRouterModel();
   if (provider === 'routstr') return getRoutstrModel();
+  if (provider === 'ppq') return getPpqModel();
   return getOllamaMainModel();
 }
 export function getActiveModelDisplay() {
   const provider = getAIProvider();
-  if (provider === 'anthropic') return getAnthropicModelDisplay();
   if (provider === 'venice') return getVeniceModelDisplay();
   if (provider === 'openrouter') return getOpenRouterModelDisplay();
   if (provider === 'routstr') return getRoutstrModelDisplay();
+  if (provider === 'ppq') return getPpqModelDisplay();
   return getOllamaMainModel();
 }
 // Exclude specialized variants not suited for medical analysis
@@ -335,6 +354,15 @@ export async function fetchVeniceModels(key) {
     });
     // Re-sort alphabetically by display name
     models.sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    // Extract per-million-token pricing from model_spec
+    const pricingCache = {};
+    for (const m of allText) {
+      const p = m.model_spec && m.model_spec.pricing;
+      if (p && p.input && p.output) {
+        pricingCache[m.id] = { input: parseFloat(p.input.usd || 0), output: parseFloat(p.output.usd || 0) };
+      }
+    }
+    localStorage.setItem('labcharts-venice-pricing', JSON.stringify(pricingCache));
     localStorage.setItem('labcharts-venice-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-venice-model') && models.length) {
       const llama = models.find(function(m) { return m.id.includes('llama-3.3-70b'); });
@@ -342,26 +370,6 @@ export async function fetchVeniceModels(key) {
     }
     return models;
   } catch (e) { return []; }
-}
-
-export async function validateApiKey(key) {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/models?limit=1', {
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      }
-    });
-    if (res.ok) return { valid: true };
-    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
-    if (res.status === 429) return { valid: true }; // Rate limited but key works
-    const errBody = await res.json().catch(() => null);
-    const errMsg = errBody?.error?.message || `status ${res.status}`;
-    return { valid: false, error: `API error: ${errMsg}` };
-  } catch (e) {
-    return { valid: false, error: 'Cannot reach API: ' + e.message };
-  }
 }
 
 // ─── Proxy support ───
@@ -409,6 +417,7 @@ export function supportsWebSearch() {
   const provider = getAIProvider();
   if (provider === 'venice') return !isVeniceE2EEActive();
   if (provider === 'routstr') return false;
+  if (provider === 'ppq') return true;
   return provider === 'openrouter';
 }
 
@@ -426,10 +435,6 @@ export function isVeniceE2EEActive() {
 // ═══════════════════════════════════════════════
 export function supportsVision() {
   const provider = getAIProvider();
-  if (provider === 'anthropic') {
-    // All Claude 3+ and 4+ models support vision
-    return /claude-(3|4|sonnet|opus|haiku)/.test(getAnthropicModel());
-  }
   if (provider === 'openrouter') {
     const modelId = getOpenRouterModel();
     try {
@@ -449,83 +454,15 @@ export function supportsVision() {
       return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/-\d{8}$/, '')); });
     } catch { return false; }
   }
+  if (provider === 'ppq') {
+    const modelId = getPpqModel();
+    try {
+      const visionIds = JSON.parse(localStorage.getItem('labcharts-ppq-vision-models') || '[]');
+      return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/-\d{8}$/, '')); });
+    } catch { return false; }
+  }
   // Local AI — optimistic (user's responsibility)
   return true;
-}
-
-export async function callAnthropicAPI({ system, messages, maxTokens, onStream, signal }) {
-  const key = getApiKey();
-  if (!key) throw new Error('No API key configured. Add your Claude API key in Settings.');
-  const body = {
-    model: getAnthropicModel(),
-    max_tokens: maxTokens || 4096,
-    messages
-  };
-  if (system) body.system = system;
-  if (onStream) body.stream = true;
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'x-api-key': key,
-    'anthropic-version': '2023-06-01',
-  };
-  // Direct browser access header only needed when NOT proxied
-  if (!_useProxy()) headers['anthropic-dangerous-direct-browser-access'] = 'true';
-
-  const res = await _fetchWithRetry('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-    signal
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) throw new Error('Invalid API key. Check your settings.');
-    if (res.status === 402) throw new Error('Insufficient Anthropic credits. Check your billing at console.anthropic.com');
-    if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
-    let errMsg = `API error (${res.status})`;
-    try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
-    throw new Error(errMsg);
-  }
-
-  if (onStream) {
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let fullText = '';
-    let inputTokens = 0, outputTokens = 0;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6);
-        if (data === '[DONE]') continue;
-        try {
-          const event = JSON.parse(data);
-          if (event.type === 'error') {
-            throw new Error(event.error?.message || 'Streaming error from Anthropic');
-          }
-          if (event.type === 'content_block_delta' && event.delta?.text) {
-            fullText += event.delta.text;
-            onStream(fullText);
-          } else if (event.type === 'message_start' && event.message?.usage) {
-            inputTokens = event.message.usage.input_tokens || 0;
-          } else if (event.type === 'message_delta' && event.usage) {
-            outputTokens = event.usage.output_tokens || 0;
-          }
-        } catch (parseErr) { if (parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr; }
-      }
-    }
-    return { text: fullText, usage: { inputTokens, outputTokens } };
-  } else {
-    const data = await res.json();
-    const usage = data.usage || {};
-    return { text: data.content?.[0]?.text || '', usage: { inputTokens: usage.input_tokens || 0, outputTokens: usage.output_tokens || 0 } };
-  }
 }
 
 export async function callOllamaChat({ system, messages, maxTokens, onStream, signal }) {
@@ -647,7 +584,12 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
 
   if (!res.ok) {
     if (res.status === 401) throw new Error(`Invalid ${providerName} API key. Check your settings.`);
-    if (res.status === 402) throw new Error(`Insufficient ${providerName} balance.${providerName === 'Routstr' ? ' Top up with Lightning or Cashu.' : ' Add credits at openrouter.ai/settings/credits'}`);
+    if (res.status === 402) {
+      const hint = providerName === 'Routstr' ? ' Top up with Lightning or Cashu.'
+        : providerName === 'PPQ' ? ' Top up in Settings \u2192 AI \u2192 PPQ.'
+        : ' Add credits at openrouter.ai/settings/credits';
+      throw new Error(`Insufficient ${providerName} balance.${hint}`);
+    }
     if (res.status === 429) throw new Error('Rate limited. Please wait a moment and try again.');
     let errMsg = `${providerName} API error (${res.status})`;
     try { const errBody = await res.json(); errMsg += `: ${errBody.error?.message || JSON.stringify(errBody.error)}`; } catch {}
@@ -868,7 +810,7 @@ export async function validateRoutstrKey(key) {
   // Models endpoint is public (no auth), so we can't validate keys via model fetch.
   // Actual auth errors (401/402) surface when the user sends a message.
   if (!key.startsWith('sk-') && !key.startsWith('cashu')) {
-    return { valid: false, error: 'Key should start with sk-... (session key) or cashuA... (eCash token)' };
+    return { valid: false, error: 'Key should start with sk-... (session key) or cashu... (eCash token)' };
   }
   return { valid: true };
 }
@@ -881,28 +823,229 @@ export async function callRoutstrAPI(opts) {
   );
 }
 
+// ─── Routstr wallet ───
+export async function createRoutstrAccount(cashuToken) {
+  if (!cashuToken) throw new Error('A Cashu token is required to create a wallet');
+  const res = await fetch('https://api.routstr.com/v1/balance/create?initial_balance_token=' + encodeURIComponent(cashuToken));
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    const detail = err?.detail;
+    const msg = typeof detail === 'string' ? detail
+      : (detail && detail.error) ? detail.error.message
+      : Array.isArray(detail) ? detail.map(d => d.msg || JSON.stringify(d)).join('; ')
+      : err?.message;
+    throw new Error(msg || 'Failed to create Routstr wallet: ' + res.status);
+  }
+  return res.json(); // { api_key, balance, ... }
+}
+export async function getRoutstrBalance() {
+  const key = getRoutstrKey();
+  if (!key) return null;
+  try {
+    const res = await fetch('https://api.routstr.com/v1/balance/info', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    // balance is in millisatoshis — convert to sats
+    if (json.balance != null) return { sats: Math.floor(json.balance / 1000), msats: json.balance, totalRequests: json.total_requests || 0, totalSpent: json.total_spent || 0 };
+    return null;
+  } catch { return null; }
+}
+export async function createRoutstrLightningInvoice(amountSats) {
+  const key = getRoutstrKey();
+  if (!key) throw new Error('No Routstr key');
+  const res = await fetch('https://api.routstr.com/v1/balance/lightning/invoice', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount_sats: amountSats, purpose: 'topup', api_key: key })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    const detail = err?.detail;
+    const msg = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map(d => d.msg || JSON.stringify(d)).join('; ') : err?.message;
+    throw new Error(msg || 'Invoice creation failed: ' + res.status);
+  }
+  return res.json(); // { invoice_id, bolt11, amount_sats, expires_at, payment_hash }
+}
+export async function checkRoutstrInvoiceStatus(invoiceId) {
+  const key = getRoutstrKey();
+  const res = await fetch('https://api.routstr.com/v1/balance/lightning/invoice/' + encodeURIComponent(invoiceId) + '/status', {
+    headers: key ? { 'Authorization': 'Bearer ' + key } : {}
+  });
+  if (!res.ok) return null;
+  return res.json(); // { status: 'pending'|'paid'|'expired', ... }
+}
+export async function topupRoutstrCashu(cashuToken) {
+  const key = getRoutstrKey();
+  if (!key) throw new Error('No Routstr key');
+  const res = await fetch('https://api.routstr.com/v1/balance/topup', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cashu_token: cashuToken })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    const detail = err?.detail;
+    const msg = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map(d => d.msg || JSON.stringify(d)).join('; ') : err?.message;
+    throw new Error(msg || 'Cashu topup failed: ' + res.status);
+  }
+  return res.json(); // { balance, amount_added, currency }
+}
+
+// ═══════════════════════════════════════════════
+// PPQ (PayPerQ — pay-per-prompt, crypto + fiat, OpenAI-compatible)
+// ═══════════════════════════════════════════════
+export async function createPpqAccount() {
+  const res = await fetch('https://api.ppq.ai/accounts/create', { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to create PPQ account: ' + res.status);
+  return res.json(); // { success, credit_id, api_key, balance }
+}
+export async function getPpqBalance() {
+  const key = getPpqKey();
+  const creditId = getPpqCreditId();
+  if (!key && !creditId) return null;
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (key) headers['Authorization'] = 'Bearer ' + key;
+    const body = creditId ? JSON.stringify({ credit_id: creditId }) : JSON.stringify({});
+    const res = await fetch('https://api.ppq.ai/credits/balance', {
+      method: 'POST', headers, body
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.balance != null ? json.balance : null;
+  } catch { return null; }
+}
+export async function createPpqTopup(amountUsd, paymentMethod) {
+  const key = getPpqKey();
+  if (!key) throw new Error('No PPQ API key');
+  const method = paymentMethod || 'btc-lightning';
+  const res = await fetch('https://api.ppq.ai/topup/create/' + encodeURIComponent(method), {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: amountUsd, currency: 'USD' })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || err?.error || 'Topup failed: ' + res.status);
+  }
+  return res.json(); // { invoice_id, amount, lightning_invoice, checkout_url, expires_at }
+}
+export async function checkPpqTopupStatus(invoiceId) {
+  const key = getPpqKey();
+  const res = await fetch('https://api.ppq.ai/topup/status/' + encodeURIComponent(invoiceId), {
+    headers: key ? { 'Authorization': 'Bearer ' + key } : {}
+  });
+  if (!res.ok) return null;
+  return res.json(); // { status: 'pending'|'paid'|'expired', ... }
+}
+export async function fetchPpqModels(key) {
+  try {
+    const headers = {};
+    if (key || getPpqKey()) headers['Authorization'] = 'Bearer ' + (key || getPpqKey());
+    const res = await fetch('https://api.ppq.ai/v1/models?type=chat', { headers });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const all = (json.data || []).filter(function(m) {
+      if (!m.id) return false;
+      if (PPQ_EXCLUDE.some(function(ex) { return m.id.includes(ex); })) return false;
+      return PPQ_CURATED.some(function(prefix) { return m.id.startsWith(prefix); });
+    }).sort(function(a, b) { return (a.name || a.id).localeCompare(b.name || b.id); });
+    const models = deduplicateModels(all, function(id) {
+      return id.replace(/-\d{8}$/, '');
+    });
+    models.sort(function(a, b) {
+      const aRec = PPQ_RECOMMENDED.some(function(r) { return a.id === r || a.id.startsWith(r); });
+      const bRec = PPQ_RECOMMENDED.some(function(r) { return b.id === r || b.id.startsWith(r); });
+      if (aRec !== bRec) return aRec ? -1 : 1;
+      return (a.name || a.id).localeCompare(b.name || b.id);
+    });
+    const pricingCache = {};
+    for (const m of models) {
+      if (m.pricing) {
+        const inp = parseFloat(m.pricing.input_per_1M_tokens || m.pricing.prompt || '0');
+        const out = parseFloat(m.pricing.output_per_1M_tokens || m.pricing.completion || '0');
+        // PPQ pricing may be per-token (large numbers) or per-million (small). Threshold 1000 avoids misclassifying $100-999/M models
+        if (inp || out) pricingCache[m.id] = { input: inp > 1000 ? inp / 1_000_000 : inp, output: out > 1000 ? out / 1_000_000 : out };
+      }
+    }
+    localStorage.setItem('labcharts-ppq-pricing', JSON.stringify(pricingCache));
+    const visionIds = (json.data || []).filter(function(m) {
+      if (!m.id || !m.architecture) return false;
+      const modality = m.architecture.modality || '';
+      const inputMods = m.architecture.input_modalities || [];
+      return modality.includes('image') || inputMods.includes('image');
+    }).map(function(m) { return m.id; });
+    localStorage.setItem('labcharts-ppq-vision-models', JSON.stringify(visionIds));
+    localStorage.setItem('labcharts-ppq-models', JSON.stringify(models));
+    if (!localStorage.getItem('labcharts-ppq-model') && models.length) {
+      const claude = models.find(function(m) { return m.id === 'claude-sonnet-4.6'; });
+      if (claude) setPpqModel(claude.id);
+    }
+    return models;
+  } catch (e) { return []; }
+}
+export function getPpqPricing(modelId) {
+  let cached = {}; try { cached = JSON.parse(localStorage.getItem('labcharts-ppq-pricing') || '{}'); } catch(e) {}
+  return cached[modelId] || null;
+}
+export async function validatePpqKey(key) {
+  try {
+    const res = await fetch('https://api.ppq.ai/v1/models?type=chat', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (res.ok) return { valid: true };
+    if (res.status === 401) return { valid: false, error: 'Invalid API key' };
+    if (res.status === 429) return { valid: true };
+    const errBody = await res.json().catch(() => null);
+    const errMsg = errBody?.error?.message || `status ${res.status}`;
+    return { valid: false, error: `API error: ${errMsg}` };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach PPQ API: ' + e.message };
+  }
+}
+export async function callPpqAPI(opts) {
+  const key = getPpqKey();
+  if (!key) throw new Error('No PPQ API key configured. Create an account or add your key in Settings.');
+  const extraBody = opts.webSearch ? { plugins: [{ id: 'web' }] } : {};
+  return callOpenAICompatibleAPI(
+    'https://api.ppq.ai/chat/completions',
+    key, getPpqModel(), 'PPQ', opts,
+    {},
+    { extraBody }
+  );
+}
+
 export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
   if (provider === 'ollama') return callOpenAICompatibleLocalAPI(opts);
   if (provider === 'venice') return callVeniceAPI(opts);
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
   if (provider === 'routstr') return callRoutstrAPI(opts);
-  return callAnthropicAPI(opts);
+  if (provider === 'ppq') return callPpqAPI(opts);
+  // Legacy fallback — should not reach here; all providers handled above
+  throw new Error('Unknown AI provider: ' + provider + '. Please select a provider in Settings.');
 }
 
 Object.assign(window, {
-  getApiKey, saveApiKey, hasApiKey,
-  getAnthropicModel, setAnthropicModel, getAnthropicModelDisplay,
   getVeniceKey, saveVeniceKey, hasVeniceKey,
   getVeniceModel, setVeniceModel, getVeniceModelDisplay,
   getOpenRouterKey, saveOpenRouterKey, hasOpenRouterKey,
   getOpenRouterModel, setOpenRouterModel, getOpenRouterModelDisplay,
   getRoutstrKey, saveRoutstrKey, hasRoutstrKey,
   getRoutstrModel, setRoutstrModel, getRoutstrModelDisplay,
+  getPpqKey, savePpqKey, hasPpqKey,
+  getPpqModel, setPpqModel, getPpqModelDisplay,
+  getPpqCreditId, savePpqCreditId,
   getOllamaMainModel, setOllamaMainModel,
   getOllamaPIIUrl, setOllamaPIIUrl,
   getOllamaPIIModel, setOllamaPIIModel,
-  fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing, fetchRoutstrModels, getRoutstrPricing,
+  getOpenRouterBalance,
+  getVeniceBalance,
+  fetchVeniceModels, fetchOpenRouterModels, getOpenRouterPricing,
+  fetchRoutstrModels, getRoutstrPricing, createRoutstrAccount, getRoutstrBalance, createRoutstrLightningInvoice, checkRoutstrInvoiceStatus, topupRoutstrCashu,
+  fetchPpqModels, getPpqPricing, createPpqAccount, getPpqBalance, createPpqTopup, checkPpqTopupStatus,
   generatePKCE, startOpenRouterOAuth, exchangeOpenRouterCode,
   deduplicateModels,
   isRecommendedModel,
@@ -910,6 +1053,6 @@ Object.assign(window, {
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   supportsVision, supportsWebSearch, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE,
-  validateApiKey, validateVeniceKey, validateOpenRouterKey, validateRoutstrKey,
-  callAnthropicAPI, callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callRoutstrAPI, callClaudeAPI
+  validateVeniceKey, validateOpenRouterKey, validateRoutstrKey, validatePpqKey,
+  callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callRoutstrAPI, callPpqAPI, callClaudeAPI
 });

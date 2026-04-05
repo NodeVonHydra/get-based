@@ -6,10 +6,10 @@ export const config = { runtime: 'edge' };
 
 // Allowlisted provider URL prefixes — only these can be proxied
 const ALLOWED_ORIGINS = [
-  'https://api.anthropic.com/',
   'https://openrouter.ai/',
   'https://api.venice.ai/',
   'https://api.routstr.com/',
+  'https://api.ppq.ai/',
 ];
 
 function isAllowedUrl(url) {

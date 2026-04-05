@@ -169,16 +169,16 @@ AI provider routing and model management. All AI calls flow through `callClaudeA
 
 **Key exports:**
 - `callClaudeAPI(opts)` — main router: delegates to the active provider based on `getAIProvider()`
-- `callAnthropicAPI(opts)` — Anthropic Messages API with SSE streaming
 - `callOpenRouterAPI(opts)` — OpenRouter via `callOpenAICompatibleAPI`
+- `callRoutstrAPI(opts)` — Routstr via `callOpenAICompatibleAPI`
+- `callPPQAPI(opts)` — PPQ via `callOpenAICompatibleAPI`
 - `callVeniceAPI(opts)` — Venice AI via `callOpenAICompatibleAPI`
-- `callOllamaChat(opts)` — legacy Ollama `/api/chat` (kept for backwards compat, not used in main routing)
 - `callOpenAICompatibleLocalAPI(opts)` — Local AI via shared `callOpenAICompatibleAPI` helper
 - `callOpenAICompatibleAPI(endpoint, key, model, providerName, opts, extraHeaders)` — shared OpenAI-format helper
-- `getAIProvider()` / `setAIProvider(provider)` — `'anthropic'` | `'openrouter'` | `'venice'` | `'ollama'` (internal key for Local)
+- `getAIProvider()` / `setAIProvider(provider)` — `'openrouter'` | `'routstr'` | `'ppq'` | `'venice'` | `'ollama'` (internal key for Local)
 - `hasAIProvider()` — returns `true` if any provider is configured; gates all 7 AI features
-- `getAnthropicModel()`, `getOpenRouterModel()`, `getVeniceModel()`, `getOllamaMainModel()`
-- `fetchAnthropicModels()`, `fetchOpenRouterModels()`, `fetchVeniceModels()` — dynamic model lists
+- `getOpenRouterModel()`, `getRoutstrModel()`, `getPPQModel()`, `getVeniceModel()`, `getOllamaMainModel()`
+- `fetchOpenRouterModels()`, `fetchRoutstrModels()`, `fetchPPQModels()`, `fetchVeniceModels()` — dynamic model lists
 - `getModelPricing(modelId)` — checks dynamic OpenRouter pricing cache, falls back to `MODEL_PRICING`
 - `OPENROUTER_CURATED` — whitelist of latest-gen medically capable models (prefix-matched)
 - `OPENROUTER_EXCLUDE` — blocklist filtering codex/audio/image/oss variants
@@ -252,7 +252,7 @@ Shared image utilities for chat attachments and PDF image fallback.
 **Key exports:**
 - `resizeImage(file, maxDim?, quality?)` — resizes an image to fit within `maxDim` pixels (default 1024), returns `{ base64, mediaType, width, height, origWidth, origHeight, quality_warnings }`
 - `isValidImageType(type)` — validates MIME type against `image/(jpeg|png|gif|webp)`
-- `formatImageBlock(base64, mediaType, provider)` — returns a provider-specific image content block (Anthropic `type:'image'` vs OpenAI-compatible `type:'image_url'`)
+- `formatImageBlock(base64, mediaType, provider)` — returns a provider-specific image content block (`type:'image_url'` for OpenAI-compatible providers)
 - `buildVisionContent(imageBlocks, text, provider)` — assembles a content array with image blocks + text block
 
 **Internal:**

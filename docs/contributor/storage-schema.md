@@ -11,18 +11,21 @@ Keys are namespaced by profile ID where data is per-profile. `{profileId}` defau
 | Key | Type | Purpose |
 |---|---|---|
 | `labcharts-profiles` | JSON array | Profile index: `[{ id, name, createdAt }]` |
-| `labcharts-ai-provider` | string | Active AI provider: `'anthropic'` \| `'openrouter'` \| `'venice'` \| `'ollama'` |
-| `labcharts-api-key` | string | Anthropic API key |
+| `labcharts-ai-provider` | string | Active AI provider: `'openrouter'` \| `'routstr'` \| `'ppq'` \| `'venice'` \| `'ollama'` |
 | `labcharts-openrouter-key` | string | OpenRouter API key |
+| `labcharts-routstr-key` | string | Routstr session key or Cashu token |
+| `labcharts-ppq-key` | string | PPQ API key |
 | `labcharts-venice-key` | string | Venice AI API key |
 | `labcharts-ollama` | JSON | Local AI config: `{ url, model, mode, apiKey }`. Key kept as `ollama` for backwards compat |
 | `labcharts-ollama-pii-model` | string | Local AI model used for PII obfuscation (can differ from main chat model) |
-| `labcharts-anthropic-model` | string | Selected Anthropic model ID |
 | `labcharts-openrouter-model` | string | Selected OpenRouter model ID (e.g., `anthropic/claude-sonnet-4-6`) |
+| `labcharts-routstr-model` | string | Selected Routstr model ID |
+| `labcharts-ppq-model` | string | Selected PPQ model ID |
 | `labcharts-venice-model` | string | Selected Venice model ID |
-| `labcharts-anthropic-models` | JSON | Cached model list from Anthropic `/v1/models` |
 | `labcharts-openrouter-models` | JSON | Cached model list from OpenRouter |
 | `labcharts-openrouter-pricing` | JSON | Cached per-token pricing from OpenRouter |
+| `labcharts-routstr-models` | JSON | Cached model list from Routstr |
+| `labcharts-ppq-models` | JSON | Cached model list from PPQ |
 | `labcharts-venice-models` | JSON | Cached model list from Venice |
 | `labcharts-marker-desc` | JSON | Cached custom marker descriptions from AI |
 | `labcharts-time-format` | string | `'24h'` \| `'12h'` — time display preference |

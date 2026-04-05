@@ -310,7 +310,7 @@
   // ═══════════════════════════════════════════════
   console.group('%c15. Profile Delete Cleanup (source inspection)', 'font-weight:bold');
   // We can't actually delete the active profile, so just inspect the source
-  const profileSrc = await fetch('js/profile.js').then(r => r.text());
+  const profileSrc = await fetchWithRetry('js/profile.js');
   assert('deleteProfile removes chat-threads key', profileSrc.includes('chat-threads'));
   assert('deleteProfile removes chat-t_ keys', profileSrc.includes('chat-t_'));
   assert('deleteProfile removes chatRailOpen', profileSrc.includes('chatRailOpen'));
@@ -323,7 +323,7 @@
   // 16. CSS INSPECTION
   // ═══════════════════════════════════════════════
   console.group('%c16. CSS Inspection', 'font-weight:bold');
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
   assert('CSS has .chat-thread-rail', cssSrc.includes('.chat-thread-rail'));
   assert('CSS has .chat-thread-rail.open', cssSrc.includes('.chat-thread-rail.open'));
   assert('CSS has .chat-thread-item', cssSrc.includes('.chat-thread-item'));

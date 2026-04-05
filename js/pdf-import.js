@@ -5,7 +5,7 @@ import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, UNIT_CONVERSIONS, calculateCost, 
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, getOllamaPIIModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getVeniceModelDisplay, getOpenRouterModelDisplay, getActiveModelId, getActiveModelDisplay, getOllamaPIIModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 import { detectProduct, normalizeWithAdapter, getAdapterByTestType } from './adapters.js';
 
@@ -94,7 +94,7 @@ function normalizeModelId(id) {
 
 function checkModelMismatch() {
   const provider = getAIProvider();
-  const currentModel = provider === 'anthropic' ? getAnthropicModel() : provider === 'venice' ? getVeniceModel() : provider === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+  const currentModel = getActiveModelId();
   // Find the most recent entry with a different model
   const entries = (state.importedData?.entries || []).filter(e => e.importedWith?.modelId);
   if (entries.length === 0) return null;
@@ -115,7 +115,6 @@ function tryAutoSwitchModel(prevModel, prevProvider) {
   }
   const provider = getAIProvider();
   if (provider === 'openrouter') setOpenRouterModel(prevModel);
-  else if (provider === 'anthropic') setAnthropicModel(prevModel);
   else if (provider === 'venice') setVeniceModel(prevModel);
   else if (provider === 'ollama') setOllamaMainModel(prevModel);
 }
@@ -684,7 +683,7 @@ export function showImportPreview(parseResult) {
   if (parseResult.costInfo) {
     const ci = parseResult.costInfo;
     const totalTokens = (ci.inputTokens || 0) + (ci.outputTokens || 0);
-    const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : ci.provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
+    const modelLabel = ci.provider === 'ollama' ? getOllamaMainModel() : ci.provider === 'venice' ? getVeniceModelDisplay() : ci.provider === 'openrouter' ? getOpenRouterModelDisplay() : getActiveModelDisplay();
     html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">\ud83d\udcca ${escapeHTML(modelLabel)} \u00b7 ${totalTokens.toLocaleString()} tokens \u00b7 ${formatCost(ci.cost)}</div>`;
   }
   // Debug: timings and diff button
@@ -693,7 +692,7 @@ export function showImportPreview(parseResult) {
     if (t) {
       const piiLabel = parseResult.privacyMethod?.startsWith('ollama') ? `PII: ${t.pii}s (${getOllamaPIIModel()})` : `PII: regex`;
       const provider = getAIProvider();
-      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : provider === 'openrouter' ? getOpenRouterModelDisplay() : getAnthropicModelDisplay();
+      const modelLabel = provider === 'ollama' ? getOllamaMainModel() : provider === 'venice' ? getVeniceModelDisplay() : provider === 'openrouter' ? getOpenRouterModelDisplay() : getActiveModelDisplay();
       html += `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;font-family:monospace">&#9202; ${piiLabel} &nbsp;|&nbsp; Analysis: ${t.analysis}s (${modelLabel})</div>`;
     }
     if (parseResult.privacyOriginal && parseResult.privacyObfuscated) {
@@ -952,9 +951,10 @@ export function setupDropZone() {
     for (const f of jsonFiles) window.importDataJSON(f);
     if (dnaFiles.length > 0) {
       for (const f of dnaFiles) {
-        const header = await f.slice(0, 500).text();
+        const header = await f.slice(0, 1500).text();
         const fmt = window.detectDNAFile ? window.detectDNAFile(header) : null;
-        if (fmt === 'mtdna' && window.handleMtDNAFile) await window.handleMtDNAFile(f);
+        if ((fmt === 'mtdna' || fmt === '23andme-mito') && window.handleMtDNAFile) await window.handleMtDNAFile(f);
+        else if (fmt === '23andme-y') { showNotification('Y-chromosome DNA files are not supported', 'info'); }
         else await window.handleDNAFile(f);
       }
     }
@@ -1138,10 +1138,8 @@ Return ONLY valid JSON in this exact format:
   }
 
   // Build content array with image blocks + text instruction
+  // All providers use OpenAI-compatible image format
   const imageBlocks = images.map(img => {
-    if (provider === 'anthropic') {
-      return { type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } };
-    }
     return { type: 'image_url', image_url: { url: `data:${img.mediaType};base64,${img.base64}` } };
   });
   const content = [
@@ -1323,7 +1321,7 @@ export async function handlePDFFile(file, forceImageMode = false, preExtractedTe
       result.privacyMethod = 'none (image mode)';
       result.timings = { pii: 0, analysis: analysisTime };
       const prov = result.provider || getAIProvider();
-      const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+      const mid = getActiveModelId();
       result.costInfo = {
         provider: prov, modelId: mid,
         inputTokens: result.usage?.inputTokens || 0,
@@ -1429,7 +1427,7 @@ export async function handlePDFFile(file, forceImageMode = false, preExtractedTe
     result.privacyReplacements = privacyReplacements;
     result.timings = { pii: piiTime, analysis: analysisTime };
     const prov = result.provider || getAIProvider();
-    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+    const mid = getActiveModelId();
     result.costInfo = {
       provider: prov, modelId: mid,
       inputTokens: result.usage?.inputTokens || 0,
@@ -1589,7 +1587,7 @@ async function _processBatchFile(file, ollama, fileNum, totalFiles) {
   result.privacyReplacements = privacyReplacements;
   result.timings = { pii: piiTime, analysis: analysisTime };
   const prov = result.provider || getAIProvider();
-  const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+  const mid = getActiveModelId();
   result.costInfo = {
     provider: prov, modelId: mid,
     inputTokens: result.usage?.inputTokens || 0,
@@ -1713,7 +1711,7 @@ export async function handleImageFile(file) {
     result.privacyMethod = 'none (image mode)';
     result.timings = { pii: 0, analysis: analysisTime };
     const prov = result.provider || getAIProvider();
-    const mid = prov === 'anthropic' ? getAnthropicModel() : prov === 'venice' ? getVeniceModel() : prov === 'openrouter' ? getOpenRouterModel() : getOllamaMainModel();
+    const mid = getActiveModelId();
     result.costInfo = {
       provider: prov, modelId: mid,
       inputTokens: result.usage?.inputTokens || 0,

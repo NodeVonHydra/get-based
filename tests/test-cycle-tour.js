@@ -13,7 +13,7 @@
 
   // --- 1. TOUR_STEPS structure ---
   console.log('%c[1] App tour steps', 'font-weight:bold');
-  const tourSrc = await fetch('/js/tour.js').then(r => r.text());
+  const tourSrc = await fetchWithRetry('/js/tour.js');
   const appStepCount = (tourSrc.match(/const TOUR_STEPS\s*=\s*\[([\s\S]*?)\];/)||[])[1];
   const appSteps = appStepCount ? appStepCount.split('{ target:').length - 1 : 0;
   assert('App tour has 9 steps', appSteps === 9, `found ${appSteps}`);
@@ -70,7 +70,7 @@
 
   // --- 10. Auto-trigger in saveMenstrualCycle ---
   console.log('%c[10] Auto-trigger in saveMenstrualCycle', 'font-weight:bold');
-  const cycleSrc = await fetch('/js/cycle.js').then(r => r.text());
+  const cycleSrc = await fetchWithRetry('/js/cycle.js');
   assert('saveMenstrualCycle calls startCycleTour(true)', cycleSrc.includes('startCycleTour(true)'));
   assert('setTimeout delay for DOM readiness', /setTimeout\s*\(\s*\(\)\s*=>\s*\{[^}]*startCycleTour\(true\)[^}]*\}\s*,\s*600\s*\)/.test(cycleSrc));
 
@@ -83,7 +83,7 @@
 
   // --- 12. CSS rule for .cycle-tour-btn ---
   console.log('%c[12] CSS rule', 'font-weight:bold');
-  const cssSrc = await fetch('/styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('/styles.css');
   assert('.cycle-tour-btn rule exists', cssSrc.includes('.cycle-tour-btn'));
   assert('24px width', /\.cycle-tour-btn\s*\{[^}]*width:\s*24px/.test(cssSrc));
   assert('border-radius: 50%', /\.cycle-tour-btn\s*\{[^}]*border-radius:\s*50%/.test(cssSrc));
@@ -91,14 +91,14 @@
 
   // --- 13. Profile delete cleanup ---
   console.log('%c[13] Profile delete cleanup', 'font-weight:bold');
-  const profileSrc = await fetch('/js/profile.js').then(r => r.text());
+  const profileSrc = await fetchWithRetry('/js/profile.js');
   assert('deleteProfile removes tour key', profileSrc.includes("-tour`"));
   assert('deleteProfile removes cycleTour key', profileSrc.includes("-cycleTour`"));
   assert('deleteProfile removes phaseOverlay key', profileSrc.includes("-phaseOverlay`"));
 
   // --- 14. Service worker cache version ---
   console.log('%c[14] Service worker cache', 'font-weight:bold');
-  const swSrc = await fetch('/service-worker.js').then(r => r.text());
+  const swSrc = await fetchWithRetry('/service-worker.js');
   assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
   assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
 

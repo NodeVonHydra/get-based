@@ -33,7 +33,7 @@ js/
   state.js          — Single shared mutable state object
   utils.js          — escapeHTML, hashString, getStatus, formatValue, showNotification, linearRegression
   theme.js          — Theme get/set/toggle, getChartColors, time format helpers
-  api.js            — AI provider routing, all 4 providers, model management
+  api.js            — AI provider routing, all 5 providers, model management
   profile.js        — Profile CRUD, sex/DOB/location, migrateProfileData, profile dropdown
   data.js           — getActiveData() pipeline, unit conversion, date range, saveImportedData
   pii.js            — PII obfuscation: local AI (OpenAI-compatible) + regex fallback, diff viewer
@@ -137,4 +137,4 @@ Loaded from CDN with SRI integrity hashes in `index.html`:
 | pdf.js | 3.11.174 | PDF text extraction |
 | Inter, Outfit, JetBrains Mono | latest | Google Fonts (body, headings, data) |
 
-AI providers (Anthropic, OpenRouter, Venice, Local AI) are called directly from the browser — no backend proxy.
+AI providers (OpenRouter, Routstr, PPQ, Venice, Local AI) are called directly from the browser — no backend proxy.

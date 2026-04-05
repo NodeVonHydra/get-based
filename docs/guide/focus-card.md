@@ -7,7 +7,7 @@ The Focus Card is a single AI-generated sentence at the top of your dashboard th
 The Focus Card is only shown when two conditions are met:
 
 1. You have lab data loaded
-2. You have an AI provider configured (Anthropic, OpenRouter, Venice, or Local AI)
+2. You have an AI provider configured (OpenRouter, Routstr, PPQ, Venice, or Local AI)
 
 If either condition is not met, the card does not appear. See [AI Providers](/guide/ai-providers) to set up a provider.
 

@@ -27,7 +27,7 @@
   // ═══════════════════════════════════════
   console.log('%c 1. Source Inspection ', 'font-weight:bold;color:#f59e0b');
 
-  const tourSrc = await fetch('js/tour.js').then(r => r.text());
+  const tourSrc = await fetchWithRetry('js/tour.js');
 
   assert('tour.js has startTour export', tourSrc.includes('export function startTour'));
   assert('tour.js has endTour export', tourSrc.includes('export function endTour'));
@@ -349,7 +349,7 @@
   // ═══════════════════════════════════════
   console.log('%c 18. CSS Styles ', 'font-weight:bold;color:#f59e0b');
 
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
 
   assert('CSS has #tour-overlay rule', cssSrc.includes('#tour-overlay'));
   assert('CSS overlay: z-index 500', cssSrc.includes('z-index: 500'));
@@ -378,7 +378,7 @@
   // ═══════════════════════════════════════
   console.log('%c 19. main.js Wiring ', 'font-weight:bold;color:#f59e0b');
 
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  const mainSrc = await fetchWithRetry('js/main.js');
 
   assert('main.js imports tour.js', mainSrc.includes("import './tour.js'"));
   assert('main.js Escape checks #tour-overlay', mainSrc.includes('tour-overlay'));
@@ -393,7 +393,7 @@
   // ═══════════════════════════════════════
   console.log('%c 20. views.js Auto-Trigger ', 'font-weight:bold;color:#f59e0b');
 
-  const viewsSrc = await fetch('js/views.js').then(r => r.text());
+  const viewsSrc = await fetchWithRetry('js/views.js');
 
   assert('views.js calls window.startTour(true)', viewsSrc.includes('window.startTour(true)'));
   assert('views.js guards with if (window.startTour)', viewsSrc.includes('if (window.startTour)'));
@@ -407,7 +407,7 @@
   // ═══════════════════════════════════════
   console.log('%c 21. Settings — Take a Tour ', 'font-weight:bold;color:#f59e0b');
 
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
+  const settingsSrc = await fetchWithRetry('js/settings.js');
 
   assert('settings.js has "Guided Tour" button', settingsSrc.includes('Guided Tour'));
   assert('settings.js calls startTour(false)', settingsSrc.includes('startTour(false)'));
@@ -420,7 +420,7 @@
   // ═══════════════════════════════════════
   console.log('%c 22. Service Worker ', 'font-weight:bold;color:#f59e0b');
 
-  const swSrc = await fetch('service-worker.js').then(r => r.text());
+  const swSrc = await fetchWithRetry('service-worker.js');
 
   assert('SW APP_SHELL includes /js/tour.js', swSrc.includes("'/js/tour.js'"));
   assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));

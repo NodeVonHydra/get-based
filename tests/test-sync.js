@@ -10,10 +10,10 @@
 
   console.log('%c Cross-Device Sync Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const syncSrc = await fetch('js/sync.js').then(r => r.text());
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
-  const dataSrc = await fetch('js/data.js').then(r => r.text());
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
+  const syncSrc = await fetchWithRetry('js/sync.js');
+  const settingsSrc = await fetchWithRetry('js/settings.js');
+  const dataSrc = await fetchWithRetry('js/data.js');
+  const mainSrc = await fetchWithRetry('js/main.js');
 
   // ═══════════════════════════════════════
   // 1. MODULE EXPORTS
@@ -49,10 +49,11 @@
   console.log('%c 3. AI Settings Sync ', 'font-weight:bold;color:#f59e0b');
 
   const expectedKeys = [
-    'labcharts-ai-provider', 'labcharts-api-key', 'labcharts-openrouter-key',
-    'labcharts-venice-key', 'labcharts-anthropic-model', 'labcharts-openrouter-model',
+    'labcharts-ai-provider', 'labcharts-openrouter-key',
+    'labcharts-venice-key', 'labcharts-openrouter-model',
     'labcharts-venice-model', 'labcharts-venice-e2ee', 'labcharts-ollama-model',
-    'labcharts-ollama-pii-url', 'labcharts-ollama-pii-model'
+    'labcharts-ollama-pii-url', 'labcharts-ollama-pii-model',
+    'labcharts-ppq-key', 'labcharts-ppq-model', 'labcharts-routstr-key', 'labcharts-routstr-model'
   ];
   for (const key of expectedKeys) {
     assert(`AI_SETTINGS_KEYS includes ${key}`, syncSrc.includes(`'${key}'`));
@@ -85,7 +86,7 @@
   assert('enableLogging gated on debug mode', syncSrc.includes('enableLogging: isDebugMode()'));
   assert('Default relay is wss://sync.getbased.health', syncSrc.includes("wss://sync.getbased.health"));
   assert('Transport uses plural "transports" array (not singular)', syncSrc.includes('transports: [{ type:') && !syncSrc.includes('transport: { type:'));
-  assert('COOP header in dev-server', await fetch('dev-server.js').then(r => r.text()).then(s => s.includes('Cross-Origin-Opener-Policy')));
+  assert('COOP header in dev-server', await fetchWithRetry('dev-server.js').then(s => s.includes('Cross-Origin-Opener-Policy')));
   assert('initSync has re-entrancy guard', syncSrc.includes('if (evolu) return'));
   assert('checkRelayConnection exported', syncSrc.includes('export function checkRelayConnection'));
 
@@ -184,7 +185,7 @@
   assert('Display prefs synced', syncSrc.includes('DISPLAY_PREF_SUFFIXES') && syncSrc.includes('collectDisplayPrefs'));
   assert('onChatSaved exported', syncSrc.includes('export function onChatSaved'));
   assert('onChatSaved has debounce', syncSrc.includes('_chatSyncTimer') && syncSrc.includes('10000'));
-  assert('chat.js imports onChatSaved', await fetch('js/chat.js').then(r => r.text()).then(s => s.includes("import { onChatSaved } from './sync.js'")));
+  assert('chat.js imports onChatSaved', await fetchWithRetry('js/chat.js').then(s => s.includes("import { onChatSaved } from './sync.js'")));
 
   // ═══════════════════════════════════════
   // 12. MESSENGER ACCESS

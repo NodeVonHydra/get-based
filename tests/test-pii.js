@@ -18,7 +18,7 @@
   // ═══════════════════════════════════════
   console.log('%c 1. Patient Name Extraction ', 'font-weight:bold;color:#f59e0b');
 
-  const piiSrc = await fetch('js/pii.js').then(r => r.text());
+  const piiSrc = await fetchWithRetry('js/pii.js');
 
   // Extract the function and test it by running obfuscation with known names
   // Czech format

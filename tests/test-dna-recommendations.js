@@ -10,10 +10,10 @@
 
   console.log('%c DNA-Aware Supplement Recommendations Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const recSrc = await fetch('js/recommendations.js').then(r => r.text());
-  const dnaSrc = await fetch('js/dna.js').then(r => r.text());
-  const ctxSrc = await fetch('js/context-cards.js').then(r => r.text());
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const recSrc = await fetchWithRetry('js/recommendations.js');
+  const dnaSrc = await fetchWithRetry('js/dna.js');
+  const ctxSrc = await fetchWithRetry('js/context-cards.js');
+  const cssSrc = await fetchWithRetry('styles.css');
   const snpData = await fetch('data/snp-health.json').then(r => r.json());
   const catalogData = await fetch('data/recommendations-czsk.json').then(r => r.json());
 
@@ -145,7 +145,7 @@
   console.log('%c 6. Card DNA Section ', 'font-weight:bold;color:#f59e0b');
 
   // DNA info is inside the Tips modal via _buildCardDNASection in recommendations.js
-  const recSrc2 = await fetch('js/recommendations.js').then(r => r.text());
+  const recSrc2 = await fetchWithRetry('js/recommendations.js');
   assert('_buildCardDNASection checks contextCards', recSrc2.includes('entry.contextCards'));
   assert('_buildCardDNASection checks snpHints', recSrc2.includes('!entry.snpHints'));
   assert('_buildCardDNASection skips effect=none', recSrc2.includes("effect === 'none'"));

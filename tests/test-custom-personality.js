@@ -150,7 +150,7 @@
   // ── 10. CHAT_PERSONALITIES no longer has custom entry ──
   console.log('%c▶ 10. CHAT_PERSONALITIES static entries', 'font-weight:bold');
   try {
-    const constantsSrc = await fetch('js/constants.js').then(r => r.text());
+    const constantsSrc = await fetchWithRetry('js/constants.js');
     assert('CHAT_PERSONALITIES has default', constantsSrc.includes("id: 'default'"));
     assert('CHAT_PERSONALITIES has house', constantsSrc.includes("id: 'house'"));
     assert('CHAT_PERSONALITIES no custom entry', !constantsSrc.includes("id: 'custom'"));
@@ -243,7 +243,7 @@
   // ── 15. Backup compat ──
   console.log('%c▶ 15. Backup compat', 'font-weight:bold');
   try {
-    const cryptoSrc = await fetch('js/crypto.js').then(r => r.text());
+    const cryptoSrc = await fetchWithRetry('js/crypto.js');
     assert('PER_PROFILE_PREF_SUFFIXES has chatPersonalityCustom', cryptoSrc.includes('chatPersonalityCustom'));
   } catch {
     assert('Could read crypto.js', false);
@@ -252,7 +252,7 @@
   // ── 16. Service worker cache version ──
   console.log('%c▶ 16. Service worker version', 'font-weight:bold');
   try {
-    const swSrc = await fetch('service-worker.js').then(r => r.text());
+    const swSrc = await fetchWithRetry('service-worker.js');
     assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
     assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
   } catch {
@@ -281,7 +281,7 @@
   // ── 19. Stop button CSS ──
   console.log('%c▶ 19. Stop button CSS', 'font-weight:bold');
   {
-    const css = await fetch('styles.css').then(r => r.text());
+    const css = await fetchWithRetry('styles.css');
     assert('CSS has .chat-send-btn.streaming', css.includes('.chat-send-btn.streaming'));
     assert('CSS has .chat-stopped-note', css.includes('.chat-stopped-note'));
   }
@@ -304,7 +304,7 @@
   // ── 22. Discuss button CSS ──
   console.log('%c▶ 22. Discuss button CSS', 'font-weight:bold');
   {
-    const css2 = await fetch('styles.css').then(r => r.text());
+    const css2 = await fetchWithRetry('styles.css');
     assert('CSS has .chat-discuss-btn', css2.includes('.chat-discuss-btn'));
     assert('CSS has .chat-msg-auto', css2.includes('.chat-msg-auto'));
     assert('CSS has .chat-discuss-continue', css2.includes('.chat-discuss-continue'));
@@ -321,8 +321,7 @@
   // ── 24. API signal pass-through ──
   console.log('%c▶ 24. API signal pass-through', 'font-weight:bold');
   {
-    const apiSrc = await fetch('js/api.js').then(r => r.text());
-    assert('callAnthropicAPI destructures signal', apiSrc.includes('callAnthropicAPI') && apiSrc.includes('signal }'));
+    const apiSrc = await fetchWithRetry('js/api.js');
     assert('API passes signal to fetch', apiSrc.includes('signal') && apiSrc.includes('fetch('));
     assert('callOllamaChat has signal param', apiSrc.includes('callOllamaChat') && apiSrc.includes('signal }'));
     assert('callOpenAICompatibleAPI has signal param', apiSrc.includes('callOpenAICompatibleAPI') && apiSrc.includes('signal }'));
@@ -352,7 +351,7 @@
   // ── 27. Steer input CSS ──
   console.log('%c▶ 27. Steer input', 'font-weight:bold');
   {
-    const css3 = await fetch('styles.css').then(r => r.text());
+    const css3 = await fetchWithRetry('styles.css');
     assert('CSS has .chat-discuss-steer', css3.includes('.chat-discuss-steer'));
     assert('CSS has .chat-discuss-continue-actions', css3.includes('.chat-discuss-continue-actions'));
   }

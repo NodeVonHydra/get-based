@@ -125,7 +125,7 @@
   // ═══════════════════════════════════════
   console.log('%c 10. Migration ', 'font-weight:bold;color:#f59e0b');
 
-  const profileSrc = await fetch('js/profile.js').then(r => r.text());
+  const profileSrc = await fetchWithRetry('js/profile.js');
   assert('Migration guard for changeHistory', profileSrc.includes("data.changeHistory === undefined") && profileSrc.includes("data.changeHistory = []"));
 
   // ═══════════════════════════════════════
@@ -133,7 +133,7 @@
   // ═══════════════════════════════════════
   console.log('%c 11. State Default ', 'font-weight:bold;color:#f59e0b');
 
-  const stateSrc = await fetch('js/state.js').then(r => r.text());
+  const stateSrc = await fetchWithRetry('js/state.js');
   assert('state.js has changeHistory default', stateSrc.includes('changeHistory: []'));
 
   // ═══════════════════════════════════════
@@ -141,7 +141,7 @@
   // ═══════════════════════════════════════
   console.log('%c 12. Export ', 'font-weight:bold;color:#f59e0b');
 
-  const exportSrc = await fetch('js/export.js').then(r => r.text());
+  const exportSrc = await fetchWithRetry('js/export.js');
   assert('Export includes changeHistory', exportSrc.includes('changeHistory: data.changeHistory'));
 
   // ═══════════════════════════════════════
@@ -157,7 +157,7 @@
   // ═══════════════════════════════════════
   console.log('%c 14. AI Context ', 'font-weight:bold;color:#f59e0b');
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
   assert('buildLabContext reads changeHistory', chatSrc.includes('changeHistory'));
   assert('Context Change Timeline section', chatSrc.includes('Context Change Timeline'));
   assert('summarizeChange helper exists', chatSrc.includes('function summarizeChange'));
@@ -167,7 +167,7 @@
   // ═══════════════════════════════════════
   console.log('%c 15. saveAndRefresh Field Param ', 'font-weight:bold;color:#f59e0b');
 
-  const ctxSrc = await fetch('js/context-cards.js').then(r => r.text());
+  const ctxSrc = await fetchWithRetry('js/context-cards.js');
   assert('saveAndRefresh has field parameter', ctxSrc.includes('function saveAndRefresh(msg, field)'));
   assert('Diet passes field to saveAndRefresh', ctxSrc.includes("saveAndRefresh('Diet & Digestion saved', 'diet')"));
   assert('Exercise passes field to saveAndRefresh', ctxSrc.includes("saveAndRefresh('Exercise saved', 'exercise')"));
@@ -188,7 +188,7 @@
   assert('saveInterpretiveLens calls recordChange', ctxSrc.includes("recordChange('interpretiveLens')"));
   assert('debounceContextNotes calls recordChange', ctxSrc.includes("recordChange('contextNotes')"));
 
-  const cycleSrc = await fetch('js/cycle.js').then(r => r.text());
+  const cycleSrc = await fetchWithRetry('js/cycle.js');
   assert('saveMenstrualCycle calls recordChange', cycleSrc.includes("recordChange('menstrualCycle')"));
 
   // Restore original state

@@ -70,7 +70,7 @@ export function submitFeedback() {
   const screenSize = `${screen.width}x${screen.height}`;
   const theme = getTheme();
   const providerKey = getAIProvider() || 'none';
-  const providerLabels = { anthropic: 'Anthropic', openrouter: 'OpenRouter', routstr: 'Routstr', venice: 'Venice', ollama: 'Local AI' };
+  const providerLabels = { openrouter: 'OpenRouter', routstr: 'Routstr', ppq: 'PPQ', venice: 'Venice', ollama: 'Local AI' };
   const provider = providerLabels[providerKey] || providerKey;
 
   // Build issue body

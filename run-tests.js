@@ -103,6 +103,15 @@ const PORT = process.env.PORT || 8000;
   for (const testFile of TEST_FILES) {
     try {
       await page.evaluate(async (t) => {
+        // Inject fetchWithRetry before each test (page context can be lost between runs)
+        if (!window.fetchWithRetry) {
+          window.fetchWithRetry = async function(url, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+              try { return await fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); }); }
+              catch (e) { if (i === retries - 1) throw new Error(`Failed to fetch ${url} after ${retries} attempts`); }
+            }
+          };
+        }
         console.log(`\u25B6 Running ${t}`);
         try {
           const src = await fetch(t).then(r => r.text());

@@ -313,52 +313,51 @@ export { ADAPTER_MARKERS as SPECIALTY_MARKER_DEFS } from './adapters.js';
 
 // ── Model pricing ($/M tokens) ──
 export const MODEL_PRICING = {
-  anthropic: {
-    'claude-opus-4-6':   { input: 5.00,  output: 25.00 },
-    'claude-opus-4-5':   { input: 5.00,  output: 25.00 },
-    'claude-sonnet-4-6': { input: 3.00,  output: 15.00 },
-    'claude-sonnet-4-5': { input: 3.00,  output: 15.00 },
-    'claude-haiku-4-5':  { input: 1.00,  output: 5.00  },
-    'claude-haiku-3-5':  { input: 0.80,  output: 4.00  },
-    '_default':          { input: 3.00,  output: 15.00, approx: true },
-  },
   venice: {
     'claude-opus-4-6':      { input: 6.00,  output: 30.00 },
     'claude-opus-4-5':      { input: 6.00,  output: 30.00 },
-    'claude-sonnet-4-6':    { input: 3.75,  output: 18.75 },
+    'claude-sonnet-4-6':    { input: 3.60,  output: 18.00 },
     'claude-sonnet-4-5':    { input: 3.75,  output: 18.75 },
-    'claude-sonnet':        { input: 3.75,  output: 18.75 },
-    'gpt-5':                { input: 2.19,  output: 17.50 },
+    'openai-gpt-54':        { input: 3.13,  output: 18.80 },
+    'openai-gpt-52':        { input: 2.19,  output: 17.50 },
     'gemini-3-pro':         { input: 2.50,  output: 15.00 },
+    'gemini-3-1-pro':       { input: 2.50,  output: 15.00 },
+    'grok-4-20':            { input: 2.50,  output: 7.50  },
     'hermes-3-llama-3.1-405b': { input: 1.10, output: 3.00 },
-    'qwen-3-coder':         { input: 0.75,  output: 3.00  },
-    'kimi-k2':              { input: 0.75,  output: 3.20  },
+    'glm-5':                { input: 1.00,  output: 3.20  },
+    'qwen3-coder':          { input: 0.75,  output: 3.00  },
+    'kimi-k2':              { input: 0.56,  output: 3.50  },
     'llama-3.3-70b':        { input: 0.70,  output: 2.80  },
     'gemini-3-flash':       { input: 0.70,  output: 3.75  },
     'glm-4':                { input: 0.55,  output: 2.65  },
-    'venice-medium':        { input: 0.50,  output: 2.00  },
-    'grok-4':               { input: 0.50,  output: 1.25  },
-    'qwen-3-235b':          { input: 0.15,  output: 0.75  },
-    'qwen3':                { input: 0.15,  output: 0.75  },
-    'deepseek-v3':          { input: 0.40,  output: 1.00  },
-    'minimax':              { input: 0.40,  output: 1.60  },
+    'minimax':              { input: 0.35,  output: 1.50  },
+    'deepseek-v3':          { input: 0.33,  output: 0.48  },
+    'qwen3-next':           { input: 0.35,  output: 1.90  },
     'grok-code':            { input: 0.25,  output: 1.87  },
-    'qwen-3-vl':            { input: 0.25,  output: 1.50  },
+    'grok-41-fast':         { input: 0.25,  output: 0.63  },
+    'qwen3-vl':             { input: 0.25,  output: 1.50  },
     'venice-uncensored':    { input: 0.20,  output: 0.90  },
+    'qwen3-235b':           { input: 0.15,  output: 0.75  },
     'llama-3.2':            { input: 0.15,  output: 0.60  },
     'google-gemma':         { input: 0.12,  output: 0.20  },
-    'venice-small':         { input: 0.05,  output: 0.15  },
+    'qwen3-5-9b':           { input: 0.05,  output: 0.15  },
     'openai-gpt-oss':       { input: 0.07,  output: 0.30  },
     '_default':             { input: 0.50,  output: 2.00, approx: true },
   },
   openrouter: {
     '_default':  { input: 1.00,  output: 3.00, approx: true },
   },
+  ppq: {
+    '_default':  { input: 1.00,  output: 3.00, approx: true },
+  },
+  routstr: {
+    '_default':  { input: 1.00,  output: 5.00, approx: true },
+  },
 };
 export function getModelPricing(provider, modelId) {
   // OpenRouter/Routstr: check dynamic API-sourced pricing first
-  if ((provider === 'openrouter' || provider === 'routstr') && modelId) {
-    const cacheKey = provider === 'routstr' ? 'labcharts-routstr-pricing' : 'labcharts-openrouter-pricing';
+  if ((provider === 'openrouter' || provider === 'routstr' || provider === 'ppq' || provider === 'venice') && modelId) {
+    const cacheKey = provider === 'ppq' ? 'labcharts-ppq-pricing' : provider === 'venice' ? 'labcharts-venice-pricing' : provider === 'routstr' ? 'labcharts-routstr-pricing' : 'labcharts-openrouter-pricing';
     const cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
     if (cached[modelId]) return cached[modelId];
   }

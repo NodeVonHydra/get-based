@@ -5,6 +5,16 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.15.0', date: '2026-04-05', title: 'PPQ + Wallet Topups',
+    items: [
+      'New AI provider: PPQ \u2014 300+ models, no KYC. Bitcoin, crypto + Bitrefill topup',
+      'In-app wallet topup \u2014 fund Routstr (Lightning QR + Cashu) and PPQ (Lightning, Bitcoin, Monero, Litecoin, Aqua) directly in getbased',
+      'Balance display for OpenRouter, Routstr, PPQ, and Venice in settings',
+      'Removed Anthropic direct provider \u2014 Claude models available via OpenRouter, PPQ, Venice, Routstr',
+      'Bugfixes and improvements',
+    ]
+  },
+  {
     version: '1.14.0', date: '2026-04-01', title: 'Routstr + Tor + Audit',
     items: [
       'New AI provider: Routstr \u2014 pay with Bitcoin eCash or Lightning. No account, no subscription',

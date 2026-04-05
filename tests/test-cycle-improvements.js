@@ -79,7 +79,7 @@
   // ── Section 4: filterDatesByRange preserves phaseLabels ──
   console.log('Section 4: filterDatesByRange preserves phaseLabels');
   {
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('filterDatesByRange has phaseLabels spread', src.includes('phaseLabels') && src.includes('indices.map(i => data.phaseLabels[i])'));
   }
 
@@ -87,7 +87,7 @@
   console.log('Section 5: setPhaseOverlay function');
   {
     assert('setPhaseOverlay is a window function', typeof window.setPhaseOverlay === 'function');
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('setPhaseOverlay sets phaseOverlayMode', src.includes("state.phaseOverlayMode = mode === 'off' ? 'off' : 'on'"));
     assert('setPhaseOverlay persists to localStorage', src.includes("'phaseOverlay'") && src.includes('setPhaseOverlay'));
   }
@@ -95,7 +95,7 @@
   // ── Section 6: PER_PROFILE_PREF_SUFFIXES includes phaseOverlay ──
   console.log('Section 6: PER_PROFILE_PREF_SUFFIXES');
   {
-    const src = await fetch('js/crypto.js').then(r => r.text());
+    const src = await fetchWithRetry('js/crypto.js');
     assert('phaseOverlay in PER_PROFILE_PREF_SUFFIXES', src.includes("'phaseOverlay'"));
   }
 
@@ -110,7 +110,7 @@
   // ── Section 8: createLineChart accepts 5th param ──
   console.log('Section 8: createLineChart signature');
   {
-    const src = await fetch('js/charts.js').then(r => r.text());
+    const src = await fetchWithRetry('js/charts.js');
     assert('createLineChart has phaseLabels param', /createLineChart\([^)]*phaseLabels/.test(src));
     assert('phaseBands in chart plugin config', src.includes('phaseBands:'));
     assert('phaseBandPlugin in plugins array', src.includes('phaseBandPlugin'));
@@ -119,7 +119,7 @@
   // ── Section 9: renderChartLayersDropdown includes cycle phases ──
   console.log('Section 9: renderChartLayersDropdown');
   {
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('Layers dropdown checks for cycle data', src.includes('hasCycle'));
     assert('Layers dropdown has setPhaseOverlay', src.includes("setPhaseOverlay(this.checked"));
     assert('Layers dropdown shows Cycle Phases label', src.includes('Cycle Phases'));
@@ -128,7 +128,7 @@
   // ── Section 10: loadProfile loads phaseOverlay ──
   console.log('Section 10: loadProfile phaseOverlay');
   {
-    const src = await fetch('js/profile.js').then(r => r.text());
+    const src = await fetchWithRetry('js/profile.js');
     assert('loadProfile reads phaseOverlay', src.includes("'phaseOverlay'") && src.includes('phaseOverlayMode'));
   }
 
@@ -229,7 +229,7 @@
   // ── Section 15: Period entry form has symptom tags ──
   console.log('Section 15: Period entry form symptoms');
   {
-    const src = await fetch('js/cycle.js').then(r => r.text());
+    const src = await fetchWithRetry('js/cycle.js');
     assert('Editor has mc-period-symptoms container', src.includes('mc-period-symptoms'));
     assert('Editor uses PERIOD_SYMPTOMS', src.includes('PERIOD_SYMPTOMS'));
     assert('Editor has ctx-tag for symptoms', src.includes('ctx-tag') && src.includes('data-value'));
@@ -238,7 +238,7 @@
   // ── Section 16: Symptom tags display in period log ──
   console.log('Section 16: Symptom tags in period log');
   {
-    const src = await fetch('js/cycle.js').then(r => r.text());
+    const src = await fetchWithRetry('js/cycle.js');
     assert('Period log shows period-symptom-tag', src.includes('period-symptom-tag'));
     assert('Checks p.symptoms?.length', src.includes('p.symptoms') && src.includes('symptoms.length'));
   }
@@ -246,7 +246,7 @@
   // ── Section 17: CSS classes exist ──
   console.log('Section 17: CSS classes');
   {
-    const css = await fetch('styles.css').then(r => r.text());
+    const css = await fetchWithRetry('styles.css');
     assert('.period-symptom-tag CSS exists', css.includes('.period-symptom-tag'));
     assert('.cycle-alert CSS exists', css.includes('.cycle-alert'));
     assert('.cycle-alert-perimenopause CSS exists', css.includes('.cycle-alert-perimenopause'));
@@ -261,7 +261,7 @@
   console.log('Section 18: Source inspection');
   {
     // charts.js
-    const chartsSrc = await fetch('js/charts.js').then(r => r.text());
+    const chartsSrc = await fetchWithRetry('js/charts.js');
     assert('phaseBandPlugin exported', chartsSrc.includes('export const phaseBandPlugin'));
     assert('Plugin has menstrual color', chartsSrc.includes('menstrual') && chartsSrc.includes('rgba(239, 68, 68'));
     assert('Plugin has follicular color', chartsSrc.includes('follicular') && chartsSrc.includes('rgba(59, 130, 246'));
@@ -269,12 +269,12 @@
     assert('Plugin has luteal color', chartsSrc.includes('luteal') && chartsSrc.includes('rgba(245, 158, 11'));
 
     // views.js passes phaseLabels
-    const viewsSrc = await fetch('js/views.js').then(r => r.text());
+    const viewsSrc = await fetchWithRetry('js/views.js');
     const phasePassCount = (viewsSrc.match(/phaseLabels/g) || []).length;
     assert('views.js passes phaseLabels to createLineChart', phasePassCount >= 4, `found ${phasePassCount} references`);
 
     // chat.js includes symptom + alert context
-    const chatSrc = await fetch('js/chat.js').then(r => r.text());
+    const chatSrc = await fetchWithRetry('js/chat.js');
     assert('chat.js includes symptoms in periods', chatSrc.includes('p.symptoms'));
     assert('chat.js imports detectPerimenopausePattern', chatSrc.includes('detectPerimenopausePattern'));
     assert('chat.js imports detectCycleIronAlerts', chatSrc.includes('detectCycleIronAlerts'));
@@ -282,14 +282,14 @@
     assert('chat.js includes IRON/FLOW ALERTS', chatSrc.includes('IRON/FLOW ALERTS'));
 
     // cycle.js imports
-    const cycleSrc = await fetch('js/cycle.js').then(r => r.text());
+    const cycleSrc = await fetchWithRetry('js/cycle.js');
     assert('cycle.js imports PERIOD_SYMPTOMS', cycleSrc.includes("import") && cycleSrc.includes('PERIOD_SYMPTOMS'));
     assert('cycle.js imports linearRegression', cycleSrc.includes('linearRegression'));
     assert('cycle.js exports detectPerimenopausePattern', cycleSrc.includes('export function detectPerimenopausePattern'));
     assert('cycle.js exports detectCycleIronAlerts', cycleSrc.includes('export function detectCycleIronAlerts'));
 
     // Service worker cache version
-    const swSrc = await fetch('service-worker.js').then(r => r.text());
+    const swSrc = await fetchWithRetry('service-worker.js');
     assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"));
     assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'));
   }
@@ -297,7 +297,7 @@
   // ── Section 19: addPeriodEntry collects symptoms ──
   console.log('Section 19: addPeriodEntry collects symptoms');
   {
-    const src = await fetch('js/cycle.js').then(r => r.text());
+    const src = await fetchWithRetry('js/cycle.js');
     assert('addPeriodEntry queries selected ctx-tags', src.includes("mc-period-symptoms") && src.includes('.ctx-tag.active'));
     assert('Period push includes symptoms', src.includes('symptoms, notes'));
   }
@@ -305,7 +305,7 @@
   // ── Section 20: data.js phaseLabels computation ──
   console.log('Section 20: data.js phaseLabels computation');
   {
-    const src = await fetch('js/data.js').then(r => r.text());
+    const src = await fetchWithRetry('js/data.js');
     assert('getActiveData computes data.phaseLabels', src.includes('data.phaseLabels = sortedDates.map'));
     assert('Uses _getCyclePhase for phaseLabels', src.includes('_getCyclePhase(d, mc)'));
   }

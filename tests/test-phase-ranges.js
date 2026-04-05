@@ -15,7 +15,7 @@
   // 1. PHASE_RANGES constant exists
   // ═══════════════════════════════════════
   console.log('Section 1: PHASE_RANGES constant');
-  const schemaSource = await fetch('js/schema.js').then(r => r.text());
+  const schemaSource = await fetchWithRetry('js/schema.js');
   assert('PHASE_RANGES exported from schema.js', schemaSource.includes('export const PHASE_RANGES'));
   assert('Estradiol in PHASE_RANGES', schemaSource.includes("'hormones.estradiol'"));
   assert('Progesterone in PHASE_RANGES', schemaSource.includes("'hormones.progesterone'"));
@@ -62,7 +62,7 @@
   // 3. data.js imports PHASE_RANGES
   // ═══════════════════════════════════════
   console.log('Section 3: data.js integration');
-  const dataSource = await fetch('js/data.js').then(r => r.text());
+  const dataSource = await fetchWithRetry('js/data.js');
   assert('data.js imports PHASE_RANGES', dataSource.includes('PHASE_RANGES'));
   assert('data.js has _getCyclePhase helper', dataSource.includes('function _getCyclePhase'));
   assert('data.js exports getEffectiveRangeForDate', dataSource.includes('export function getEffectiveRangeForDate'));
@@ -285,7 +285,7 @@
   // 13. charts.js imports
   // ═══════════════════════════════════════
   console.log('Section 13: charts.js source inspection');
-  const chartsSource = await fetch('js/charts.js').then(r => r.text());
+  const chartsSource = await fetchWithRetry('js/charts.js');
   assert('charts.js imports getEffectiveRangeForDate', chartsSource.includes('getEffectiveRangeForDate'));
   assert('charts.js imports getPhaseRefEnvelope', chartsSource.includes('getPhaseRefEnvelope'));
   assert('charts.js uses per-point coloring', chartsSource.includes('getEffectiveRangeForDate(marker, i + trimOffset)'));
@@ -296,7 +296,7 @@
   // 14. views.js source inspection
   // ═══════════════════════════════════════
   console.log('Section 14: views.js source inspection');
-  const viewsSource = await fetch('js/views.js').then(r => r.text());
+  const viewsSource = await fetchWithRetry('js/views.js');
   assert('views.js imports getEffectiveRangeForDate', viewsSource.includes('getEffectiveRangeForDate'));
   assert('renderChartCard uses getEffectiveRangeForDate', viewsSource.includes('getEffectiveRangeForDate(marker, latestIdx)'));
   assert('renderChartCard per-value uses getEffectiveRangeForDate', viewsSource.includes('getEffectiveRangeForDate(marker, i)'));
@@ -310,7 +310,7 @@
   // 15. chat.js source inspection
   // ═══════════════════════════════════════
   console.log('Section 15: chat.js source inspection');
-  const chatSource = await fetch('js/chat.js').then(r => r.text());
+  const chatSource = await fetchWithRetry('js/chat.js');
   assert('chat.js imports getEffectiveRangeForDate', chatSource.includes('getEffectiveRangeForDate'));
   assert('buildLabContext phase-aware serialization', chatSource.includes('phaseRefRanges') && chatSource.includes('phaseLabels'));
   assert('askAIAboutMarker phase context', chatSource.includes('phaseLabels') && chatSource.includes('phase-specific'));
@@ -319,7 +319,7 @@
   // 16. glossary.js source inspection
   // ═══════════════════════════════════════
   console.log('Section 16: glossary.js source inspection');
-  const glossarySource = await fetch('js/glossary.js').then(r => r.text());
+  const glossarySource = await fetchWithRetry('js/glossary.js');
   assert('glossary.js imports getEffectiveRangeForDate', glossarySource.includes('getEffectiveRangeForDate'));
   assert('glossary uses getEffectiveRangeForDate for latest status', glossarySource.includes('getEffectiveRangeForDate(marker, latestIdx)'));
   assert('glossary still uses getEffectiveRange for ref display', glossarySource.includes('getEffectiveRange(marker)'));
@@ -345,7 +345,7 @@
   assert('_getCyclePhase is private (not exported)', !dataSource.includes('export function _getCyclePhase'));
   assert('_getCyclePhase function exists', dataSource.includes('function _getCyclePhase(dateStr, mc)'));
   // Verify it matches the getCyclePhase logic from cycle.js
-  const cycleSource = await fetch('js/cycle.js').then(r => r.text());
+  const cycleSource = await fetchWithRetry('js/cycle.js');
   const cycleBody = cycleSource.match(/export function getCyclePhase\(dateStr, mc\) \{[\s\S]*?^}/m)?.[0] || '';
   assert('_getCyclePhase matches getCyclePhase logic (phase enum)',
     dataSource.includes("phase = 'menstrual'") && dataSource.includes("phase = 'follicular'") &&
@@ -362,7 +362,7 @@
   // 21. CSS for mv-phase
   // ═══════════════════════════════════════
   console.log('Section 21: CSS');
-  const cssSource = await fetch('styles.css').then(r => r.text());
+  const cssSource = await fetchWithRetry('styles.css');
   assert('CSS has .mv-phase rule', cssSource.includes('.mv-phase'));
 
   // ═══════════════════════════════════════

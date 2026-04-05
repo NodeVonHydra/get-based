@@ -10,7 +10,7 @@
 
   console.log('%c Unit Normalization on Import Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const src = await fetch('js/pdf-import.js').then(r => r.text());
+  const src = await fetchWithRetry('js/pdf-import.js');
 
   // ═══════════════════════════════════════
   // 1. normalizeToSI function exists
@@ -206,7 +206,7 @@
   assert('Uses normalizeWithAdapter from adapters', src.includes('normalizeWithAdapter('));
 
   // FA normalize logic lives in adapters.js — check it there
-  const adapterSrc = await fetch('js/adapters.js').then(r => r.text());
+  const adapterSrc = await fetchWithRetry('js/adapters.js');
   assert('FA normalize checks standardCats', adapterSrc.includes('standardCats.has(catKey)'));
   assert('FA normalize skips standard markers', adapterSrc.includes('continue') && adapterSrc.includes('standard category'));
 

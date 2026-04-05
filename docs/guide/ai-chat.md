@@ -105,7 +105,7 @@ Web search injects search results into the AI's context, significantly increasin
 :::
 
 ::: tip Availability
-Web search is available with **OpenRouter** and **Venice** only. The toggle is hidden when using Anthropic or Local AI.
+Web search is available with **OpenRouter** and **Venice** only. The toggle is hidden when using other providers.
 :::
 
 ## Per-Marker AI Explanations
@@ -167,7 +167,7 @@ Every AI response includes a footnote showing the model name, estimated cost, an
 
 ## Choosing a Provider
 
-The AI chat works with any of the five supported providers: Anthropic, OpenRouter, Routstr, Venice, or Local AI. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
+The AI chat works with any of the five supported providers: OpenRouter, Routstr, PPQ, Venice, or Local AI. See [AI Providers](/guide/ai-providers) to configure your key or local server. The chat is not available until a provider is set up.
 
 ::: warning
 Conversations are stored locally in your browser and encrypted if you have set a passphrase. The last 30 messages from each conversation are sent to the AI provider with every request to maintain context. Your provider's privacy policy applies to that data.

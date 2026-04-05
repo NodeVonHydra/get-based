@@ -64,7 +64,6 @@ script-src  'self' 'unsafe-inline' https://cloud.umami.is
 style-src   'self' 'unsafe-inline'
 font-src    'self'
 connect-src 'self'
-            https://api.anthropic.com
             https://openrouter.ai
             https://api.venice.ai
             https://api.github.com
@@ -102,7 +101,7 @@ The service worker uses three caching strategies:
 
 | Resource type | Strategy |
 |---|---|
-| AI API calls (Anthropic, OpenRouter, Venice, Local AI) | **Bypass** — `return` without `event.respondWith`. Streaming ReadableStreams must go directly to the page without SW IPC buffering |
+| AI API calls (OpenRouter, Routstr, PPQ, Venice, Local AI) | **Bypass** — `return` without `event.respondWith`. Streaming ReadableStreams must go directly to the page without SW IPC buffering |
 | App shell (HTML, CSS, JS, vendor libs, fonts, images) | **Stale-while-revalidate** — serve cached, update in background |
 
 The API bypass is critical for streaming. If the service worker intercepts a streaming SSE response, the IPC pipe between the SW and the page buffers the chunks, breaking the streaming experience. The bypass (returning without calling `event.respondWith`) routes requests directly to the network.

@@ -8,7 +8,7 @@
   }
 
   // 1. Source: api.js has isE2EEModel and E2EE branch
-  const apiSrc = await fetch('/js/api.js').then(r => r.text());
+  const apiSrc = await fetchWithRetry('/js/api.js');
   assert('isE2EEModel exported in api.js', apiSrc.includes('export function isE2EEModel('));
   assert('e2ee prefix detection', apiSrc.includes("modelId.startsWith('e2ee-')"));
   assert('callVeniceAPI has E2EE import', apiSrc.includes("import('../vendor/venice-e2ee.js')"));
@@ -131,11 +131,11 @@
   else localStorage.removeItem('labcharts-ai-provider');
 
   // 15. Settings + Chat source checks
-  const settingsSrc = await fetch('/js/settings.js').then(r => r.text());
+  const settingsSrc = await fetchWithRetry('/js/settings.js');
   assert('settings has venice-e2ee-toggle', settingsSrc.includes('venice-e2ee-toggle'));
   assert('settings has venice-e2ee-indicator', settingsSrc.includes('venice-e2ee-indicator'));
   assert('settings has toggleVeniceE2EE', settingsSrc.includes('toggleVeniceE2EE'));
-  const chatSrc = await fetch('/js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('/js/chat.js');
   assert('chat uses isVeniceE2EEActive', chatSrc.includes('isVeniceE2EEActive'));
   assert('chat shows lock emoji for E2EE', chatSrc.includes('\\uD83D\\uDD12'));
   assert('chat exports refreshWebSearchToggle', chatSrc.includes('refreshWebSearchToggle'));

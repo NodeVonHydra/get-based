@@ -1663,12 +1663,16 @@ details[open] > .cl-archived-header::before { content: '\25BE '; }
   .settings-row { grid-template-columns: 1fr; }
 }
 /* AI Provider Toggle */
-.ai-provider-toggle { display: flex; align-items: center; gap: 4px; }
+.ai-provider-toggle { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .ai-provider-btn {
   padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border);
   background: transparent; color: var(--text-secondary); font-size: 13px;
   cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit;
   display: inline-flex; align-items: center; gap: 5px;
+}
+@media (max-width: 480px) {
+  .ai-provider-btn { padding: 5px 10px; font-size: 12px; gap: 3px; }
+  .ai-provider-logo { width: 12px; height: 12px; }
 }
 .ai-provider-logo { width: 14px; height: 14px; flex-shrink: 0; }
 .ai-provider-btn.active { background: var(--accent); color: white; border-color: var(--accent); }

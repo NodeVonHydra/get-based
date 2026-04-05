@@ -10,15 +10,15 @@
 
   console.log('%c What\'s New + Auto-Gating Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const changelogSrc = await fetch('js/changelog.js').then(r => r.text());
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
-  const utilsSrc = await fetch('js/utils.js').then(r => r.text());
-  const mainSrc = await fetch('js/main.js').then(r => r.text());
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
-  const swSrc = await fetch('service-worker.js').then(r => r.text());
-  const indexSrc = await fetch('/app').then(r => r.text());
+  const changelogSrc = await fetchWithRetry('js/changelog.js');
+  const chatSrc = await fetchWithRetry('js/chat.js');
+  const utilsSrc = await fetchWithRetry('js/utils.js');
+  const mainSrc = await fetchWithRetry('js/main.js');
+  const settingsSrc = await fetchWithRetry('js/settings.js');
+  const swSrc = await fetchWithRetry('service-worker.js');
+  const indexSrc = await fetchWithRetry('/app');
 
-  const versionSrc = await fetch('version.js').then(r => r.text());
+  const versionSrc = await fetchWithRetry('version.js');
 
   // ═══════════════════════════════════════
   // 1. changelog.js module structure

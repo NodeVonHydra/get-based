@@ -79,11 +79,11 @@ self.addEventListener('fetch', (event) => {
   // Skip non-http(s) schemes (chrome-extension://, etc.) — Cache API only supports http/https
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return;
 
-  // Network-only: API calls (Anthropic, OpenRouter, Venice, OpenAlex, Ollama) — do NOT
+  // Network-only: API calls (OpenRouter, Venice, Routstr, PPQ, Ollama) — do NOT
   // intercept so streaming ReadableStream goes directly to the page without SW IPC buffering
   // Also skip private/LAN IPs (Local AI on another machine)
   const h = url.hostname;
-  if (h === 'api.anthropic.com' || h === 'openrouter.ai' || h === 'api.venice.ai' || h === 'api.github.com' || h === 'umami-iota-olive.vercel.app' || h === 'sync.getbased.health' || h === 'free.evoluhq.com' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
+  if (h === 'openrouter.ai' || h === 'api.venice.ai' || h === 'api.routstr.com' || h === 'api.ppq.ai' || h === 'api.github.com' || h === 'umami-iota-olive.vercel.app' || h === 'sync.getbased.health' || h === 'free.evoluhq.com' || h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
     return;
   }
 

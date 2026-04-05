@@ -10,11 +10,11 @@
 
   console.log('%c Specialty Marker Refactor Tests ', 'background:#6366f1;color:#fff;font-size:14px;padding:4px 12px;border-radius:4px');
 
-  const schemaSrc = await fetch('js/schema.js').then(r => r.text());
-  const adaptersSrc = await fetch('js/adapters.js').then(r => r.text());
-  const profileSrc = await fetch('js/profile.js').then(r => r.text());
-  const dataSrc = await fetch('js/data.js').then(r => r.text());
-  const pdfImportSrc = await fetch('js/pdf-import.js').then(r => r.text());
+  const schemaSrc = await fetchWithRetry('js/schema.js');
+  const adaptersSrc = await fetchWithRetry('js/adapters.js');
+  const profileSrc = await fetchWithRetry('js/profile.js');
+  const dataSrc = await fetchWithRetry('js/data.js');
+  const pdfImportSrc = await fetchWithRetry('js/pdf-import.js');
 
   // ═══════════════════════════════════════
   // 1. MARKER_SCHEMA no longer has specialty categories

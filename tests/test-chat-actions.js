@@ -166,7 +166,7 @@
   // ─── Section 14: Settings UI ───
   console.log('%c Section 14: Settings UI', 'font-weight:bold;color:#6366f1');
 
-  const settingsSrc = await fetch('js/settings.js').then(r => r.text());
+  const settingsSrc = await fetchWithRetry('js/settings.js');
   assert('settings.js NO longer has Chat Sources section', !settingsSrc.includes('Chat Sources'), 'removed from settings');
   assert('settings.js NO longer has chat-sources-btn', !settingsSrc.includes('chat-sources-btn'), 'removed');
   assert('settings.js NO longer has data-sources attribute', !settingsSrc.includes('data-sources'), 'removed');
@@ -174,16 +174,18 @@
   // ─── Section 15: Service worker bypass ───
   console.log('%c Section 15: Service worker', 'font-weight:bold;color:#6366f1');
 
-  const swSrc = await fetch('service-worker.js').then(r => r.text());
-  assert('SW still bypasses Anthropic', swSrc.includes('api.anthropic.com'), 'found');
-  assert('SW still bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
+  const swSrc = await fetchWithRetry('service-worker.js');
+  assert('SW bypasses OpenRouter', swSrc.includes('openrouter.ai'), 'found');
+  assert('SW bypasses Venice', swSrc.includes('api.venice.ai'), 'found');
+  assert('SW bypasses Routstr', swSrc.includes('api.routstr.com'), 'found');
+  assert('SW bypasses PPQ', swSrc.includes('api.ppq.ai'), 'found');
   assert('SW uses importScripts for version', swSrc.includes("importScripts('/version.js')"), 'found');
   assert('SW CACHE_NAME uses semver', swSrc.includes('`labcharts-v${self.APP_VERSION}`'), 'found');
 
   // ─── Section 16: CSS classes ───
   console.log('%c Section 16: CSS classes', 'font-weight:bold;color:#6366f1');
 
-  const cssSrc = await fetch('styles.css').then(r => r.text());
+  const cssSrc = await fetchWithRetry('styles.css');
   const cssClasses = [
     'chat-action-bar', 'chat-action-btn', 'chat-context-toggle',
     'chat-context-details', 'chat-context-item',
@@ -198,7 +200,7 @@
   // ─── Section 17: Source inspection — chat.js ───
   console.log('%c Section 17: Source inspection', 'font-weight:bold;color:#6366f1');
 
-  const chatSrc = await fetch('js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('js/chat.js');
   assert('chat.js has getContextSummary', chatSrc.includes('function getContextSummary'), 'found');
   assert('chat.js has buildActionBar', chatSrc.includes('function buildActionBar'), 'found');
   assert('chat.js has regenerateLastMessage', chatSrc.includes('function regenerateLastMessage'), 'found');
@@ -261,7 +263,7 @@
   // ─── Section 20: state.js exposes _labState ───
   console.log('%c Section 20: State exposure', 'font-weight:bold;color:#6366f1');
 
-  const stateSrc = await fetch('js/state.js').then(r => r.text());
+  const stateSrc = await fetchWithRetry('js/state.js');
   assert('state.js exports _labState to window', stateSrc.includes('window._labState'), 'found');
 
   // ─── Cleanup ───

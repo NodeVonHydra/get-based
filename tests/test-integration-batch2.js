@@ -108,7 +108,7 @@
   // ═══════════════════════════════════════
   console.log('%c 6. CSS fixes ', 'font-weight:bold;color:#f59e0b');
 
-  const css = await fetch('/styles.css').then(r => r.text());
+  const css = await fetchWithRetry('/styles.css');
 
   // No duplicate @keyframes shimmer
   const shimmerMatches = css.match(/@keyframes shimmer/g);
@@ -137,7 +137,7 @@
   // ═══════════════════════════════════════
   console.log('%c 7. Tour verification ', 'font-weight:bold;color:#f59e0b');
 
-  const tourSrc = await fetch('/js/tour.js').then(r => r.text());
+  const tourSrc = await fetchWithRetry('/js/tour.js');
   // Count TOUR_STEPS entries
   const stepMatches = tourSrc.match(/\{ target:/g);
   assert('8 tour steps', stepMatches?.length >= 8, `found ${stepMatches?.length}`);
@@ -151,7 +151,7 @@
   // ═══════════════════════════════════════
   console.log('%c 8. PII edit button ', 'font-weight:bold;color:#f59e0b');
 
-  const piiSrc = await fetch('/js/pii.js').then(r => r.text());
+  const piiSrc = await fetchWithRetry('/js/pii.js');
   assert('PII edit button in HTML', piiSrc.includes('pii-edit-btn'));
   assert('PII edit button wired to switchToEditMode', piiSrc.includes("pii-edit-btn").valueOf() && piiSrc.includes('switchToEditMode'));
 
@@ -160,7 +160,7 @@
   // ═══════════════════════════════════════
   console.log('%c 9. Chat clear fixes ', 'font-weight:bold;color:#f59e0b');
 
-  const chatSrc = await fetch('/js/chat.js').then(r => r.text());
+  const chatSrc = await fetchWithRetry('/js/chat.js');
   // clearChatHistory should call updateChatHeaderTitle
   const clearIdx = chatSrc.indexOf('function clearChatHistory');
   const clearBlock = chatSrc.substring(clearIdx, chatSrc.indexOf('\n}', clearIdx));
@@ -172,11 +172,11 @@
   // ═══════════════════════════════════════
   console.log('%c 10. Sidebar date filtering ', 'font-weight:bold;color:#f59e0b');
 
-  const navSrc = await fetch('/js/nav.js').then(r => r.text());
+  const navSrc = await fetchWithRetry('/js/nav.js');
   assert('buildSidebar imports filterDatesByRange', navSrc.includes('filterDatesByRange'));
   assert('buildSidebar calls filterDatesByRange', navSrc.includes('filterDatesByRange(data)'));
 
-  const dataSrc = await fetch('/js/data.js').then(r => r.text());
+  const dataSrc = await fetchWithRetry('/js/data.js');
   const setDateIdx = dataSrc.indexOf('function setDateRange');
   const setDateBlock = dataSrc.substring(setDateIdx, dataSrc.indexOf('\n}', setDateIdx));
   assert('setDateRange rebuilds sidebar', setDateBlock.includes('buildSidebar'));
@@ -186,7 +186,7 @@
   // ═══════════════════════════════════════
   console.log('%c 11. Context card state ', 'font-weight:bold;color:#f59e0b');
 
-  const ctxSrc = await fetch('/js/context-cards.js').then(r => r.text());
+  const ctxSrc = await fetchWithRetry('/js/context-cards.js');
   assert('saveAndRefresh preserves details state', ctxSrc.includes("welcome-context-details") && ctxSrc.includes('sessionStorage'));
   assert('refreshAllHealthDots function exists', ctxSrc.includes('function refreshAllHealthDots'));
   assert('refreshAllHealthDots exposed on window', ctxSrc.includes('refreshAllHealthDots'));
@@ -197,10 +197,10 @@
   // ═══════════════════════════════════════
   console.log('%c 12. PDF filename storage ', 'font-weight:bold;color:#f59e0b');
 
-  const importSrc = await fetch('/js/pdf-import.js').then(r => r.text());
+  const importSrc = await fetchWithRetry('/js/pdf-import.js');
   assert('confirmImport stores sourceFile', importSrc.includes('entry.sourceFile = result.fileName'));
 
-  const settingsSrc = await fetch('/js/settings.js').then(r => r.text());
+  const settingsSrc = await fetchWithRetry('/js/settings.js');
   assert('Settings shows sourceFile', settingsSrc.includes('entry.sourceFile'));
   assert('Settings imports escapeAttr', settingsSrc.includes('escapeAttr'));
 
@@ -209,7 +209,7 @@
   // ═══════════════════════════════════════
   console.log('%c 13. Both-range display ', 'font-weight:bold;color:#f59e0b');
 
-  const viewsSrc = await fetch('/js/views.js').then(r => r.text());
+  const viewsSrc = await fetchWithRetry('/js/views.js');
   // Chart card should show both ranges
   assert('Chart card handles both mode',
     viewsSrc.includes("state.rangeMode === 'both'") && viewsSrc.includes('marker.optimalMin') && viewsSrc.includes('marker.refMin'));

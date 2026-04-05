@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
-import { getApiKey, saveApiKey, getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, getAIProvider, setAIProvider, getAnthropicModel, setAnthropicModel, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateApiKey, validateVeniceKey, validateOpenRouterKey, fetchAnthropicModels, fetchVeniceModels, fetchOpenRouterModels, renderModelPricingHint, isRecommendedModel, getAnthropicModelDisplay, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, isAIPaused, setAIPaused, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE } from './api.js';
+import { getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateVeniceKey, validateOpenRouterKey, fetchVeniceModels, fetchOpenRouterModels, renderModelPricingHint, isRecommendedModel, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, getOpenRouterBalance, getVeniceBalance, getRoutstrBalance, createRoutstrAccount, createRoutstrLightningInvoice, checkRoutstrInvoiceStatus, topupRoutstrCashu, isAIPaused, setAIPaused, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
@@ -134,9 +134,9 @@ export function openSettingsModal(tab) {
         </div>
         <div class="ai-model-tip">Use a state-of-the-art model (Claude, GPT, Gemini) for medical data.<br>Stick with the same model across imports to keep marker keys consistent.</div>
         <div class="ai-provider-toggle">
-          <button class="ai-provider-btn${provider === 'openrouter' ? ' active' : ''}" data-provider="openrouter" onclick="switchAIProvider('openrouter')"><svg class="ai-provider-logo" viewBox="0 0 512 512" fill="currentColor" stroke="currentColor"><path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90" fill="none"/><path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z" stroke="none"/><path d="M0 249C15 249 73 261.945 103 278.945C133 295.945 133 295.945 195 339.945C273.497 395.652 329 377 420 377" stroke-width="90" fill="none"/><path d="M508 376.445L354.25 287.678L354.25 465.213L508 376.445Z" stroke="none"/></svg> OpenRouter</button>
-          <button class="ai-provider-btn${provider === 'anthropic' ? ' active' : ''}" data-provider="anthropic" onclick="switchAIProvider('anthropic')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></svg> Claude</button>
+          <button class="ai-provider-btn${provider === 'ppq' ? ' active' : ''}" data-provider="ppq" onclick="switchAIProvider('ppq')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-3.2 0-7-2.4-7-7 0-3.1 2.1-5.7 4-7.6.3-.3.8-.1.8.4v2.5c0 .2.2.3.3.2C12 9.6 13.5 5.3 13.6 2.2c0-.3.4-.5.6-.2C17.3 5.7 21 10.3 21 14.5 21 19.6 17 23 12 23z"/></svg> PPQ</button>
           <button class="ai-provider-btn${provider === 'routstr' ? ' active' : ''}" data-provider="routstr" onclick="switchAIProvider('routstr')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10h-2V8H9V6h2V4h2v2h2v2h-2v2zm-2 4h2v6h3l-4 4-4-4h3v-6z"/></svg> Routstr</button>
+          <button class="ai-provider-btn${provider === 'openrouter' ? ' active' : ''}" data-provider="openrouter" onclick="switchAIProvider('openrouter')"><svg class="ai-provider-logo" viewBox="0 0 512 512" fill="currentColor" stroke="currentColor"><path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90" fill="none"/><path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z" stroke="none"/><path d="M0 249C15 249 73 261.945 103 278.945C133 295.945 133 295.945 195 339.945C273.497 395.652 329 377 420 377" stroke-width="90" fill="none"/><path d="M508 376.445L354.25 287.678L354.25 465.213L508 376.445Z" stroke="none"/></svg> OpenRouter</button>
           <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')"><svg class="ai-provider-logo" viewBox="0 0 326 366" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M105.481 245.984C99.4744 241.518 92.2244 237.777 84.2074 235.504C76.1903 233.231 67.406 232.427 58.8167 233.38C50.2272 234.332 41.8327 237.042 34.5086 241.017C27.1847 244.991 20.931 250.231 16.0487 255.905C11.1531 261.567 6.88803 268.522 4.0314 276.35C1.17477 284.178-0.273403 292.879 0.0448796 301.515C0.36299 310.152 2.44756 318.723 5.87231 326.319C9.29724 333.916 14.0625 340.538 19.3617 345.825C24.6482 351.124 31.2704 355.889 38.867 359.314C46.4637 362.739 55.0349 364.823 63.671 365.142C72.3073 365.46 81.0085 364.012 88.8366 361.155C96.6647 358.298 103.62 354.033 109.282 349.138C114.956 344.256 120.195 338.002 124.17 330.678C128.144 323.354 130.854 314.959 131.807 306.37C132.76 297.781 131.956 288.996 129.683 280.979C127.41 272.962 123.668 265.712 119.203 259.705L133.953 244.954L144.69 255.691H150.789L158.149 248.331V242.233L147.412 231.496L163 215.908L178.588 231.496L167.851 242.233V248.331L175.211 255.691H181.31L192.047 244.954L206.797 259.705C202.332 265.712 198.59 272.962 196.317 280.979C194.044 288.996 193.24 297.781 194.193 306.37C195.146 314.959 197.856 323.354 201.83 330.678C205.805 338.002 211.044 344.256 216.718 349.138C222.38 354.033 229.335 358.298 237.163 361.155C244.991 364.012 253.693 365.46 262.329 365.142C270.965 364.823 279.536 362.739 287.133 359.314C294.73 355.889 301.352 351.124 306.638 345.825C311.937 340.538 316.703 333.916 320.128 326.319C323.552 318.723 325.637 310.152 325.955 301.515C326.273 292.879 324.825 284.178 321.969 276.35C319.112 268.522 314.847 261.567 309.951 255.905C305.069 250.231 298.815 244.991 291.491 241.017C284.167 237.042 275.773 234.332 267.183 233.38C258.594 232.427 249.81 233.231 241.793 235.504C233.776 237.777 226.526 241.518 220.519 245.984L206.042 231.484L216.773 220.753V214.655L209.151 207.032H203.052L192.315 217.769L176.721 202.186L258.473 120.434L291.567 153.528V119.095H326L292.907 86.0012L326 52.9077V46.8095L318.377 39.1865H312.279L163 188.465L13.7212 39.1865H7.62295L0 46.8095V52.9077L33.0934 86.0012L0 119.095H34.4331V153.528L67.5263 120.434L149.279 202.186L133.685 217.769L122.948 207.032H116.849L109.226 214.655V220.753L119.958 231.484L105.481 245.984ZM238.144 321.715C234.778 328.62 235.477 338.188 239.811 344.531C243.793 351.1 252.216 355.693 259.895 355.484C267.574 355.693 275.997 351.1 279.979 344.531C284.313 338.188 285.012 328.62 281.646 321.715L282.484 320.812C289.389 324.196 298.971 323.511 305.324 319.178C311.904 315.2 316.508 306.768 316.297 299.081C316.508 291.395 311.904 282.963 305.324 278.984C298.971 274.652 289.389 273.966 282.484 277.351L281.646 276.448C285.012 269.543 284.313 259.974 279.979 253.632C275.997 247.063 267.574 242.469 259.895 242.679C252.216 242.469 243.793 247.063 239.811 253.632C235.477 259.974 234.778 269.543 238.144 276.448L237.306 277.351C230.401 273.966 220.818 274.652 214.466 278.984C207.886 282.963 203.282 291.395 203.492 299.081C203.282 306.768 207.886 315.2 214.466 319.178C220.818 323.511 230.401 324.196 237.306 320.812L238.144 321.715ZM86.1857 344.531C90.52 338.188 91.2191 328.62 87.8528 321.715L88.6913 320.812C95.5956 324.196 105.178 323.511 111.531 319.178C118.11 315.2 122.715 306.768 122.504 299.081C122.715 291.395 118.11 282.963 111.531 278.984C105.178 274.652 95.5956 273.966 88.6913 277.351L87.8528 276.448C91.2191 269.543 90.52 259.974 86.1857 253.632C82.2037 247.063 73.7808 242.469 66.1018 242.679C58.423 242.469 50.0001 247.063 46.0181 253.632C41.6839 259.974 40.9847 269.543 44.351 276.448L43.5126 277.351C36.6082 273.966 27.0255 274.652 20.6731 278.984C14.0932 282.963 9.48904 291.395 9.69934 299.081C9.48904 306.768 14.0932 315.2 20.6731 319.178C27.0255 323.511 36.6082 324.196 43.5126 320.812L44.351 321.715C40.9847 328.62 41.6839 338.188 46.0181 344.531C50.0001 351.1 58.423 355.693 66.1018 355.484C73.7808 355.693 82.2037 351.1 86.1857 344.531Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M162.891 39.1864L202.078 0L221.482 19.4047V84.8147L167.742 138.555H158.04L104.3 84.8147V19.4047L123.705 0L162.891 39.1864ZM123.705 13.7213L158.04 48.0567V111.112L123.705 76.7773V13.7213ZM167.744 48.0567L202.079 13.7213V76.7773L167.744 111.112V48.0567Z"/></svg> Venice</button>
           <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-3-8c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1s1 .45 1 1v2c0 .55-.45 1-1 1z"/></svg> Local</button>
         </div>
@@ -227,35 +227,6 @@ export function switchSettingsTab(tabId) {
 }
 
 export function renderAIProviderPanel(provider) {
-  if (provider === 'anthropic') {
-    const currentKey = getApiKey();
-    let cachedModels = []; try { cachedModels = JSON.parse(localStorage.getItem('labcharts-anthropic-models') || '[]'); } catch(e) {}
-    const currentModel = getAnthropicModel();
-    let modelHtml;
-    if (cachedModels.length > 0) {
-      const opts = buildModelOptions('anthropic', cachedModels, currentModel, function(m) { return m.display_name || m.id; });
-      modelHtml = `<div style="margin-top:12px" id="anthropic-model-area">
-        <label style="font-size:12px;color:var(--text-muted)">Model</label>
-        <select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">${opts}</select>
-        <div id="anthropic-model-pricing" style="margin-top:4px">${renderModelPricingHint('anthropic', currentModel)}</div>
-      </div>`;
-    } else {
-      modelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="anthropic-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getAnthropicModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
-    }
-    return `<div class="ai-provider-panel">
-      <div class="ai-provider-desc">Anthropic's AI models, run in the cloud. Requires an API key (pay-per-use).</div>
-      <div class="api-key-status" id="api-key-status">
-        ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
-      </div>
-      <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-..." value="${currentKey}">
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="import-btn import-btn-primary" id="save-api-key-btn" onclick="handleSaveApiKey()">Save & Validate</button>
-        ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveApiKey()">Remove Key</button>' : ''}
-      </div>
-      ${modelHtml}
-      <div class="api-key-notice">Your API key is stored locally in your browser and sent directly to Anthropic's API. It never passes through any third-party server.</div>
-    </div>`;
-  }
   if (provider === 'openrouter') {
     const currentKey = getOpenRouterKey();
     const orModel = getOpenRouterModel();
@@ -279,13 +250,14 @@ export function renderAIProviderPanel(provider) {
       <div class="api-key-status" id="openrouter-key-status">
         ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
-      <input type="password" class="api-key-input" id="openrouter-key-input" placeholder="sk-or-..." value="${currentKey}">
+      <input type="password" class="api-key-input" id="openrouter-key-input" placeholder="sk-or-..." value="${escapeAttr(currentKey)}">
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="import-btn import-btn-primary" id="save-openrouter-key-btn" onclick="handleSaveOpenRouterKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveOpenRouterKey()">Remove Key</button>' : ''}
       </div>
+      ${currentKey ? `<div style="margin-top:8px;font-size:12px;color:var(--text-muted)"><span id="or-balance">Balance: loading...</span> <a href="#" onclick="refreshOpenRouterBalance();return false" style="color:var(--accent);font-size:11px;text-decoration:none">\u21bb</a></div>` : ''}
       ${orModelHtml}
-      <div class="api-key-notice">Your key is stored locally and sent directly to OpenRouter. <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
+      <div class="api-key-notice">Your key is stored locally and sent directly to OpenRouter. <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a> &middot; <a href="https://openrouter.ai/settings/credits" target="_blank" rel="noopener" style="color:var(--accent)">Add credits</a></div>
     </div>`;
   }
   if (provider === 'routstr') {
@@ -303,18 +275,24 @@ export function renderAIProviderPanel(provider) {
     } else {
       rsModelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="routstr-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getRoutstrModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
     }
+    const rsBalanceHtml = currentKey ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:12px;color:var(--text-muted)"><span id="routstr-balance">Balance: loading...</span> <a href="#" onclick="refreshRoutstrBalance();return false" style="color:var(--accent);font-size:11px;text-decoration:none">\u21bb</a></div>
+        <button class="import-btn import-btn-secondary" id="routstr-topup-toggle" style="font-size:11px;padding:2px 10px" onclick="showRoutstrTopup()">Top Up</button>
+      </div>
+      <div id="routstr-topup-area" style="display:none"></div>` : '';
     return `<div class="ai-provider-panel">
       <div class="ai-provider-desc">Pay-as-you-go AI with Bitcoin micropayments. No account needed \u2014 fund with Lightning or Cashu eCash.</div>
       <div class="api-key-status" id="routstr-key-status">
         ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
-      <input type="password" class="api-key-input" id="routstr-key-input" placeholder="sk-... or cashuA..." value="${currentKey}">
+      <input type="password" class="api-key-input" id="routstr-key-input" placeholder="cashu... or sk-..." value="${escapeAttr(currentKey)}">
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="import-btn import-btn-primary" id="save-routstr-key-btn" onclick="handleSaveRoutstrKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveRoutstrKey()">Remove Key</button>' : ''}
       </div>
+      ${rsBalanceHtml}
       ${rsModelHtml}
-      <div class="api-key-notice">Your Cashu token or session key is stored locally. Pay per request \u2014 no subscription. <a href="https://routstr.com" target="_blank" rel="noopener" style="color:var(--accent)">Get started</a></div>
+      <div class="api-key-notice">Paste a <a href="https://cashu.me" target="_blank" rel="noopener" style="color:var(--accent)">Cashu token</a> to start \u2014 it gets converted to a session key with your balance. Top up with Lightning anytime. <a href="https://routstr.com" target="_blank" rel="noopener" style="color:var(--accent)">Learn more</a></div>
     </div>`;
   }
   if (provider === 'venice') {
@@ -348,13 +326,50 @@ export function renderAIProviderPanel(provider) {
       <div class="api-key-status" id="venice-key-status">
         ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
       </div>
-      <input type="password" class="api-key-input" id="venice-key-input" placeholder="venice-..." value="${currentKey}">
+      <input type="password" class="api-key-input" id="venice-key-input" placeholder="venice-..." value="${escapeAttr(currentKey)}">
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="import-btn import-btn-primary" id="save-venice-key-btn" onclick="handleSaveVeniceKey()">Save & Validate</button>
         ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveVeniceKey()">Remove Key</button>' : ''}
       </div>
+      ${currentKey ? '<div style="margin-top:8px;font-size:12px;color:var(--text-muted)"><span id="venice-balance">Balance: loading...</span> <a href="#" onclick="refreshVeniceBalance();return false" style="color:var(--accent);font-size:11px;text-decoration:none">\u21bb</a></div>' : ''}
       ${veniceModelHtml}
       <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
+    </div>`;
+  }
+  if (provider === 'ppq') {
+    const currentKey = getPpqKey();
+    const ppqModel = getPpqModel();
+    let cachedPpqModels = []; try { cachedPpqModels = JSON.parse(localStorage.getItem('labcharts-ppq-models') || '[]'); } catch(e) {}
+    let ppqModelHtml;
+    if (cachedPpqModels.length > 0) {
+      const opts = buildModelOptions('ppq', cachedPpqModels, ppqModel, function(m) { return m.name || m.id; });
+      ppqModelHtml = `<div style="margin-top:12px" id="ppq-model-area">
+        <label style="font-size:12px;color:var(--text-muted)">Model</label>
+        <select class="api-key-input" id="ppq-model-select" style="margin-top:4px" onchange="setPpqModel(this.value);updatePpqModelPricing(this.value)">${opts}</select>
+        <div id="ppq-model-pricing" style="margin-top:4px">${renderModelPricingHint('ppq', ppqModel)}</div>
+      </div>`;
+    } else {
+      ppqModelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="ppq-model-area">Model: <span style="color:var(--text-primary)">${escapeHTML(getPpqModelDisplay())}</span>${currentKey ? ' <span style="font-size:11px">(save key to load models)</span>' : ''}</div>`;
+    }
+    const balanceHtml = currentKey ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:12px;color:var(--text-muted)"><span id="ppq-balance">Balance: loading...</span> <a href="#" onclick="refreshPpqBalance();return false" style="color:var(--accent);font-size:11px;text-decoration:none">\u21bb</a></div>
+        <button class="import-btn import-btn-secondary" id="ppq-topup-toggle" style="font-size:11px;padding:2px 10px" onclick="showPpqTopup()">Top Up</button>
+      </div>
+      <div id="ppq-topup-area" style="display:none"></div>` : '';
+    return `<div class="ai-provider-panel">
+      <div class="ai-provider-desc">Pay-per-query AI aggregator. 300+ models, no subscription, no KYC. Top up with crypto or <a href="https://www.bitrefill.com/gift-cards/ppq-us/" target="_blank" rel="noopener" style="color:var(--accent)">gift cards</a>.</div>
+      ${currentKey ? '' : '<button class="import-btn import-btn-primary" style="width:100%;margin-bottom:8px" onclick="handleCreatePpqAccount()">Create Account (instant, no signup)</button><div class="or-oauth-divider"><span>or enter existing key</span></div>'}
+      <div class="api-key-status" id="ppq-key-status">
+        ${currentKey ? '<span style="color:var(--green)">&#10003; Connected</span>' : '<span style="color:var(--text-muted)">No key set</span>'}
+      </div>
+      <input type="password" class="api-key-input" id="ppq-key-input" placeholder="sk-..." value="${escapeAttr(currentKey)}">
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="import-btn import-btn-primary" id="save-ppq-key-btn" onclick="handleSavePpqKey()">Save & Validate</button>
+        ${currentKey ? '<button class="import-btn import-btn-secondary" onclick="handleRemovePpqKey()">Remove Key</button>' : ''}
+      </div>
+      ${balanceHtml}
+      ${ppqModelHtml}
+      <div class="api-key-notice">Your key is stored locally. No account data is shared with getbased. <a href="https://ppq.ai" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a></div>
     </div>`;
   }
   // Local AI panel — works with any OpenAI-compatible server (Ollama, LM Studio, Jan, etc.)
@@ -368,13 +383,13 @@ export function renderAIProviderPanel(provider) {
     <div style="margin-top:8px">
       <label style="font-size:12px;color:var(--text-muted)">Server address</label>
       <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
-        <input type="text" class="api-key-input" id="local-ai-url-input" value="${config.url}" placeholder="http://localhost:11434" style="flex:1">
+        <input type="text" class="api-key-input" id="local-ai-url-input" value="${escapeAttr(config.url)}" placeholder="http://localhost:11434" style="flex:1">
         <button class="import-btn import-btn-secondary" onclick="testOllamaConnection()" style="white-space:nowrap">Test</button>
       </div>
     </div>
     <div style="margin-top:8px">
       <label style="font-size:12px;color:var(--text-muted)">API Key <span style="font-size:11px">(optional — most local servers don't need one)</span></label>
-      <input type="password" class="api-key-input" id="local-ai-apikey-input" value="${escapeHTML(config.apiKey)}" placeholder="Leave empty if not required" style="margin-top:4px">
+      <input type="password" class="api-key-input" id="local-ai-apikey-input" value="${escapeAttr(config.apiKey)}" placeholder="Leave empty if not required" style="margin-top:4px">
     </div>
     <div id="local-ai-model-section" style="margin-top:8px;display:none">
       <label style="font-size:12px;color:var(--text-muted)">AI Model</label>
@@ -508,6 +523,11 @@ export function toggleAIPause(enabled) {
 
 export function switchAIProvider(provider) {
   setAIProvider(provider);
+  // Clean up any running topup poll/countdown timers
+  if (_ppqTopupPollTimer) { clearInterval(_ppqTopupPollTimer); _ppqTopupPollTimer = null; }
+  if (_ppqCountdownTimer) { clearInterval(_ppqCountdownTimer); _ppqCountdownTimer = null; }
+  if (_rsTopupPollTimer) { clearInterval(_rsTopupPollTimer); _rsTopupPollTimer = null; }
+  if (_rsCountdownTimer) { clearInterval(_rsCountdownTimer); _rsCountdownTimer = null; }
   const panel = document.getElementById('ai-provider-panel');
   if (panel) panel.innerHTML = renderAIProviderPanel(provider);
   const modal = document.getElementById('settings-modal');
@@ -519,13 +539,14 @@ export function switchAIProvider(provider) {
 }
 
 export function initSettingsModelFetch() {
-  const key = getApiKey();
-  if (key && document.getElementById('anthropic-model-area')) {
-    fetchAnthropicModels(key).then(function(models) { if (models.length) renderAnthropicModelDropdown(models); });
-  }
   const orKey = getOpenRouterKey();
   if (orKey && document.getElementById('openrouter-model-area')) {
     fetchOpenRouterModels(orKey).then(function(models) { if (models.length) renderOpenRouterModelDropdown(models); });
+    getOpenRouterBalance().then(function(b) {
+      const el = document.getElementById('or-balance');
+      if (el && b) el.innerHTML = _orBalanceHtml(b.remaining);
+      else if (el) el.textContent = 'Balance: unavailable';
+    });
   }
   const veniceKey = getVeniceKey();
   if (veniceKey && document.getElementById('venice-model-area')) {
@@ -535,10 +556,34 @@ export function initSettingsModelFetch() {
       let models = []; try { models = JSON.parse(localStorage.getItem(listKey) || '[]'); } catch(e) {}
       if (models.length) renderVeniceModelDropdown(models);
     });
+    getVeniceBalance().then(function(b) {
+      const el = document.getElementById('venice-balance');
+      if (el && b) el.innerHTML = _veniceBalanceHtml(b);
+      else if (el) el.textContent = 'Balance: unavailable';
+    });
   }
   const rsKey = getRoutstrKey();
   if (rsKey && document.getElementById('routstr-model-area')) {
     fetchRoutstrModels(rsKey).then(function(models) { if (models.length) renderRoutstrModelDropdown(models); });
+    getRoutstrBalance().then(function(b) {
+      const el = document.getElementById('routstr-balance');
+      if (el && b) el.innerHTML = _rsBalanceHtml(b.sats);
+      else if (el) el.textContent = 'Balance: unavailable';
+    });
+  }
+  const ppqKey = getPpqKey();
+  if (ppqKey && document.getElementById('ppq-model-area')) {
+    fetchPpqModels(ppqKey).then(function(models) { if (models.length) renderPpqModelDropdown(models); });
+    // Fetch balance
+    getPpqBalance().then(function(balance) {
+      const el = document.getElementById('ppq-balance');
+      if (el && balance != null) {
+        el.innerHTML = _ppqBalanceHtml(balance);
+        // Auto-expand topup when balance is empty
+        if (parseFloat(balance) === 0 && document.getElementById('ppq-topup-area')) showPpqTopup();
+      }
+      else if (el) el.textContent = 'Balance: unavailable';
+    });
   }
 }
 
@@ -737,6 +782,11 @@ export function closeSettingsModal() {
   const hadProvider = window._settingsHadProvider;
   document.getElementById('settings-modal-overlay').classList.remove('show');
   if (window.updateChatNudge) window.updateChatNudge();
+  // Clean up any running topup poll/countdown timers
+  if (_ppqTopupPollTimer) { clearInterval(_ppqTopupPollTimer); _ppqTopupPollTimer = null; }
+  if (_ppqCountdownTimer) { clearInterval(_ppqCountdownTimer); _ppqCountdownTimer = null; }
+  if (_rsTopupPollTimer) { clearInterval(_rsTopupPollTimer); _rsTopupPollTimer = null; }
+  if (_rsCountdownTimer) { clearInterval(_rsCountdownTimer); _rsCountdownTimer = null; }
 }
 
 /** After a successful key save, auto-close settings and return to chat if we came from onboarding. */
@@ -878,59 +928,25 @@ export async function testPIIOllamaConnection() {
   }
 }
 
-export function updateAnthropicModelPricing(modelId) {
-  const el = document.getElementById('anthropic-model-pricing');
-  if (el) el.innerHTML = renderModelPricingHint('anthropic', modelId || getAnthropicModel());
+function _veniceBalanceHtml(b) {
+  if (b.diem != null) {
+    const v = parseFloat(b.diem); // 1 DIEM = 1 USD
+    const color = v < 0.10 ? 'var(--red)' : v < 0.50 ? 'var(--yellow, #f0a800)' : 'var(--green)';
+    return 'Balance: <span style="color:' + color + '">$' + v.toFixed(2) + '</span>';
+  }
+  return 'Balance: <span style="color:' + (b.canConsume ? 'var(--green)' : 'var(--red)') + '">' + (b.canConsume ? 'Active' : 'No balance') + '</span>';
 }
-
+export function refreshVeniceBalance() {
+  const el = document.getElementById('venice-balance');
+  if (el) el.textContent = 'Balance: refreshing...';
+  getVeniceBalance().then(function(b) {
+    if (el && b) el.innerHTML = _veniceBalanceHtml(b);
+    else if (el) el.textContent = 'Balance: unavailable';
+  });
+}
 export function updateVeniceModelPricing(modelId) {
   const el = document.getElementById('venice-model-pricing');
   if (el) el.innerHTML = renderModelPricingHint('venice', modelId || getVeniceModel());
-}
-
-export async function handleSaveApiKey() {
-  const input = document.getElementById('api-key-input');
-  const btn = document.getElementById('save-api-key-btn');
-  const status = document.getElementById('api-key-status');
-  const key = input.value.trim();
-  if (!key) { status.innerHTML = '<span style="color:var(--red)">Please enter an API key</span>'; return; }
-  btn.disabled = true; btn.textContent = 'Validating...';
-  const result = await validateApiKey(key);
-  if (result.valid) {
-    await saveApiKey(key);
-    status.innerHTML = '<span style="color:var(--green)">Connected — loading models…</span>';
-    const models = await fetchAnthropicModels(key);
-    if (models.length) {
-      renderAnthropicModelDropdown(models);
-      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
-    } else {
-      status.innerHTML = '<span style="color:var(--green)">&#10003; Connected</span>';
-    }
-    showNotification('API key saved', 'success');
-    _returnToChatIfOnboarding();
-  } else {
-    status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
-  }
-  btn.disabled = false; btn.textContent = 'Save & Validate';
-}
-
-export function handleRemoveApiKey() {
-  localStorage.removeItem('labcharts-api-key');
-  updateKeyCache('labcharts-api-key', null);
-  localStorage.removeItem('labcharts-anthropic-models');
-  localStorage.removeItem('labcharts-anthropic-model');
-  showNotification('API key removed', 'info');
-  openSettingsModal();
-}
-
-export function renderAnthropicModelDropdown(models) {
-  const area = document.getElementById('anthropic-model-area');
-  if (!area || !models.length) return;
-  const currentModel = getAnthropicModel();
-  const opts = buildModelOptions('anthropic', models, currentModel, function(m) { return m.display_name || m.id; });
-  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
-    '<select class="api-key-input" id="anthropic-model-select" style="margin-top:4px" onchange="setAnthropicModel(this.value);updateAnthropicModelPricing(this.value)">' + opts + '</select>' +
-    '<div id="anthropic-model-pricing" style="margin-top:4px">' + renderModelPricingHint('anthropic', currentModel) + '</div>';
 }
 
 export async function handleSaveVeniceKey() {
@@ -1062,6 +1078,20 @@ export function renderOpenRouterModelDropdown(models) {
     '<div id="openrouter-model-pricing" style="margin-top:4px">' + renderModelPricingHint('openrouter', currentModel) + '</div>';
 }
 
+function _orBalanceHtml(remaining) {
+  const v = parseFloat(remaining);
+  const color = v < 0.10 ? 'var(--red)' : v < 0.50 ? 'var(--yellow, #f0a800)' : 'var(--green)';
+  return 'Balance: <span style="color:' + color + '">$' + v.toFixed(2) + '</span>';
+}
+export function refreshOpenRouterBalance() {
+  const el = document.getElementById('or-balance');
+  if (el) el.textContent = 'Balance: refreshing...';
+  getOpenRouterBalance().then(function(b) {
+    if (el && b) el.innerHTML = _orBalanceHtml(b.remaining);
+    else if (el) el.textContent = 'Balance: unavailable';
+  });
+}
+
 export async function applyCustomOpenRouterModel(modelId) {
   const id = modelId.trim();
   if (!id) return;
@@ -1136,9 +1166,42 @@ export async function handleSaveRoutstrKey() {
   btn.disabled = true; btn.textContent = 'Validating...';
   const result = await validateRoutstrKey(key);
   if (result.valid) {
-    await saveRoutstrKey(key);
+    let finalKey = key;
+    // Convert Cashu token to a session key so Lightning topup works
+    if (key.startsWith('cashu')) {
+      status.innerHTML = '<span style="color:var(--text-muted)">Converting token to session key\u2026</span>';
+      try {
+        const wallet = await createRoutstrAccount(key);
+        if (wallet.api_key) finalKey = wallet.api_key;
+      } catch (e) {
+        status.innerHTML = '<span style="color:var(--red)">' + escapeHTML(e.message) + '</span>';
+        btn.disabled = false; btn.textContent = 'Save & Validate';
+        return;
+      }
+      // Cashu token is now spent — user MUST save the session key
+      await saveRoutstrKey(finalKey);
+      await fetchRoutstrModels();
+      const panel = document.getElementById('ai-provider-panel');
+      if (panel) {
+        panel.innerHTML = `<div class="ai-provider-panel">
+          <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--accent)">
+            <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px">\u26a0 Save your session key</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Your Cashu token has been redeemed. This session key is the <strong>only way to access your balance</strong>. Copy it now \u2014 there is no recovery.</div>
+            <label style="font-size:11px;color:var(--text-muted)">Session Key</label>
+            <div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg-primary);padding:8px;border-radius:6px;border:1px solid var(--border);color:var(--text-primary);user-select:all;cursor:text">${escapeHTML(finalKey)}</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="import-btn import-btn-primary" style="font-size:12px" onclick="navigator.clipboard.writeText('${escapeAttr(finalKey)}');this.textContent='\u2713 Copied (clears in 60s)';clearTimeout(window._rsClipTimer);window._rsClipTimer=setTimeout(()=>navigator.clipboard.writeText(''),60000)">Copy Key</button>
+              <button class="import-btn import-btn-secondary" style="font-size:12px" onclick="dismissRoutstrKeyReveal()">I\u2019ve saved it</button>
+            </div>
+          </div>
+        </div>`;
+      }
+      btn.disabled = false; btn.textContent = 'Save & Validate';
+      return;
+    }
+    await saveRoutstrKey(finalKey);
     status.innerHTML = '<span style="color:var(--green)">Connected \u2014 loading models\u2026</span>';
-    const models = await fetchRoutstrModels(key);
+    const models = await fetchRoutstrModels();
     if (models.length) {
       renderRoutstrModelDropdown(models);
       status.innerHTML = '<span style="color:var(--green)">\u2713 Connected</span>';
@@ -1175,8 +1238,482 @@ export function renderRoutstrModelDropdown(models) {
     '<div id="routstr-model-pricing" style="margin-top:4px">' + renderModelPricingHint('routstr', currentModel) + '</div>';
 }
 
+// ─── Routstr wallet handlers ───
+function _rsBalanceHtml(sats) {
+  const color = sats < 100 ? 'var(--red)' : sats < 500 ? 'var(--yellow, #f0a800)' : 'var(--green)';
+  return 'Balance: <span style="color:' + color + '">\u26a1 ' + sats.toLocaleString() + ' sats</span>';
+}
+export function refreshRoutstrBalance() {
+  const el = document.getElementById('routstr-balance');
+  if (el) el.textContent = 'Balance: refreshing...';
+  getRoutstrBalance().then(function(b) {
+    if (el && b) el.innerHTML = _rsBalanceHtml(b.sats);
+    else if (el) el.textContent = 'Balance: unavailable';
+  });
+}
+export function dismissRoutstrKeyReveal() {
+  const panel = document.getElementById('ai-provider-panel');
+  if (panel) panel.innerHTML = renderAIProviderPanel('routstr');
+  let cachedModels = []; try { cachedModels = JSON.parse(localStorage.getItem('labcharts-routstr-models') || '[]'); } catch(e) {}
+  if (cachedModels.length) renderRoutstrModelDropdown(cachedModels);
+  getRoutstrBalance().then(function(b) {
+    const el = document.getElementById('routstr-balance');
+    if (el && b) el.innerHTML = _rsBalanceHtml(b.sats);
+    if (b && b.sats > 0) {
+      showNotification('Routstr wallet ready', 'success');
+      _returnToChatIfOnboarding();
+    } else {
+      showRoutstrTopup();
+      showNotification('Top up to start using AI', 'info');
+    }
+  });
+}
+let _rsTopupPollTimer = null;
+let _rsCountdownTimer = null;
+export function showRoutstrTopup() {
+  const area = document.getElementById('routstr-topup-area');
+  if (!area) return;
+  if (area.style.display !== 'none') { cancelRoutstrTopup(); return; }
+  area.style.display = 'block';
+  const presets = [5000, 10000, 25000, 50000];
+  area.innerHTML = `<div style="margin-top:8px;padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Top up with Lightning</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px" id="routstr-topup-presets">
+      ${presets.map(s => `<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px;flex:1" onclick="doRoutstrLightningTopup(${s})">\u26a1 ${s.toLocaleString()} sats</button>`).join('')}<div id="routstr-custom-slot" style="display:flex"><button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px;color:var(--text-muted)" onclick="rsShowCustomSatsInput()">\u26a1\u2026</button></div>
+    </div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:5px;text-align:center">5,000 sats is enough for onboarding, a few imports, and chats \u00b7 min 1,000</div>
+    <div style="margin-top:8px"><div class="or-oauth-divider"><span>or paste Cashu token</span></div>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <input type="text" class="api-key-input" id="routstr-cashu-input" placeholder="cashu..." style="font-size:11px;flex:1;font-family:monospace">
+      <button class="import-btn import-btn-primary" style="font-size:11px;padding:3px 10px;white-space:nowrap" onclick="doRoutstrCashuTopup()">Deposit</button>
+    </div></div>
+    <div id="routstr-topup-status"></div>
+  </div>`;
+}
+export function rsShowCustomSatsInput() {
+  const slot = document.getElementById('routstr-custom-slot');
+  if (!slot) return;
+  slot.innerHTML = '<input type="text" inputmode="numeric" id="routstr-custom-sats" class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px;width:80px;text-align:center;cursor:text;border:1px solid var(--accent)" placeholder="sats" onkeydown="if(event.key===\'Enter\')doRoutstrCustomTopup();if(event.key===\'Escape\')showRoutstrTopup()" onblur="if(this.value.trim())doRoutstrCustomTopup()">';
+  document.getElementById('routstr-custom-sats')?.focus();
+}
+export function doRoutstrCustomTopup() {
+  const input = document.getElementById('routstr-custom-sats');
+  if (!input) return;
+  const amount = parseInt(input.value.replace(/[^0-9]/g, ''), 10);
+  if (!amount || amount < 1000) {
+    const statusEl = document.getElementById('routstr-topup-status');
+    if (statusEl) statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--red)">Minimum 1,000 sats</div>';
+    return;
+  }
+  doRoutstrLightningTopup(amount);
+}
+export async function doRoutstrLightningTopup(amountSats) {
+  const statusEl = document.getElementById('routstr-topup-status');
+  if (!statusEl) return;
+  statusEl.innerHTML = '<div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Creating invoice\u2026</div>';
+  try {
+    const result = await createRoutstrLightningInvoice(amountSats);
+    const bolt11 = result.bolt11 || result.payment_request || result.invoice;
+    const invoiceId = result.invoice_id || result.id;
+    if (!bolt11) throw new Error('No invoice returned');
+    // QR code
+    let qrSvg = '';
+    if (typeof qrcode === 'function') {
+      const qr = qrcode(0, 'L');
+      qr.addData(bolt11.toUpperCase());
+      qr.make();
+      qrSvg = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    }
+    const payUri = 'lightning:' + bolt11;
+    statusEl.innerHTML = `<div style="margin-top:8px;text-align:center">
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px">\u26a1 ${amountSats.toLocaleString()} sats</div>
+      ${qrSvg ? `<a href="${payUri}" style="display:inline-block;background:#fff;padding:8px;border-radius:8px;width:180px;height:180px">${qrSvg}</a>` : ''}
+      <div style="margin-top:6px"><button class="import-btn import-btn-secondary" style="font-size:10px;padding:2px 8px" onclick="navigator.clipboard.writeText('${escapeAttr(bolt11)}');this.textContent='\u2713 Copied'">${bolt11.slice(0, 20)}\u2026 copy</button></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="routstr-topup-countdown">Waiting for payment\u2026</div>
+    </div>`;
+    // Countdown
+    if (result.expires_at) {
+      const expiresMs = (typeof result.expires_at === 'number' && result.expires_at < 1e12) ? result.expires_at * 1000 : result.expires_at;
+      _rsCountdownTimer = setInterval(function() {
+        const remaining = Math.max(0, Math.floor((expiresMs - Date.now()) / 1000));
+        const cdEl = document.getElementById('routstr-topup-countdown');
+        if (cdEl) cdEl.textContent = remaining > 0 ? 'Expires in ' + Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0') : 'Invoice expired';
+        if (remaining <= 0) clearInterval(_rsCountdownTimer);
+      }, 1000);
+    }
+    // Poll for payment
+    if (invoiceId) {
+      _rsTopupPollTimer = setInterval(async function() {
+        try {
+          const s = await checkRoutstrInvoiceStatus(invoiceId);
+          if (s && (s.status === 'paid' || s.status === 'complete' || s.status === 'settled')) {
+            clearInterval(_rsTopupPollTimer); _rsTopupPollTimer = null;
+            clearInterval(_rsCountdownTimer); _rsCountdownTimer = null;
+            statusEl.innerHTML = '<div style="margin-top:8px;text-align:center;font-size:12px;color:var(--green)">\u2713 +' + amountSats.toLocaleString() + ' sats added!</div>';
+            showNotification('Routstr topped up \u26a1 ' + amountSats.toLocaleString() + ' sats', 'success');
+            refreshRoutstrBalance();
+            setTimeout(function() { const a = document.getElementById('routstr-topup-area'); if (a) a.style.display = 'none'; }, 3000);
+          } else if (s && (s.status === 'expired' || s.status === 'invalid')) {
+            clearInterval(_rsTopupPollTimer); _rsTopupPollTimer = null;
+            clearInterval(_rsCountdownTimer); _rsCountdownTimer = null;
+            statusEl.innerHTML = '<div style="margin-top:8px;font-size:11px;color:var(--red)">Invoice expired. Try again.</div>';
+          }
+        } catch {}
+      }, 3000);
+    }
+  } catch (e) {
+    statusEl.innerHTML = '<div style="margin-top:8px;font-size:11px;color:var(--red)">' + escapeHTML(e.message) + '</div>';
+  }
+}
+export async function doRoutstrCashuTopup() {
+  const input = document.getElementById('routstr-cashu-input');
+  const statusEl = document.getElementById('routstr-topup-status');
+  if (!input || !statusEl) return;
+  const token = input.value.trim();
+  if (!token || !token.startsWith('cashu')) { statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--red)">Paste a valid Cashu token (starts with cashu...)</div>'; return; }
+  statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--text-muted)">Depositing\u2026</div>';
+  try {
+    const result = await topupRoutstrCashu(token);
+    // API response fields vary — check balance before/after instead
+    input.value = '';
+    const balAfter = await getRoutstrBalance();
+    const balEl = document.getElementById('routstr-balance');
+    if (balEl && balAfter) balEl.innerHTML = _rsBalanceHtml(balAfter.sats);
+    const addedSats = balAfter ? balAfter.sats : 0;
+    statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--green)">\u2713 Deposited \u2014 balance: \u26a1 ' + addedSats.toLocaleString() + ' sats</div>';
+    showNotification('Cashu deposited', 'success');
+  } catch (e) {
+    statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--red)">' + escapeHTML(e.message) + '</div>';
+  }
+}
+export function cancelRoutstrTopup() {
+  if (_rsTopupPollTimer) { clearInterval(_rsTopupPollTimer); _rsTopupPollTimer = null; }
+  if (_rsCountdownTimer) { clearInterval(_rsCountdownTimer); _rsCountdownTimer = null; }
+  const area = document.getElementById('routstr-topup-area');
+  if (area) area.style.display = 'none';
+}
 
+// ─── PPQ handlers ───
+let _ppqCreating = false;
+export async function handleCreatePpqAccount() {
+  if (_ppqCreating) return;
+  _ppqCreating = true;
+  const createBtn = document.querySelector('[onclick="handleCreatePpqAccount()"]');
+  if (createBtn) { createBtn.disabled = true; createBtn.textContent = 'Creating\u2026'; }
+  const status = document.getElementById('ppq-key-status');
+  if (status) status.innerHTML = '<span style="color:var(--text-muted)">Creating account\u2026</span>';
+  try {
+    const result = await createPpqAccount();
+    if (!result.success && !result.api_key) throw new Error('Account creation failed');
+    await savePpqKey(result.api_key);
+    savePpqCreditId(result.credit_id);
+    const models = await fetchPpqModels(result.api_key);
+    // Show key reveal screen — user must save it before continuing
+    const panel = document.getElementById('ai-provider-panel');
+    if (panel) {
+      panel.innerHTML = `<div class="ai-provider-panel">
+        <div style="padding:12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--accent)">
+          <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px">\u26a0 Save your account details</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">PPQ accounts are anonymous \u2014 <strong>there is no way to recover a lost key</strong>. Copy both values now and store them somewhere safe.</div>
+          <label style="font-size:11px;color:var(--text-muted)">API Key</label>
+          <div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg-primary);padding:8px;border-radius:6px;border:1px solid var(--border);color:var(--text-primary);user-select:all;cursor:text">${escapeHTML(result.api_key)}</div>
+          <label style="font-size:11px;color:var(--text-muted);margin-top:8px;display:block">Credit ID <span style="font-size:10px">(enter at <a href="https://ppq.ai" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a> to access your account on the web)</span></label>
+          <div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg-primary);padding:8px;border-radius:6px;border:1px solid var(--border);color:var(--text-primary);user-select:all;cursor:text">${escapeHTML(result.credit_id)}</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="import-btn import-btn-primary" style="font-size:12px" onclick="navigator.clipboard.writeText('API Key: ${escapeAttr(result.api_key)}\\nCredit ID: ${escapeAttr(result.credit_id)}');this.textContent='\u2713 Copied (clears in 60s)';clearTimeout(window._ppqClipTimer);window._ppqClipTimer=setTimeout(()=>navigator.clipboard.writeText(''),60000)">Copy Both</button>
+            <button class="import-btn import-btn-secondary" style="font-size:12px" onclick="dismissPpqKeyReveal()">I\u2019ve saved it</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  } catch (e) {
+    if (status) status.innerHTML = '<span style="color:var(--red)">Failed to create account: ' + escapeHTML(e.message) + '</span>';
+    if (createBtn) { createBtn.disabled = false; createBtn.textContent = 'Create Account (instant, no signup)'; }
+  }
+  _ppqCreating = false;
+}
 
+export function dismissPpqKeyReveal() {
+  // Re-render panel to normal connected state + load models
+  const panel = document.getElementById('ai-provider-panel');
+  if (panel) panel.innerHTML = renderAIProviderPanel('ppq');
+  let cachedModels = []; try { cachedModels = JSON.parse(localStorage.getItem('labcharts-ppq-models') || '[]'); } catch(e) {}
+  if (cachedModels.length) renderPpqModelDropdown(cachedModels);
+  getPpqBalance().then(function(balance) {
+    const el = document.getElementById('ppq-balance');
+    if (el && balance != null) el.innerHTML = _ppqBalanceHtml(balance);
+  });
+  // New accounts start at $0 — always show topup, never auto-return to chat
+  showPpqTopup();
+  showNotification('Account ready \u2014 top up to start using AI', 'info');
+}
+
+export async function handleSavePpqKey() {
+  const input = document.getElementById('ppq-key-input');
+  const btn = document.getElementById('save-ppq-key-btn');
+  const status = document.getElementById('ppq-key-status');
+  const key = input.value.trim();
+  if (!key) { status.innerHTML = '<span style="color:var(--red)">Please enter an API key</span>'; return; }
+  btn.disabled = true; btn.textContent = 'Validating...';
+  const result = await validatePpqKey(key);
+  if (result.valid) {
+    await savePpqKey(key);
+    status.innerHTML = '<span style="color:var(--green)">Connected \u2014 loading models\u2026</span>';
+    const models = await fetchPpqModels(key);
+    if (models.length) {
+      renderPpqModelDropdown(models);
+      status.innerHTML = '<span style="color:var(--green)">\u2713 Connected</span>';
+    } else {
+      status.innerHTML = '<span style="color:var(--green)">\u2713 Connected</span>';
+    }
+    showNotification('PPQ key saved', 'success');
+    _returnToChatIfOnboarding();
+  } else {
+    status.innerHTML = `<span style="color:var(--red)">${escapeHTML(result.error)}</span>`;
+  }
+  btn.disabled = false; btn.textContent = 'Save & Validate';
+}
+
+export async function handleRemovePpqKey() {
+  // Check balance before removing — warn if funds remain
+  const balance = await getPpqBalance();
+  const hasFunds = balance != null && parseFloat(balance) > 0;
+  const msg = hasFunds
+    ? `This account has $${parseFloat(balance).toFixed(2)} remaining. Removing this key will permanently lose access to those funds unless you\u2019ve saved the key elsewhere.\n\nRemove PPQ key?`
+    : 'Remove PPQ key? Make sure you\u2019ve saved it if you want to reuse this account later.';
+  showConfirmDialog(msg, function() {
+    localStorage.removeItem('labcharts-ppq-key');
+    updateKeyCache('labcharts-ppq-key', null);
+    localStorage.removeItem('labcharts-ppq-models');
+    localStorage.removeItem('labcharts-ppq-model');
+    localStorage.removeItem('labcharts-ppq-pricing');
+    localStorage.removeItem('labcharts-ppq-vision-models');
+    localStorage.removeItem('labcharts-ppq-credit-id');
+    showNotification('PPQ key removed', 'info');
+    openSettingsModal();
+  });
+}
+
+export function renderPpqModelDropdown(models) {
+  const area = document.getElementById('ppq-model-area');
+  if (!area || !models.length) return;
+  const currentModel = getPpqModel();
+  const opts = buildModelOptions('ppq', models, currentModel, function(m) { return m.name || m.id; });
+  area.innerHTML = '<label style="font-size:12px;color:var(--text-muted)">Model</label>' +
+    '<select class="api-key-input" id="ppq-model-select" style="margin-top:4px" onchange="setPpqModel(this.value);updatePpqModelPricing(this.value)">' + opts + '</select>' +
+    '<div id="ppq-model-pricing" style="margin-top:4px">' + renderModelPricingHint('ppq', currentModel) + '</div>';
+}
+
+export function updatePpqModelPricing(modelId) {
+  const el = document.getElementById('ppq-model-pricing');
+  if (el) el.innerHTML = renderModelPricingHint('ppq', modelId);
+}
+
+function _ppqBalanceHtml(balance) {
+  const v = parseFloat(balance);
+  const color = v < 0.10 ? 'var(--red)' : v < 0.50 ? 'var(--yellow, #f0a800)' : 'var(--green)';
+  return 'Balance: <span style="color:' + color + '">$' + v.toFixed(2) + '</span>';
+}
+
+export async function refreshPpqBalance() {
+  const el = document.getElementById('ppq-balance');
+  if (!el) return;
+  el.textContent = 'Balance: refreshing\u2026';
+  const balance = await getPpqBalance();
+  if (balance != null) el.innerHTML = _ppqBalanceHtml(balance);
+  else el.textContent = 'Balance: unavailable';
+}
+
+let _ppqTopupPollTimer = null;
+let _ppqCountdownTimer = null;
+
+const _ppqSvg = {
+  lightning: '<svg viewBox="0 0 282 282"><circle cx="141" cy="141" r="141" fill="#7B1AF7"/><path d="M79.76 144.05L173.76 63.05C177.86 60.42 181.76 63.05 179.26 67.55L149.26 126.55H202.76C202.76 126.55 211.26 126.55 202.76 133.55L110.26 215.05C103.76 220.55 99.26 217.55 103.76 209.05L132.76 151.55H79.76C79.76 151.55 71.26 151.55 79.76 144.05Z" fill="#fff"/></svg>',
+  btc: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#F7931A"/><path fill="#fff" fill-rule="nonzero" d="M23.189 14.02c.314-2.096-1.283-3.223-3.465-3.975l.708-2.84-1.728-.43-.69 2.765c-.454-.114-.92-.22-1.385-.326l.695-2.783L15.596 6l-.708 2.839c-.376-.086-.746-.17-1.104-.26l.002-.009-2.384-.595-.46 1.846s1.283.294 1.256.312c.7.175.826.638.805 1.006l-.806 3.235c.048.012.11.03.18.057l-.183-.045-1.13 4.532c-.086.212-.303.531-.793.41.018.025-1.256-.313-1.256-.313l-.858 1.978 2.25.561c.418.105.828.215 1.231.318l-.715 2.872 1.727.43.708-2.84c.472.127.93.245 1.378.357l-.706 2.828 1.728.43.715-2.866c2.948.558 5.164.333 6.097-2.333.752-2.146-.037-3.385-1.588-4.192 1.13-.26 1.98-1.003 2.207-2.538zm-3.95 5.538c-.533 2.147-4.148.986-5.32.695l.95-3.805c1.172.293 4.929.872 4.37 3.11zm.535-5.569c-.487 1.953-3.495.96-4.47.717l.86-3.45c.975.243 4.118.696 3.61 2.733z"/></svg>',
+  xmr: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#FF6600"/><path fill="#fff" fill-rule="nonzero" d="M15.97 5.235c5.985 0 10.825 4.84 10.825 10.824a11.07 11.07 0 01-.558 3.432h-3.226v-9.094l-7.04 7.04-7.04-7.04v9.094H5.704a11.07 11.07 0 01-.557-3.432c0-5.984 4.84-10.824 10.824-10.824zM14.358 19.02L16 20.635l1.613-1.614 3.051-3.08v5.72h4.547a10.806 10.806 0 01-9.24 5.192c-3.902 0-7.334-2.082-9.24-5.192h4.546v-5.72l3.08 3.08z"/></svg>',
+  ltc: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#A6A9AA"/><path fill="#fff" d="M10.427 19.214L9 19.768l.688-2.759 1.444-.58L13.213 8h5.129l-1.519 6.196 1.41-.571-.68 2.75-1.427.571-.848 3.483H23L22.127 24H9.252z"/></svg>',
+  liquid: '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#0D1437"/><path fill="#22E1C9" d="M16 7c-2.4 3.5-6 7.5-6 11.5C10 21.54 12.69 24 16 24s6-2.46 6-5.5C22 14.5 18.4 10.5 16 7zm0 14.5c-1.93 0-3.5-1.32-3.5-3 0-2.25 2.13-4.82 3.5-6.71 1.37 1.89 3.5 4.46 3.5 6.71 0 1.68-1.57 3-3.5 3z"/></svg>',
+};
+const PPQ_METHODS = [
+  { id: 'btc-lightning', svg: _ppqSvg.lightning, label: 'Lightning', min: 1, amounts: [1, 2, 5, 10] },
+  { id: 'btc', svg: _ppqSvg.btc, label: 'Bitcoin', min: 10, amounts: [10, 25, 50, 100] },
+  { id: 'xmr', svg: _ppqSvg.xmr, label: 'Monero', min: 5, amounts: [5, 10, 25, 50] },
+  { id: 'ltc', svg: _ppqSvg.ltc, label: 'Litecoin', min: 2, amounts: [2, 5, 10, 25] },
+  { id: 'lbtc', svg: _ppqSvg.liquid, label: 'Liquid', min: 2, amounts: [2, 5, 10, 25] },
+];
+let _ppqSelectedMethod = 'btc-lightning';
+
+function _ppqMethodBtn(m, active) {
+  return `<button class="${active ? 'ppq-method-btn active' : 'ppq-method-btn'}" onclick="selectPpqMethod('${m.id}')"><span class="ppq-method-icon">${m.svg}</span><span class="ppq-method-label">${m.label}</span></button>`;
+}
+
+export function showPpqTopup() {
+  const area = document.getElementById('ppq-topup-area');
+  if (!area) return;
+  const toggle = document.getElementById('ppq-topup-toggle');
+  if (area.style.display !== 'none') {
+    area.style.display = 'none';
+    if (toggle) toggle.textContent = 'Top Up';
+    return;
+  }
+  area.style.display = 'block';
+  if (toggle) toggle.textContent = 'Close';
+  _ppqSelectedMethod = 'btc-lightning';
+  // Inject styles if not present
+  if (!document.getElementById('ppq-topup-style')) {
+    const style = document.createElement('style');
+    style.id = 'ppq-topup-style';
+    style.textContent = `.ppq-method-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:10px;border:2px solid var(--border);background:var(--bg-primary);color:var(--text-muted);cursor:pointer;flex:1;min-width:0;transition:all .15s}
+.ppq-method-btn:hover{border-color:var(--text-muted);color:var(--text-primary)}
+.ppq-method-btn.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--bg-primary));box-shadow:0 0 0 1px var(--accent)}
+.ppq-method-btn.active .ppq-method-label{color:var(--text-primary)}
+.ppq-method-icon{width:24px;height:24px;display:block}
+.ppq-method-icon svg{width:100%;height:100%}
+.ppq-method-label{font-size:10px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
+.ppq-amt-btn{padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);cursor:pointer;font-size:13px;font-weight:600;flex:1;text-align:center;transition:all .15s}
+.ppq-amt-btn:hover{border-color:var(--accent);color:var(--accent)}
+@keyframes ppq-pulse{0%,100%{opacity:1}50%{opacity:.3}}`;
+    document.head.appendChild(style);
+  }
+  _renderPpqTopupPicker(area);
+}
+
+function _renderPpqTopupPicker(area) {
+  const method = PPQ_METHODS.find(function(m) { return m.id === _ppqSelectedMethod; }) || PPQ_METHODS[0];
+  area.innerHTML = `<div style="margin-top:8px;padding:12px;background:var(--bg-secondary);border-radius:10px;border:1px solid var(--border)">
+    <div style="display:flex;gap:6px;margin-bottom:10px">${PPQ_METHODS.map(function(m) { return _ppqMethodBtn(m, m.id === _ppqSelectedMethod); }).join('')}</div>
+    <div style="display:flex;gap:6px">${method.amounts.map(function(v) {
+      return '<button class="ppq-amt-btn" onclick="doPpqTopup(' + v + ')">$' + v + '</button>';
+    }).join('')}<div id="ppq-custom-slot" style="flex:1;display:flex"><button class="ppq-amt-btn" style="width:100%;color:var(--text-muted)" onclick="ppqShowCustomInput()">$\u2026</button></div></div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:5px;text-align:center">$2 is enough for onboarding, a few imports, and chats \u00b7 min $${method.min}</div>
+  </div>`;
+}
+
+export function selectPpqMethod(methodId) {
+  _ppqSelectedMethod = methodId;
+  const area = document.getElementById('ppq-topup-area');
+  if (area) _renderPpqTopupPicker(area);
+}
+
+export function ppqShowCustomInput() {
+  const slot = document.getElementById('ppq-custom-slot');
+  if (!slot) return;
+  slot.innerHTML = '<input type="text" inputmode="decimal" id="ppq-custom-amount" class="ppq-amt-btn" style="width:100%;text-align:center;cursor:text" placeholder="$" onkeydown="if(event.key===\'Enter\')doPpqTopupCustom();if(event.key===\'Escape\')selectPpqMethod(\'' + _ppqSelectedMethod + '\')" onblur="if(this.value.trim())doPpqTopupCustom()">';
+  const input = document.getElementById('ppq-custom-amount');
+  if (input) input.focus();
+}
+
+export function doPpqTopupCustom() {
+  const input = document.getElementById('ppq-custom-amount');
+  if (!input) return;
+  const raw = input.value.replace(/[^0-9.]/g, '');
+  const amount = parseFloat(raw);
+  const method = PPQ_METHODS.find(function(m) { return m.id === _ppqSelectedMethod; }) || PPQ_METHODS[0];
+  if (isNaN(amount) || amount < method.min) {
+    showNotification('Minimum amount is $' + method.min, 'error');
+    return;
+  }
+  doPpqTopup(amount);
+}
+
+export async function doPpqTopup(amount) {
+  const area = document.getElementById('ppq-topup-area');
+  if (!area) return;
+  const method = PPQ_METHODS.find(function(m) { return m.id === _ppqSelectedMethod; }) || PPQ_METHODS[0];
+  area.innerHTML = '<div style="margin-top:8px;padding:10px 12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--text-muted)">Generating invoice\u2026</div>';
+  try {
+    const result = await createPpqTopup(amount, _ppqSelectedMethod);
+    const payString = result.lightning_invoice || result.payment_address || '';
+    const invoiceId = result.invoice_id || '';
+    const cryptoAmount = result.crypto_amount_due ? parseFloat(result.crypto_amount_due) : null;
+    // QR data: Lightning invoices use uppercase for smaller QR; addresses stay as-is
+    const isLightning = _ppqSelectedMethod === 'btc-lightning';
+    let qrSvg = '';
+    try {
+      const qr = qrcode(0, 'L');
+      qr.addData(isLightning ? payString.toUpperCase() : payString);
+      qr.make();
+      qrSvg = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    } catch { /* QR generation failed, show text only */ }
+    // URI scheme for "Open in Wallet"
+    const walletUri = isLightning ? 'lightning:' + escapeAttr(payString)
+      : _ppqSelectedMethod === 'btc' || _ppqSelectedMethod === 'lbtc' ? 'bitcoin:' + escapeAttr(payString)
+      : _ppqSelectedMethod === 'ltc' ? 'litecoin:' + escapeAttr(payString)
+      : _ppqSelectedMethod === 'xmr' ? 'monero:' + escapeAttr(payString)
+      : '#';
+    const copyLabel = isLightning ? 'Copy Invoice' : 'Copy Address';
+    const detailLabel = isLightning ? 'Show invoice text' : 'Show address';
+    const cryptoHint = cryptoAmount ? '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">' + cryptoAmount + '</div>' : '';
+    area.innerHTML = `<div style="margin-top:8px;padding:10px 12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        ${qrSvg ? '<div style="flex-shrink:0;background:#fff;padding:6px;border-radius:6px;width:140px;height:140px">' + qrSvg + '</div>' : ''}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:2px;display:flex;align-items:center;gap:4px"><span style="width:16px;height:16px;display:inline-block">${method.svg}</span> ${method.label} \u2014 $${parseFloat(amount).toFixed(2)}</div>
+          ${cryptoHint}
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+            <button class="import-btn import-btn-primary" style="font-size:11px;padding:4px 10px" onclick="navigator.clipboard.writeText('${escapeAttr(payString)}');this.textContent='\u2713 Copied!'">${copyLabel}</button>
+            <a href="${walletUri}" class="import-btn import-btn-secondary" style="font-size:11px;padding:4px 10px;text-decoration:none;text-align:center">Open in Wallet</a>
+            <button class="import-btn import-btn-secondary" style="font-size:11px;padding:4px 10px" onclick="cancelPpqTopup()">Cancel</button>
+          </div>
+          <div id="ppq-topup-status" style="margin-top:6px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px"><span id="ppq-topup-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;animation:ppq-pulse 1.5s ease-in-out infinite"></span> <span id="ppq-topup-countdown"></span></div>
+        </div>
+      </div>
+      <details style="margin-top:6px"><summary style="font-size:11px;color:var(--text-muted);cursor:pointer">${detailLabel}</summary>
+        <div style="font-family:monospace;font-size:9px;word-break:break-all;background:var(--bg-primary);padding:6px;border-radius:4px;border:1px solid var(--border);color:var(--text-secondary);max-height:80px;overflow-y:auto;user-select:all;cursor:text;margin-top:4px">${escapeHTML(payString)}</div>
+      </details>
+    </div>`;
+    // Live countdown timer
+    const expiresTs = result.expires_at ? result.expires_at * 1000 : 0;
+    _ppqCountdownTimer = setInterval(function() {
+      const cdEl = document.getElementById('ppq-topup-countdown');
+      if (!cdEl || !expiresTs) return;
+      const remaining = Math.max(0, Math.floor((expiresTs - Date.now()) / 1000));
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      cdEl.textContent = remaining > 0
+        ? 'Waiting for payment\u2026 ' + mins + ':' + (secs < 10 ? '0' : '') + secs
+        : 'Invoice expired';
+      if (remaining <= 0) clearInterval(_ppqCountdownTimer);
+    }, 1000);
+    // Poll for payment
+    _ppqTopupPollTimer = setInterval(async function() {
+      try {
+        const status = await checkPpqTopupStatus(invoiceId);
+        if (!status) return;
+        const s = (status.status || '').toLowerCase();
+        if (s === 'paid' || s === 'complete' || s === 'settled' || s === 'processing') {
+          clearInterval(_ppqTopupPollTimer); _ppqTopupPollTimer = null;
+          clearInterval(_ppqCountdownTimer); _ppqCountdownTimer = null;
+          // Show paid state
+          const topupArea = document.getElementById('ppq-topup-area');
+          if (topupArea) {
+            topupArea.innerHTML = '<div style="margin-top:8px;padding:16px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--green);text-align:center"><div style="font-size:24px;margin-bottom:6px">\u2713</div><div style="font-size:13px;font-weight:600;color:var(--green)">Payment received!</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">$' + parseFloat(amount).toFixed(2) + ' added to your balance</div></div>';
+          }
+          showNotification('Top-up successful!', 'success');
+          // Refresh balance
+          const balance = await getPpqBalance();
+          const balEl = document.getElementById('ppq-balance');
+          if (balEl && balance != null) balEl.innerHTML = _ppqBalanceHtml(balance);
+          setTimeout(function() { _returnToChatIfOnboarding(); }, 2000);
+        } else if (s === 'expired' || s === 'invalid') {
+          clearInterval(_ppqTopupPollTimer); _ppqTopupPollTimer = null;
+          clearInterval(_ppqCountdownTimer); _ppqCountdownTimer = null;
+          const statusEl = document.getElementById('ppq-topup-status');
+          if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">Invoice expired. Try again.</span>';
+        }
+      } catch { /* ignore poll errors */ }
+    }, 3000);
+  } catch (e) {
+    area.innerHTML = `<div style="margin-top:8px;padding:10px 12px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--red)">${escapeHTML(e.message)}</div>`;
+  }
+}
+
+export function cancelPpqTopup() {
+  if (_ppqTopupPollTimer) { clearInterval(_ppqTopupPollTimer); _ppqTopupPollTimer = null; }
+  if (_ppqCountdownTimer) { clearInterval(_ppqCountdownTimer); _ppqCountdownTimer = null; }
+  const area = document.getElementById('ppq-topup-area');
+  if (area) area.style.display = 'none';
+}
 
 function renderSyncSection() {
   const enabled = isSyncEnabled();
@@ -1720,14 +2257,11 @@ Object.assign(window, {
   updateSettingsUI,
   testOllamaConnection,
   testPIIOllamaConnection,
-  updateAnthropicModelPricing,
+  refreshVeniceBalance,
   updateVeniceModelPricing,
   toggleVeniceE2EE,
   updateOpenRouterModelPricing,
   updateRoutstrModelPricing,
-  handleSaveApiKey,
-  handleRemoveApiKey,
-  renderAnthropicModelDropdown,
   handleSaveVeniceKey,
   handleRemoveVeniceKey,
   renderVeniceModelDropdown,
@@ -1739,6 +2273,28 @@ Object.assign(window, {
   handleSaveRoutstrKey,
   handleRemoveRoutstrKey,
   renderRoutstrModelDropdown,
+  refreshRoutstrBalance,
+  dismissRoutstrKeyReveal,
+  showRoutstrTopup,
+  rsShowCustomSatsInput,
+  doRoutstrCustomTopup,
+  doRoutstrLightningTopup,
+  doRoutstrCashuTopup,
+  cancelRoutstrTopup,
+  handleCreatePpqAccount,
+  dismissPpqKeyReveal,
+  handleSavePpqKey,
+  handleRemovePpqKey,
+  renderPpqModelDropdown,
+  updatePpqModelPricing,
+  refreshPpqBalance,
+  showPpqTopup,
+  selectPpqMethod,
+  doPpqTopup,
+  ppqShowCustomInput,
+  doPpqTopupCustom,
+  cancelPpqTopup,
+  refreshOpenRouterBalance,
   renderDataEntriesSection,
   refreshDataEntriesSection,
   resetCurrentProfileUsage,

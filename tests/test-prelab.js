@@ -192,12 +192,12 @@
     'Should show profile setup form for new visitors');
   assert('Chat onboarding has OpenRouter OAuth', chatSrc.includes('startOpenRouterOAuth') && chatSrc.includes('paste a key manually'),
     'Should have OAuth button and manual key option for API step');
-  assert('Chat onboarding has Anthropic', chatSrc.includes('console.anthropic.com'),
-    'Should link to Anthropic console');
-  assert('Chat onboarding has Venice', chatSrc.includes('venice.ai/settings/api'),
-    'Should link to Venice API settings');
-  assert('Chat onboarding has Ollama', chatSrc.includes('ollama.com'),
-    'Should link to Ollama download');
+  assert('Chat onboarding has PPQ', chatSrc.includes("switchAIProvider('ppq')"),
+    'Should have PPQ setup link');
+  assert('Chat onboarding has Venice', chatSrc.includes("switchAIProvider('venice')"),
+    'Should have Venice setup link');
+  assert('Chat onboarding has Local AI', chatSrc.includes("switchAIProvider('ollama')"),
+    'Should have Local AI setup link');
   assert('Chat onboarding has settings opener', chatSrc.includes("openSettingsModal('ai')"),
     'Should have link that opens AI settings tab directly');
   assert('sendChatMessage guards no provider', (() => {

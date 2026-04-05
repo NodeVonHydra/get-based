@@ -11,7 +11,7 @@ getbased supports five AI backends for PDF import, chat, and dashboard AI featur
 | Focus card (dashboard insight) | Yes |
 | Health status dots on context cards | Yes |
 | AI-generated card tips | Yes |
-| Web search in chat | Yes (OpenRouter, Venice only) |
+| Web search in chat | Yes (OpenRouter, PPQ, Venice) |
 | Charts, tables, trend alerts | No |
 | Manual entry | No |
 | JSON export / import | No |
@@ -22,52 +22,58 @@ All non-AI features work fully without any provider configured.
 
 ## The Five Providers
 
-### OpenRouter (Recommended)
+### PPQ (Anonymous, crypto)
 
-A model marketplace that gives you access to 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more — through a single account. getbased shows a curated list of the latest medically capable models and displays live pricing for each. OpenRouter is the recommended provider and appears as the first tab in Settings. Supports [web search](/guide/ai-chat#web-search) in chat with any model.
+A pay-per-query AI aggregator with 300+ models. No subscription, no KYC. Top up with Bitcoin, Lightning, Monero, Litecoin, Aqua, or Bitrefill gift cards — directly in the app. Balance displayed in settings. Supports [web search](/guide/ai-chat#web-search) in chat.
+
+**Setup:**
+1. In Settings, select **PPQ**
+2. Click **Create Account** — instant, no signup
+3. **Save your API key** — PPQ accounts are anonymous with no recovery
+4. Top up via the **Top Up** button (Lightning, Bitcoin, Monero, Litecoin, Aqua)
+5. Choose a model from the curated dropdown
+
+**Or** paste an existing API key from [ppq.ai](https://ppq.ai).
+
+::: tip In-app topup
+After creating an account, click Top Up to fund it with crypto. Your balance is shown with color coding — the app walks you through the payment flow with QR codes and payment polling.
+:::
+
+### Routstr (Bitcoin Lightning + Cashu)
+
+Pay-as-you-go AI using Bitcoin micropayments. No account, no sign-up, no subscription. Paste a Cashu eCash token to get started — it's automatically converted to a session key with your balance. Top up with Lightning QR codes directly in the app. Balance displayed in sats.
+
+**Setup:**
+1. Get a [Cashu token](https://cashu.me) (pay a Lightning invoice → get a token)
+2. In Settings, select **Routstr**
+3. Paste the Cashu token (`cashuA...` or `cashuB...`)
+4. **Save your session key** — the token is redeemed and a session key is generated. There is no recovery
+5. Top up anytime via the **Top Up** button (Lightning QR codes)
+
+**Or** paste an existing session key (`sk-...`) from [routstr.com](https://routstr.com).
+
+::: tip Cashu tokens are one-time
+When you paste a Cashu token, it's redeemed immediately and converted to a session key. The app shows the session key so you can save it. After that, top up with Lightning directly — no need to go back to a Cashu wallet.
+:::
+
+### OpenRouter (Most models, card/USDC)
+
+A model marketplace with 200+ models — Claude, GPT, Gemini, DeepSeek, Grok, Qwen, and more. Pay with card or USDC. Balance displayed in settings. Supports [web search](/guide/ai-chat#web-search) in chat.
 
 **Setup — OAuth (easiest):**
-1. In Settings → AI Provider, select **OpenRouter**
+1. In Settings, select **OpenRouter**
 2. Click **Connect with OpenRouter**
 3. Authorize getbased on the OpenRouter site
 4. You're connected — no API key needed
 
 **Setup — API key:**
 1. Get an API key at [openrouter.ai](https://openrouter.ai)
-2. In Settings → AI Provider, select **OpenRouter**
+2. In Settings, select **OpenRouter**
 3. Paste your API key
-4. Choose a model from the curated dropdown, or type any model ID into the custom input field below it (a health check confirms connectivity)
+4. Choose a model from the curated dropdown, or type any model ID into the custom input field
 
 ::: tip One-click connect
-The OAuth button also appears in the chat setup guide when no provider is configured, making it easy for new users to get started.
-:::
-
-### Anthropic
-
-Direct access to Claude models via the Anthropic API. Claude was specifically designed to be helpful with medical and scientific information, making it an accurate choice for interpreting lab data.
-
-**Setup:**
-1. Get an API key at [console.anthropic.com](https://console.anthropic.com)
-2. In Settings → AI Provider, select **Anthropic**
-3. Paste your API key
-4. Choose a model from the dropdown (the app fetches available models automatically)
-
-::: tip Pay per use
-Anthropic charges per token. A typical PDF import costs a few cents. Chat responses cost fractions of a cent each.
-:::
-
-### Routstr (Pay with Bitcoin)
-
-Pay-as-you-go AI using Bitcoin micropayments. No account, no sign-up, no subscription. Fund with a Lightning invoice or paste a Cashu eCash token directly. Routstr routes to the same top models (Claude, GPT, Gemini, Grok, Llama, etc.) via an OpenAI-compatible API.
-
-**Setup:**
-1. Get a session key or Cashu token at [routstr.com](https://routstr.com)
-2. In Settings, select **Routstr**
-3. Paste your key (`sk-...`) or Cashu token (`cashuA...`)
-4. Choose a model from the curated dropdown
-
-::: tip No account needed
-Your key is a prepaid balance. When it runs out, top up with another Lightning payment or Cashu token. No email, no password, no credit card.
+The OAuth button also appears in the chat setup guide when no provider is configured.
 :::
 
 ### Venice AI (Best for privacy)
@@ -159,10 +165,10 @@ Here's what real usage costs with the recommended models:
 
 | Model | Provider | Import a lab PDF | Chat message | First-time setup\* | Ongoing month\*\* |
 |---|---|---|---|---|---|
-| Claude Sonnet 4.6 | Anthropic / OpenRouter / Routstr | ~$0.04 | ~$0.02 | **~$1.00** | **~$0.50** |
-| GPT 5.4 | OpenRouter / Venice / Routstr | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
-| Gemini 3.1 Pro | OpenRouter / Venice / Routstr | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
-| Grok 4 | OpenRouter / Venice / Routstr | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
+| Claude Sonnet 4.6 | OpenRouter / Routstr / PPQ | ~$0.04 | ~$0.02 | **~$1.00** | **~$0.50** |
+| GPT 5.4 | OpenRouter / Venice / Routstr / PPQ | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
+| Gemini 3.1 Pro | OpenRouter / Venice / Routstr / PPQ | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
+| Grok 4 | OpenRouter / Venice / Routstr / PPQ | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
 | Any local model | Local AI (Ollama, LM Studio) | Free | Free | **Free** | **Free** |
 
 \* _First-time setup: importing your first labs + setting up your profile through chat (health goals, context cards, interpretive lens) — typically 3–5 imports and 30+ chat messages._
