@@ -3,7 +3,7 @@
 import { state } from './state.js';
 import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT, LATITUDE_BANDS } from './constants.js';
 import { calculateCost, formatCost, trackUsage, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
-import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
+import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent, hashString } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
@@ -19,6 +19,32 @@ import { scanDietForContaminants } from './food-contaminants.js';
 // ABORT CONTROLLER (stop streaming)
 // ═══════════════════════════════════════════════
 let _chatAbortController = null;
+
+// ═══════════════════════════════════════════════
+// LAB CONTEXT MEMOIZATION
+// ═══════════════════════════════════════════════
+let _labContextCache = { fingerprint: null, context: null };
+
+function _getLabContextFingerprint() {
+  const d = state.importedData;
+  // Lightweight fingerprint: entry dates + marker counts, profile fields, card JSON
+  const entryPart = (d.entries || []).map(e => e.date + ':' + Object.keys(e.markers || {}).length).join(',');
+  const cardPart = ['healthGoals', 'diagnoses', 'supplements', 'biometrics', 'genetics',
+    'menstrualCycle', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress',
+    'loveLife', 'environment', 'emfAssessment', 'changeHistory'
+  ].map(k => hashString(JSON.stringify(d[k] || ''))).join(',');
+  return hashString([
+    entryPart, cardPart,
+    state.profileSex || '', state.profileDob || '',
+    state.unitSystem || '', state.rangeMode || '',
+    d.interpretiveLens || '', d.contextNotes || '',
+    JSON.stringify(d.notes || []), JSON.stringify(d.markerNotes || {}),
+    JSON.stringify(d.refOverrides || {}), JSON.stringify(d.categoryLabels || {}),
+    JSON.stringify(d.markerLabels || {})
+  ].join('|'));
+}
+
+export function invalidateLabContextCache() { _labContextCache = { fingerprint: null, context: null }; }
 
 // ═══════════════════════════════════════════════
 // TYPEWRITER — smooth character trickle for streaming
@@ -743,6 +769,28 @@ function summarizeChange(field, prev, curr) {
 // LAB CONTEXT (unchanged)
 // ═══════════════════════════════════════════════
 export function buildLabContext() {
+  const fp = _getLabContextFingerprint();
+  if (_labContextCache.fingerprint === fp && _labContextCache.context) {
+    if (isDebugMode()) console.log('[AI] Lab context cache hit');
+    return _labContextCache.context;
+  }
+  if (isDebugMode()) console.log('[AI] Lab context cache miss — rebuilding');
+  const ctx = _buildLabContextInner();
+  _labContextCache = { fingerprint: fp, context: ctx };
+  return ctx;
+}
+
+// Select last 3 + oldest date point for compact context (preserves trend endpoints)
+function _selectContextDates(points) {
+  if (points.length <= 4) return points;
+  const last3 = points.slice(-3);
+  const oldest = points[0];
+  // Avoid duplicate if oldest is already in last 3
+  if (last3[0].i === oldest.i) return last3;
+  return [oldest, ...last3];
+}
+
+function _buildLabContextInner() {
   const data = getActiveData();
   const hasLabData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate);
   const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -853,24 +901,37 @@ export function buildLabContext() {
             }
           }
         } catch (_) { /* skip trajectory on error */ }
+        // Compact output: last 3 dates + oldest for trend context
         if (m.phaseRefRanges && m.phaseLabels) {
-          const parts = m.values.map((v, i) => {
-            if (v === null) return null;
-            const phase = m.phaseLabels[i];
-            const pr = m.phaseRefRanges[i];
-            const dateLabel = m.singlePoint ? '' : data.dates[i];
-            const s = pr ? getStatus(v, pr.min, pr.max) : getStatus(v, m.refMin, m.refMax);
-            const rangeStr = pr ? `${pr.min}\u2013${pr.max}` : `${m.refMin}\u2013${m.refMax}`;
-            return `${dateLabel}: ${v} [${phase || '?'}, ref ${rangeStr}, ${s}]`;
-          }).filter(Boolean).join(', ');
-          ctx += `- ${m.name}: ${parts} ${m.unit}${trajectory}\n`;
+          const allParts = [];
+          for (let i = 0; i < m.values.length; i++) {
+            if (m.values[i] === null) continue;
+            allParts.push({ i, v: m.values[i], d: m.singlePoint ? '' : data.dates[i], phase: m.phaseLabels[i], pr: m.phaseRefRanges[i] });
+          }
+          const shown = _selectContextDates(allParts);
+          const parts = shown.map(p => {
+            const s = p.pr ? getStatus(p.v, p.pr.min, p.pr.max) : getStatus(p.v, m.refMin, m.refMax);
+            const rangeStr = p.pr ? `${p.pr.min}\u2013${p.pr.max}` : `${m.refMin}\u2013${m.refMax}`;
+            return `${p.d}: ${p.v} [${p.phase || '?'}, ref ${rangeStr}, ${s}]`;
+          }).join(', ');
+          const omitted = allParts.length - shown.length;
+          ctx += `- ${m.name}: ${parts} ${m.unit}${omitted > 0 ? ` (+${omitted} earlier)` : ''}${trajectory}\n`;
         } else {
-          const vals = m.singlePoint
-            ? m.values.filter(v => v !== null).map(v => `${v}`).join('')
-            : m.values.map((v, i) => v !== null ? `${data.dates[i]}: ${v}` : null).filter(Boolean).join(', ');
           const mr = getEffectiveRangeForDate(m, latestIdx);
           const status = latestIdx !== -1 ? getStatus(m.values[latestIdx], mr.min, mr.max) : 'no data';
           const refStr = mr.min != null && mr.max != null ? `ref: ${mr.min}\u2013${mr.max}, ` : '';
+          let vals;
+          if (m.singlePoint) {
+            vals = m.values.filter(v => v !== null).map(v => `${v}`).join('');
+          } else {
+            const allPts = [];
+            for (let i = 0; i < m.values.length; i++) {
+              if (m.values[i] !== null) allPts.push({ i, v: m.values[i], d: data.dates[i] });
+            }
+            const shown = _selectContextDates(allPts);
+            const omitted = allPts.length - shown.length;
+            vals = shown.map(p => `${p.d}: ${p.v}`).join(', ') + (omitted > 0 ? ` (+${omitted} earlier)` : '');
+          }
           ctx += `- ${m.name}: ${vals} ${m.unit} (${refStr}status: ${status})${trajectory}\n`;
         }
       }
@@ -4018,6 +4079,7 @@ function _resumeAI() {
 Object.assign(window, {
   _resumeAI,
   buildLabContext,
+  invalidateLabContextCache,
   getChatStorageKey,
   getChatThreadsKey,
   getChatThreadKey,

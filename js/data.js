@@ -54,6 +54,7 @@ export async function saveImportedData() {
     broadcastDataChanged(state.currentProfile);
     scheduleAutoBackup();
     touchProfileTimestamp(state.currentProfile);
+    if (window.invalidateLabContextCache) window.invalidateLabContextCache();
     onDataSaved();
   } catch (e) {
     showNotification('Storage limit reached — clear old data or profiles to free space.', 'error');

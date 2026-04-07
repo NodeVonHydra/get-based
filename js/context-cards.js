@@ -325,7 +325,15 @@ export async function loadContextHealthDots() {
       return;
     }
   }
-  const ctx = window.buildLabContext();
+  let ctx = window.buildLabContext();
+  // Trim context: remove card sections not being assessed (saves tokens)
+  if (staleKeys.length < keys.length) {
+    const skipKeys = keys.filter(k => !staleKeys.includes(k));
+    for (const sk of skipKeys) {
+      const re = new RegExp(`\\[section:${sk}\\][\\s\\S]*?\\[/section:${sk}\\]\\n*`, 'g');
+      ctx = ctx.replace(re, '');
+    }
+  }
   const exampleObj = {};
   for (const k of staleKeys) exampleObj[k] = {"dot":"...","tip":"..."};
   const exampleJSON = JSON.stringify(exampleObj);

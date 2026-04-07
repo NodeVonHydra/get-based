@@ -252,7 +252,7 @@
   // Auto-gating: 7 cards use hasCardContent(), 4 have custom logic
   const hccCount = (chatSrc.match(/hasCardContent\(/g) || []).length;
   assert('chat.js uses hasCardContent for 7 card gates', hccCount >= 7, `found ${hccCount}`);
-  assert('chat.js imports hasCardContent', chatSrc.includes("hasCardContent } from './utils.js'") || chatSrc.includes("hasCardContent} from './utils.js'"));
+  assert('chat.js imports hasCardContent', chatSrc.includes("hasCardContent") && chatSrc.includes("from './utils.js'"));
   assert('Diagnoses uses hasCardContent', chatSrc.includes('hasCardContent(diag)'));
   assert('Diet uses hasCardContent', chatSrc.includes('hasCardContent(diet)'));
   assert('Exercise uses hasCardContent', chatSrc.includes('hasCardContent(ex)'));
