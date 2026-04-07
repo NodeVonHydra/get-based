@@ -810,6 +810,7 @@ export async function validateRoutstrKey(key) {
   // Routstr uses Cashu tokens or session keys — format check, then save optimistically.
   // Models endpoint is public (no auth), so we can't validate keys via model fetch.
   // Actual auth errors (401/402) surface when the user sends a message.
+  if (key.startsWith('cashu:')) key = key.slice(6); // strip URI prefix
   if (!key.startsWith('sk-') && !key.startsWith('cashu')) {
     return { valid: false, error: 'Key should start with sk-... (session key) or cashu... (eCash token)' };
   }

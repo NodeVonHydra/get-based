@@ -1247,7 +1247,8 @@ export async function handleSaveRoutstrKey() {
   const input = document.getElementById('routstr-key-input');
   const btn = document.getElementById('save-routstr-key-btn');
   const status = document.getElementById('routstr-key-status');
-  const key = input.value.trim();
+  let key = input.value.trim();
+  if (key.startsWith('cashu:')) key = key.slice(6); // strip URI prefix
   if (!key) { status.innerHTML = '<span style="color:var(--red)">Please enter a key or Cashu token</span>'; return; }
   btn.disabled = true; btn.textContent = 'Validating...';
   const result = await validateRoutstrKey(key);
@@ -1371,7 +1372,7 @@ function _renderWalletFundUI() {
     <div style="font-size:10px;color:var(--text-muted);margin-top:5px;text-align:center">1,000 sats is enough for a few chats</div>
     <div style="margin-top:6px"><div class="or-oauth-divider"><span>${cashuFeeLabel}</span></div>
     <div style="display:flex;gap:6px;margin-top:4px">
-      <input type="text" class="api-key-input" id="routstr-wcashu-input" placeholder="cashuA... or cashuB..." style="font-size:11px;flex:1;font-family:monospace">
+      <input type="text" class="api-key-input" id="routstr-wcashu-input" placeholder="cashuA... / cashuB... / cashu:..." style="font-size:11px;flex:1;font-family:monospace">
       <button class="import-btn import-btn-primary" style="font-size:11px;padding:3px 10px;white-space:nowrap" onclick="doRoutstrWalletReceiveCashu()">Deposit</button>
     </div></div>
     <div id="routstr-wfund-status"></div>
@@ -1442,7 +1443,9 @@ export async function doRoutstrWalletReceiveCashu() {
   const input = document.getElementById('routstr-wcashu-input');
   const statusEl = document.getElementById('routstr-wfund-status');
   if (!input || !statusEl) return;
-  const token = input.value.trim();
+  let token = input.value.trim();
+  // Strip cashu: URI prefix if present
+  if (token.startsWith('cashu:')) token = token.slice(6);
   if (!token || !token.startsWith('cashuA') && !token.startsWith('cashuB')) { statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--red)">Paste a valid Cashu token (starts with cashuA or cashuB)</div>'; return; }
   statusEl.innerHTML = '<div style="margin-top:4px;font-size:11px;color:var(--text-muted)">Depositing to wallet\u2026</div>';
   try {
