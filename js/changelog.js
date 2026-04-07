@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.15.1', date: '2026-04-07', title: 'AI Context Optimization',
+    items: [
+      'Memoize lab context \u2014 skip redundant rebuilds across chat messages, health dots, and focus card',
+      'Trim health dot context \u2014 only send stale card sections to AI, reducing tokens per refresh',
+      'Skip redundant data pipeline clone in health dot pre-check',
+    ]
+  },
+  {
     version: '1.15.0', date: '2026-04-05', title: 'PPQ + Wallet Topups',
     items: [
       'New AI provider: PPQ \u2014 300+ models, no KYC. Bitcoin, crypto + Bitrefill topup',
