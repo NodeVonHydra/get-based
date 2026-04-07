@@ -318,8 +318,7 @@ export async function loadContextHealthDots() {
   });
   if (!_staleHaveContent) {
     // Also check if there's lab data — if there is, the AI can still rate cards
-    const _dotData = getActiveData();
-    const _dotHasLabs = _dotData.dates.length > 0 || Object.values(_dotData.categories).some(c => c.singleDate);
+    const _dotHasLabs = (state.importedData.entries || []).length > 0;
     if (!_dotHasLabs) {
       for (const k of staleKeys) applyDotColor(k, 'gray');
       return;
