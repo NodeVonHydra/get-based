@@ -13,7 +13,12 @@ const ALLOWED_ORIGINS = [
 ];
 
 function isAllowedUrl(url) {
-  return ALLOWED_ORIGINS.some(origin => url.startsWith(origin));
+  if (ALLOWED_ORIGINS.some(origin => url.startsWith(origin))) return true;
+  // Decentralized Routstr: allow any HTTPS node hitting /v1/ OpenAI-compatible endpoints
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && u.pathname.startsWith('/v1/');
+  } catch { return false; }
 }
 
 export default async function handler(req) {
