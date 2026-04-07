@@ -3,7 +3,7 @@
 import { state } from './state.js';
 import { CHAT_PERSONALITIES, CHAT_SYSTEM_PROMPT, LATITUDE_BANDS } from './constants.js';
 import { calculateCost, formatCost, trackUsage, SBM_2015_THRESHOLDS, getEMFSeverity } from './schema.js';
-import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent } from './utils.js';
+import { escapeHTML, showNotification, showConfirmDialog, isDebugMode, formatValue, getStatus, hasCardContent, hashString } from './utils.js';
 import { formatTime } from './theme.js';
 import { getActiveData, getEffectiveRange, getEffectiveRangeForDate, getLatestValueIndex, getAllFlaggedMarkers, saveImportedData } from './data.js';
 import { encryptedSetItem, encryptedGetItem, getEncryptionEnabled } from './crypto.js';
@@ -19,6 +19,32 @@ import { scanDietForContaminants } from './food-contaminants.js';
 // ABORT CONTROLLER (stop streaming)
 // ═══════════════════════════════════════════════
 let _chatAbortController = null;
+
+// ═══════════════════════════════════════════════
+// LAB CONTEXT MEMOIZATION
+// ═══════════════════════════════════════════════
+let _labContextCache = { fingerprint: null, context: null };
+
+function _getLabContextFingerprint() {
+  const d = state.importedData;
+  // Lightweight fingerprint: entry dates + marker counts, profile fields, card JSON
+  const entryPart = (d.entries || []).map(e => e.date + ':' + Object.keys(e.markers || {}).length).join(',');
+  const cardPart = ['healthGoals', 'diagnoses', 'supplements', 'biometrics', 'genetics',
+    'menstrualCycle', 'diet', 'exercise', 'sleepRest', 'lightCircadian', 'stress',
+    'loveLife', 'environment', 'emfAssessment', 'changeHistory'
+  ].map(k => hashString(JSON.stringify(d[k] || ''))).join(',');
+  return hashString([
+    entryPart, cardPart,
+    state.profileSex || '', state.profileDob || '',
+    state.unitSystem || '', state.rangeMode || '',
+    d.interpretiveLens || '', d.contextNotes || '',
+    JSON.stringify(d.notes || []), JSON.stringify(d.markerNotes || {}),
+    JSON.stringify(d.refOverrides || {}), JSON.stringify(d.categoryLabels || {}),
+    JSON.stringify(d.markerLabels || {})
+  ].join('|'));
+}
+
+export function invalidateLabContextCache() { _labContextCache = { fingerprint: null, context: null }; }
 
 // ═══════════════════════════════════════════════
 // TYPEWRITER — smooth character trickle for streaming
@@ -743,6 +769,18 @@ function summarizeChange(field, prev, curr) {
 // LAB CONTEXT (unchanged)
 // ═══════════════════════════════════════════════
 export function buildLabContext() {
+  const fp = _getLabContextFingerprint();
+  if (_labContextCache.fingerprint === fp && _labContextCache.context) {
+    if (isDebugMode()) console.log('[AI] Lab context cache hit');
+    return _labContextCache.context;
+  }
+  if (isDebugMode()) console.log('[AI] Lab context cache miss — rebuilding');
+  const ctx = _buildLabContextInner();
+  _labContextCache = { fingerprint: fp, context: ctx };
+  return ctx;
+}
+
+function _buildLabContextInner() {
   const data = getActiveData();
   const hasLabData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate);
   const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -4018,6 +4056,7 @@ function _resumeAI() {
 Object.assign(window, {
   _resumeAI,
   buildLabContext,
+  invalidateLabContextCache,
   getChatStorageKey,
   getChatThreadsKey,
   getChatThreadKey,

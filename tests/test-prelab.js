@@ -156,18 +156,19 @@
   // ═══════════════════════════════════════
   console.log('%c 6. Integration: No-Lab Context Assembly ', 'font-weight:bold;color:#f59e0b');
 
-  // Verify that buildLabContext doesn't early-return anymore by checking structure
+  // Verify that _buildLabContextInner doesn't early-return before section 1
+  // (buildLabContext wrapper may return cached context — that's intentional)
   assert('buildLabContext has no early return before section 1', (() => {
-    const fnStart = chatSrc.indexOf('export function buildLabContext()');
+    const fnStart = chatSrc.indexOf('function _buildLabContextInner()');
     const section1 = chatSrc.indexOf('// ── 1. Health Goals', fnStart);
     const between = chatSrc.substring(fnStart, section1);
     // Should not have a bare return statement (only conditional ctx assignment)
     const returnCount = (between.match(/\breturn\b/g) || []).length;
     return returnCount === 0;
-  })(), 'No early return between function start and section 1');
+  })(), 'No early return between inner function start and section 1');
 
   assert('buildLabContext ends with return ctx', (() => {
-    const fnStart = chatSrc.indexOf('export function buildLabContext()');
+    const fnStart = chatSrc.indexOf('function _buildLabContextInner()');
     const fnEnd = chatSrc.indexOf('\n// ═══', fnStart + 100);
     const fnBody = chatSrc.substring(fnStart, fnEnd);
     return fnBody.includes('return ctx;\n}');

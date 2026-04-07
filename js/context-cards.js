@@ -318,14 +318,21 @@ export async function loadContextHealthDots() {
   });
   if (!_staleHaveContent) {
     // Also check if there's lab data — if there is, the AI can still rate cards
-    const _dotData = getActiveData();
-    const _dotHasLabs = _dotData.dates.length > 0 || Object.values(_dotData.categories).some(c => c.singleDate);
+    const _dotHasLabs = (state.importedData.entries || []).length > 0;
     if (!_dotHasLabs) {
       for (const k of staleKeys) applyDotColor(k, 'gray');
       return;
     }
   }
-  const ctx = window.buildLabContext();
+  let ctx = window.buildLabContext();
+  // Trim context: remove card sections not being assessed (saves tokens)
+  if (staleKeys.length < keys.length) {
+    const skipKeys = keys.filter(k => !staleKeys.includes(k));
+    for (const sk of skipKeys) {
+      const re = new RegExp(`\\[section:${sk}\\][\\s\\S]*?\\[/section:${sk}\\]\\n*`, 'g');
+      ctx = ctx.replace(re, '');
+    }
+  }
   const exampleObj = {};
   for (const k of staleKeys) exampleObj[k] = {"dot":"...","tip":"..."};
   const exampleJSON = JSON.stringify(exampleObj);
