@@ -55,7 +55,7 @@ Opt-in feature that lets AI agents query your lab context — coding agents (Cla
 | Provider | Description |
 |---|---|
 | **PPQ** | 300+ models, no KYC. Bitcoin, Lightning, Monero, Litecoin. Top up directly in the app. |
-| **Routstr** | Bitcoin Lightning and Cashu eCash. Top up with QR codes directly in the app. |
+| **Routstr** | Decentralized Bitcoin AI. Built-in Cashu wallet, Nostr node discovery. Fund with Lightning, pick any node. |
 | **OpenRouter** | 200+ models (Claude, GPT, Gemini, Grok). Pay with card or USDC. One-click OAuth. |
 | **Venice AI** | Uncensored models with optional E2EE. No-log policy. |
 | **Local AI** | Any OpenAI-compatible server — Ollama, LM Studio, Jan, llama.cpp. Fully offline. Free forever. |
@@ -91,7 +91,7 @@ Open `http://localhost:8000`. You need an AI provider API key or local AI server
 
 ## Tech stack
 
-No build tools, no bundler, no package manager. Pure ES modules — 36 files under `js/`.
+No build tools, no bundler, no package manager. Pure ES modules — 38 files under `js/`.
 
 - Chart.js for interactive charts
 - pdf.js for PDF text extraction
@@ -100,7 +100,7 @@ No build tools, no bundler, no package manager. Pure ES modules — 36 files und
 
 ## Testing
 
-29 browser-based test files run headlessly:
+30 browser-based test files run headlessly:
 
 ```bash
 ./run-tests.sh
