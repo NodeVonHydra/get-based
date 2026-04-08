@@ -200,7 +200,7 @@
   // ─── 11. Model pricing ───
   console.log('\n11. Model pricing');
   const pricing = window.renderModelPricingHint('custom', 'any-model');
-  assert('custom pricing shows Free (no pricing data)', pricing.includes('Free'));
+  assert('custom pricing returns empty (unknown endpoint)', pricing === '');
 
   // ─── 12. settings.js source inspection ───
   console.log('\n12. settings.js source inspection');
@@ -246,15 +246,14 @@
   assert('6 provider buttons in settings', providerBtns.length === 6, `found ${providerBtns.length}`);
   const providerValues = Array.from(providerBtns).map(b => b.dataset.provider);
   assert('provider buttons include custom', providerValues.includes('custom'));
-  assert('custom button after local', providerValues.indexOf('custom') > providerValues.indexOf('ollama'));
+  assert('custom button before local', providerValues.indexOf('custom') < providerValues.indexOf('ollama'));
   // Switch to Custom panel
   window.switchAIProvider('custom');
   await new Promise(r => setTimeout(r, 100));
   assert('custom-url-input exists in DOM', !!document.getElementById('custom-url-input'));
   assert('custom-key-input exists in DOM', !!document.getElementById('custom-key-input'));
-  assert('panel has Save & Connect button', !!document.querySelector('.ai-provider-panel .import-btn'));
+  assert('panel has Save & Validate button', !!document.querySelector('.ai-provider-panel .import-btn-primary'));
   assert('panel has OpenAI-compatible description', document.querySelector('.ai-provider-desc').textContent.includes('OpenAI-compatible'));
-  assert('panel has /v1/models notice', document.querySelector('.api-key-notice').textContent.includes('/v1/models'));
   // Close settings
   window.closeSettingsModal();
 
@@ -278,7 +277,7 @@
   await new Promise(r => setTimeout(r, 100));
   window.switchAIProvider('custom');
   await new Promise(r => setTimeout(r, 100));
-  assert('connected status shown', !!document.querySelector('.api-key-status .status-dot.connected'));
+  assert('connected status shown', document.getElementById('custom-key-status')?.textContent?.includes('Connected'));
   assert('model dropdown exists in connected state', !!document.getElementById('custom-model-select'));
   const select = document.getElementById('custom-model-select');
   if (select) {

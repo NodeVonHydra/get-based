@@ -347,6 +347,7 @@ export async function validateOpenRouterKey(key) {
 
 export function renderModelPricingHint(provider, modelId) {
   if (provider === 'ollama') return '<span style="font-size:11px;color:var(--green)">Free (local)</span>';
+  if (provider === 'custom') return '';
   const p = getModelPricing(provider, modelId);
   if (p.input === 0 && p.output === 0) return '<span style="font-size:11px;color:var(--green)">Free</span>';
   const pre = p.approx ? '~' : '';
@@ -396,7 +397,12 @@ export async function fetchVeniceModels(key) {
 // /api/proxy to eliminate CORS restrictions. Local AI skips the proxy.
 function _useProxy() {
   const h = window.location.hostname;
-  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.') && !h.endsWith('.onion');
+  if (h.endsWith('.onion')) return false;
+  // Custom API: proxy needed for remote endpoints (CORS), even on localhost dev server
+  if (getAIProvider() === 'custom') {
+    try { const u = new URL(getCustomApiUrl()); return !['localhost', '127.0.0.1'].includes(u.hostname) && !u.hostname.startsWith('192.168.'); } catch { return false; }
+  }
+  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.');
 }
 
 function _proxyFetch(url, options) {
@@ -1083,6 +1089,8 @@ export async function validateCustomApiKey(baseUrl, key) {
     const res = await _customApiFetchModels(url + '/models', key);
     if (res.ok) return { valid: true };
     if (res.status === 401 || res.status === 403) return { valid: false, error: 'Invalid API key' };
+    // Some endpoints (e.g. OpenCode Go) don't expose /models — treat as valid without model listing
+    if (res.status === 404) return { valid: true, noModels: true };
     return { valid: false, error: 'Server returned status ' + res.status };
   } catch (e) {
     return { valid: false, error: 'Cannot reach endpoint: ' + e.message };

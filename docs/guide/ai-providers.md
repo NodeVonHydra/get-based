@@ -1,6 +1,6 @@
 # AI Providers
 
-getbased supports five AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI**.
+getbased supports six AI backends for PDF import, chat, and dashboard AI features. You can switch between them at any time in **Settings → AI**.
 
 ## Which Features Need an AI Provider?
 
@@ -20,7 +20,7 @@ getbased supports five AI backends for PDF import, chat, and dashboard AI featur
 
 All non-AI features work fully without any provider configured.
 
-## The Five Providers
+## The Six Providers
 
 ### PPQ (Anonymous, crypto)
 
@@ -98,6 +98,27 @@ A privacy-focused cloud provider where your conversations and data are not store
 
 ::: tip End-to-End Encryption
 Venice offers E2EE models where your prompts are encrypted in your browser and only decrypted inside a verified Intel TDX Trusted Execution Environment — not even Venice can read them. Enable the **End-to-End Encryption** toggle in Venice settings to switch to E2EE models. The TEE attestation is verified client-side on every session (nonce binding, signing key binding, debug mode rejection). A 🔒✓ (green checkmark) in the chat header confirms verification passed. Web search and image attachments are disabled in E2EE mode.
+:::
+
+### Custom API (Any endpoint)
+
+Connect to any OpenAI-compatible API endpoint with your own base URL and API key. Works with OpenAI, Mistral, Groq, Together, xAI, OpenCode, Fireworks, Deepinfra, vLLM, LiteLLM, and any other service that implements the `/v1/chat/completions` standard.
+
+**Setup:**
+1. In Settings, select **Custom**
+2. Enter the **Base URL** of your endpoint (e.g. `https://api.openai.com/v1`)
+3. Enter your **API key**
+4. Click **Save & Validate** — the app checks your key and fetches the model list
+5. Pick a model from the dropdown, or type any model ID into the manual input
+
+If the endpoint doesn't expose a `/v1/models` listing (e.g. OpenCode Go), validation still succeeds and you can enter the model ID manually.
+
+::: tip When to use Custom vs other providers
+Use Custom when you have a direct API key for a service that isn't one of the built-in providers. If the service is available through OpenRouter or PPQ, those providers are easier — they handle model discovery and show pricing automatically.
+:::
+
+::: tip Local endpoints work too
+If your Custom API endpoint is on your local network (`localhost`, `192.168.*`), requests go directly without the CORS proxy. For truly local-only AI, use the dedicated **Local** provider instead — it has Model Advisor and CORS setup guidance built in.
 :::
 
 ### Local AI (Fully local)
@@ -179,6 +200,7 @@ Here's what real usage costs with the recommended models:
 | GPT 5.4 | OpenRouter / Venice / Routstr / PPQ | ~$0.03 | ~$0.02 | **~$0.80** | **~$0.45** |
 | Gemini 3.1 Pro | OpenRouter / Venice / Routstr / PPQ | ~$0.03 | ~$0.01 | **~$0.60** | **~$0.35** |
 | Grok 4 | OpenRouter / Venice / Routstr / PPQ | ~$0.01 | ~$0.005 | **~$0.25** | **~$0.15** |
+| Any model | Custom API (direct key) | Varies | Varies | **Varies** | **Varies** |
 | Any local model | Local AI (Ollama, LM Studio) | Free | Free | **Free** | **Free** |
 
 \* _First-time setup: importing your first labs + setting up your profile through chat (health goals, context cards, interpretive lens) — typically 3–5 imports and 30+ chat messages._

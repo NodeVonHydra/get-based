@@ -353,6 +353,7 @@ export const MODEL_PRICING = {
   routstr: {
     '_default':  { input: 1.00,  output: 5.00, approx: true },
   },
+  custom: {},
 };
 export function getModelPricing(provider, modelId) {
   // OpenRouter/Routstr: check dynamic API-sourced pricing first
