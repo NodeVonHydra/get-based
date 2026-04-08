@@ -4,7 +4,7 @@ import { state } from './state.js';
 import { escapeHTML, escapeAttr, showNotification, isDebugMode, setDebugMode, isPIIReviewEnabled, setPIIReviewEnabled } from './utils.js';
 import { getTheme, setTheme, getTimeFormat, setTimeFormat } from './theme.js';
 import { formatCost, getProfileUsage, getGlobalUsage, resetProfileUsage } from './schema.js';
-import { getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateVeniceKey, validateOpenRouterKey, fetchVeniceModels, fetchOpenRouterModels, renderModelPricingHint, isRecommendedModel, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, getOpenRouterBalance, getVeniceBalance, getRoutstrBalance, createRoutstrAccount, createRoutstrLightningInvoice, checkRoutstrInvoiceStatus, topupRoutstrCashu, isAIPaused, setAIPaused, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE } from './api.js';
+import { getVeniceKey, saveVeniceKey, getOpenRouterKey, saveOpenRouterKey, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getOllamaPIIModel, setOllamaPIIModel, getOllamaPIIUrl, setOllamaPIIUrl, validateVeniceKey, validateOpenRouterKey, fetchVeniceModels, fetchOpenRouterModels, renderModelPricingHint, isRecommendedModel, getVeniceModelDisplay, getOpenRouterModelDisplay, fetchOpenRouterModelPricing, getOpenRouterBalance, getVeniceBalance, getRoutstrBalance, createRoutstrAccount, createRoutstrLightningInvoice, checkRoutstrInvoiceStatus, topupRoutstrCashu, isAIPaused, setAIPaused, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE, getCustomApiUrl, setCustomApiUrl, getCustomApiKey, saveCustomApiKey, hasCustomApiKey, getCustomApiModel, setCustomApiModel, getCustomApiModelDisplay, fetchCustomApiModels, validateCustomApiKey } from './api.js';
 import { getOllamaConfig, checkOllama, checkOpenAICompatible, saveOllamaConfig, isOllamaPIIEnabled, setOllamaPIIEnabled } from './pii.js';
 import { detectHardware, assessModel, assessFitness, getBestModel, getUpgradeSuggestion, saveHardwareOverride, getHardwareOverride } from './hardware.js';
 import { renderEncryptionSection, renderBackupSection, loadBackupSnapshots, updateKeyCache } from './crypto.js';
@@ -139,6 +139,7 @@ export function openSettingsModal(tab) {
           <button class="ai-provider-btn${provider === 'openrouter' ? ' active' : ''}" data-provider="openrouter" onclick="switchAIProvider('openrouter')"><svg class="ai-provider-logo" viewBox="0 0 512 512" fill="currentColor" stroke="currentColor"><path d="M3 248.945C18 248.945 76 236 106 219C136 202 136 202 198 158C276.497 102.293 332 120.945 423 120.945" stroke-width="90" fill="none"/><path d="M511 121.5L357.25 210.268L357.25 32.7324L511 121.5Z" stroke="none"/><path d="M0 249C15 249 73 261.945 103 278.945C133 295.945 133 295.945 195 339.945C273.497 395.652 329 377 420 377" stroke-width="90" fill="none"/><path d="M508 376.445L354.25 287.678L354.25 465.213L508 376.445Z" stroke="none"/></svg> OpenRouter</button>
           <button class="ai-provider-btn${provider === 'venice' ? ' active' : ''}" data-provider="venice" onclick="switchAIProvider('venice')"><svg class="ai-provider-logo" viewBox="0 0 326 366" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M105.481 245.984C99.4744 241.518 92.2244 237.777 84.2074 235.504C76.1903 233.231 67.406 232.427 58.8167 233.38C50.2272 234.332 41.8327 237.042 34.5086 241.017C27.1847 244.991 20.931 250.231 16.0487 255.905C11.1531 261.567 6.88803 268.522 4.0314 276.35C1.17477 284.178-0.273403 292.879 0.0448796 301.515C0.36299 310.152 2.44756 318.723 5.87231 326.319C9.29724 333.916 14.0625 340.538 19.3617 345.825C24.6482 351.124 31.2704 355.889 38.867 359.314C46.4637 362.739 55.0349 364.823 63.671 365.142C72.3073 365.46 81.0085 364.012 88.8366 361.155C96.6647 358.298 103.62 354.033 109.282 349.138C114.956 344.256 120.195 338.002 124.17 330.678C128.144 323.354 130.854 314.959 131.807 306.37C132.76 297.781 131.956 288.996 129.683 280.979C127.41 272.962 123.668 265.712 119.203 259.705L133.953 244.954L144.69 255.691H150.789L158.149 248.331V242.233L147.412 231.496L163 215.908L178.588 231.496L167.851 242.233V248.331L175.211 255.691H181.31L192.047 244.954L206.797 259.705C202.332 265.712 198.59 272.962 196.317 280.979C194.044 288.996 193.24 297.781 194.193 306.37C195.146 314.959 197.856 323.354 201.83 330.678C205.805 338.002 211.044 344.256 216.718 349.138C222.38 354.033 229.335 358.298 237.163 361.155C244.991 364.012 253.693 365.46 262.329 365.142C270.965 364.823 279.536 362.739 287.133 359.314C294.73 355.889 301.352 351.124 306.638 345.825C311.937 340.538 316.703 333.916 320.128 326.319C323.552 318.723 325.637 310.152 325.955 301.515C326.273 292.879 324.825 284.178 321.969 276.35C319.112 268.522 314.847 261.567 309.951 255.905C305.069 250.231 298.815 244.991 291.491 241.017C284.167 237.042 275.773 234.332 267.183 233.38C258.594 232.427 249.81 233.231 241.793 235.504C233.776 237.777 226.526 241.518 220.519 245.984L206.042 231.484L216.773 220.753V214.655L209.151 207.032H203.052L192.315 217.769L176.721 202.186L258.473 120.434L291.567 153.528V119.095H326L292.907 86.0012L326 52.9077V46.8095L318.377 39.1865H312.279L163 188.465L13.7212 39.1865H7.62295L0 46.8095V52.9077L33.0934 86.0012L0 119.095H34.4331V153.528L67.5263 120.434L149.279 202.186L133.685 217.769L122.948 207.032H116.849L109.226 214.655V220.753L119.958 231.484L105.481 245.984ZM238.144 321.715C234.778 328.62 235.477 338.188 239.811 344.531C243.793 351.1 252.216 355.693 259.895 355.484C267.574 355.693 275.997 351.1 279.979 344.531C284.313 338.188 285.012 328.62 281.646 321.715L282.484 320.812C289.389 324.196 298.971 323.511 305.324 319.178C311.904 315.2 316.508 306.768 316.297 299.081C316.508 291.395 311.904 282.963 305.324 278.984C298.971 274.652 289.389 273.966 282.484 277.351L281.646 276.448C285.012 269.543 284.313 259.974 279.979 253.632C275.997 247.063 267.574 242.469 259.895 242.679C252.216 242.469 243.793 247.063 239.811 253.632C235.477 259.974 234.778 269.543 238.144 276.448L237.306 277.351C230.401 273.966 220.818 274.652 214.466 278.984C207.886 282.963 203.282 291.395 203.492 299.081C203.282 306.768 207.886 315.2 214.466 319.178C220.818 323.511 230.401 324.196 237.306 320.812L238.144 321.715ZM86.1857 344.531C90.52 338.188 91.2191 328.62 87.8528 321.715L88.6913 320.812C95.5956 324.196 105.178 323.511 111.531 319.178C118.11 315.2 122.715 306.768 122.504 299.081C122.715 291.395 118.11 282.963 111.531 278.984C105.178 274.652 95.5956 273.966 88.6913 277.351L87.8528 276.448C91.2191 269.543 90.52 259.974 86.1857 253.632C82.2037 247.063 73.7808 242.469 66.1018 242.679C58.423 242.469 50.0001 247.063 46.0181 253.632C41.6839 259.974 40.9847 269.543 44.351 276.448L43.5126 277.351C36.6082 273.966 27.0255 274.652 20.6731 278.984C14.0932 282.963 9.48904 291.395 9.69934 299.081C9.48904 306.768 14.0932 315.2 20.6731 319.178C27.0255 323.511 36.6082 324.196 43.5126 320.812L44.351 321.715C40.9847 328.62 41.6839 338.188 46.0181 344.531C50.0001 351.1 58.423 355.693 66.1018 355.484C73.7808 355.693 82.2037 351.1 86.1857 344.531Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M162.891 39.1864L202.078 0L221.482 19.4047V84.8147L167.742 138.555H158.04L104.3 84.8147V19.4047L123.705 0L162.891 39.1864ZM123.705 13.7213L158.04 48.0567V111.112L123.705 76.7773V13.7213ZM167.744 48.0567L202.079 13.7213V76.7773L167.744 111.112V48.0567Z"/></svg> Venice</button>
           <button class="ai-provider-btn${provider === 'ollama' ? ' active' : ''}" data-provider="ollama" onclick="switchAIProvider('ollama')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-3-8c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1s1 .45 1 1v2c0 .55-.45 1-1 1z"/></svg> Local</button>
+          <button class="ai-provider-btn${provider === 'custom' ? ' active' : ''}" data-provider="custom" onclick="switchAIProvider('custom')"><svg class="ai-provider-logo" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg> Custom</button>
         </div>
         <div id="ai-provider-panel">${renderAIProviderPanel(provider)}</div>
       </div>
@@ -415,6 +416,51 @@ export function renderAIProviderPanel(provider) {
       <div class="api-key-notice">Your key is stored locally. No account data is shared with getbased. <a href="https://ppq.ai" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a></div>
     </div>`;
   }
+  // Custom API panel — any OpenAI-compatible endpoint
+  if (provider === 'custom') {
+    const currentUrl = getCustomApiUrl();
+    const currentKey = getCustomApiKey();
+    const customModel = getCustomApiModel();
+    const connected = currentUrl && currentKey;
+    let cachedModels = []; try { cachedModels = JSON.parse(localStorage.getItem('labcharts-custom-models') || '[]'); } catch(e) {}
+
+    let statusHtml = '';
+    if (connected) {
+      const modelName = getCustomApiModelDisplay();
+      statusHtml = `<div class="api-key-status"><span class="status-dot connected"></span> Connected${customModel ? ' — ' + escapeHTML(modelName) : ''}</div>`;
+    }
+
+    let modelHtml = '';
+    if (connected && cachedModels.length) {
+      modelHtml = `<div style="margin-top:12px" id="custom-model-area"><label style="font-size:12px;color:var(--text-muted)">AI Model</label><select class="api-key-input" id="custom-model-select" style="margin-top:4px" onchange="setCustomApiModel(this.value)">${cachedModels.map(function(m) { return '<option value="' + escapeAttr(m.id) + '"' + (m.id === customModel ? ' selected' : '') + '>' + escapeHTML(m.name || m.id) + '</option>'; }).join('')}</select></div>`;
+    } else if (connected) {
+      modelHtml = `<div style="margin-top:12px;font-size:12px;color:var(--text-muted)" id="custom-model-area">Loading models...</div>`;
+    }
+
+    // Manual model ID fallback
+    const manualHtml = connected ? `<div style="margin-top:8px"><label style="font-size:12px;color:var(--text-muted)">Or enter model ID manually</label><div style="display:flex;gap:8px;align-items:center;margin-top:4px"><input type="text" class="api-key-input" id="custom-manual-model" value="${escapeAttr(customModel)}" placeholder="e.g. gpt-4o" style="flex:1"><button class="import-btn import-btn-secondary" onclick="applyCustomApiManualModel()" style="white-space:nowrap">Apply</button></div></div>` : '';
+
+    return `<div class="ai-provider-panel">
+      <div class="ai-provider-desc">Connect to any OpenAI-compatible API endpoint. Works with OpenAI, Mistral, Groq, Together, xAI, self-hosted, and more.</div>
+      ${statusHtml}
+      <div style="margin-top:8px">
+        <label style="font-size:12px;color:var(--text-muted)">Base URL</label>
+        <input type="text" class="api-key-input" id="custom-url-input" value="${escapeAttr(currentUrl)}" placeholder="https://api.openai.com/v1" style="margin-top:4px">
+      </div>
+      <div style="margin-top:8px">
+        <label style="font-size:12px;color:var(--text-muted)">API Key</label>
+        <input type="password" class="api-key-input" id="custom-key-input" value="${currentKey ? '••••••••' : ''}" placeholder="sk-..." style="margin-top:4px" onfocus="if(this.value==='••••••••')this.value=''">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="import-btn" onclick="handleSaveCustomApi()">Save & Connect</button>
+        ${connected ? '<button class="import-btn import-btn-secondary" onclick="handleRemoveCustomApi()">Remove</button>' : ''}
+      </div>
+      ${modelHtml}
+      ${manualHtml}
+      <div class="api-key-notice" style="margin-top:12px">Your key is stored locally and sent directly to the endpoint you configure. Models are fetched from <code style="font-size:11px;padding:2px 4px;background:var(--bg-primary);border-radius:3px">/v1/models</code>.</div>
+    </div>`;
+  }
+
   // Local AI panel — works with any OpenAI-compatible server (Ollama, LM Studio, Jan, etc.)
   const config = getOllamaConfig();
   return `<div class="ai-provider-panel">
@@ -667,6 +713,13 @@ export function initSettingsModelFetch() {
         if (parseFloat(balance) === 0 && document.getElementById('ppq-topup-area')) showPpqTopup();
       }
       else if (el) el.textContent = 'Balance: unavailable';
+    });
+  }
+  const customUrl = getCustomApiUrl();
+  const customKey = getCustomApiKey();
+  if (customUrl && customKey && document.getElementById('custom-model-area')) {
+    fetchCustomApiModels(customUrl, customKey).then(function(models) {
+      if (models.length) renderCustomApiModelDropdown(models);
     });
   }
 }
@@ -2879,6 +2932,68 @@ function resetCurrentProfileUsage() {
   if (el) el.innerHTML = renderAIUsageSection();
 }
 
+// ─── Custom API handlers ───
+async function handleSaveCustomApi() {
+  const urlInput = document.getElementById('custom-url-input');
+  const keyInput = document.getElementById('custom-key-input');
+  if (!urlInput || !keyInput) return;
+  const url = urlInput.value.trim().replace(/\/+$/, '');
+  const key = keyInput.value.trim();
+  if (!url) { showNotification('Please enter a base URL', 'error'); return; }
+  if (!key || key === '••••••••') {
+    // If key field is masked and URL unchanged, just reconnect with existing key
+    if (key === '••••••••' && getCustomApiKey() && url === getCustomApiUrl()) {
+      const models = await fetchCustomApiModels(url, getCustomApiKey());
+      if (models.length) renderCustomApiModelDropdown(models);
+      showNotification('Models refreshed', 'success');
+      return;
+    }
+    showNotification('Please enter an API key', 'error');
+    return;
+  }
+  const result = await validateCustomApiKey(url, key);
+  if (!result.valid) { showNotification(result.error, 'error'); return; }
+  setCustomApiUrl(url);
+  await saveCustomApiKey(key);
+  showNotification('Connected', 'success');
+  const models = await fetchCustomApiModels(url, key);
+  // Re-render the full panel to show connected state
+  const panel = document.getElementById('ai-provider-panel');
+  if (panel) panel.innerHTML = renderAIProviderPanel('custom');
+  if (models.length) renderCustomApiModelDropdown(models);
+}
+
+function handleRemoveCustomApi() {
+  localStorage.removeItem('labcharts-custom-url');
+  localStorage.removeItem('labcharts-custom-model');
+  localStorage.removeItem('labcharts-custom-models');
+  encryptedSetItem('labcharts-custom-key', '').then(function() { updateKeyCache('labcharts-custom-key', ''); });
+  const panel = document.getElementById('ai-provider-panel');
+  if (panel) panel.innerHTML = renderAIProviderPanel('custom');
+}
+
+function renderCustomApiModelDropdown(models) {
+  const area = document.getElementById('custom-model-area');
+  if (!area) return;
+  const currentModel = getCustomApiModel();
+  area.innerHTML = `<label style="font-size:12px;color:var(--text-muted)">AI Model</label><select class="api-key-input" id="custom-model-select" style="margin-top:4px" onchange="setCustomApiModel(this.value)">${models.map(function(m) { return '<option value="' + escapeAttr(m.id) + '"' + (m.id === currentModel ? ' selected' : '') + '>' + escapeHTML(m.name || m.id) + '</option>'; }).join('')}</select>`;
+  // Also update manual input if present
+  const manual = document.getElementById('custom-manual-model');
+  if (manual) manual.value = currentModel;
+}
+
+function applyCustomApiManualModel() {
+  const input = document.getElementById('custom-manual-model');
+  if (!input) return;
+  const model = input.value.trim();
+  if (!model) { showNotification('Enter a model ID', 'error'); return; }
+  setCustomApiModel(model);
+  // Update dropdown if it exists
+  const select = document.getElementById('custom-model-select');
+  if (select) select.value = model;
+  showNotification('Model set to ' + model, 'success');
+}
+
 Object.assign(window, {
   openSettingsModal,
   closeSettingsModal,
@@ -2948,6 +3063,10 @@ Object.assign(window, {
   doPpqTopupCustom,
   cancelPpqTopup,
   refreshOpenRouterBalance,
+  handleSaveCustomApi,
+  handleRemoveCustomApi,
+  renderCustomApiModelDropdown,
+  applyCustomApiManualModel,
   renderDataEntriesSection,
   refreshDataEntriesSection,
   resetCurrentProfileUsage,

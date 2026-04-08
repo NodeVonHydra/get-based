@@ -1,4 +1,4 @@
-// api.js — AI provider management, API calls (OpenRouter, Venice, Routstr, PPQ, Local)
+// api.js — AI provider management, API calls (OpenRouter, Venice, Routstr, PPQ, Local, Custom)
 
 import { getModelPricing } from './schema.js';
 import { isDebugMode, showNotification } from './utils.js';
@@ -28,6 +28,7 @@ export function hasAIProvider() {
   if (provider === 'openrouter') return hasOpenRouterKey();
   if (provider === 'routstr') return hasRoutstrKey();
   if (provider === 'ppq') return hasPpqKey();
+  if (provider === 'custom') return hasCustomApiKey() && !!getCustomApiUrl();
   return true; // Ollama — optimistic, errors caught at call time
 }
 
@@ -116,6 +117,22 @@ export function getPpqModelDisplay() {
 }
 export function getPpqCreditId() { return localStorage.getItem('labcharts-ppq-credit-id') || ''; }
 export function savePpqCreditId(id) { localStorage.setItem('labcharts-ppq-credit-id', id); }
+
+// ─── Custom API (any OpenAI-compatible endpoint) ───
+export function getCustomApiUrl() { return localStorage.getItem('labcharts-custom-url') || ''; }
+export function setCustomApiUrl(url) { localStorage.setItem('labcharts-custom-url', url); }
+export function getCustomApiKey() { return getCachedKey('labcharts-custom-key') || ''; }
+export async function saveCustomApiKey(key) { await encryptedSetItem('labcharts-custom-key', key); updateKeyCache('labcharts-custom-key', key); }
+export function hasCustomApiKey() { return !!getCustomApiKey(); }
+export function getCustomApiModel() { return localStorage.getItem('labcharts-custom-model') || ''; }
+export function setCustomApiModel(model) { localStorage.setItem('labcharts-custom-model', model); }
+export function getCustomApiModelDisplay() {
+  const id = getCustomApiModel();
+  if (!id) return '(no model selected)';
+  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-custom-models') || '[]'); } catch(e) {}
+  const m = cached.find(function(x) { return x.id === id; });
+  return m ? (m.name || m.id) : id;
+}
 export function getOpenRouterModel() {
   let m = localStorage.getItem('labcharts-openrouter-model');
   // Fix legacy hyphenated IDs (OpenRouter uses dots: anthropic/claude-sonnet-4.6)
@@ -214,6 +231,7 @@ export function getActiveModelId() {
   if (provider === 'openrouter') return getOpenRouterModel();
   if (provider === 'routstr') return getRoutstrModel();
   if (provider === 'ppq') return getPpqModel();
+  if (provider === 'custom') return getCustomApiModel();
   return getOllamaMainModel();
 }
 export function getActiveModelDisplay() {
@@ -222,6 +240,7 @@ export function getActiveModelDisplay() {
   if (provider === 'openrouter') return getOpenRouterModelDisplay();
   if (provider === 'routstr') return getRoutstrModelDisplay();
   if (provider === 'ppq') return getPpqModelDisplay();
+  if (provider === 'custom') return getCustomApiModelDisplay();
   return getOllamaMainModel();
 }
 // Exclude specialized variants not suited for medical analysis
@@ -418,6 +437,7 @@ export function supportsWebSearch() {
   if (provider === 'venice') return !isVeniceE2EEActive();
   if (provider === 'routstr') return false;
   if (provider === 'ppq') return true;
+  if (provider === 'custom') return false;
   return provider === 'openrouter';
 }
 
@@ -461,7 +481,8 @@ export function supportsVision() {
       return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/-\d{8}$/, '')); });
     } catch { return false; }
   }
-  // Local AI — optimistic (user's responsibility)
+  // Custom API / Local AI — optimistic (user's responsibility)
+  if (provider === 'custom') return true;
   return true;
 }
 
@@ -1028,6 +1049,47 @@ export async function callPpqAPI(opts) {
   );
 }
 
+// ─── Custom API ───
+export async function fetchCustomApiModels(baseUrl, key) {
+  try {
+    const url = (baseUrl || getCustomApiUrl()).replace(/\/+$/, '');
+    const k = key || getCustomApiKey();
+    if (!url || !k) return [];
+    const res = await fetch(url + '/models', { headers: { 'Authorization': 'Bearer ' + k } });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const models = (json.data || []).filter(function(m) { return m.id; }).map(function(m) {
+      return { id: m.id, name: m.name || m.id };
+    }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+    localStorage.setItem('labcharts-custom-models', JSON.stringify(models));
+    if (!getCustomApiModel() && models.length) setCustomApiModel(models[0].id);
+    return models;
+  } catch (e) { return []; }
+}
+export async function validateCustomApiKey(baseUrl, key) {
+  try {
+    const url = baseUrl.replace(/\/+$/, '');
+    const res = await fetch(url + '/models', { headers: { 'Authorization': 'Bearer ' + key } });
+    if (res.ok) return { valid: true };
+    if (res.status === 401 || res.status === 403) return { valid: false, error: 'Invalid API key' };
+    return { valid: false, error: 'Server returned status ' + res.status };
+  } catch (e) {
+    return { valid: false, error: 'Cannot reach endpoint: ' + e.message };
+  }
+}
+export async function callCustomAPI(opts) {
+  const baseUrl = getCustomApiUrl().replace(/\/+$/, '');
+  const key = getCustomApiKey();
+  if (!baseUrl) throw new Error('No Custom API URL configured. Set it in Settings.');
+  if (!key) throw new Error('No Custom API key configured. Add your key in Settings.');
+  return callOpenAICompatibleAPI(
+    baseUrl + '/chat/completions',
+    key, getCustomApiModel(), 'Custom', opts,
+    {},
+    { useProxy: false }
+  );
+}
+
 export async function callClaudeAPI(opts) {
   const provider = getAIProvider();
   if (provider === 'ollama') return callOpenAICompatibleLocalAPI(opts);
@@ -1035,6 +1097,7 @@ export async function callClaudeAPI(opts) {
   if (provider === 'openrouter') return callOpenRouterAPI(opts);
   if (provider === 'routstr') return callRoutstrAPI(opts);
   if (provider === 'ppq') return callPpqAPI(opts);
+  if (provider === 'custom') return callCustomAPI(opts);
   // Legacy fallback — should not reach here; all providers handled above
   throw new Error('Unknown AI provider: ' + provider + '. Please select a provider in Settings.');
 }
@@ -1064,6 +1127,9 @@ Object.assign(window, {
   renderModelPricingHint,
   getAIProvider, setAIProvider, hasAIProvider,
   supportsVision, supportsWebSearch, isE2EEModel, isVeniceE2EEActive, getVeniceE2EE, setVeniceE2EE,
-  validateVeniceKey, validateOpenRouterKey, validateRoutstrKey, validatePpqKey,
+  validateVeniceKey, validateOpenRouterKey, validateRoutstrKey, validatePpqKey, validateCustomApiKey,
+  getCustomApiUrl, setCustomApiUrl, getCustomApiKey, saveCustomApiKey, hasCustomApiKey,
+  getCustomApiModel, setCustomApiModel, getCustomApiModelDisplay,
+  fetchCustomApiModels, callCustomAPI,
   callOllamaChat, callOpenAICompatibleLocalAPI, callVeniceAPI, callOpenRouterAPI, callRoutstrAPI, callPpqAPI, callClaudeAPI
 });

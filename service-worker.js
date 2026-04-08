@@ -106,6 +106,9 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests — Cache API only supports GET
   if (event.request.method !== 'GET') return;
 
+  // Skip cross-origin GETs (e.g. Custom API /models) — only cache same-origin app shell
+  if (url.hostname !== self.location.hostname) return;
+
   // Stale-while-revalidate: local app shell files
   event.respondWith(
     caches.match(event.request).then((cached) => {

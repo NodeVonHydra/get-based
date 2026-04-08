@@ -5,7 +5,7 @@ import { MARKER_SCHEMA, SPECIALTY_MARKER_DEFS, UNIT_CONVERSIONS, calculateCost, 
 import { IMPORT_STEPS } from './constants.js';
 import { escapeHTML, showNotification, isDebugMode, isPIIReviewEnabled, hashString } from './utils.js';
 import { saveImportedData, getActiveData, recalculateHOMAIR } from './data.js';
-import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getVeniceModelDisplay, getOpenRouterModelDisplay, getActiveModelId, getActiveModelDisplay, getOllamaPIIModel } from './api.js';
+import { callClaudeAPI, hasAIProvider, getAIProvider, setAIProvider, getVeniceModel, setVeniceModel, getOpenRouterModel, setOpenRouterModel, getOllamaMainModel, setOllamaMainModel, getVeniceModelDisplay, getOpenRouterModelDisplay, getActiveModelId, getActiveModelDisplay, getOllamaPIIModel, setCustomApiModel, setPpqModel, setRoutstrModel } from './api.js';
 import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 import { detectProduct, normalizeWithAdapter, getAdapterByTestType } from './adapters.js';
 
@@ -116,6 +116,9 @@ function tryAutoSwitchModel(prevModel, prevProvider) {
   const provider = getAIProvider();
   if (provider === 'openrouter') setOpenRouterModel(prevModel);
   else if (provider === 'venice') setVeniceModel(prevModel);
+  else if (provider === 'custom') setCustomApiModel(prevModel);
+  else if (provider === 'ppq') setPpqModel(prevModel);
+  else if (provider === 'routstr') setRoutstrModel(prevModel);
   else if (provider === 'ollama') setOllamaMainModel(prevModel);
 }
 
