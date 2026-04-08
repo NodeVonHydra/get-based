@@ -610,7 +610,14 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
   }
 
   if (!res.ok) {
-    if (res.status === 401) throw new Error(`Invalid ${providerName} API key. Check your settings.`);
+    if (res.status === 401) {
+      // Some endpoints (e.g. OpenCode Go) return 401 for non-auth errors — check error body
+      let errType = '';
+      try { const b = await res.clone().json(); errType = b?.error?.type || ''; } catch {}
+      if (!errType || errType === 'AuthError' || errType === 'authentication_error')
+        throw new Error(`Invalid ${providerName} API key. Check your settings.`);
+      throw new Error(`${providerName} API error: ${errType}`);
+    }
     if (res.status === 402) {
       const hint = providerName === 'Routstr' ? ' Top up with Lightning or Cashu.'
         : providerName === 'PPQ' ? ' Top up in Settings \u2192 AI \u2192 PPQ.'
@@ -642,8 +649,9 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
         try {
           const event = JSON.parse(data);
           if (event.error) throw new Error(event.error.message || JSON.stringify(event.error));
-          if (event.choices?.[0]?.delta?.content) {
-            fullText += event.choices[0].delta.content;
+          const delta = event.choices?.[0]?.delta;
+          if (delta?.content || delta?.reasoning_content) {
+            fullText += delta.content || delta.reasoning_content;
             onStream(fullText);
           }
           if (event.usage) {
@@ -657,7 +665,8 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
   } else {
     const data = await res.json();
     const usage = data.usage || {};
-    return { text: data.choices?.[0]?.message?.content || '', usage: { inputTokens: usage.prompt_tokens || 0, outputTokens: usage.completion_tokens || 0 } };
+    const msg = data.choices?.[0]?.message;
+    return { text: msg?.content || msg?.reasoning_content || '', usage: { inputTokens: usage.prompt_tokens || 0, outputTokens: usage.completion_tokens || 0 } };
   }
 }
 
@@ -1072,7 +1081,12 @@ export async function fetchCustomApiModels(baseUrl, key) {
     const url = (baseUrl || getCustomApiUrl()).replace(/\/+$/, '');
     const k = key || getCustomApiKey();
     if (!url || !k) return [];
-    const res = await _customApiFetchModels(url + '/models', k);
+    let res = await _customApiFetchModels(url + '/models', k);
+    // If /models not found, try parent path (e.g. /zen/go/v1 → /zen/v1)
+    if (!res.ok && res.status === 404) {
+      const parent = url.replace(/\/[^/]+\/v\d+$/, '/v1');
+      if (parent !== url) res = await _customApiFetchModels(parent + '/models', k);
+    }
     if (!res.ok) return [];
     const json = await res.json();
     const models = (json.data || []).filter(function(m) { return m.id; }).map(function(m) {
@@ -1087,11 +1101,28 @@ export async function validateCustomApiKey(baseUrl, key) {
   try {
     const url = baseUrl.replace(/\/+$/, '');
     const res = await _customApiFetchModels(url + '/models', key);
-    if (res.ok) return { valid: true };
+    let noModels = false;
     if (res.status === 401 || res.status === 403) return { valid: false, error: 'Invalid API key' };
-    // Some endpoints (e.g. OpenCode Go) don't expose /models — treat as valid without model listing
-    if (res.status === 404) return { valid: true, noModels: true };
-    return { valid: false, error: 'Server returned status ' + res.status };
+    if (res.status === 404) noModels = true;
+    else if (!res.ok) return { valid: false, error: 'Server returned status ' + res.status };
+    // Some endpoints (e.g. OpenCode Zen) list models without auth — verify key with a chat probe
+    if (res.ok || noModels) {
+      const probeBody = JSON.stringify({ model: 'x', messages: [{ role: 'user', content: 'hi' }], max_tokens: 1 });
+      const probeOpts = { method: 'POST', headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, body: probeBody };
+      const probe = _useProxy()
+        ? await fetch('/api/proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url + '/chat/completions', headers: { 'Authorization': 'Bearer ' + key }, body: probeBody }) })
+        : await fetch(url + '/chat/completions', probeOpts);
+      if (probe.status === 401 || probe.status === 403) {
+        // Some endpoints return 401 for bad model names too — check error body
+        try {
+          const errBody = await probe.json();
+          const errType = errBody?.error?.type || '';
+          if (errType === 'AuthError' || errType === 'authentication_error') return { valid: false, error: 'Invalid API key' };
+        } catch {}
+        // Non-auth 401 (e.g. ModelError) — key is fine, model was just invalid
+      }
+    }
+    return noModels ? { valid: true, noModels: true } : { valid: true };
   } catch (e) {
     return { valid: false, error: 'Cannot reach endpoint: ' + e.message };
   }

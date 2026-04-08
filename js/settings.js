@@ -2949,8 +2949,8 @@ async function handleSaveCustomApi() {
   if (!result.valid) { showNotification(result.error, 'error'); return; }
   setCustomApiUrl(url);
   await saveCustomApiKey(key);
-  showNotification(result.noModels ? 'Connected — enter model ID manually' : 'Connected', 'success');
-  const models = result.noModels ? [] : await fetchCustomApiModels(url, key);
+  showNotification('Connected', 'success');
+  const models = await fetchCustomApiModels(url, key);
   // Re-render the full panel to show connected state
   const panel = document.getElementById('ai-provider-panel');
   if (panel) panel.innerHTML = renderAIProviderPanel('custom');

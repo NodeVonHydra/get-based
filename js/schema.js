@@ -372,10 +372,12 @@ export function getModelPricing(provider, modelId) {
   return { ...fallback, approx: true };
 }
 export function calculateCost(provider, modelId, inputTokens, outputTokens) {
+  if (provider === 'custom') return -1;
   const p = getModelPricing(provider, modelId);
   return (p.input * (inputTokens || 0) + p.output * (outputTokens || 0)) / 1_000_000;
 }
 export function formatCost(usd) {
+  if (usd < 0) return 'N/A';
   if (usd === 0) return 'Free';
   if (usd < 0.0001) return '<$0.0001';
   if (usd < 0.01) return '$' + usd.toFixed(4);
