@@ -32,8 +32,8 @@
   assert('callClaudeAPI handles custom', apiSrc.includes("provider === 'custom') return callCustomAPI("));
   assert('supportsWebSearch false for custom', apiSrc.includes("provider === 'custom') return false"));
   assert('supportsVision true for custom', apiSrc.includes("provider === 'custom') return true"));
-  // callCustomAPI uses useProxy: false
-  assert('callCustomAPI uses useProxy false', apiSrc.includes("'Custom', opts,\n    {},\n    { useProxy: false }"));
+  // callCustomAPI uses proxy (CORS bypass for hosted version)
+  assert('callCustomAPI routes through proxy', apiSrc.includes("'Custom', opts,\n    {}"));
   // Encrypted key storage
   assert('saveCustomApiKey uses encryptedSetItem', apiSrc.includes("encryptedSetItem('labcharts-custom-key'"));
   assert('getCustomApiKey uses getCachedKey', apiSrc.includes("getCachedKey('labcharts-custom-key')"));
@@ -306,6 +306,16 @@
   console.log('\n16. Service worker');
   const swSrc = await fetch('service-worker.js').then(r => r.text());
   assert('SW bypasses cross-origin GETs', swSrc.includes('url.hostname !== self.location.hostname'));
+
+  // ─── 17. Proxy supports GET passthrough ───
+  console.log('\n17. Proxy GET support');
+  const proxySrc = await fetch('api/proxy.js').then(r => r.text());
+  assert('proxy extracts method field', proxySrc.includes('method: upstreamMethod'));
+  assert('proxy defaults to POST', proxySrc.includes("upstreamMethod || 'POST'"));
+  assert('proxy skips body for GET', proxySrc.includes("fetchMethod !== 'GET'"));
+  // api.js uses proxy-aware fetch for models
+  assert('_customApiFetchModels uses proxy', apiSrc.includes('function _customApiFetchModels('));
+  assert('_customApiFetchModels sends method GET via proxy', apiSrc.includes("method: 'GET'"));
 
   // ═══ SUMMARY ═══
   console.log('\n' + results.join('\n'));

@@ -31,7 +31,7 @@ export default async function handler(req) {
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ error: 'Method not allowed. Use POST with {url, headers, body?, method?}' }), {
       status: 405,
       headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
     });
@@ -47,7 +47,7 @@ export default async function handler(req) {
     });
   }
 
-  const { url, headers, body } = payload;
+  const { url, headers, body, method: upstreamMethod } = payload;
 
   if (!url || !isAllowedUrl(url)) {
     return new Response(JSON.stringify({ error: 'URL not allowed' }), {
@@ -57,14 +57,18 @@ export default async function handler(req) {
   }
 
   try {
-    const upstreamRes = await fetch(url, {
-      method: 'POST',
+    const fetchMethod = (upstreamMethod || 'POST').toUpperCase();
+    const fetchOpts = {
+      method: fetchMethod,
       headers: {
-        'Content-Type': 'application/json',
+        ...(fetchMethod !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
         ...headers,
       },
-      body: typeof body === 'string' ? body : JSON.stringify(body),
-    });
+    };
+    if (fetchMethod !== 'GET' && body) {
+      fetchOpts.body = typeof body === 'string' ? body : JSON.stringify(body);
+    }
+    const upstreamRes = await fetch(url, fetchOpts);
 
     // For non-streaming responses or errors, forward as-is
     const contentType = upstreamRes.headers.get('content-type') || '';

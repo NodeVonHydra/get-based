@@ -1050,12 +1050,23 @@ export async function callPpqAPI(opts) {
 }
 
 // ─── Custom API ───
+// Proxy-aware GET for fetching models from custom endpoints (CORS bypass on hosted version)
+function _customApiFetchModels(url, key) {
+  if (_useProxy()) {
+    return fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, method: 'GET', headers: { 'Authorization': 'Bearer ' + key } }),
+    });
+  }
+  return fetch(url, { headers: { 'Authorization': 'Bearer ' + key } });
+}
 export async function fetchCustomApiModels(baseUrl, key) {
   try {
     const url = (baseUrl || getCustomApiUrl()).replace(/\/+$/, '');
     const k = key || getCustomApiKey();
     if (!url || !k) return [];
-    const res = await fetch(url + '/models', { headers: { 'Authorization': 'Bearer ' + k } });
+    const res = await _customApiFetchModels(url + '/models', k);
     if (!res.ok) return [];
     const json = await res.json();
     const models = (json.data || []).filter(function(m) { return m.id; }).map(function(m) {
@@ -1069,7 +1080,7 @@ export async function fetchCustomApiModels(baseUrl, key) {
 export async function validateCustomApiKey(baseUrl, key) {
   try {
     const url = baseUrl.replace(/\/+$/, '');
-    const res = await fetch(url + '/models', { headers: { 'Authorization': 'Bearer ' + key } });
+    const res = await _customApiFetchModels(url + '/models', key);
     if (res.ok) return { valid: true };
     if (res.status === 401 || res.status === 403) return { valid: false, error: 'Invalid API key' };
     return { valid: false, error: 'Server returned status ' + res.status };
@@ -1085,8 +1096,7 @@ export async function callCustomAPI(opts) {
   return callOpenAICompatibleAPI(
     baseUrl + '/chat/completions',
     key, getCustomApiModel(), 'Custom', opts,
-    {},
-    { useProxy: false }
+    {}
   );
 }
 
