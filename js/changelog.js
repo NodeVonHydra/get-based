@@ -5,6 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.16.1', date: '2026-04-08', title: 'Custom API Provider',
+    items: [
+      'Custom API provider \u2014 connect to any OpenAI-compatible endpoint with your own base URL and API key',
+      'Dynamic model list \u2014 models fetched automatically from your endpoint, with manual model ID fallback',
+    ]
+  },
+  {
     version: '1.16.0', date: '2026-04-07', title: 'Decentralized Routstr',
     items: [
       'Decentralized AI \u2014 discover Routstr nodes via Nostr relays, connect to any node directly from your browser',

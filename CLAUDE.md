@@ -55,7 +55,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker), cashu-ts v3.6.2 (Cashu eCash protocol), bip39-minimal (BIP-39 mnemonic generation). Run `./update-vendor.sh` to update
 - **`data/`** — `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`, `snp-health.json` (42 autosomal SNPs), `haplogroups.json` (28 mtDNA haplogroups with Wallace coupling classification), `mito-compounds.json` (108 mitochondrial compound effects)
-- **`tests/`** — 30 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 31 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -103,7 +103,7 @@ Slide-out panel with streaming. 2+custom personalities, stop/discuss buttons, co
 
 ### AI Provider System
 
-Five active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. PPQ (pay-per-query, 300+ models, crypto topup, OpenAI-compatible), Routstr (decentralized — Nostr node discovery via Kind 38421, in-app Cashu wallet with BIP-39 seed, deposit to any node, OpenAI-compatible), OpenRouter (recommended for non-crypto, OAuth PKCE), Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`). See `api.js`, `cashu-wallet.js`, `nostr-discovery.js` for details.
+Six active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. PPQ (pay-per-query, 300+ models, crypto topup, OpenAI-compatible), Routstr (decentralized — Nostr node discovery via Kind 38421, in-app Cashu wallet with BIP-39 seed, deposit to any node, OpenAI-compatible), OpenRouter (recommended for non-crypto, OAuth PKCE), Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`), Custom (any OpenAI-compatible endpoint — user sets base URL + API key, models fetched from `/v1/models`). See `api.js`, `cashu-wallet.js`, `nostr-discovery.js` for details.
 
 Venice E2EE: toggle in settings swaps model dropdown to `e2ee-*` models. `callVeniceAPI` auto-branches: encrypts all messages, adds `X-Venice-TEE-*` headers, decrypts streamed response chunks per-chunk via ECDH. Web search + vision disabled when E2EE active. Lock emoji in chat header, `🔒 e2ee` in message footer. Session has 30-min TTL.
 
@@ -130,7 +130,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-30 browser-based test files run headlessly:
+31 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```
