@@ -35,7 +35,7 @@
   assert('Returns label BioStarks', adaptersSrc.includes("label: 'BioStarks'"));
 
   // ═══════════════════════════════════════
-  // 3. Marker Definitions (24 total)
+  // 3. Marker Definitions (23 total)
   // ═══════════════════════════════════════
   console.log('%c 3. Marker Definitions ', 'font-weight:bold;color:#f59e0b');
 
@@ -99,6 +99,16 @@
   // Name lookup with aliases
   assert('Has BCAA alias', adaptersSrc.includes("nameLookup.set('bcaa'"));
   assert('Has T/C ratio alias', adaptersSrc.includes("nameLookup.set('t/c ratio'"));
+  // Bare mineral aliases (critical — selenium has no standard schema fallback)
+  assert('Has bare selenium alias', adaptersSrc.includes("nameLookup.set('selenium',"));
+  assert('Has bare magnesium alias', adaptersSrc.includes("nameLookup.set('magnesium',"));
+  assert('Has bare zinc alias', adaptersSrc.includes("nameLookup.set('zinc',"));
+  // L-prefix amino acid aliases
+  assert('Has l-arginine alias', adaptersSrc.includes("nameLookup.set('l-arginine'"));
+  assert('Has l-carnitine alias', adaptersSrc.includes("nameLookup.set('l-carnitine'"));
+  // FA chemical name aliases
+  assert('Has DHA chemical name alias', adaptersSrc.includes("nameLookup.set('docosahexaenoic acid'"));
+  assert('Has EPA chemical name alias', adaptersSrc.includes("nameLookup.set('eicosapentaenoic acid'"));
 
   // ═══════════════════════════════════════
   // 6. PDF Import Integration

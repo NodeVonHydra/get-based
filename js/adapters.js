@@ -387,6 +387,28 @@ function _normalizeBiostarks(markers) {
   nameLookup.set('t/c ratio', 'biostarksHormone.testCortisolRatio');
   nameLookup.set('linoleic acid', 'biostarksFA.linoleicAcid');
   nameLookup.set('oleic acid', 'biostarksFA.oleicAcid');
+  // Bare mineral names (AI may omit "(RBC)" suffix — selenium has no standard schema fallback)
+  nameLookup.set('magnesium', 'biostarksMineral.magnesium');
+  nameLookup.set('selenium', 'biostarksMineral.selenium');
+  nameLookup.set('zinc', 'biostarksMineral.zinc');
+  nameLookup.set('magnesium rbc', 'biostarksMineral.magnesium');
+  nameLookup.set('selenium rbc', 'biostarksMineral.selenium');
+  nameLookup.set('zinc rbc', 'biostarksMineral.zinc');
+  // L-prefixed amino acids
+  nameLookup.set('l-arginine', 'biostarksAmino.arginine');
+  nameLookup.set('l-glutamine', 'biostarksAmino.glutamine');
+  nameLookup.set('l-tryptophan', 'biostarksAmino.tryptophan');
+  nameLookup.set('l-carnitine', 'biostarksAmino.carnitine');
+  nameLookup.set('l-proline', 'biostarksAmino.proline');
+  nameLookup.set('l-threonine', 'biostarksAmino.threonine');
+  nameLookup.set('l-tyrosine', 'biostarksAmino.tyrosine');
+  nameLookup.set('l-valine', 'biostarksAmino.valine');
+  nameLookup.set('l-citrulline', 'biostarksAmino.citrulline');
+  nameLookup.set('l-asparagine', 'biostarksAmino.asparagine');
+  // FA chemical names
+  nameLookup.set('docosahexaenoic acid', 'biostarksFA.dha');
+  nameLookup.set('eicosapentaenoic acid', 'biostarksFA.epa');
+  nameLookup.set('free carnitine', 'biostarksAmino.carnitine');
 
   for (const m of markers) {
     const name = (m.rawName || m.suggestedName || '').toLowerCase().trim();
