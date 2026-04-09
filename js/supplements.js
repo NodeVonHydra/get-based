@@ -256,7 +256,7 @@ function getOverlappingSupplements(supplement, supps) {
 function buildImpactPromptData(supplement, impacts, supps) {
   const overlapping = getOverlappingSupplements(supplement, supps);
   const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const top = impacts.slice(0, 12);
+  const top = impacts.slice(0, 8);
   let ctx = `Supplement: ${supplement.name}`;
   if (supplement.dosage) ctx += ` (${supplement.dosage})`;
   ctx += `\nType: ${supplement.type}`;
@@ -277,7 +277,7 @@ function buildImpactPromptData(supplement, impacts, supps) {
 }
 
 function getImpactFingerprint(supplement, impacts) {
-  const impactStr = impacts.slice(0, 12).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
+  const impactStr = impacts.slice(0, 8).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
   return hashString(`${supplement.name}|${supplement.startDate}|${supplement.endDate || ''}|${impactStr}`);
 }
 
@@ -330,13 +330,13 @@ export function renderSupplementImpact(supplement, editIdx) {
 async function loadSupplementImpactAI(supplement, editIdx, impacts, fp) {
   const supps = state.importedData.supplements || [];
   const promptData = buildImpactPromptData(supplement, impacts, supps);
-  const system = `You are a health data assistant. Analyze the biomarker changes since the user started a supplement/medication. Return ONLY valid JSON: {"dot":"green|yellow|red|gray","summary":"..."}
+  const system = `You are a health data assistant. Analyze biomarker changes since a supplement/medication was started. Reply with ONLY a JSON object — no explanation, no markdown, no preamble. Format: {"dot":"green","summary":"..."}
 
-dot: green = changes look beneficial or expected, yellow = mixed or needs monitoring, red = concerning changes, gray = insufficient data.
-summary: 1-2 sentences max. Be specific — name the markers. Mention if a change is expected (e.g. creatine raises creatinine). Note confounders if other supplements overlap. End with a brief actionable note if relevant. Do NOT say "correlation does not imply causation" — the UI already shows that.`;
+dot: green = beneficial or expected changes, yellow = mixed or needs monitoring, red = concerning, gray = insufficient data.
+summary: 1-2 sentences. Name specific markers. Mention if a change is expected (e.g. creatine raises creatinine). Note confounders if other supplements overlap. Do NOT say "correlation does not imply causation."`;
 
   try {
-    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 256 });
+    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 1024 });
     const jsonMatch = result.text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return;
     const parsed = JSON.parse(jsonMatch[0]);
