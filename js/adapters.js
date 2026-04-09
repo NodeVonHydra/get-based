@@ -321,6 +321,115 @@ function _normalizeMetabolomix(markers, fileName, pdfText, detectedProduct) {
 }
 
 // ═══════════════════════════════════════════════
+// BioStarks Adapter — dried blood spot (amino acids, fatty acids, minerals, vitamins, hormones, metabolism)
+// ═══════════════════════════════════════════════
+const BIOSTARKS_MARKERS = {
+  // Amino Acids (12) — blood serum, µmol/L
+  "biostarksAmino.arginine": { name: "Arginine", unit: "µmol/L", refMin: 59, refMax: 180, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.asparagine": { name: "Asparagine", unit: "µmol/L", refMin: 29, refMax: 110, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.bcaa": { name: "Branched-chain Amino Acids", unit: "µmol/L", refMin: 270, refMax: 700, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.carnitine": { name: "Carnitine", unit: "µmol/L", refMin: 25, refMax: 80, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.citrulline": { name: "Citrulline", unit: "µmol/L", refMin: 17, refMax: 96, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.glutamine": { name: "Glutamine", unit: "µmol/L", refMin: 320, refMax: 1100, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.proline": { name: "Proline", unit: "µmol/L", refMin: 78, refMax: 550, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.taurine": { name: "Taurine", unit: "µmol/L", refMin: 25, refMax: 140, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.threonine": { name: "Threonine", unit: "µmol/L", refMin: 70, refMax: 360, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.tryptophan": { name: "Tryptophan", unit: "µmol/L", refMin: 33, refMax: 140, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.tyrosine": { name: "Tyrosine", unit: "µmol/L", refMin: 45, refMax: 180, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksAmino.valine": { name: "Valine", unit: "µmol/L", refMin: 230, refMax: 460, categoryLabel: "BioStarks: Amino Acids", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  // Fatty Acids (5) — serum concentration in µmol/L (NOT % like Spadia/ZinZino)
+  "biostarksFA.dha": { name: "DHA", unit: "µmol/L", refMin: 40, refMax: 290, categoryLabel: "BioStarks: Fatty Acids", icon: "\uD83D\uDC1F", group: "BioStarks" },
+  "biostarksFA.epa": { name: "EPA", unit: "µmol/L", refMin: 3, refMax: 20, categoryLabel: "BioStarks: Fatty Acids", icon: "\uD83D\uDC1F", group: "BioStarks" },
+  "biostarksFA.linoleicAcid": { name: "Linoleic Acid", unit: "µmol/L", refMin: 500, refMax: 2000, categoryLabel: "BioStarks: Fatty Acids", icon: "\uD83D\uDC1F", group: "BioStarks" },
+  "biostarksFA.oleicAcid": { name: "Oleic Acid", unit: "µmol/L", refMin: 300, refMax: 2300, categoryLabel: "BioStarks: Fatty Acids", icon: "\uD83D\uDC1F", group: "BioStarks" },
+  "biostarksFA.omega3Index": { name: "Omega-3 Index", unit: "%", refMin: 8, refMax: 15, categoryLabel: "BioStarks: Fatty Acids", icon: "\uD83D\uDC1F", group: "BioStarks" },
+  // Intracellular Minerals (3) — RBC, µg/gHb (NOT serum)
+  "biostarksMineral.magnesium": { name: "Magnesium (RBC)", unit: "µg/gHb", refMin: 250, refMax: 480, categoryLabel: "BioStarks: Minerals", icon: "\u2696\uFE0F", group: "BioStarks" },
+  "biostarksMineral.selenium": { name: "Selenium (RBC)", unit: "µg/gHb", refMin: 0.57, refMax: 1.2, categoryLabel: "BioStarks: Minerals", icon: "\u2696\uFE0F", group: "BioStarks" },
+  "biostarksMineral.zinc": { name: "Zinc (RBC)", unit: "µg/gHb", refMin: 35, refMax: 91, categoryLabel: "BioStarks: Minerals", icon: "\u2696\uFE0F", group: "BioStarks" },
+  // Hormones (2)
+  "biostarksHormone.cortisol": { name: "Cortisol", unit: "nmol/L", refMin: 140, refMax: 620, categoryLabel: "BioStarks: Hormones", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  "biostarksHormone.testCortisolRatio": { name: "Testosterone/Cortisol Ratio", unit: "U", refMin: 3.5, refMax: 15, categoryLabel: "BioStarks: Hormones", icon: "\uD83E\uDDEC", group: "BioStarks" },
+  // Vitamins (1)
+  "biostarksVitamin.vitaminE": { name: "Vitamin E Alpha-Tocopherol", unit: "mg/L", refMin: 11, refMax: 42, categoryLabel: "BioStarks: Vitamins", icon: "\u2600\uFE0F", group: "BioStarks" },
+};
+
+const BIOSTARKS_PATTERNS = ['biostarks', 'bio starks', 'bio-starks'];
+
+function _detectBiostarks(fileName, pdfText) {
+  const fnLower = (fileName || '').toLowerCase();
+  const textLower = (pdfText || '').slice(0, 3000).toLowerCase();
+  for (const pat of BIOSTARKS_PATTERNS) {
+    if (fnLower.includes(pat) || textLower.includes(pat)) return { prefix: 'biostarks', label: 'BioStarks' };
+  }
+  return null;
+}
+
+function _normalizeBiostarks(markers) {
+  const standardCats = new Set(Object.keys(MARKER_SCHEMA));
+  const biostarksKeys = new Set(Object.keys(BIOSTARKS_MARKERS));
+
+  // Name → adapter key lookup (exact + aliases)
+  const nameLookup = new Map();
+  for (const [key, def] of Object.entries(BIOSTARKS_MARKERS)) {
+    nameLookup.set(def.name.toLowerCase(), key);
+  }
+  nameLookup.set('bcaa', 'biostarksAmino.bcaa');
+  nameLookup.set('branched chain amino acids', 'biostarksAmino.bcaa');
+  nameLookup.set('branched-chain amino acids', 'biostarksAmino.bcaa');
+  nameLookup.set('omega-3 index', 'biostarksFA.omega3Index');
+  nameLookup.set('omega 3 index', 'biostarksFA.omega3Index');
+  nameLookup.set('vitamin e', 'biostarksVitamin.vitaminE');
+  nameLookup.set('alpha-tocopherol', 'biostarksVitamin.vitaminE');
+  nameLookup.set('vitamin e alpha-tocopherol', 'biostarksVitamin.vitaminE');
+  nameLookup.set('testosterone / cortisol ratio', 'biostarksHormone.testCortisolRatio');
+  nameLookup.set('testosterone/cortisol ratio', 'biostarksHormone.testCortisolRatio');
+  nameLookup.set('t/c ratio', 'biostarksHormone.testCortisolRatio');
+  nameLookup.set('linoleic acid', 'biostarksFA.linoleicAcid');
+  nameLookup.set('oleic acid', 'biostarksFA.oleicAcid');
+
+  for (const m of markers) {
+    const name = (m.rawName || m.suggestedName || '').toLowerCase().trim();
+    const key = m.mappedKey || m.suggestedKey || '';
+
+    // Already correctly mapped to a BioStarks adapter key — skip
+    if (biostarksKeys.has(key)) continue;
+
+    // Standard schema mapping — keep, but check for intracellular minerals (µg/gHb ≠ serum)
+    if (m.mappedKey) {
+      const catKey = m.mappedKey.split('.')[0];
+      if (standardCats.has(catKey)) {
+        const unit = (m.unit || '').toLowerCase();
+        if (unit.includes('ghb') || unit.includes('g hb')) {
+          const markerPart = m.mappedKey.split('.')[1];
+          const mineralKey = `biostarksMineral.${markerPart}`;
+          if (BIOSTARKS_MARKERS[mineralKey]) {
+            const def = BIOSTARKS_MARKERS[mineralKey];
+            m.mappedKey = null;
+            m.suggestedKey = mineralKey;
+            m.suggestedCategoryLabel = def.categoryLabel;
+            m.suggestedGroup = 'BioStarks';
+            if (isDebugMode()) console.log(`[BioStarks] Remapped intracellular ${name} → ${mineralKey}`);
+          }
+        }
+        continue;
+      }
+    }
+
+    // Try name match against BioStarks adapter markers
+    const match = nameLookup.get(name);
+    if (match) {
+      const def = BIOSTARKS_MARKERS[match];
+      m.mappedKey = null;
+      m.suggestedKey = match;
+      m.suggestedCategoryLabel = def.categoryLabel;
+      m.suggestedGroup = 'BioStarks';
+      if (isDebugMode()) console.log(`[BioStarks] Normalized ${name} → ${match}`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
 // Adapter Registry
 // ═══════════════════════════════════════════════
 const ADAPTERS = [
@@ -342,6 +451,13 @@ const ADAPTERS = [
     id: 'oat',
     testTypes: ['OAT'],
     markers: OAT_MARKERS,
+  },
+  {
+    id: 'biostarks',
+    testTypes: ['biostarks'],
+    markers: BIOSTARKS_MARKERS,
+    detect(fileName, pdfText) { return _detectBiostarks(fileName, pdfText); },
+    normalize(markers, fileName, pdfText, detected) { _normalizeBiostarks(markers); },
   },
   // Future adapters: DUTCH, HTMA, GI-MAP, HealthieOne, etc.
 ];

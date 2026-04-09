@@ -49,7 +49,7 @@
 
   // Count entries in adapters.js (the single source of truth)
   const entryCount = (adaptersSrc.match(/"[a-zA-Z]+\.\w+": \{/g) || []).length;
-  assert('Adapter markers have 194 entries', entryCount === 194, `found ${entryCount}`);
+  assert('Adapter markers have 217 entries', entryCount === 217, `found ${entryCount}`);
 
   // Each entry has required fields
   assert('Entries have name field', adaptersSrc.includes('name:'));

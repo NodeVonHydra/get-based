@@ -5,6 +5,14 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.16.3', date: '2026-04-08', title: 'BioStarks Adapter',
+    items: [
+      'BioStarks adapter \u2014 native support for BioStarks dried blood spot panels (amino acids, fatty acids, intracellular minerals, vitamins, hormones, metabolism)',
+      '23 new specialty markers with BioStarks-specific reference ranges \u2014 12 amino acids, 5 serum fatty acids (\u00b5mol/L), 3 intracellular minerals (\u00b5g/gHb), cortisol, T/C ratio, vitamin E',
+      'Hybrid import \u2014 standard blood markers (glucose, lipids, etc.) map to standard categories for trend tracking alongside other labs',
+    ]
+  },
+  {
     version: '1.16.1', date: '2026-04-08', title: 'Custom API Provider',
     items: [
       'Custom API provider \u2014 connect to any OpenAI-compatible endpoint with your own base URL and API key',
