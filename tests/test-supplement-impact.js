@@ -139,9 +139,11 @@
   // AI-driven display (health dots pattern)
   assert('Uses callClaudeAPI', suppSrc.includes('callClaudeAPI'));
   assert('Uses hasAIProvider', suppSrc.includes('hasAIProvider'));
-  assert('Caches with fingerprint', suppSrc.includes('getImpactFingerprint'));
+  assert('Batch fingerprint for all supps', suppSrc.includes('getBatchFingerprint'));
+  assert('Batch AI call for all supps', suppSrc.includes('loadBatchImpactAI'));
+  assert('Deduplicates in-flight calls', suppSrc.includes('_batchPromise'));
   assert('Uses health dot CSS classes', suppSrc.includes('ctx-health-dot'));
-  assert('AI returns dot+summary JSON', suppSrc.includes('"dot":"green|yellow|red|gray"'));
+  assert('AI returns dot+summary JSON per supp', suppSrc.includes('"dot":"green|yellow|red|gray"'));
   assert('Shimmer while loading', suppSrc.includes('ctx-health-dot-shimmer'));
   assert('Falls back without AI', suppSrc.includes('Set up an AI provider'));
 

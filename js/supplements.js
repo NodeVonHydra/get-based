@@ -253,23 +253,11 @@ function getOverlappingSupplements(supplement, supps) {
 }
 
 // Build a compact data summary for the AI prompt
-function buildImpactPromptData(supplement, impacts, supps) {
-  const overlapping = getOverlappingSupplements(supplement, supps);
-  const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const top = impacts.slice(0, 5);
-  let ctx = `${supplement.name}${supplement.dosage ? ' ' + supplement.dosage : ''} (${supplement.type}) since ${supplement.startDate}${supplement.endDate ? ' until ' + supplement.endDate : ''}`;
-  ctx += `\nChanges:`;
-  for (const imp of top) {
-    ctx += `\n${imp.markerName}: ${fmtVal(imp.beforeMean)}→${fmtVal(imp.afterMean)} ${imp.unit} (${imp.pctChange > 0 ? '+' : ''}${imp.pctChange.toFixed(0)}%)`;
-    if (imp.refMin != null || imp.refMax != null) ctx += ` ref ${imp.refMin ?? ''}–${imp.refMax ?? ''}`;
-  }
-  if (overlapping.length > 0) ctx += `\nAlso taking: ${overlapping.map(s => s.name).join(', ')}`;
-  return ctx;
-}
-
-function getImpactFingerprint(supplement, impacts) {
-  const impactStr = impacts.slice(0, 5).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
-  return hashString(`${supplement.name}|${supplement.startDate}|${supplement.endDate || ''}|${impactStr}`);
+// Fingerprint all supplements + lab data together — one cache entry for the whole batch
+function getBatchFingerprint(supps, data) {
+  const labPart = (data.dates || []).join(',');
+  const suppPart = supps.map(s => `${s.name}|${s.startDate}|${s.endDate || ''}`).join(';');
+  return hashString(labPart + '||' + suppPart);
 }
 
 function getImpactCache() {
@@ -287,6 +275,9 @@ function setImpactCache(cache) {
   } catch { /* quota exceeded */ }
 }
 
+// In-flight promise to prevent duplicate batch calls
+let _batchPromise = null;
+
 export function renderSupplementImpact(supplement, editIdx) {
   const hasAI = hasAIProvider();
   const data = getActiveData();
@@ -294,11 +285,12 @@ export function renderSupplementImpact(supplement, editIdx) {
   const impacts = computeAllImpacts(supplement, data);
   if (impacts.length === 0) return '';
 
-  const fp = getImpactFingerprint(supplement, impacts);
+  const supps = state.importedData.supplements || [];
+  const fp = getBatchFingerprint(supps, data);
   const cache = getImpactCache();
-  const cached = cache[fp];
+  const batch = cache[fp]; // { "SupplementName": { dot, summary }, ... }
+  const cached = batch?.[supplement.name];
 
-  // Container with dot + summary (like health dots)
   const dotColor = cached ? `ctx-health-dot-${cached.dot}` : (hasAI ? 'ctx-health-dot-shimmer' : 'ctx-health-dot-gray');
   const summaryClass = cached ? `supp-impact-summary-visible supp-impact-summary-${cached.dot}` : '';
   const summaryText = cached ? escapeHTML(cached.summary) : (hasAI ? '' : 'Set up an AI provider for impact insights');
@@ -311,46 +303,100 @@ export function renderSupplementImpact(supplement, editIdx) {
     <div class="supp-impact-summary ${summaryClass}" id="supp-impact-summary-${editIdx}">${summaryText}</div>
   </div>`;
 
-  // If not cached and AI available, fire async fetch
+  // If not cached and AI available, fire batch call (one call for ALL supplements)
   if (!cached && hasAI) {
-    setTimeout(() => loadSupplementImpactAI(supplement, editIdx, impacts, fp), 50);
+    setTimeout(() => loadBatchImpactAI(supps, data, fp, editIdx), 50);
   }
   return html;
 }
 
-async function loadSupplementImpactAI(supplement, editIdx, impacts, fp) {
-  const supps = state.importedData.supplements || [];
-  const promptData = buildImpactPromptData(supplement, impacts, supps);
-  const system = `Reply with ONLY JSON, no other text: {"dot":"green|yellow|red|gray","summary":"1-2 sentences"}
-green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data. Name markers. Note if change is expected for this supplement.`;
-
-  try {
-    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 300 });
-    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return;
-    const parsed = JSON.parse(jsonMatch[0]);
-    const dot = ['green', 'yellow', 'red', 'gray'].includes(parsed.dot) ? parsed.dot : 'gray';
-    const summary = typeof parsed.summary === 'string' ? parsed.summary : '';
-
-    // Cache
+async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
+  // Deduplicate: if a batch call is already in flight for this fingerprint, wait for it
+  if (_batchPromise) {
+    await _batchPromise;
+    // After the batch completes, update the current DOM from cache
     const cache = getImpactCache();
-    cache[fp] = { dot, summary };
-    // Keep cache small — max 20 entries
-    const keys = Object.keys(cache);
-    if (keys.length > 20) { for (const k of keys.slice(0, keys.length - 20)) delete cache[k]; }
-    setImpactCache(cache);
+    const batch = cache[fp];
+    if (batch) applyImpactToDOM(currentEditIdx, batch, supps);
+    return;
+  }
 
-    // Update DOM
-    const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
-    if (dotEl) {
-      dotEl.className = `ctx-health-dot ctx-health-dot-${dot}`;
+  // Build prompt with ALL supplements
+  const suppEntries = [];
+  for (const s of supps) {
+    const impacts = computeAllImpacts(s, data);
+    if (impacts.length === 0) continue;
+    suppEntries.push({ supplement: s, impacts });
+  }
+  if (suppEntries.length === 0) return;
+
+  const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+  let ctx = `Analyze ${suppEntries.length} supplements:\n`;
+  for (const { supplement: s, impacts } of suppEntries) {
+    const top = impacts.slice(0, 5);
+    const overlapping = getOverlappingSupplements(s, supps);
+    ctx += `\n[${s.name}] ${s.dosage || ''} (${s.type}) since ${s.startDate}${s.endDate ? ' until ' + s.endDate : ''}`;
+    if (overlapping.length > 0) ctx += ` (also taking: ${overlapping.map(o => o.name).join(', ')})`;
+    ctx += `\n`;
+    for (const imp of top) {
+      ctx += `  ${imp.markerName}: ${fmtVal(imp.beforeMean)}→${fmtVal(imp.afterMean)} ${imp.unit} (${imp.pctChange > 0 ? '+' : ''}${imp.pctChange.toFixed(0)}%)`;
+      if (imp.refMin != null || imp.refMax != null) ctx += ` ref ${imp.refMin ?? ''}–${imp.refMax ?? ''}`;
+      ctx += `\n`;
     }
-    const sumEl = document.getElementById(`supp-impact-summary-${editIdx}`);
-    if (sumEl) {
-      sumEl.textContent = summary;
-      sumEl.className = `supp-impact-summary supp-impact-summary-visible supp-impact-summary-${dot}`;
-    }
-  } catch { /* AI unavailable — dot stays gray */ }
+  }
+
+  const names = suppEntries.map(e => `"${e.supplement.name}"`).join(', ');
+  const system = `Reply with ONLY JSON, no other text. One entry per supplement: {${names.replace(/"/g, '"')}: {"dot":"green|yellow|red|gray","summary":"1-2 sentences"}, ...}
+green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data. Name markers. Note expected changes.`;
+
+  _batchPromise = (async () => {
+    try {
+      const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: ctx }], maxTokens: 150 * suppEntries.length + 100 });
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) return;
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      // Normalize: AI may return nested or flat structure
+      const batch = {};
+      for (const { supplement: s } of suppEntries) {
+        const entry = parsed[s.name];
+        if (entry && typeof entry === 'object') {
+          batch[s.name] = {
+            dot: ['green', 'yellow', 'red', 'gray'].includes(entry.dot) ? entry.dot : 'gray',
+            summary: typeof entry.summary === 'string' ? entry.summary : ''
+          };
+        }
+      }
+
+      // Cache the whole batch under one fingerprint
+      const cache = getImpactCache();
+      cache[fp] = batch;
+      // Keep max 5 batch entries (each covers all supps)
+      const keys = Object.keys(cache);
+      if (keys.length > 5) { for (const k of keys.slice(0, keys.length - 5)) delete cache[k]; }
+      setImpactCache(cache);
+
+      // Update DOM for the currently visible supplement
+      applyImpactToDOM(currentEditIdx, batch, supps);
+    } catch { /* AI unavailable */ }
+  })();
+
+  await _batchPromise;
+  _batchPromise = null;
+}
+
+function applyImpactToDOM(editIdx, batch, supps) {
+  const s = supps[editIdx];
+  if (!s) return;
+  const cached = batch[s.name];
+  if (!cached) return;
+  const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
+  if (dotEl) dotEl.className = `ctx-health-dot ctx-health-dot-${cached.dot}`;
+  const sumEl = document.getElementById(`supp-impact-summary-${editIdx}`);
+  if (sumEl) {
+    sumEl.textContent = cached.summary;
+    sumEl.className = `supp-impact-summary supp-impact-summary-visible supp-impact-summary-${cached.dot}`;
+  }
 }
 
 Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts });
