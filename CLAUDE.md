@@ -31,7 +31,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
   - `crypto.js` — AES-256-GCM encryption at rest (PBKDF2), auto-backup (IndexedDB + File System Access API), cross-tab sync (BroadcastChannel)
   - `notes.js` — note editor (open/save/delete)
-  - `supplements.js` — supplement editor + render section
+  - `supplements.js` — supplement editor + render section + impact analysis (`computeSupplementImpact`, `computeAllImpacts`, `renderSupplementImpact`)
   - `supplement-warnings.js` — mitochondrial compound warnings for supplements (108 entries, PubMed-cited)
   - `food-contaminants.js` — diet card pesticide/plastic contaminant scanner (EWG Dirty Dozen, PlasticList)
   - `recommendations.js` — lazy-loaded catalog, slot matching, product rendering for supplement & lifestyle recs (3 touchpoints: detail modal, chat, context cards). `buildDNAHints(slotKey)` connects genetics to recs via `snpHints` in snp-health.json
@@ -55,7 +55,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker), cashu-ts v3.6.2 (Cashu eCash protocol), bip39-minimal (BIP-39 mnemonic generation). Run `./update-vendor.sh` to update
 - **`data/`** — `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`, `snp-health.json` (42 autosomal SNPs), `haplogroups.json` (28 mtDNA haplogroups with Wallace coupling classification), `mito-compounds.json` (108 mitochondrial compound effects)
-- **`tests/`** — 32 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 34 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -65,6 +65,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 2. All data in `importedData` under `localStorage` key `labcharts-{profileId}-imported`. Legacy fields auto-migrated via `migrateProfileData()`
 3. `refOverrides` stores per-marker ref/optimal ranges. `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` stores per-marker freeform notes. `changeHistory` is a capped (200) array of timestamped context field snapshots for AI temporal reasoning. `biometrics` stores time-series weight/BP/pulse arrays (height is on profile object)
 4. Marker values are arrays aligned with `dates`; `null` = no result. `singlePoint` categories use grid cards. Charts use `spanGaps: true`
+5. Each entry has `markerSources` (per-marker provenance): `{ "category.markerKey": { file: "filename.pdf", at: unixMs } }`. `file: null` = manual entry. Detail modal shows source filename per value
 
 ### PDF Import Pipeline
 
@@ -130,7 +131,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-32 browser-based test files run headlessly:
+34 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

@@ -5,6 +5,15 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.17.0', date: '2026-04-09', title: 'Import Provenance + Supplement Impact',
+    items: [
+      'Import provenance \u2014 every imported value now tracks which PDF file and when it was imported, shown in the detail modal',
+      'Manual entries and edits also tracked with provenance (manual entry label)',
+      'Supplement impact analysis \u2014 quantitative before/after biomarker comparison when editing a supplement, with confidence levels and causation disclaimer',
+      'Focus card AI context now includes top supplement impact summaries for smarter reasoning',
+    ]
+  },
+  {
     version: '1.16.3', date: '2026-04-08', title: 'BioStarks Adapter',
     items: [
       'BioStarks adapter \u2014 native support for BioStarks dried blood spot panels (amino acids, fatty acids, intracellular minerals, vitamins, hormones, metabolism)',

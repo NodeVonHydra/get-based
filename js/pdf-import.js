@@ -815,7 +815,12 @@ export function confirmImport() {
     if (!entry.sourceFiles.includes(result.fileName)) entry.sourceFiles.push(result.fileName);
     entry.sourceFile = result.fileName; // backwards compat
   }
-  for (const m of matched) entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
+  if (!entry.markerSources) entry.markerSources = {};
+  const importTs = Date.now();
+  for (const m of matched) {
+    entry.markers[m.mappedKey] = normalizeToSI(m.mappedKey, m.value, m.unit);
+    entry.markerSources[m.mappedKey] = { file: result.fileName || null, at: importTs };
+  }
   // For non-blood imports, testType is the authoritative sidebar group for all markers
   const importGroup = (result.testType && result.testType !== 'blood')
     ? (result.testType === 'fattyAcids' ? 'Fatty Acids' : result.testType)
@@ -842,6 +847,7 @@ export function confirmImport() {
   // Save new (custom) marker values and definitions
   for (const m of newMarkers) {
     entry.markers[m.suggestedKey] = normalizeToSI(m.suggestedKey, m.value, m.unit);
+    entry.markerSources[m.suggestedKey] = { file: result.fileName || null, at: importTs };
     const [catKey] = m.suggestedKey.split('.');
     const schemaCategory = MARKER_SCHEMA[catKey];
     const categoryLabel = schemaCategory ? schemaCategory.label : m.suggestedCategoryLabel || catKey.charAt(0).toUpperCase() + catKey.slice(1);

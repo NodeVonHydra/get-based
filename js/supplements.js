@@ -2,7 +2,8 @@
 
 import { state } from './state.js';
 import { escapeHTML, showNotification } from './utils.js';
-import { saveImportedData } from './data.js';
+import { saveImportedData, getActiveData } from './data.js';
+import { getStatus } from './utils.js';
 import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 
 export function renderSupplementsSection() {
@@ -98,6 +99,7 @@ export function openSupplementsEditor(editIdx) {
     }
     html += `</div>`;
   }
+  if (editing) html += renderSupplementImpact(editing, editIdx);
   html += `<div class="supp-form">
     <div class="supp-form-title">${editing ? 'Edit' : 'Add New'}</div>
     <div class="supp-form-row">
@@ -187,4 +189,120 @@ function askAIMitoContext() {
   }, 500);
 }
 
-Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext });
+// ═══════════════════════════════════════════════
+// Supplement-Biomarker Impact Analysis
+// ═══════════════════════════════════════════════
+
+export function computeSupplementImpact(supplement, markerKey, markerName, unit, values, dates, refMin, refMax) {
+  if (!values || !dates || values.length !== dates.length) return null;
+  const start = supplement.startDate;
+  const end = supplement.endDate;
+  const beforeValues = [], afterValues = [];
+  for (let i = 0; i < dates.length; i++) {
+    if (values[i] === null) continue;
+    if (dates[i] < start) {
+      beforeValues.push(values[i]);
+    } else if (!end || dates[i] <= end) {
+      afterValues.push(values[i]);
+    }
+  }
+  if (beforeValues.length === 0 && afterValues.length === 0) return null;
+  const mean = arr => arr.reduce((s, v) => s + v, 0) / arr.length;
+  const beforeMean = beforeValues.length > 0 ? mean(beforeValues) : null;
+  const afterMean = afterValues.length > 0 ? mean(afterValues) : null;
+  let pctChange = null, direction = 'stable';
+  if (beforeMean !== null && afterMean !== null && beforeMean !== 0) {
+    pctChange = ((afterMean - beforeMean) / Math.abs(beforeMean)) * 100;
+    direction = Math.abs(pctChange) < 1 ? 'stable' : pctChange > 0 ? 'up' : 'down';
+  }
+  let confidence = 'low';
+  if (beforeValues.length >= 3 && afterValues.length >= 3) confidence = 'high';
+  else if (beforeValues.length >= 2 && afterValues.length >= 2) confidence = 'moderate';
+  return {
+    marker: markerKey, markerName, unit,
+    beforeMean, afterMean, pctChange, direction, confidence,
+    nBefore: beforeValues.length, nAfter: afterValues.length,
+    refMin, refMax
+  };
+}
+
+export function computeAllImpacts(supplement, data) {
+  if (!data || !data.categories || !data.dates) return [];
+  const results = [];
+  for (const [catKey, cat] of Object.entries(data.categories)) {
+    for (const [mKey, marker] of Object.entries(cat.markers)) {
+      const dotKey = catKey + '.' + mKey;
+      const impact = computeSupplementImpact(
+        supplement, dotKey, marker.name, marker.unit,
+        marker.values, data.dates, marker.refMin, marker.refMax
+      );
+      if (impact && impact.pctChange !== null && Math.abs(impact.pctChange) >= 1) {
+        results.push(impact);
+      }
+    }
+  }
+  results.sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
+  return results;
+}
+
+function getOverlappingSupplements(supplement, supps) {
+  const start = supplement.startDate;
+  const end = supplement.endDate || '9999-12-31';
+  return supps.filter(s => s !== supplement && s.startDate <= end && (s.endDate || '9999-12-31') >= start);
+}
+
+function formatImpactDirection(impact) {
+  if (impact.refMin == null && impact.refMax == null) return 'neutral';
+  const beforeStatus = impact.beforeMean !== null ? getStatus(impact.beforeMean, impact.refMin, impact.refMax) : null;
+  const afterStatus = impact.afterMean !== null ? getStatus(impact.afterMean, impact.refMin, impact.refMax) : null;
+  if (!beforeStatus || !afterStatus) return 'neutral';
+  if (beforeStatus === 'normal' && afterStatus === 'normal') return 'neutral';
+  if (afterStatus === 'normal' && beforeStatus !== 'normal') return 'good';
+  if (beforeStatus === 'normal' && afterStatus !== 'normal') return 'bad';
+  // Both out of range — check if getting closer to range
+  const midRef = ((impact.refMin || 0) + (impact.refMax || 0)) / 2;
+  const beforeDist = Math.abs((impact.beforeMean || 0) - midRef);
+  const afterDist = Math.abs((impact.afterMean || 0) - midRef);
+  return afterDist < beforeDist ? 'good' : 'bad';
+}
+
+export function renderSupplementImpact(supplement, editIdx) {
+  const data = getActiveData();
+  if (!data || !data.dates || data.dates.length < 2) return '';
+  const impacts = computeAllImpacts(supplement, data);
+  if (impacts.length === 0) return '';
+  const supps = state.importedData.supplements || [];
+  const overlapping = getOverlappingSupplements(supplement, supps);
+  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const top = impacts.slice(0, 8);
+  let html = `<div class="supp-impact-section">
+    <div class="supp-impact-header">Impact: ${escapeHTML(supplement.name)}${supplement.dosage ? ` (${escapeHTML(supplement.dosage)})` : ''} since ${fmtDate(supplement.startDate)}</div>
+    <div class="supp-impact-rows">`;
+  for (const imp of top) {
+    const dir = formatImpactDirection(imp);
+    const sign = imp.pctChange > 0 ? '+' : '';
+    const badgeClass = imp.confidence === 'low' ? 'neutral' : dir;
+    const beforeStr = imp.beforeMean !== null ? imp.beforeMean.toPrecision(3) : '—';
+    const afterStr = imp.afterMean !== null ? imp.afterMean.toPrecision(3) : '—';
+    html += `<div class="supp-impact-row">
+      <span class="supp-impact-name">${escapeHTML(imp.markerName)}</span>
+      <span class="supp-impact-values">${beforeStr} \u2192 ${afterStr} ${escapeHTML(imp.unit)}</span>
+      <span class="supp-impact-badge supp-impact-${badgeClass}">${sign}${imp.pctChange.toFixed(1)}%</span>
+      <span class="supp-impact-confidence">${imp.confidence}</span>
+    </div>`;
+  }
+  html += `</div>`;
+  // Data point counts + overlapping supplements
+  const totalBefore = top.length > 0 ? top[0].nBefore : 0;
+  const totalAfter = top.length > 0 ? top[0].nAfter : 0;
+  let meta = `${totalBefore} lab${totalBefore !== 1 ? 's' : ''} before, ${totalAfter} after`;
+  if (overlapping.length > 0) {
+    meta += ` \u00b7 also active: ${overlapping.map(s => escapeHTML(s.name)).join(', ')}`;
+  }
+  html += `<div class="supp-impact-meta">${meta}</div>`;
+  html += `<div class="supp-impact-caveat">Correlation does not imply causation. Many factors affect biomarker levels.</div>`;
+  html += `</div>`;
+  return html;
+}
+
+Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts });

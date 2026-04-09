@@ -332,7 +332,18 @@ export function buildFocusContext() {
       let timing = '';
       if (lastDate && s.startDate > lastDate) timing = ' (started AFTER last labs — cannot have affected these results)';
       else if (lastDate && data.dates.length >= 2 && s.startDate > data.dates[data.dates.length - 2]) timing = ' (started between last two labs)';
-      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${timing}\n`;
+      // Top impact summary for AI context
+      let impactNote = '';
+      if (!timing && data.dates.length >= 2) {
+        const impacts = window.computeAllImpacts?.(s, data);
+        if (impacts && impacts.length > 0) {
+          const top = impacts.slice(0, 2).filter(im => im.confidence !== 'low');
+          if (top.length > 0) {
+            impactNote = ' — impacts: ' + top.map(im => `${im.markerName} ${im.pctChange > 0 ? '+' : ''}${im.pctChange.toFixed(1)}%`).join(', ');
+          }
+        }
+      }
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${timing}${impactNote}\n`;
     }
   }
 
@@ -1066,7 +1077,26 @@ export function showDetailModal(id, opts = {}) {
       : isManual ? ' <span class="ref-edited-badge" title="Manually entered">manual</span>' : '';
     const deleteBtn = `<button class="mv-delete" onclick="event.stopPropagation();deleteMarkerValue('${id}','${rawDate}')" title="Remove this value">&times;</button>`;
     const editClick = rawDate ? ` onclick="event.stopPropagation();editMarkerValue('${id}','${rawDate}',${v},event)" title="Click to edit" style="cursor:pointer"` : '';
-    html += `<div class="modal-value-card status-${s}">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>
+    // Provenance: which file imported this value
+    let sourceHtml = '';
+    if (rawDate) {
+      const srcEntry = state.importedData.entries?.find(e => e.date === rawDate);
+      const src = srcEntry?.markerSources?.[dotKey];
+      if (src) {
+        const fname = src.file;
+        if (fname) {
+          const display = fname.length > 30 ? fname.slice(0, 27) + '...' : fname;
+          sourceHtml = `<div class="mv-source" title="${escapeHTML(fname)}">${escapeHTML(display)}</div>`;
+        } else {
+          sourceHtml = `<div class="mv-source mv-source-manual">manual entry</div>`;
+        }
+      } else if (srcEntry?.sourceFile) {
+        const fname = srcEntry.sourceFile;
+        const display = fname.length > 30 ? fname.slice(0, 27) + '...' : fname;
+        sourceHtml = `<div class="mv-source" title="${escapeHTML(fname)}">${escapeHTML(display)}</div>`;
+      }
+    }
+    html += `<div class="modal-value-card status-${s}">${deleteBtn}<div class="mv-date">${dates[i]}${noteIcon}</div>${sourceHtml}
       <div class="mv-value val-${s}"${editClick}>${formatValue(v)}${manualBadge}</div>
       <div class="mv-status val-${s}">${sl}</div>${phaseInfo}</div>`;
   }
@@ -1326,6 +1356,9 @@ export function saveManualEntry(id) {
   }
   const storedValue = convertDisplayToSI(dotKey, value);
   entry.markers[dotKey] = storedValue;
+  // Track provenance
+  if (!entry.markerSources) entry.markerSources = {};
+  entry.markerSources[dotKey] = { file: null, at: Date.now() };
   // Track as manually added
   if (!state.importedData.manualValues) state.importedData.manualValues = {};
   state.importedData.manualValues[dotKey + ':' + date] = true;
@@ -1585,6 +1618,9 @@ export function editMarkerValue(id, date, currentValue, event) {
     }
     const storedValue = convertDisplayToSI(dotKey, newValue);
     entry.markers[dotKey] = storedValue;
+    // Update provenance to reflect manual edit
+    if (!entry.markerSources) entry.markerSources = {};
+    entry.markerSources[dotKey] = { file: null, at: Date.now() };
     if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; recalculateHOMAIR(entry); }
     saveImportedData();
     showDetailModal(id);
