@@ -1,9 +1,8 @@
 // supplements.js — Supplement/medication editor and dashboard section
 
 import { state } from './state.js';
-import { escapeHTML, showNotification } from './utils.js';
+import { escapeHTML, showNotification, getStatus } from './utils.js';
 import { saveImportedData, getActiveData } from './data.js';
-import { getStatus } from './utils.js';
 import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 
 export function renderSupplementsSection() {
@@ -259,10 +258,11 @@ function formatImpactDirection(impact) {
   if (beforeStatus === 'normal' && afterStatus === 'normal') return 'neutral';
   if (afterStatus === 'normal' && beforeStatus !== 'normal') return 'good';
   if (beforeStatus === 'normal' && afterStatus !== 'normal') return 'bad';
-  // Both out of range — check if getting closer to range
-  const midRef = ((impact.refMin || 0) + (impact.refMax || 0)) / 2;
-  const beforeDist = Math.abs((impact.beforeMean || 0) - midRef);
-  const afterDist = Math.abs((impact.afterMean || 0) - midRef);
+  // Both out of range — check if getting closer to range midpoint
+  if (impact.refMin == null || impact.refMax == null) return 'neutral'; // one-sided range: can't compute midpoint
+  const midRef = (impact.refMin + impact.refMax) / 2;
+  const beforeDist = Math.abs(impact.beforeMean - midRef);
+  const afterDist = Math.abs(impact.afterMean - midRef);
   return afterDist < beforeDist ? 'good' : 'bad';
 }
 
@@ -282,8 +282,9 @@ export function renderSupplementImpact(supplement, editIdx) {
     const dir = formatImpactDirection(imp);
     const sign = imp.pctChange > 0 ? '+' : '';
     const badgeClass = imp.confidence === 'low' ? 'neutral' : dir;
-    const beforeStr = imp.beforeMean !== null ? imp.beforeMean.toPrecision(3) : '—';
-    const afterStr = imp.afterMean !== null ? imp.afterMean.toPrecision(3) : '—';
+    const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+    const beforeStr = imp.beforeMean !== null ? fmtVal(imp.beforeMean) : '—';
+    const afterStr = imp.afterMean !== null ? fmtVal(imp.afterMean) : '—';
     html += `<div class="supp-impact-row">
       <span class="supp-impact-name">${escapeHTML(imp.markerName)}</span>
       <span class="supp-impact-values">${beforeStr} \u2192 ${afterStr} ${escapeHTML(imp.unit)}</span>

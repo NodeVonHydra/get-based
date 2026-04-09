@@ -864,8 +864,14 @@ export function confirmImport() {
     state.importedData.customMarkers[m.suggestedKey] = cmDef;
   }
   // Mirror insulin between hormones and diabetes categories (AI may map to either)
-  if (entry.markers["hormones.insulin"] !== undefined) entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
-  if (entry.markers["diabetes.insulin_d"] !== undefined && entry.markers["hormones.insulin"] === undefined) entry.markers["hormones.insulin"] = entry.markers["diabetes.insulin_d"];
+  if (entry.markers["hormones.insulin"] !== undefined) {
+    entry.markers["diabetes.insulin_d"] = entry.markers["hormones.insulin"];
+    if (entry.markerSources?.["hormones.insulin"]) entry.markerSources["diabetes.insulin_d"] = entry.markerSources["hormones.insulin"];
+  }
+  if (entry.markers["diabetes.insulin_d"] !== undefined && entry.markers["hormones.insulin"] === undefined) {
+    entry.markers["hormones.insulin"] = entry.markers["diabetes.insulin_d"];
+    if (entry.markerSources?.["diabetes.insulin_d"]) entry.markerSources["hormones.insulin"] = entry.markerSources["diabetes.insulin_d"];
+  }
   recalculateHOMAIR(entry);
   // Adopt PDF reference ranges if user opted in (skip if range matches schema default)
   const adoptRanges = document.getElementById('import-adopt-ranges');

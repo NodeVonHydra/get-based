@@ -1363,7 +1363,7 @@ export function saveManualEntry(id) {
   if (!state.importedData.manualValues) state.importedData.manualValues = {};
   state.importedData.manualValues[dotKey + ':' + date] = true;
   // Insulin dual-mapping
-  if (dotKey === 'hormones.insulin') entry.markers['diabetes.insulin_d'] = storedValue;
+  if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; entry.markerSources['diabetes.insulin_d'] = entry.markerSources[dotKey]; }
   recalculateHOMAIR(entry);
   saveImportedData();
   window.buildSidebar();
@@ -1527,10 +1527,11 @@ export function deleteMarkerValue(id, date) {
   const entry = state.importedData.entries.find(e => e.date === date);
   if (!entry || entry.markers[dotKey] === undefined) return;
   delete entry.markers[dotKey];
-  // Clean up manual tracking
+  // Clean up provenance and manual tracking
+  if (entry.markerSources) delete entry.markerSources[dotKey];
   if (state.importedData.manualValues) delete state.importedData.manualValues[dotKey + ':' + date];
   // Clean up insulin dual-mapping
-  if (dotKey === 'hormones.insulin') { delete entry.markers['diabetes.insulin_d']; recalculateHOMAIR(entry); }
+  if (dotKey === 'hormones.insulin') { delete entry.markers['diabetes.insulin_d']; if (entry.markerSources) delete entry.markerSources['diabetes.insulin_d']; recalculateHOMAIR(entry); }
   // Remove entry entirely if no markers left
   if (Object.keys(entry.markers).length === 0) {
     state.importedData.entries = state.importedData.entries.filter(e => e.date !== date);
@@ -1621,7 +1622,7 @@ export function editMarkerValue(id, date, currentValue, event) {
     // Update provenance to reflect manual edit
     if (!entry.markerSources) entry.markerSources = {};
     entry.markerSources[dotKey] = { file: null, at: Date.now() };
-    if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; recalculateHOMAIR(entry); }
+    if (dotKey === 'hormones.insulin') { entry.markers['diabetes.insulin_d'] = storedValue; if (entry.markerSources) entry.markerSources['diabetes.insulin_d'] = entry.markerSources[dotKey]; recalculateHOMAIR(entry); }
     saveImportedData();
     showDetailModal(id);
   };
