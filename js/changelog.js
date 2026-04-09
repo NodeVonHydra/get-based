@@ -9,7 +9,7 @@ const CHANGELOG = [
     items: [
       'Import provenance \u2014 every imported value now tracks which PDF file and when it was imported, shown in the detail modal',
       'Manual entries and edits also tracked with provenance (manual entry label)',
-      'Supplement impact analysis \u2014 quantitative before/after biomarker comparison when editing a supplement, with confidence levels and causation disclaimer',
+      'Supplement impact analysis \u2014 AI-driven before/after biomarker summary when editing a supplement, with colored health dot and cached results',
       'Focus card AI context now includes top supplement impact summaries for smarter reasoning',
     ]
   },

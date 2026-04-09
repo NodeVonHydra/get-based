@@ -1,7 +1,7 @@
 // supplements.js — Supplement/medication editor and dashboard section
 
 import { state } from './state.js';
-import { escapeHTML, showNotification, getStatus, hashString } from './utils.js';
+import { escapeHTML, showNotification, hashString } from './utils.js';
 import { saveImportedData, getActiveData } from './data.js';
 import { callClaudeAPI, hasAIProvider } from './api.js';
 import { profileStorageKey } from './profile.js';
