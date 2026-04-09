@@ -1,8 +1,10 @@
 // supplements.js — Supplement/medication editor and dashboard section
 
 import { state } from './state.js';
-import { escapeHTML, showNotification, getStatus } from './utils.js';
+import { escapeHTML, showNotification, getStatus, hashString } from './utils.js';
 import { saveImportedData, getActiveData } from './data.js';
+import { callClaudeAPI, hasAIProvider } from './api.js';
+import { profileStorageKey } from './profile.js';
 import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 
 export function renderSupplementsSection() {
@@ -250,60 +252,116 @@ function getOverlappingSupplements(supplement, supps) {
   return supps.filter(s => s !== supplement && s.startDate <= end && (s.endDate || '9999-12-31') >= start);
 }
 
-function formatImpactDirection(impact) {
-  if (impact.refMin == null && impact.refMax == null) return 'neutral';
-  const beforeStatus = impact.beforeMean !== null ? getStatus(impact.beforeMean, impact.refMin, impact.refMax) : null;
-  const afterStatus = impact.afterMean !== null ? getStatus(impact.afterMean, impact.refMin, impact.refMax) : null;
-  if (!beforeStatus || !afterStatus) return 'neutral';
-  if (beforeStatus === 'normal' && afterStatus === 'normal') return 'neutral';
-  if (afterStatus === 'normal' && beforeStatus !== 'normal') return 'good';
-  if (beforeStatus === 'normal' && afterStatus !== 'normal') return 'bad';
-  // Both out of range — check if getting closer to range midpoint
-  if (impact.refMin == null || impact.refMax == null) return 'neutral'; // one-sided range: can't compute midpoint
-  const midRef = (impact.refMin + impact.refMax) / 2;
-  const beforeDist = Math.abs(impact.beforeMean - midRef);
-  const afterDist = Math.abs(impact.afterMean - midRef);
-  return afterDist < beforeDist ? 'good' : 'bad';
+// Build a compact data summary for the AI prompt
+function buildImpactPromptData(supplement, impacts, supps) {
+  const overlapping = getOverlappingSupplements(supplement, supps);
+  const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+  const top = impacts.slice(0, 12);
+  let ctx = `Supplement: ${supplement.name}`;
+  if (supplement.dosage) ctx += ` (${supplement.dosage})`;
+  ctx += `\nType: ${supplement.type}`;
+  ctx += `\nStarted: ${supplement.startDate}`;
+  if (supplement.endDate) ctx += `\nEnded: ${supplement.endDate}`;
+  if (supplement.note) ctx += `\nNote: ${supplement.note}`;
+  ctx += `\n\nBiomarker changes (before mean → after mean):`;
+  for (const imp of top) {
+    const sign = imp.pctChange > 0 ? '+' : '';
+    const status = imp.refMin != null || imp.refMax != null
+      ? ` [ref: ${imp.refMin ?? '—'}–${imp.refMax ?? '—'}]` : '';
+    ctx += `\n- ${imp.markerName}: ${fmtVal(imp.beforeMean)} → ${fmtVal(imp.afterMean)} ${imp.unit} (${sign}${imp.pctChange.toFixed(1)}%, ${imp.nBefore} before/${imp.nAfter} after)${status}`;
+  }
+  if (overlapping.length > 0) {
+    ctx += `\n\nOther supplements active during this period: ${overlapping.map(s => s.name).join(', ')}`;
+  }
+  return ctx;
+}
+
+function getImpactFingerprint(supplement, impacts) {
+  const impactStr = impacts.slice(0, 12).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
+  return hashString(`${supplement.name}|${supplement.startDate}|${supplement.endDate || ''}|${impactStr}`);
+}
+
+function getImpactCache() {
+  try {
+    const key = profileStorageKey(state.currentProfile, 'suppImpact');
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function setImpactCache(cache) {
+  try {
+    const key = profileStorageKey(state.currentProfile, 'suppImpact');
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch { /* quota exceeded */ }
 }
 
 export function renderSupplementImpact(supplement, editIdx) {
+  const hasAI = hasAIProvider();
   const data = getActiveData();
   if (!data || !data.dates || data.dates.length < 2) return '';
   const impacts = computeAllImpacts(supplement, data);
   if (impacts.length === 0) return '';
-  const supps = state.importedData.supplements || [];
-  const overlapping = getOverlappingSupplements(supplement, supps);
-  const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  const top = impacts.slice(0, 8);
+
+  const fp = getImpactFingerprint(supplement, impacts);
+  const cache = getImpactCache();
+  const cached = cache[fp];
+
+  // Container with dot + summary (like health dots)
+  const dotColor = cached ? `ctx-health-dot-${cached.dot}` : (hasAI ? 'ctx-health-dot-shimmer' : 'ctx-health-dot-gray');
+  const summaryClass = cached ? `supp-impact-summary-visible supp-impact-summary-${cached.dot}` : '';
+  const summaryText = cached ? escapeHTML(cached.summary) : (hasAI ? '' : 'Set up an AI provider for impact insights');
+
   let html = `<div class="supp-impact-section">
-    <div class="supp-impact-header">Impact: ${escapeHTML(supplement.name)}${supplement.dosage ? ` (${escapeHTML(supplement.dosage)})` : ''} since ${fmtDate(supplement.startDate)}</div>
-    <div class="supp-impact-rows">`;
-  for (const imp of top) {
-    const dir = formatImpactDirection(imp);
-    const sign = imp.pctChange > 0 ? '+' : '';
-    const badgeClass = imp.confidence === 'low' ? 'neutral' : dir;
-    const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-    const beforeStr = imp.beforeMean !== null ? fmtVal(imp.beforeMean) : '—';
-    const afterStr = imp.afterMean !== null ? fmtVal(imp.afterMean) : '—';
-    html += `<div class="supp-impact-row">
-      <span class="supp-impact-name">${escapeHTML(imp.markerName)}</span>
-      <span class="supp-impact-values">${beforeStr} \u2192 ${afterStr} ${escapeHTML(imp.unit)}</span>
-      <span class="supp-impact-badge supp-impact-${badgeClass}">${sign}${imp.pctChange.toFixed(1)}%</span>
-      <span class="supp-impact-confidence">${imp.confidence}</span>
-    </div>`;
+    <div class="supp-impact-header">
+      <span class="ctx-health-dot ${dotColor}" id="supp-impact-dot-${editIdx}"></span>
+      <span>Impact Analysis</span>
+    </div>
+    <div class="supp-impact-summary ${summaryClass}" id="supp-impact-summary-${editIdx}">${summaryText}</div>
+  </div>`;
+
+  // If not cached and AI available, fire async fetch
+  if (!cached && hasAI) {
+    setTimeout(() => loadSupplementImpactAI(supplement, editIdx, impacts, fp), 50);
   }
-  html += `</div>`;
-  // Data point counts + overlapping supplements
-  const totalBefore = top.length > 0 ? top[0].nBefore : 0;
-  const totalAfter = top.length > 0 ? top[0].nAfter : 0;
-  let meta = `${totalBefore} lab${totalBefore !== 1 ? 's' : ''} before, ${totalAfter} after`;
-  if (overlapping.length > 0) {
-    meta += ` \u00b7 also active: ${overlapping.map(s => escapeHTML(s.name)).join(', ')}`;
-  }
-  html += `<div class="supp-impact-meta">${meta}</div>`;
-  html += `<div class="supp-impact-caveat">Correlation does not imply causation. Many factors affect biomarker levels.</div>`;
-  html += `</div>`;
   return html;
+}
+
+async function loadSupplementImpactAI(supplement, editIdx, impacts, fp) {
+  const supps = state.importedData.supplements || [];
+  const promptData = buildImpactPromptData(supplement, impacts, supps);
+  const system = `You are a health data assistant. Analyze the biomarker changes since the user started a supplement/medication. Return ONLY valid JSON: {"dot":"green|yellow|red|gray","summary":"..."}
+
+dot: green = changes look beneficial or expected, yellow = mixed or needs monitoring, red = concerning changes, gray = insufficient data.
+summary: 1-2 sentences max. Be specific — name the markers. Mention if a change is expected (e.g. creatine raises creatinine). Note confounders if other supplements overlap. End with a brief actionable note if relevant. Do NOT say "correlation does not imply causation" — the UI already shows that.`;
+
+  try {
+    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 256 });
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return;
+    const parsed = JSON.parse(jsonMatch[0]);
+    const dot = ['green', 'yellow', 'red', 'gray'].includes(parsed.dot) ? parsed.dot : 'gray';
+    const summary = typeof parsed.summary === 'string' ? parsed.summary : '';
+
+    // Cache
+    const cache = getImpactCache();
+    cache[fp] = { dot, summary };
+    // Keep cache small — max 20 entries
+    const keys = Object.keys(cache);
+    if (keys.length > 20) { for (const k of keys.slice(0, keys.length - 20)) delete cache[k]; }
+    setImpactCache(cache);
+
+    // Update DOM
+    const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
+    if (dotEl) {
+      dotEl.className = `ctx-health-dot ctx-health-dot-${dot}`;
+    }
+    const sumEl = document.getElementById(`supp-impact-summary-${editIdx}`);
+    if (sumEl) {
+      sumEl.textContent = summary;
+      sumEl.className = `supp-impact-summary supp-impact-summary-visible supp-impact-summary-${dot}`;
+    }
+  } catch { /* AI unavailable — dot stays gray */ }
 }
 
 Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts });

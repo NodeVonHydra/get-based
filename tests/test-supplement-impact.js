@@ -133,9 +133,17 @@
   const suppSrc = await fetch('/js/supplements.js').then(r => r.text());
   assert('renderSupplementImpact exists', suppSrc.includes('function renderSupplementImpact'));
   assert('Wired into openSupplementsEditor', suppSrc.includes('renderSupplementImpact(editing'));
-  assert('Has causation disclaimer', suppSrc.includes('Correlation does not imply causation'));
   assert('Detects overlapping supplements', suppSrc.includes('getOverlappingSupplements'));
   assert('computeAllImpacts on window', suppSrc.includes('computeAllImpacts'));
+
+  // AI-driven display (health dots pattern)
+  assert('Uses callClaudeAPI', suppSrc.includes('callClaudeAPI'));
+  assert('Uses hasAIProvider', suppSrc.includes('hasAIProvider'));
+  assert('Caches with fingerprint', suppSrc.includes('getImpactFingerprint'));
+  assert('Uses health dot CSS classes', suppSrc.includes('ctx-health-dot'));
+  assert('AI returns dot+summary JSON', suppSrc.includes('"dot":"green|yellow|red|gray"'));
+  assert('Shimmer while loading', suppSrc.includes('ctx-health-dot-shimmer'));
+  assert('Falls back without AI', suppSrc.includes('Set up an AI provider'));
 
   // Focus card integration
   const viewsSrc = await fetch('/js/views.js').then(r => r.text());
@@ -144,8 +152,8 @@
   // CSS
   const cssSrc = await fetch('/styles.css').then(r => r.text());
   assert('Impact CSS exists', cssSrc.includes('.supp-impact-section'));
-  assert('Impact badge CSS exists', cssSrc.includes('.supp-impact-good'));
-  assert('Impact caveat CSS exists', cssSrc.includes('.supp-impact-caveat'));
+  assert('Impact summary CSS exists', cssSrc.includes('.supp-impact-summary'));
+  assert('Summary color variants', cssSrc.includes('.supp-impact-summary-green'));
 
   // ═══════════════════════════════════════
   // Summary

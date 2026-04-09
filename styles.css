@@ -1290,24 +1290,18 @@ body {
 }
 .supp-list-actions button:hover { color: var(--accent); border-color: var(--accent); }
 .supp-list-actions button.delete:hover { color: var(--red); border-color: var(--red); }
-/* Supplement impact analysis */
-.supp-impact-section { border-top: 1px solid var(--border); padding: 16px 0; }
-.supp-impact-header { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
-.supp-impact-rows { display: flex; flex-direction: column; gap: 6px; }
-.supp-impact-row { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 0; }
-.supp-impact-name { flex: 0 0 auto; min-width: 120px; font-weight: 500; color: var(--text-primary); }
-.supp-impact-values { flex: 1; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.supp-impact-badge { font-family: var(--font-mono); font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-.supp-impact-good { color: var(--green); background: var(--green-bg); }
-.supp-impact-bad { color: var(--red); background: var(--red-bg); }
-.supp-impact-neutral { color: var(--text-muted); background: var(--bg-secondary); }
-.supp-impact-confidence { font-size: 11px; color: var(--text-muted); opacity: 0.7; }
-.supp-impact-meta { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
-.supp-impact-caveat { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 4px; opacity: 0.7; }
-@media (max-width: 600px) {
-  .supp-impact-row { flex-wrap: wrap; }
-  .supp-impact-name { min-width: 100%; }
+/* Supplement impact analysis (AI-driven) */
+.supp-impact-section { border-top: 1px solid var(--border); padding: 12px 0; }
+.supp-impact-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.supp-impact-summary {
+  font-size: 12px; line-height: 1.4; color: var(--text-muted); font-style: italic;
+  max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s, opacity 0.3s, margin 0.3s;
+  margin-top: 0;
 }
+.supp-impact-summary-visible { max-height: 80px; opacity: 1; margin-top: 8px; }
+.supp-impact-summary-green { color: var(--green); }
+.supp-impact-summary-yellow { color: var(--yellow); }
+.supp-impact-summary-red { color: var(--red); }
 .supp-form { border-top: 1px solid var(--border); padding-top: 16px; }
 .supp-form-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
 .supp-form-row { display: flex; gap: 12px; margin-bottom: 10px; }
