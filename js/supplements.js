@@ -256,28 +256,19 @@ function getOverlappingSupplements(supplement, supps) {
 function buildImpactPromptData(supplement, impacts, supps) {
   const overlapping = getOverlappingSupplements(supplement, supps);
   const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const top = impacts.slice(0, 8);
-  let ctx = `Supplement: ${supplement.name}`;
-  if (supplement.dosage) ctx += ` (${supplement.dosage})`;
-  ctx += `\nType: ${supplement.type}`;
-  ctx += `\nStarted: ${supplement.startDate}`;
-  if (supplement.endDate) ctx += `\nEnded: ${supplement.endDate}`;
-  if (supplement.note) ctx += `\nNote: ${supplement.note}`;
-  ctx += `\n\nBiomarker changes (before mean → after mean):`;
+  const top = impacts.slice(0, 5);
+  let ctx = `${supplement.name}${supplement.dosage ? ' ' + supplement.dosage : ''} (${supplement.type}) since ${supplement.startDate}${supplement.endDate ? ' until ' + supplement.endDate : ''}`;
+  ctx += `\nChanges:`;
   for (const imp of top) {
-    const sign = imp.pctChange > 0 ? '+' : '';
-    const status = imp.refMin != null || imp.refMax != null
-      ? ` [ref: ${imp.refMin ?? '—'}–${imp.refMax ?? '—'}]` : '';
-    ctx += `\n- ${imp.markerName}: ${fmtVal(imp.beforeMean)} → ${fmtVal(imp.afterMean)} ${imp.unit} (${sign}${imp.pctChange.toFixed(1)}%, ${imp.nBefore} before/${imp.nAfter} after)${status}`;
+    ctx += `\n${imp.markerName}: ${fmtVal(imp.beforeMean)}→${fmtVal(imp.afterMean)} ${imp.unit} (${imp.pctChange > 0 ? '+' : ''}${imp.pctChange.toFixed(0)}%)`;
+    if (imp.refMin != null || imp.refMax != null) ctx += ` ref ${imp.refMin ?? ''}–${imp.refMax ?? ''}`;
   }
-  if (overlapping.length > 0) {
-    ctx += `\n\nOther supplements active during this period: ${overlapping.map(s => s.name).join(', ')}`;
-  }
+  if (overlapping.length > 0) ctx += `\nAlso taking: ${overlapping.map(s => s.name).join(', ')}`;
   return ctx;
 }
 
 function getImpactFingerprint(supplement, impacts) {
-  const impactStr = impacts.slice(0, 8).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
+  const impactStr = impacts.slice(0, 5).map(i => `${i.marker}:${i.pctChange?.toFixed(1)}`).join(',');
   return hashString(`${supplement.name}|${supplement.startDate}|${supplement.endDate || ''}|${impactStr}`);
 }
 
@@ -330,13 +321,11 @@ export function renderSupplementImpact(supplement, editIdx) {
 async function loadSupplementImpactAI(supplement, editIdx, impacts, fp) {
   const supps = state.importedData.supplements || [];
   const promptData = buildImpactPromptData(supplement, impacts, supps);
-  const system = `You are a health data assistant. Analyze biomarker changes since a supplement/medication was started. Reply with ONLY a JSON object — no explanation, no markdown, no preamble. Format: {"dot":"green","summary":"..."}
-
-dot: green = beneficial or expected changes, yellow = mixed or needs monitoring, red = concerning, gray = insufficient data.
-summary: 1-2 sentences. Name specific markers. Mention if a change is expected (e.g. creatine raises creatinine). Note confounders if other supplements overlap. Do NOT say "correlation does not imply causation."`;
+  const system = `Reply with ONLY JSON, no other text: {"dot":"green|yellow|red|gray","summary":"1-2 sentences"}
+green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data. Name markers. Note if change is expected for this supplement.`;
 
   try {
-    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 1024 });
+    const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: promptData }], maxTokens: 300 });
     const jsonMatch = result.text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return;
     const parsed = JSON.parse(jsonMatch[0]);
