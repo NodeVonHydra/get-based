@@ -1,6 +1,6 @@
 # Specialty Labs
 
-Beyond standard blood work, getbased supports specialty lab tests. Three test types have dedicated support with built-in marker definitions; any other lab report goes through the generic custom marker pipeline where the AI extracts everything from your PDF.
+Beyond standard blood work, getbased supports specialty lab tests. Four test types have dedicated support with built-in marker definitions; any other lab report goes through the generic custom marker pipeline where the AI extracts everything from your PDF.
 
 ## Supported Test Types
 
@@ -8,6 +8,7 @@ Beyond standard blood work, getbased supports specialty lab tests. Three test ty
 
 | Test Type | Examples | Built-in Markers |
 |---|---|---|
+| **BioStarks** | Dried blood spot panels (AMR Labs SA) | 23 markers across 5 categories |
 | **DEXA Scan** | Hologic, GE Lunar Prodigy | 17 markers across 2 categories |
 | **Metabolomix+** | Genova Metabolomix+ combo profiles | 165 markers across 10 categories |
 | **Fatty Acids** | Spadia, ZinZino BalanceTest, OmegaQuant | 29 reference markers |
@@ -51,6 +52,62 @@ DEXA (dual-energy X-ray absorptiometry) results are organized under a collapsibl
 
 ::: tip Tracking over time
 DEXA scans are typically repeated annually. Each import adds a new data point, giving you trend charts for body composition and bone density changes over time — the same way blood work trends are tracked.
+:::
+
+## BioStarks
+
+BioStarks dried blood spot panels are hybrid tests — they include both specialty markers (amino acids, fatty acids, minerals) and standard blood markers (glucose, lipids, testosterone, etc.). getbased handles this automatically: specialty markers go to BioStarks-specific categories, while standard markers map to your existing blood work categories for combined trend tracking.
+
+**BioStarks: Amino Acids** (12 markers)
+
+| Marker | Unit | Reference Range |
+|---|---|---|
+| Arginine | µmol/L | 59–180 |
+| Asparagine | µmol/L | 29–110 |
+| Branched-chain Amino Acids | µmol/L | 270–700 |
+| Carnitine | µmol/L | 25–80 |
+| Citrulline | µmol/L | 17–96 |
+| Glutamine | µmol/L | 320–1100 |
+| Proline | µmol/L | 78–550 |
+| Taurine | µmol/L | 25–140 |
+| Threonine | µmol/L | 70–360 |
+| Tryptophan | µmol/L | 33–140 |
+| Tyrosine | µmol/L | 45–180 |
+| Valine | µmol/L | 230–460 |
+
+**BioStarks: Fatty Acids** (5 markers)
+
+| Marker | Unit | Reference Range | Notes |
+|---|---|---|---|
+| DHA | µmol/L | 40–290 | Serum concentration (not % like Spadia/ZinZino) |
+| EPA | µmol/L | 3–20 | Serum concentration |
+| Linoleic Acid | µmol/L | 500–2000 | Omega-6 |
+| Oleic Acid | µmol/L | 300–2300 | Omega-9 |
+| Omega-3 Index | % | 8–15 | Target above 8% |
+
+**BioStarks: Minerals** (3 markers — intracellular)
+
+| Marker | Unit | Reference Range | Notes |
+|---|---|---|---|
+| Magnesium (RBC) | µg/gHb | 250–480 | Intracellular, not serum |
+| Selenium (RBC) | µg/gHb | 0.57–1.2 | Intracellular |
+| Zinc (RBC) | µg/gHb | 35–91 | Intracellular |
+
+**BioStarks: Hormones** (2 markers)
+
+| Marker | Unit | Reference Range |
+|---|---|---|
+| Cortisol | nmol/L | 140–620 |
+| Testosterone/Cortisol Ratio | U | 3.5–15 |
+
+**BioStarks: Vitamins** (1 marker)
+
+| Marker | Unit | Reference Range |
+|---|---|---|
+| Vitamin E Alpha-Tocopherol | mg/L | 11–42 |
+
+::: tip Hybrid import
+Standard blood markers from a BioStarks report (glucose, lipids, creatinine, vitamin D, B12, etc.) automatically map to the same categories as your other blood work. This means you can track trends across BioStarks and standard lab reports on the same charts.
 :::
 
 ## Fatty Acid Labs

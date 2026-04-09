@@ -25,10 +25,10 @@ The single source of truth for all biomarker definitions. No runtime logic — p
 
 ### `adapters.js`
 
-Parser adapter registry for specialty lab detection and normalization. Single source of truth for all specialty marker definitions (OAT, fatty acids, Metabolomix+).
+Parser adapter registry for specialty lab detection and normalization. Single source of truth for all specialty marker definitions (OAT, fatty acids, Metabolomix+, BioStarks).
 
 **Key exports:**
-- `ADAPTER_MARKERS` — flat object keyed by `"category.markerKey"`: `{ name, unit, refMin, refMax, categoryLabel, icon, group, singlePoint? }` (194 entries). Re-exported from `schema.js` as `SPECIALTY_MARKER_DEFS`
+- `ADAPTER_MARKERS` — flat object keyed by `"category.markerKey"`: `{ name, unit, refMin, refMax, categoryLabel, icon, group, singlePoint? }` (217 entries). Re-exported from `schema.js` as `SPECIALTY_MARKER_DEFS`
 - `getAllAdapterMarkers()` — returns merged marker map from all registered adapters
 - `detectProduct(fileName, pdfText)` — runs all adapter `detect()` functions, returns `{ adapter, product: { prefix, label } }` or `null`
 - `normalizeWithAdapter(adapter, markers, fileName, pdfText, product)` — dispatches to `adapter.normalize()` for post-AI marker key/category rewriting
@@ -38,6 +38,7 @@ Parser adapter registry for specialty lab detection and normalization. Single so
 - `fattyAcids` — 29 markers, detects Spadia/ZinZino/OmegaQuant by filename/text, normalizes to product-prefixed categories under "Fatty Acids" sidebar group
 - `metabolomix` — no unique markers (reuses OAT + FA), detects Genova Metabolomix+ reports, routes FA add-on markers to `metabolomixFA` prefix
 - `oat` — 165 markers, no detect/normalize (AI handles OAT categorization directly)
+- `biostarks` — 23 markers, detects BioStarks dried blood spot reports by filename/text, normalizes specialty markers (amino acids, serum FA, intracellular minerals, hormones, vitamins) while passing standard blood markers through to schema categories (hybrid import)
 
 **Window exports:** none
 
