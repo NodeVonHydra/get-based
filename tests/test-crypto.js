@@ -322,10 +322,11 @@
     assert('Forgot passphrase does NOT use showConfirmDialog', !src.includes("forgotBtn.addEventListener('click', () => {\n    showConfirmDialog"));
     assert('Forgot passphrase has inline confirm UI', src.includes('passphrase-forgot-confirm'));
     assert('Forgot passphrase has Go Back button', src.includes('passphrase-forgot-cancel'));
-    // Fix 2: backup includes encryption salt + global settings
-    assert('Backup includes encryptionSalt field', src.includes('encryptionSalt'));
-    assert('Restore sets labcharts-encryption-enabled', src.includes("localStorage.setItem('labcharts-encryption-enabled'"));
-    assert('Restore sets labcharts-encryption-salt', src.includes("localStorage.setItem('labcharts-encryption-salt'"));
+    // Fix 2: backup includes encryption salt + global settings (now in backup.js)
+    const bkSrc0 = await fetchWithRetry('js/backup.js');
+    assert('Backup includes encryptionSalt field', bkSrc0.includes('encryptionSalt'));
+    assert('Restore sets labcharts-encryption-enabled', bkSrc0.includes("localStorage.setItem('labcharts-encryption-enabled'"));
+    assert('Restore sets labcharts-encryption-salt', bkSrc0.includes("localStorage.setItem('labcharts-encryption-salt'"));
     // API keys in backup (now in backup.js)
     assert('Backup includes labcharts-api-key', src.includes("'labcharts-api-key'") || bkSrc.includes("'labcharts-api-key'"));
     assert('Backup includes labcharts-venice-key', src.includes("'labcharts-venice-key'") || bkSrc.includes("'labcharts-venice-key'"));
