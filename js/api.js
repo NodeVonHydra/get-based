@@ -7,6 +7,19 @@ import { getCachedKey, updateKeyCache, encryptedSetItem } from './crypto.js';
 // ═══════════════════════════════════════════════
 // AI PROVIDER MANAGEMENT
 // ═══════════════════════════════════════════════
+
+// ─── Provider config helpers (collapse repetitive get/set pairs) ───
+function _pGet(key, fallback = '') { return localStorage.getItem(key) || fallback; }
+function _pSet(key, value) { localStorage.setItem(key, value); }
+function _pGetKey(lsKey) { return getCachedKey(lsKey) || ''; }
+async function _pSaveKey(lsKey, key) { await encryptedSetItem(lsKey, key); updateKeyCache(lsKey, key); }
+function _pGetModelDisplay(provider, getter) {
+  const id = getter();
+  let cached = []; try { cached = JSON.parse(localStorage.getItem(`labcharts-${provider}-models`) || '[]'); } catch {}
+  const m = cached.find(x => x.id === id);
+  return m ? (m.name || m.id) : id;
+}
+
 export function deduplicateModels(models, familyFn) {
   const seen = {};
   return models.filter(function(m) {
@@ -16,10 +29,10 @@ export function deduplicateModels(models, familyFn) {
     return true;
   });
 }
-export function getAIProvider() { return localStorage.getItem('labcharts-ai-provider') || 'openrouter'; }
-export function setAIProvider(provider) { localStorage.setItem('labcharts-ai-provider', provider); }
+export function getAIProvider() { return _pGet('labcharts-ai-provider', 'openrouter'); }
+export function setAIProvider(provider) { _pSet('labcharts-ai-provider', provider); }
 export function isAIPaused() { return localStorage.getItem('labcharts-ai-paused') === 'true'; }
-export function setAIPaused(v) { localStorage.setItem('labcharts-ai-paused', v ? 'true' : 'false'); }
+export function setAIPaused(v) { _pSet('labcharts-ai-paused', v ? 'true' : 'false'); }
 
 export function hasAIProvider() {
   if (isAIPaused()) return false;
@@ -32,15 +45,15 @@ export function hasAIProvider() {
   return true; // Ollama — optimistic, errors caught at call time
 }
 
-export function getOllamaMainModel() { return localStorage.getItem('labcharts-ollama-model') || window.getOllamaConfig().model || 'llama3.2'; }
-export function setOllamaMainModel(model) { localStorage.setItem('labcharts-ollama-model', model); }
-export function getOllamaPIIUrl() { return localStorage.getItem('labcharts-ollama-pii-url') || window.getOllamaConfig().url; }
-export function setOllamaPIIUrl(url) { localStorage.setItem('labcharts-ollama-pii-url', url); }
-export function getOllamaPIIModel() { return localStorage.getItem('labcharts-ollama-pii-model') || getOllamaMainModel(); }
-export function setOllamaPIIModel(model) { localStorage.setItem('labcharts-ollama-pii-model', model); }
+export function getOllamaMainModel() { return _pGet('labcharts-ollama-model', window.getOllamaConfig().model || 'llama3.2'); }
+export function setOllamaMainModel(model) { _pSet('labcharts-ollama-model', model); }
+export function getOllamaPIIUrl() { return _pGet('labcharts-ollama-pii-url', window.getOllamaConfig().url); }
+export function setOllamaPIIUrl(url) { _pSet('labcharts-ollama-pii-url', url); }
+export function getOllamaPIIModel() { return _pGet('labcharts-ollama-pii-model') || getOllamaMainModel(); }
+export function setOllamaPIIModel(model) { _pSet('labcharts-ollama-pii-model', model); }
 
-export function getVeniceKey() { return getCachedKey('labcharts-venice-key') || ''; }
-export async function saveVeniceKey(key) { await encryptedSetItem('labcharts-venice-key', key); updateKeyCache('labcharts-venice-key', key); }
+export function getVeniceKey() { return _pGetKey('labcharts-venice-key'); }
+export async function saveVeniceKey(key) { await _pSaveKey('labcharts-venice-key', key); }
 export function hasVeniceKey() { return !!getVeniceKey(); }
 export async function getVeniceBalance() {
   const key = getVeniceKey();
@@ -60,20 +73,15 @@ export async function getVeniceBalance() {
     return null;
   } catch { return null; }
 }
-export function getVeniceModel() { return localStorage.getItem('labcharts-venice-model') || 'llama-3.3-70b'; }
-export function setVeniceModel(model) { localStorage.setItem('labcharts-venice-model', model); }
-export function getVeniceModelDisplay() {
-  const id = getVeniceModel();
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-venice-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
-}
+export function getVeniceModel() { return _pGet('labcharts-venice-model', 'llama-3.3-70b'); }
+export function setVeniceModel(model) { _pSet('labcharts-venice-model', model); }
+export function getVeniceModelDisplay() { return _pGetModelDisplay('venice', getVeniceModel); }
 
 export function getVeniceE2EE() { return localStorage.getItem('labcharts-venice-e2ee') === 'on'; }
-export function setVeniceE2EE(on) { localStorage.setItem('labcharts-venice-e2ee', on ? 'on' : 'off'); }
+export function setVeniceE2EE(on) { _pSet('labcharts-venice-e2ee', on ? 'on' : 'off'); }
 
-export function getOpenRouterKey() { return getCachedKey('labcharts-openrouter-key') || ''; }
-export async function saveOpenRouterKey(key) { await encryptedSetItem('labcharts-openrouter-key', key); updateKeyCache('labcharts-openrouter-key', key); }
+export function getOpenRouterKey() { return _pGetKey('labcharts-openrouter-key'); }
+export async function saveOpenRouterKey(key) { await _pSaveKey('labcharts-openrouter-key', key); }
 export function hasOpenRouterKey() { return !!getOpenRouterKey(); }
 export async function getOpenRouterBalance() {
   const key = getOpenRouterKey();
@@ -91,61 +99,44 @@ export async function getOpenRouterBalance() {
 }
 
 // ─── Routstr ───
-export function getRoutstrKey() { return getCachedKey('labcharts-routstr-key') || ''; }
-export async function saveRoutstrKey(key) { await encryptedSetItem('labcharts-routstr-key', key); updateKeyCache('labcharts-routstr-key', key); }
+export function getRoutstrKey() { return _pGetKey('labcharts-routstr-key'); }
+export async function saveRoutstrKey(key) { await _pSaveKey('labcharts-routstr-key', key); }
 export function hasRoutstrKey() { return !!getRoutstrKey(); }
-export function getRoutstrModel() { return localStorage.getItem('labcharts-routstr-model') || 'claude-sonnet-4.6'; }
-export function setRoutstrModel(model) { localStorage.setItem('labcharts-routstr-model', model); }
-export function getRoutstrModelDisplay() {
-  const id = getRoutstrModel();
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-routstr-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
-}
+export function getRoutstrModel() { return _pGet('labcharts-routstr-model', 'claude-sonnet-4.6'); }
+export function setRoutstrModel(model) { _pSet('labcharts-routstr-model', model); }
+export function getRoutstrModelDisplay() { return _pGetModelDisplay('routstr', getRoutstrModel); }
 
 // ─── PPQ (PayPerQ — pay-per-prompt, crypto + fiat) ───
-export function getPpqKey() { return getCachedKey('labcharts-ppq-key') || ''; }
-export async function savePpqKey(key) { await encryptedSetItem('labcharts-ppq-key', key); updateKeyCache('labcharts-ppq-key', key); }
+export function getPpqKey() { return _pGetKey('labcharts-ppq-key'); }
+export async function savePpqKey(key) { await _pSaveKey('labcharts-ppq-key', key); }
 export function hasPpqKey() { return !!getPpqKey(); }
-export function getPpqModel() { return localStorage.getItem('labcharts-ppq-model') || 'claude-sonnet-4.6'; }
-export function setPpqModel(model) { localStorage.setItem('labcharts-ppq-model', model); }
-export function getPpqModelDisplay() {
-  const id = getPpqModel();
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-ppq-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
-}
-export function getPpqCreditId() { return localStorage.getItem('labcharts-ppq-credit-id') || ''; }
-export function savePpqCreditId(id) { localStorage.setItem('labcharts-ppq-credit-id', id); }
+export function getPpqModel() { return _pGet('labcharts-ppq-model', 'claude-sonnet-4.6'); }
+export function setPpqModel(model) { _pSet('labcharts-ppq-model', model); }
+export function getPpqModelDisplay() { return _pGetModelDisplay('ppq', getPpqModel); }
+export function getPpqCreditId() { return _pGet('labcharts-ppq-credit-id'); }
+export function savePpqCreditId(id) { _pSet('labcharts-ppq-credit-id', id); }
 
 // ─── Custom API (any OpenAI-compatible endpoint) ───
-export function getCustomApiUrl() { return localStorage.getItem('labcharts-custom-url') || ''; }
-export function setCustomApiUrl(url) { localStorage.setItem('labcharts-custom-url', url); }
-export function getCustomApiKey() { return getCachedKey('labcharts-custom-key') || ''; }
-export async function saveCustomApiKey(key) { await encryptedSetItem('labcharts-custom-key', key); updateKeyCache('labcharts-custom-key', key); }
+export function getCustomApiUrl() { return _pGet('labcharts-custom-url'); }
+export function setCustomApiUrl(url) { _pSet('labcharts-custom-url', url); }
+export function getCustomApiKey() { return _pGetKey('labcharts-custom-key'); }
+export async function saveCustomApiKey(key) { await _pSaveKey('labcharts-custom-key', key); }
 export function hasCustomApiKey() { return !!getCustomApiKey(); }
-export function getCustomApiModel() { return localStorage.getItem('labcharts-custom-model') || ''; }
-export function setCustomApiModel(model) { localStorage.setItem('labcharts-custom-model', model); }
+export function getCustomApiModel() { return _pGet('labcharts-custom-model'); }
+export function setCustomApiModel(model) { _pSet('labcharts-custom-model', model); }
 export function getCustomApiModelDisplay() {
   const id = getCustomApiModel();
   if (!id) return '(no model selected)';
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-custom-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
+  return _pGetModelDisplay('custom', getCustomApiModel);
 }
 export function getOpenRouterModel() {
   let m = localStorage.getItem('labcharts-openrouter-model');
   // Fix legacy hyphenated IDs (OpenRouter uses dots: anthropic/claude-sonnet-4.6)
-  if (m === 'anthropic/claude-sonnet-4-6') { m = 'anthropic/claude-sonnet-4.6'; localStorage.setItem('labcharts-openrouter-model', m); }
+  if (m === 'anthropic/claude-sonnet-4-6') { m = 'anthropic/claude-sonnet-4.6'; _pSet('labcharts-openrouter-model', m); }
   return m || 'anthropic/claude-sonnet-4.6';
 }
-export function setOpenRouterModel(model) { localStorage.setItem('labcharts-openrouter-model', model); }
-export function getOpenRouterModelDisplay() {
-  const id = getOpenRouterModel();
-  let cached = []; try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models') || '[]'); } catch(e) {}
-  const m = cached.find(function(x) { return x.id === id; });
-  return m ? (m.name || m.id) : id;
-}
+export function setOpenRouterModel(model) { _pSet('labcharts-openrouter-model', model); }
+export function getOpenRouterModelDisplay() { return _pGetModelDisplay('openrouter', getOpenRouterModel); }
 
 // ─── OpenRouter OAuth PKCE ───
 export async function generatePKCE() {

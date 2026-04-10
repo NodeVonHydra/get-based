@@ -309,10 +309,11 @@
   // ═══════════════════════════════════════
   // 15. chat.js source inspection
   // ═══════════════════════════════════════
-  console.log('Section 15: chat.js source inspection');
+  console.log('Section 15: chat.js + lab-context.js source inspection');
   const chatSource = await fetchWithRetry('js/chat.js');
+  const labCtxSource = await fetchWithRetry('js/lab-context.js');
   assert('chat.js imports getEffectiveRangeForDate', chatSource.includes('getEffectiveRangeForDate'));
-  assert('buildLabContext phase-aware serialization', chatSource.includes('phaseRefRanges') && chatSource.includes('phaseLabels'));
+  assert('buildLabContext phase-aware serialization', labCtxSource.includes('phaseRefRanges') && labCtxSource.includes('phaseLabels'));
   assert('askAIAboutMarker phase context', chatSource.includes('phaseLabels') && chatSource.includes('phase-specific'));
 
   // ═══════════════════════════════════════
