@@ -714,7 +714,7 @@ export function importDataJSON(file) {
         for (const s of json.supplements) {
           if (!s.name || !s.startDate) continue;
           const exists = state.importedData.supplements.some(x => x.name === s.name && x.startDate === s.startDate);
-          if (!exists) state.importedData.supplements.push({ name: s.name, dosage: s.dosage || '', startDate: s.startDate, endDate: s.endDate || null, type: s.type || 'supplement', note: s.note || '' });
+          if (!exists) { const entry = { name: s.name, dosage: s.dosage || '', startDate: s.startDate, endDate: s.endDate || null, type: s.type || 'supplement', note: s.note || '' }; if (s.ingredients) entry.ingredients = s.ingredients; state.importedData.supplements.push(entry); }
         }
       }
       // Import notes
@@ -916,6 +916,7 @@ export function clearAllData() {
       localStorage.removeItem(profileStorageKey(id, 'suppOverlay'));
       localStorage.removeItem(profileStorageKey(id, 'noteOverlay'));
       localStorage.removeItem(profileStorageKey(id, 'rangeMode'));
+      localStorage.removeItem(profileStorageKey(id, 'suppImpact'));
       localStorage.removeItem(`labcharts-${id}-chat`);
       let threadIndexRaw;
       if (getEncryptionEnabled()) {

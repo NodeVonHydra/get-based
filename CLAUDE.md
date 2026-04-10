@@ -31,7 +31,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
   - `crypto.js` — AES-256-GCM encryption at rest (PBKDF2), auto-backup (IndexedDB + File System Access API), cross-tab sync (BroadcastChannel)
   - `notes.js` — note editor (open/save/delete)
-  - `supplements.js` — supplement editor + render section + impact analysis (`computeSupplementImpact`, `computeAllImpacts`, `renderSupplementImpact`)
+  - `supplements.js` — supplement editor + render section + ingredient tracking (manual, label scan, URL fetch) + impact analysis (`computeSupplementImpact`, `computeAllImpacts`, `renderSupplementImpact`) + mitochondrial warnings
   - `supplement-warnings.js` — mitochondrial compound warnings for supplements (108 entries, PubMed-cited)
   - `food-contaminants.js` — diet card pesticide/plastic contaminant scanner (EWG Dirty Dozen, PlasticList)
   - `recommendations.js` — lazy-loaded catalog, slot matching, product rendering for supplement & lifestyle recs (3 touchpoints: detail modal, chat, context cards). `buildDNAHints(slotKey)` connects genetics to recs via `snpHints` in snp-health.json

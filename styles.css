@@ -422,7 +422,8 @@ body {
 .modal-value-card:hover .mv-delete { opacity: 1; }
 .mv-delete:hover { color: var(--red); }
 .modal-value-card .mv-date { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-.modal-value-card .mv-source { font-size: 11px; color: var(--text-muted); opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+.modal-value-card .mv-source { font-size: 11px; color: var(--text-muted); opacity: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-height: 0; margin-bottom: 0; transition: opacity 0.2s, max-height 0.2s, margin-bottom 0.2s; }
+.modal-value-card:hover .mv-source { opacity: 0.7; max-height: 1.2em; margin-bottom: 2px; }
 .modal-value-card .mv-source-manual { font-style: italic; }
 .modal-value-card .mv-value {
   font-family: var(--font-mono); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums;
@@ -1293,6 +1294,9 @@ body {
 /* Supplement impact analysis (AI-driven) */
 .supp-impact-section { border-top: 1px solid var(--border); padding: 12px 0; }
 .supp-impact-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.supp-impact-refresh { background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; padding: 0 4px; margin-left: auto; }
+.supp-impact-refresh:hover { color: var(--accent); }
+.supp-impact-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 .supp-impact-summary {
   font-size: 12px; line-height: 1.4; color: var(--text-muted); font-style: italic;
   max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s, opacity 0.3s, margin 0.3s;
@@ -1319,6 +1323,25 @@ body {
 .supp-form-field select:focus { border-color: var(--accent); }
 .supp-form-field select { cursor: pointer; }
 .supp-form-field select option { background: var(--bg-secondary); }
+.supp-ingredient-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; }
+.supp-ingredient-row .supp-ing-name { flex: 2; }
+.supp-ingredient-row .supp-ing-amount { flex: 1; }
+.supp-ingredient-row input { font-size: 12px; padding: 5px 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); }
+.supp-ingredient-row input:focus { border-color: var(--accent); outline: none; }
+.supp-ing-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+.supp-ing-remove:hover { color: var(--danger, #ef4444); background: rgba(239, 68, 68, 0.1); }
+.supp-url-input-row { display: flex; gap: 6px; }
+.supp-url-input-row input { flex: 1; font-size: 12px; padding: 6px 10px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); }
+.supp-url-input-row input:focus { border-color: var(--accent); outline: none; }
+.supp-url-fetch { background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 12px; padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.supp-url-fetch:hover { border-color: var(--accent); color: var(--accent); }
+.supp-url-fetch:disabled { opacity: 0.5; cursor: wait; }
+.supp-ingredient-actions { display: flex; gap: 6px; margin-top: 4px; }
+.supp-ingredient-add { background: none; border: 1px dashed var(--border-color); color: var(--text-muted); font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.supp-ingredient-add:hover { border-color: var(--accent); color: var(--accent); }
+.supp-ingredient-add:disabled { opacity: 0.5; cursor: wait; }
+.supp-list-ingredients { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.supp-ing-pill { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary); white-space: nowrap; }
 .supp-mitotox {
   margin-top: 8px; padding: 8px 12px; border-radius: 8px;
   background: rgba(234, 179, 8, 0.06); border: 1px solid rgba(234, 179, 8, 0.15);
@@ -3545,6 +3568,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
 /* ═══ Touch-friendly: make hover-only elements accessible ═══ */
 @media (hover: none) {
   .mv-delete { opacity: 0.7; }
+  .modal-value-card .mv-source { opacity: 0.7; max-height: 1.2em; margin-bottom: 2px; }
   .chat-thread-item-actions { display: flex; }
   .lens-section-edit { opacity: 0.7; }
   .context-info-icon .context-tooltip { display: none; }

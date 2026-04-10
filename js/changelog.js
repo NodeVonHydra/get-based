@@ -5,12 +5,13 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.17.0', date: '2026-04-09', title: 'Import Provenance + Supplement Impact',
+    version: '1.18.0', date: '2026-04-10', title: 'Import Provenance + Supplement Intelligence',
     items: [
-      'Import provenance \u2014 every imported value now tracks which PDF file and when it was imported, shown in the detail modal',
-      'Manual entries and edits also tracked with provenance (manual entry label)',
-      'Supplement impact analysis \u2014 AI-driven before/after biomarker summary when editing a supplement, with colored health dot and cached results',
-      'Focus card AI context now includes top supplement impact summaries for smarter reasoning',
+      'Import provenance \u2014 every value tracks which PDF or manual entry it came from, shown on hover in detail modal',
+      'Supplement ingredients \u2014 add manually, scan a label photo, or paste a product URL to auto-extract with AI',
+      'Supplement impact analysis \u2014 AI before/after biomarker comparison with health dot and cached results',
+      'Focus card \u2014 respects AI context toggles, cleaner output with thinking models, bounded context',
+      'Thinking model fix \u2014 reasoning content no longer leaks into chat or focus card',
     ]
   },
   {

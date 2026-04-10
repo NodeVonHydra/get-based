@@ -377,7 +377,7 @@ export function renderAIProviderPanel(provider) {
       </div>
       ${currentKey ? '<div style="margin-top:8px;font-size:12px;color:var(--text-muted)"><span id="venice-balance">Balance: loading...</span> <a href="#" onclick="refreshVeniceBalance();return false" style="color:var(--accent);font-size:11px;text-decoration:none">\u21bb</a></div>' : ''}
       ${veniceModelHtml}
-      <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/settings/api" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
+      <div class="api-key-notice">Your key is stored locally and sent directly to Venice AI. No data is stored on their servers. <a href="https://venice.ai/chat?ref=lZ4P1b" target="_blank" rel="noopener" style="color:var(--accent)">Get an API key</a></div>
     </div>`;
   }
   if (provider === 'ppq') {
@@ -413,7 +413,7 @@ export function renderAIProviderPanel(provider) {
       </div>
       ${balanceHtml}
       ${ppqModelHtml}
-      <div class="api-key-notice">Your key is stored locally. No account data is shared with getbased. <a href="https://ppq.ai" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a></div>
+      <div class="api-key-notice">Your key is stored locally. No account data is shared with getbased. <a href="https://ppq.ai/invite/8f3017cd" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a></div>
     </div>`;
   }
   // Custom API panel — any OpenAI-compatible endpoint
@@ -2112,7 +2112,7 @@ export async function handleCreatePpqAccount() {
           <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">PPQ accounts are anonymous \u2014 <strong>there is no way to recover a lost key</strong>. Copy both values now and store them somewhere safe.</div>
           <label style="font-size:11px;color:var(--text-muted)">API Key</label>
           <div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg-primary);padding:8px;border-radius:6px;border:1px solid var(--border);color:var(--text-primary);user-select:all;cursor:text">${escapeHTML(result.api_key)}</div>
-          <label style="font-size:11px;color:var(--text-muted);margin-top:8px;display:block">Credit ID <span style="font-size:10px">(enter at <a href="https://ppq.ai" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a> to access your account on the web)</span></label>
+          <label style="font-size:11px;color:var(--text-muted);margin-top:8px;display:block">Credit ID <span style="font-size:10px">(enter at <a href="https://ppq.ai/invite/8f3017cd" target="_blank" rel="noopener" style="color:var(--accent)">ppq.ai</a> to access your account on the web)</span></label>
           <div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg-primary);padding:8px;border-radius:6px;border:1px solid var(--border);color:var(--text-primary);user-select:all;cursor:text">${escapeHTML(result.credit_id)}</div>
           <div style="display:flex;gap:8px;margin-top:8px">
             <button class="import-btn import-btn-primary" style="font-size:12px" onclick="navigator.clipboard.writeText('API Key: ${escapeAttr(result.api_key)}\\nCredit ID: ${escapeAttr(result.credit_id)}');this.textContent='\u2713 Copied (clears in 60s)';clearTimeout(window._ppqClipTimer);window._ppqClipTimer=setTimeout(()=>navigator.clipboard.writeText(''),60000)">Copy Both</button>

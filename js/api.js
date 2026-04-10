@@ -383,6 +383,8 @@ export async function fetchVeniceModels(key) {
       }
     }
     localStorage.setItem('labcharts-venice-pricing', JSON.stringify(pricingCache));
+    const visionIds = allText.filter(m => m.model_spec?.capabilities?.supportsVision).map(m => m.id);
+    localStorage.setItem('labcharts-venice-vision-models', JSON.stringify(visionIds));
     localStorage.setItem('labcharts-venice-models', JSON.stringify(models));
     if (!localStorage.getItem('labcharts-venice-model') && models.length) {
       const llama = models.find(function(m) { return m.id.includes('llama-3.3-70b'); });
@@ -471,7 +473,11 @@ export function supportsVision() {
   }
   if (provider === 'venice') {
     if (isVeniceE2EEActive()) return false;
-    return /qwen.*vl|llava|vision/i.test(getVeniceModel());
+    const modelId = getVeniceModel();
+    try {
+      const visionIds = JSON.parse(localStorage.getItem('labcharts-venice-vision-models') || '[]');
+      return visionIds.some(function(vid) { return modelId === vid || modelId.startsWith(vid.replace(/-\d{8}$/, '')); });
+    } catch { return false; }
   }
   if (provider === 'routstr') {
     const modelId = getRoutstrModel();
@@ -590,7 +596,11 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
   if (system) apiMessages.push({ role: 'system', content: system });
   for (const msg of messages) apiMessages.push({ role: msg.role, content: msg.content });
 
-  const body = { model, messages: apiMessages, max_tokens: maxTokens || 4096, ...extraBody };
+  // Thinking models burn reasoning tokens against max_tokens — scale up low caps
+  // to give room for thinking while still constraining total output
+  const isThinkingModel = /deepseek-r1|kimi-k|qwq|glm-[45]|claude-.*sonnet|claude-.*opus|:cloud/.test(model);
+  const effectiveMaxTokens = isThinkingModel && maxTokens && maxTokens < 4096 ? Math.min(maxTokens * 5, 4096) : maxTokens;
+  const body = { model, messages: apiMessages, max_tokens: effectiveMaxTokens || 4096, ...extraBody };
   if (onStream) { body.stream = true; body.stream_options = { include_usage: true }; }
 
   let res;
@@ -635,6 +645,8 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
+    let _hasContent = false;
+    let _reasoningBuf = '';
     let inputTokens = 0, outputTokens = 0;
     while (true) {
       const { done, value } = await reader.read();
@@ -650,9 +662,13 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
           const event = JSON.parse(data);
           if (event.error) throw new Error(event.error.message || JSON.stringify(event.error));
           const delta = event.choices?.[0]?.delta;
-          if (delta?.content || delta?.reasoning_content) {
-            fullText += delta.content || delta.reasoning_content;
+          // Accumulate reasoning silently; only stream content to the UI
+          if (delta?.content) {
+            if (!_hasContent) _hasContent = true;
+            fullText += delta.content;
             onStream(fullText);
+          } else if (delta?.reasoning_content) {
+            if (!_hasContent) _reasoningBuf += delta.reasoning_content;
           }
           if (event.usage) {
             inputTokens = event.usage.prompt_tokens || inputTokens;
@@ -661,12 +677,16 @@ async function callOpenAICompatibleAPI(endpoint, key, model, providerName, { sys
         } catch (parseErr) { if (parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr; }
       }
     }
+    if (!fullText && _reasoningBuf) fullText = _reasoningBuf;
     return { text: fullText, usage: { inputTokens, outputTokens } };
   } else {
     const data = await res.json();
     const usage = data.usage || {};
     const msg = data.choices?.[0]?.message;
-    return { text: msg?.content || msg?.reasoning_content || '', usage: { inputTokens: usage.prompt_tokens || 0, outputTokens: usage.completion_tokens || 0 } };
+    let text = msg?.content || '';
+    // If content is empty, fall back to reasoning but strip thinking tags
+    if (!text && msg?.reasoning_content) text = msg.reasoning_content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    return { text, usage: { inputTokens: usage.prompt_tokens || 0, outputTokens: usage.completion_tokens || 0 } };
   }
 }
 
@@ -675,11 +695,7 @@ export async function callOpenAICompatibleLocalAPI(opts) {
   const model = getOllamaMainModel();
   const url = config.url.replace(/\/+$/, '');
   const key = config.apiKey || 'not-needed';
-  // Thinking models burn reasoning tokens against max_tokens — remove the cap
-  // so the model can think freely and still produce content
-  const isThinkingModel = /deepseek-r1|deepseek-v3|kimi-k|qwq|glm-[45]|:cloud/.test(model);
-  const adjustedOpts = isThinkingModel && opts.maxTokens && opts.maxTokens < 4096 ? { ...opts, maxTokens: undefined } : opts;
-  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', adjustedOpts, {}, { useProxy: false });
+  return callOpenAICompatibleAPI(`${url}/v1/chat/completions`, key, model, 'Local AI', opts, {}, { useProxy: false });
 }
 
 export async function callVeniceAPI(opts) {

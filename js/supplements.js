@@ -1,9 +1,10 @@
 // supplements.js — Supplement/medication editor and dashboard section
 
 import { state } from './state.js';
-import { escapeHTML, showNotification, hashString } from './utils.js';
+import { escapeHTML, showNotification, hashString, isDebugMode } from './utils.js';
 import { saveImportedData, getActiveData } from './data.js';
-import { callClaudeAPI, hasAIProvider } from './api.js';
+import { callClaudeAPI, hasAIProvider, supportsVision } from './api.js';
+import { resizeImage, isValidImageType, formatImageBlock, buildVisionContent } from './image-utils.js';
 import { profileStorageKey } from './profile.js';
 import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 
@@ -69,6 +70,143 @@ export function renderSupplementsSection() {
   return html;
 }
 
+function _ingredientRowHtml(idx, name = '', amount = '') {
+  return `<div class="supp-ingredient-row" data-idx="${idx}">
+    <input type="text" class="supp-ing-name" placeholder="Ingredient" value="${escapeHTML(name)}">
+    <input type="text" class="supp-ing-amount" placeholder="Amount" value="${escapeHTML(amount)}">
+    <button class="supp-ing-remove" onclick="removeIngredientRow(this)" title="Remove">&times;</button>
+  </div>`;
+}
+
+function addIngredientRow() {
+  const container = document.getElementById('supp-ingredients');
+  if (!container) return;
+  const idx = container.children.length;
+  container.insertAdjacentHTML('beforeend', _ingredientRowHtml(idx));
+  const rows = container.querySelectorAll('.supp-ing-name');
+  if (rows.length) rows[rows.length - 1].focus();
+}
+
+function removeIngredientRow(btn) {
+  btn.closest('.supp-ingredient-row')?.remove();
+}
+
+function _collectIngredients() {
+  const rows = document.querySelectorAll('#supp-ingredients .supp-ingredient-row');
+  const ingredients = [];
+  for (const row of rows) {
+    const name = row.querySelector('.supp-ing-name')?.value.trim();
+    const amount = row.querySelector('.supp-ing-amount')?.value.trim();
+    if (name) ingredients.push({ name, amount });
+  }
+  return ingredients.length > 0 ? ingredients : undefined;
+}
+
+async function scanSupplementLabel(input) {
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file || !isValidImageType(file.type)) { showNotification('Please select an image (JPG, PNG, WebP)', 'error'); return; }
+  const scanBtn = document.querySelector('.supp-scan-label');
+  if (scanBtn) { scanBtn.textContent = 'Scanning...'; scanBtn.disabled = true; }
+  try {
+    const { base64, mediaType } = await resizeImage(file, 1024, 0.85);
+    const imageBlock = formatImageBlock(base64, mediaType);
+    const content = buildVisionContent([imageBlock], 'Extract product name and active ingredients from this supplement/medication label. Reply with ONLY JSON: {"product":"product name","dosage":"serving size e.g. 2 capsules/day","ingredients":[{"name":"ingredient","amount":"per serving"},...]}\nOnly active ingredients — skip fillers, excipients, binders, coatings, flavors, sweeteners. No other text.');
+    const result = await callClaudeAPI({ messages: [{ role: 'user', content }], maxTokens: 2000 });
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) { showNotification('Could not parse label from image', 'error'); return; }
+    _applyParsedSupplement(JSON.parse(jsonMatch[0]));
+  } catch (e) {
+    if (isDebugMode()) console.warn('[scanLabel]', e);
+    showNotification('Failed to scan label: ' + (e.message || 'Unknown error'), 'error');
+  } finally {
+    if (scanBtn) { scanBtn.textContent = 'Scan label'; scanBtn.disabled = false; }
+  }
+}
+
+function _applyParsedSupplement(parsed) {
+  const ingredients = parsed.ingredients || parsed;
+  if (Array.isArray(ingredients) && ingredients.length > 0) {
+    const container = document.getElementById('supp-ingredients');
+    if (container) {
+      container.innerHTML = '';
+      for (let i = 0; i < ingredients.length; i++) {
+        const ing = ingredients[i];
+        container.insertAdjacentHTML('beforeend', _ingredientRowHtml(i, ing.name || '', ing.amount || ''));
+      }
+    }
+    showNotification(`${ingredients.length} ingredients extracted`, 'success');
+  }
+  const _valid = v => v && !/not (specified|found|available|provided)/i.test(v) && !/n\/?a/i.test(v);
+  const nameInput = document.getElementById('supp-name');
+  if (nameInput && !nameInput.value.trim() && _valid(parsed.product)) nameInput.value = parsed.product;
+  const dosageInput = document.getElementById('supp-dosage');
+  if (dosageInput && !dosageInput.value.trim() && _valid(parsed.dosage)) dosageInput.value = parsed.dosage;
+}
+
+async function fetchSupplementFromURL() {
+  const urlInput = document.getElementById('supp-url');
+  const url = urlInput?.value.trim();
+  if (!url) { showNotification('Paste a product URL first', 'error'); return; }
+  try { new URL(url); } catch { showNotification('Invalid URL', 'error'); return; }
+  const btn = document.querySelector('.supp-url-fetch');
+  if (btn) { btn.textContent = 'Fetching...'; btn.disabled = true; }
+  try {
+    // Fetch page HTML — use /api/fetch-page on localhost, proxy GET on hosted
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    let html;
+    if (isLocal) {
+      const res = await fetch('/api/fetch-page?url=' + encodeURIComponent(url));
+      const json = await res.json();
+      html = json.html;
+    } else {
+      const res = await fetch('/api/proxy', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, method: 'GET', headers: {} })
+      });
+      html = await res.text();
+    }
+    if (!html || html.length < 100) { showNotification('Could not fetch page content', 'error'); return; }
+    // Extract JSON-LD structured data (has product description with dosage/ingredients)
+    const ldMatches = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+    let ldText = '';
+    for (const m of ldMatches) {
+      const inner = m.replace(/<script[^>]*>|<\/script>/gi, '').trim();
+      if (/ingredient|supplement|serving|dosage|vitamin|capsule|tablet|složení|dávkování/i.test(inner)) ldText += inner + '\n';
+    }
+    // Strip non-content elements to plain text
+    const plainText = html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+      .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+      .replace(/<header[\s\S]*?<\/header>/gi, '')
+      .replace(/<svg[\s\S]*?<\/svg>/gi, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s{2,}/g, ' ');
+    // Extract paragraphs near supplement-relevant keywords to capture ingredient tables
+    const kwPattern = /(.{0,300}(?:ingredient|supplement.fact|serving size|složení|dávkování|výživové|nutritional|active).{0,500})/gi;
+    const kwMatches = plainText.match(kwPattern) || [];
+    const kwText = kwMatches.join('\n');
+    // Combine: JSON-LD + keyword-adjacent text + beginning of page (product name/description)
+    const trimmed = (ldText + '\n' + kwText + '\n' + plainText.slice(0, 5000)).slice(0, 15000);
+    const result = await callClaudeAPI({
+      system: 'Extract supplement/medication info from this product page. Reply with ONLY JSON: {"product":"name","dosage":"serving size e.g. 2 capsules/day","ingredients":[{"name":"ingredient","amount":"per serving"},...]}\nOnly active ingredients — skip fillers, excipients, binders, coatings, flavors, sweeteners. Use null for fields not found. No other text.',
+      messages: [{ role: 'user', content: trimmed }],
+      maxTokens: 2000
+    });
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) { showNotification('Could not parse product info', 'error'); return; }
+    _applyParsedSupplement(JSON.parse(jsonMatch[0]));
+  } catch (e) {
+    if (isDebugMode()) console.warn('[fetchURL]', e);
+    showNotification('Failed to fetch: ' + (e.message || 'Unknown error'), 'error');
+  } finally {
+    if (btn) { btn.textContent = 'Fetch'; btn.disabled = false; }
+  }
+}
+
 export function openSupplementsEditor(editIdx) {
   const modal = document.getElementById("detail-modal");
   const overlay = document.getElementById("modal-overlay");
@@ -85,11 +223,12 @@ export function openSupplementsEditor(editIdx) {
       const icon = isMed ? '\uD83D\uDC8A' : '\uD83D\uDCA7';
       const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
-      html += `<div class="supp-list-item${editing && editIdx === i ? ' style="border-color:var(--accent)"' : ''}">
+      html += `<div class="supp-list-item"${editing && editIdx === i ? ' style="border-color:var(--accent)"' : ''}>
         <span class="supp-list-icon">${icon}</span>
         <div class="supp-list-info">
           <div class="supp-list-name">${escapeHTML(s.name)}${s.dosage ? ` <span class="supp-list-meta">${escapeHTML(s.dosage)}</span>` : ''}</div>
           <div class="supp-list-meta">${dateRange}</div>
+          ${s.ingredients?.length ? `<div class="supp-list-ingredients">${s.ingredients.map(ing => `<span class="supp-ing-pill">${escapeHTML(ing.name)}${ing.amount ? ` ${escapeHTML(ing.amount)}` : ''}</span>`).join('')}</div>` : ''}
           ${s.note ? `<div class="supp-list-note">${escapeHTML(s.note)}</div>` : ''}
         </div>
         <div class="supp-list-actions">
@@ -101,8 +240,17 @@ export function openSupplementsEditor(editIdx) {
     html += `</div>`;
   }
   if (editing) html += renderSupplementImpact(editing, editIdx);
+  const ingredients = editing && editing.ingredients ? editing.ingredients : [];
   html += `<div class="supp-form">
     <div class="supp-form-title">${editing ? 'Edit' : 'Add New'}</div>
+    ${hasAIProvider() ? `<div class="supp-form-row supp-url-row">
+      <div class="supp-form-field" style="flex:1"><label>Import from URL</label>
+        <div class="supp-url-input-row">
+          <input type="url" id="supp-url" placeholder="Paste product page link to auto-fill" autocomplete="off">
+          <button class="supp-url-fetch" onclick="fetchSupplementFromURL()">Fetch</button>
+        </div>
+      </div>
+    </div>` : ''}
     <div class="supp-form-row">
       <div class="supp-form-field"><label>Name</label>
         <input type="text" id="supp-name" placeholder="e.g. Creatine, Metformin" value="${editing ? escapeHTML(editing.name) : ''}">
@@ -123,6 +271,16 @@ export function openSupplementsEditor(editIdx) {
       </div>
       <div class="supp-form-field"><label>End Date (blank = ongoing)</label>
         <input type="date" id="supp-end" value="${editing && editing.endDate ? editing.endDate : ''}">
+      </div>
+    </div>
+    <div class="supp-form-row">
+      <div class="supp-form-field" style="flex:1"><label>Ingredients</label>
+        <div id="supp-ingredients">${ingredients.map((ing, i) => _ingredientRowHtml(i, ing.name, ing.amount)).join('')}</div>
+        <div class="supp-ingredient-actions">
+          <button class="supp-ingredient-add" onclick="addIngredientRow()">+ Add</button>
+          ${hasAIProvider() && supportsVision() ? `<button class="supp-ingredient-add supp-scan-label" onclick="document.getElementById('supp-label-input').click()">Scan label</button>
+          <input type="file" id="supp-label-input" accept="image/*" capture="environment" style="display:none" onchange="scanSupplementLabel(this)">` : ''}
+        </div>
       </div>
     </div>
     <div class="supp-form-row">
@@ -153,8 +311,10 @@ export function saveSupplement(idx) {
   if (!startDate) { showNotification('Start date is required', 'error'); return; }
   if (endDate && endDate < startDate) { showNotification('End date must be after start date', 'error'); return; }
   const note = document.getElementById('supp-note').value.trim();
+  const ingredients = _collectIngredients();
   if (!state.importedData.supplements) state.importedData.supplements = [];
   const entry = { name, dosage, startDate, endDate, type, note };
+  if (ingredients) entry.ingredients = ingredients;
   if (idx >= 0) {
     state.importedData.supplements[idx] = entry;
   } else {
@@ -281,15 +441,29 @@ let _batchPromise = null;
 export function renderSupplementImpact(supplement, editIdx) {
   const hasAI = hasAIProvider();
   const data = getActiveData();
-  if (!data || !data.dates || data.dates.length < 2) return '';
+  if (!data || !data.dates || data.dates.length < 2) {
+    return `<div class="supp-impact-section"><div class="supp-impact-header"><span class="ctx-health-dot ctx-health-dot-gray"></span><span>Impact Analysis</span></div><div class="supp-impact-hint">Needs at least 2 lab dates to compare</div></div>`;
+  }
   const impacts = computeAllImpacts(supplement, data);
-  if (impacts.length === 0) return '';
+  if (impacts.length === 0) {
+    const hasAfter = data.dates.some(d => d >= supplement.startDate);
+    const hasBefore = data.dates.some(d => d < supplement.startDate);
+    const hint = !hasBefore ? 'No lab results from before this supplement was started'
+      : !hasAfter ? 'No lab results since starting this supplement'
+      : 'No significant marker changes detected yet';
+    return `<div class="supp-impact-section"><div class="supp-impact-header"><span class="ctx-health-dot ctx-health-dot-gray"></span><span>Impact Analysis</span></div><div class="supp-impact-hint">${hint}</div></div>`;
+  }
 
   const supps = state.importedData.supplements || [];
   const fp = getBatchFingerprint(supps, data);
   const cache = getImpactCache();
-  const batch = cache[fp]; // { "SupplementName": { dot, summary }, ... }
-  const cached = batch?.[supplement.name];
+  // Check exact fingerprint first, then fall back to any cached entry for this supplement
+  let cached = cache[fp]?.[supplement.name];
+  if (!cached) {
+    for (const batch of Object.values(cache)) {
+      if (batch[supplement.name]) { cached = batch[supplement.name]; break; }
+    }
+  }
 
   const dotColor = cached ? `ctx-health-dot-${cached.dot}` : (hasAI ? 'ctx-health-dot-shimmer' : 'ctx-health-dot-gray');
   const summaryClass = cached ? `supp-impact-summary-visible supp-impact-summary-${cached.dot}` : '';
@@ -299,11 +473,12 @@ export function renderSupplementImpact(supplement, editIdx) {
     <div class="supp-impact-header">
       <span class="ctx-health-dot ${dotColor}" id="supp-impact-dot-${editIdx}"></span>
       <span>Impact Analysis</span>
+      ${cached && !cache[fp]?.[supplement.name] && hasAI ? `<button class="supp-impact-refresh" onclick="refreshSupplementImpact(${editIdx})" title="Re-analyze with current data">refresh</button>` : ''}
     </div>
     <div class="supp-impact-summary ${summaryClass}" id="supp-impact-summary-${editIdx}">${summaryText}</div>
   </div>`;
 
-  // If not cached and AI available, fire batch call (one call for ALL supplements)
+  // Only auto-fire if no cached result exists at all for this supplement
   if (!cached && hasAI) {
     setTimeout(() => loadBatchImpactAI(supps, data, fp, editIdx), 50);
   }
@@ -311,14 +486,13 @@ export function renderSupplementImpact(supplement, editIdx) {
 }
 
 async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
-  // Deduplicate: if a batch call is already in flight for this fingerprint, wait for it
+  // Deduplicate: if a batch call is already in flight, wait for it then check cache
   if (_batchPromise) {
     await _batchPromise;
-    // After the batch completes, update the current DOM from cache
     const cache = getImpactCache();
     const batch = cache[fp];
-    if (batch) applyImpactToDOM(currentEditIdx, batch, supps);
-    return;
+    if (batch) { applyImpactToDOM(currentEditIdx, batch, supps); return; }
+    // First call failed — fall through to retry
   }
 
   // Build prompt with ALL supplements
@@ -336,6 +510,7 @@ async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
     const top = impacts.slice(0, 5);
     const overlapping = getOverlappingSupplements(s, supps);
     ctx += `\n[${s.name}] ${s.dosage || ''} (${s.type}) since ${s.startDate}${s.endDate ? ' until ' + s.endDate : ''}`;
+    if (s.ingredients?.length) ctx += ` ingredients: ${s.ingredients.map(ing => `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`).join(', ')}`;
     if (overlapping.length > 0) ctx += ` (also taking: ${overlapping.map(o => o.name).join(', ')})`;
     ctx += `\n`;
     for (const imp of top) {
@@ -346,13 +521,14 @@ async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
   }
 
   const names = suppEntries.map(e => `"${e.supplement.name}"`).join(', ');
-  const system = `Reply with ONLY JSON, no other text. One entry per supplement: {${names.replace(/"/g, '"')}: {"dot":"green|yellow|red|gray","summary":"1-2 sentences"}, ...}
-green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data. Name markers. Note expected changes.`;
+  const system = `ONLY JSON, no thinking, no explanation: {${names.replace(/"/g, '"')}: {"dot":"green|yellow|red|gray","summary":"max 20 words"}, ...}
+green=beneficial, yellow=mixed, red=concerning, gray=insufficient data. Mention key markers.`;
 
   _batchPromise = (async () => {
     try {
-      const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: ctx }], maxTokens: 150 * suppEntries.length + 100 });
-      const jsonMatch = result.text.match(/\{[\s\S]*\}/);
+      const result = await callClaudeAPI({ system, messages: [{ role: 'user', content: ctx }], maxTokens: 300 * suppEntries.length + 1000 });
+      const cleaned = result.text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       if (!jsonMatch) return;
       const parsed = JSON.parse(jsonMatch[0]);
 
@@ -363,7 +539,7 @@ green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data.
         if (entry && typeof entry === 'object') {
           batch[s.name] = {
             dot: ['green', 'yellow', 'red', 'gray'].includes(entry.dot) ? entry.dot : 'gray',
-            summary: typeof entry.summary === 'string' ? entry.summary : ''
+            summary: typeof entry.summary === 'string' ? entry.summary.slice(0, 150) : ''
           };
         }
       }
@@ -378,11 +554,31 @@ green=beneficial/expected, yellow=mixed, red=concerning, gray=insufficient data.
 
       // Update DOM for the currently visible supplement
       applyImpactToDOM(currentEditIdx, batch, supps);
-    } catch { /* AI unavailable */ }
+    } catch (e) { if (isDebugMode()) console.warn('[suppImpact] AI batch failed:', e.message || e); }
   })();
 
   await _batchPromise;
   _batchPromise = null;
+}
+
+function refreshSupplementImpact(editIdx) {
+  const supps = state.importedData.supplements || [];
+  const data = getActiveData();
+  if (!data) return;
+  const fp = getBatchFingerprint(supps, data);
+  // Clear stale cache for this fingerprint to force re-fetch
+  const cache = getImpactCache();
+  delete cache[fp];
+  setImpactCache(cache);
+  // Reset shimmer
+  const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
+  if (dotEl) dotEl.className = 'ctx-health-dot ctx-health-dot-shimmer';
+  const sumEl = document.getElementById(`supp-impact-summary-${editIdx}`);
+  if (sumEl) { sumEl.textContent = ''; sumEl.className = 'supp-impact-summary'; }
+  // Hide refresh button
+  const refreshBtn = dotEl?.closest('.supp-impact-header')?.querySelector('.supp-impact-refresh');
+  if (refreshBtn) refreshBtn.remove();
+  loadBatchImpactAI(supps, data, fp, editIdx);
 }
 
 function applyImpactToDOM(editIdx, batch, supps) {
@@ -399,4 +595,4 @@ function applyImpactToDOM(editIdx, batch, supps) {
   }
 }
 
-Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts });
+Object.assign(window, { renderSupplementsSection, openSupplementsEditor, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts, addIngredientRow, removeIngredientRow, scanSupplementLabel, fetchSupplementFromURL, refreshSupplementImpact });

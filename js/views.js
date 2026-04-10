@@ -314,17 +314,18 @@ export function buildFocusContext() {
     ctx += `Notes for AI: ${contextNotes.trim()}\n`;
   }
 
-  // Flagged/non-normal markers (latest values only)
-  const flags = getAllFlaggedMarkers(data);
+  // Flagged/non-normal markers (latest values only), respecting AI context toggles
+  const _isAICtx = (catKey) => { const g = data.categories[catKey]?.group; return !g || (window.isGroupInAIContext ? window.isGroupInAIContext(g) : true); };
+  const flags = getAllFlaggedMarkers(data).filter(f => _isAICtx(f.categoryKey));
   if (flags.length > 0) {
-    ctx += `Flagged:\n`;
-    for (const f of flags) {
+    ctx += `Flagged (${flags.length} total${flags.length > 15 ? ', showing top 15' : ''}):\n`;
+    for (const f of flags.slice(0, 15)) {
       ctx += `- ${f.name}: ${f.value} ${f.unit} (${f.status}, ref ${f.effectiveMin}\u2013${f.effectiveMax})\n`;
     }
   }
 
-  // Supplements with temporal context
-  const supps = state.importedData.supplements || [];
+  // Supplements with temporal context (cap at 8 for focus card)
+  const supps = (state.importedData.supplements || []).slice(0, 8);
   if (supps.length > 0) {
     ctx += `Supplements:\n`;
     for (const s of supps) {
@@ -350,6 +351,7 @@ export function buildFocusContext() {
   // Also include any markers that changed significantly (latest vs previous)
   const changes = [];
   for (const [catKey, cat] of Object.entries(data.categories)) {
+    if (!_isAICtx(catKey)) continue;
     for (const [key, m] of Object.entries(cat.markers)) {
       const nonNull = m.values.filter(v => v !== null);
       if (nonNull.length < 2) continue;
@@ -393,7 +395,16 @@ export async function loadFocusCard() {
       el.innerHTML = `<span class="focus-card-text" style="color:var(--text-muted)">No insight available</span>`;
       return;
     }
-    const focusSystem = 'You are a blood work analyst. The user\'s real lab results and health context are provided below. Respond with a brief insight — 2-3 sentences max. Name the most actionable finding, why it matters (connecting to their goals/conditions/lens if provided), and one concrete next step. Be direct, grounded, and proportionate. A value that changed but remains within its reference range is normal fluctuation — do not alarm the user about it. Only flag genuinely out-of-range or trending-out-of-range values. The next step should be practical (retest, monitor, adjust lifestyle, discuss with provider) — never recommend specific products or supplements. IMPORTANT: Only reference data explicitly provided below — do not infer, assume, or hallucinate information not present. Never attribute a biomarker change to a supplement unless the supplement was already active BEFORE the earlier lab draw date. Supplements started after the last labs cannot have affected those results. No preamble, no disclaimer.';
+    const focusSystem = `You summarize blood work for a health dashboard card. Write 3-5 sentences, no more. Rules:
+- Start with the single most critical finding and why it matters for this person's goals/conditions
+- Then mention 1-2 secondary findings worth watching
+- End with one concrete next step (retest, lifestyle change, discuss with provider)
+- Connect findings to each other when relevant (e.g. liver markers + hormones)
+- Only flag values genuinely outside reference range
+- Never recommend specific supplements or products
+- Only reference data provided below — never infer or assume
+- Never attribute changes to supplements started after the last lab date
+- CRITICAL: Output ONLY the insight text. No thinking, no reasoning, no "Let me analyze", no numbered analysis steps, no preamble. Start directly with your finding.`;
 
     // Typewriter: trickle streamed text for smooth appearance
     const textEl = document.createElement('span');
@@ -410,8 +421,9 @@ export async function loadFocusCard() {
     const { text: fullText, usage } = await callClaudeAPI({
       system: focusSystem,
       messages: [{ role: 'user', content: ctx }],
-      maxTokens: 2048,
+      maxTokens: 500,
       onStream(text) {
+        if (text.length < target.length) displayed = 0; // reset typewriter if stream cleared reasoning
         target = text;
         if (!textEl.parentNode) { el.innerHTML = ''; el.appendChild(textEl); }
         if (!timer) tick();
@@ -422,7 +434,17 @@ export async function loadFocusCard() {
     if (usage) {
       trackUsage(getAIProvider(), getActiveModelId(), usage.inputTokens || 0, usage.outputTokens || 0);
     }
-    const trimmed = (fullText || '').trim();
+    let trimmed = (fullText || '')
+      .replace(/<think>[\s\S]*?<\/think>/g, '')
+      .trim();
+    // Strip thinking-out-loud preamble — remove lines starting with reasoning patterns
+    const lines = trimmed.split('\n');
+    const thinkingPattern = /^(Let me |I need to |I should |I'll |Key findings|The user |Looking at the|Now |First,|So |OK |Alright|\d+\.\s+\w+:)/i;
+    let startIdx = 0;
+    while (startIdx < lines.length && (thinkingPattern.test(lines[startIdx].trim()) || lines[startIdx].trim() === '')) startIdx++;
+    if (startIdx > 0 && startIdx < lines.length) trimmed = lines.slice(startIdx).join('\n').trim();
+    // Safety cap — truncate at last sentence boundary within 1500 chars
+    if (trimmed.length > 1500) { const cut = trimmed.slice(0, 1500).lastIndexOf('.'); if (cut > 100) trimmed = trimmed.slice(0, cut + 1); }
     if (trimmed) {
       localStorage.setItem(cacheKey, JSON.stringify({ fingerprint: fp, text: trimmed }));
       el.innerHTML = `<span class="focus-card-text">${applyInlineMarkdown(trimmed)}</span>`;
@@ -1648,11 +1670,7 @@ export function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
   if (state.chartInstances["modal"]) { state.chartInstances["modal"].destroy(); delete state.chartInstances["modal"]; }
   document.removeEventListener('click', closeSuggestionsOnClickOutside);
-  // Clean up any child overlays (e.g. EMF interpretation) that may have been left open
   if (window.closeEMFInterpretation) window.closeEMFInterpretation();
-  // Refresh background view to reflect any edits made while modal was open
-  const activeNav = document.querySelector(".nav-item.active");
-  navigate(activeNav ? activeNav.dataset.category : "dashboard");
 }
 
 
