@@ -386,16 +386,14 @@ export async function fetchVeniceModels(key) {
 }
 
 // ─── Proxy support ───
-// When running on hosted version (not localhost), route cloud AI calls through
-// /api/proxy to eliminate CORS restrictions. Local AI skips the proxy.
+// Only Custom API needs the proxy (arbitrary endpoints may lack CORS headers).
+// Known providers (Venice, OpenRouter, Routstr, PPQ, Local AI) all set CORS headers,
+// so we call them directly — avoids Vercel's 30s Edge Function timeout on hosted site.
 function _useProxy() {
-  const h = window.location.hostname;
-  if (h.endsWith('.onion')) return false;
-  // Custom API: proxy needed for remote endpoints (CORS), even on localhost dev server
   if (getAIProvider() === 'custom') {
     try { const u = new URL(getCustomApiUrl()); return !['localhost', '127.0.0.1'].includes(u.hostname) && !u.hostname.startsWith('192.168.'); } catch { return false; }
   }
-  return h !== 'localhost' && h !== '127.0.0.1' && !h.startsWith('192.168.');
+  return false;
 }
 
 function _proxyFetch(url, options) {
