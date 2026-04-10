@@ -322,16 +322,17 @@
     assert('Forgot passphrase does NOT use showConfirmDialog', !src.includes("forgotBtn.addEventListener('click', () => {\n    showConfirmDialog"));
     assert('Forgot passphrase has inline confirm UI', src.includes('passphrase-forgot-confirm'));
     assert('Forgot passphrase has Go Back button', src.includes('passphrase-forgot-cancel'));
-    // Fix 2: backup includes encryption salt + global settings
-    assert('Backup includes encryptionSalt field', src.includes('encryptionSalt'));
-    assert('Restore sets labcharts-encryption-enabled', src.includes("localStorage.setItem('labcharts-encryption-enabled'"));
-    assert('Restore sets labcharts-encryption-salt', src.includes("localStorage.setItem('labcharts-encryption-salt'"));
-    // API keys in backup
-    assert('Backup includes labcharts-api-key', src.includes("'labcharts-api-key'"));
-    assert('Backup includes labcharts-venice-key', src.includes("'labcharts-venice-key'"));
-    assert('Backup includes labcharts-ai-provider', src.includes("'labcharts-ai-provider'"));
-    assert('Backup includes settings field', src.includes('settings,') || src.includes('settings:'));
-    assert('Restore writes global settings', src.includes('backup.settings'));
+    // Fix 2: backup includes encryption salt + global settings (now in backup.js)
+    const bkSrc0 = await fetchWithRetry('js/backup.js');
+    assert('Backup includes encryptionSalt field', bkSrc0.includes('encryptionSalt'));
+    assert('Restore sets labcharts-encryption-enabled', bkSrc0.includes("localStorage.setItem('labcharts-encryption-enabled'"));
+    assert('Restore sets labcharts-encryption-salt', bkSrc0.includes("localStorage.setItem('labcharts-encryption-salt'"));
+    // API keys in backup (now in backup.js)
+    assert('Backup includes labcharts-api-key', src.includes("'labcharts-api-key'") || bkSrc.includes("'labcharts-api-key'"));
+    assert('Backup includes labcharts-venice-key', src.includes("'labcharts-venice-key'") || bkSrc.includes("'labcharts-venice-key'"));
+    assert('Backup includes labcharts-ai-provider', bkSrc.includes("'labcharts-ai-provider'"));
+    assert('Backup includes settings field', bkSrc.includes('settings,') || bkSrc.includes('settings:'));
+    assert('Restore writes global settings', bkSrc.includes('backup.settings'));
   } catch (e) {
     assert('crypto.js source inspection', false, e.message);
   }
@@ -428,21 +429,21 @@
   // 22. buildBackupSnapshot includes per-profile prefs
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetchWithRetry('js/crypto.js');
-    assert('crypto.js has PER_PROFILE_PREF_SUFFIXES', src.includes('PER_PROFILE_PREF_SUFFIXES'));
-    assert('crypto.js includes units in prefs', src.includes("'units'"));
-    assert('crypto.js includes rangeMode in prefs', src.includes("'rangeMode'"));
-    assert('crypto.js includes suppOverlay in prefs', src.includes("'suppOverlay'"));
-    assert('crypto.js includes noteOverlay in prefs', src.includes("'noteOverlay'"));
-    assert('crypto.js includes chatPersonality in prefs', src.includes("'chatPersonality'"));
-    assert('crypto.js includes chatPersonalityCustom in prefs', src.includes("'chatPersonalityCustom'"));
-    assert('crypto.js has openBackupDB function', src.includes('function openBackupDB'));
-    assert('crypto.js has performAutoBackup function', src.includes('async function performAutoBackup'));
-    assert('crypto.js has scheduleAutoBackup function', src.includes('function scheduleAutoBackup'));
-    assert('crypto.js has getAutoBackupSnapshots function', src.includes('async function getAutoBackupSnapshots'));
-    assert('crypto.js has restoreAutoBackup function', src.includes('async function restoreAutoBackup'));
-    assert('crypto.js has MAX_SNAPSHOTS = 5', src.includes('MAX_SNAPSHOTS = 5'));
-    assert('crypto.js has AUTO_BACKUP_COOLDOWN = 300000', src.includes('AUTO_BACKUP_COOLDOWN = 300000'));
+    const bkSrc = await fetchWithRetry('js/backup.js');
+    assert('backup.js has PER_PROFILE_PREF_SUFFIXES', bkSrc.includes('PER_PROFILE_PREF_SUFFIXES'));
+    assert('backup.js includes units in prefs', bkSrc.includes("'units'"));
+    assert('backup.js includes rangeMode in prefs', bkSrc.includes("'rangeMode'"));
+    assert('backup.js includes suppOverlay in prefs', bkSrc.includes("'suppOverlay'"));
+    assert('backup.js includes noteOverlay in prefs', bkSrc.includes("'noteOverlay'"));
+    assert('backup.js includes chatPersonality in prefs', bkSrc.includes("'chatPersonality'"));
+    assert('backup.js includes chatPersonalityCustom in prefs', bkSrc.includes("'chatPersonalityCustom'"));
+    assert('backup.js has openBackupDB function', bkSrc.includes('function openBackupDB'));
+    assert('backup.js has performAutoBackup function', bkSrc.includes('async function performAutoBackup'));
+    assert('backup.js has scheduleAutoBackup function', bkSrc.includes('function scheduleAutoBackup'));
+    assert('backup.js has getAutoBackupSnapshots function', bkSrc.includes('async function getAutoBackupSnapshots'));
+    assert('backup.js has restoreAutoBackup function', bkSrc.includes('async function restoreAutoBackup'));
+    assert('backup.js has MAX_SNAPSHOTS = 5', bkSrc.includes('MAX_SNAPSHOTS = 5'));
+    assert('backup.js has AUTO_BACKUP_COOLDOWN = 300000', bkSrc.includes('AUTO_BACKUP_COOLDOWN = 300000'));
     assert('crypto.js has labcharts-last-autobackup', src.includes('labcharts-last-autobackup'));
   } catch (e) {
     assert('buildBackupSnapshot prefs check', false, e.message);

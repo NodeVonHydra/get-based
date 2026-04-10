@@ -44,6 +44,16 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
 
+  // Guard proxy/API endpoints: only allow requests from the app itself
+  if (pathname.startsWith('/api/') || pathname === '/proxy') {
+    const origin = req.headers.origin || req.headers.referer || '';
+    if (!origin.includes(`localhost:${PORT}`) && !origin.includes(`127.0.0.1:${PORT}`)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end('{"error":"Forbidden: proxy endpoints only accept same-origin requests"}');
+      return;
+    }
+  }
+
   // API: HEAD-check a URL and return the real status code (bypasses browser CORS)
   if (pathname === '/api/check-url') {
     const target = url.searchParams.get('url');
@@ -97,7 +107,7 @@ const server = http.createServer((req, res) => {
         }
         let body = '';
         let bytes = 0;
-        const MAX = 256 * 1024;
+        const MAX = 512 * 1024;
         pageRes.setEncoding('utf8');
         pageRes.on('data', (chunk) => {
           if (bytes < MAX) { body += chunk; bytes += Buffer.byteLength(chunk); }
@@ -278,7 +288,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(404); res.end('Not found');
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`Dev server running at http://localhost:${PORT}`);
   if (hasSite) {
     console.log(`  /        → landing page (${SITE_DIR})`);

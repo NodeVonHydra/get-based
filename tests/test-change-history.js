@@ -157,10 +157,10 @@
   // ═══════════════════════════════════════
   console.log('%c 14. AI Context ', 'font-weight:bold;color:#f59e0b');
 
-  const chatSrc = await fetchWithRetry('js/chat.js');
-  assert('buildLabContext reads changeHistory', chatSrc.includes('changeHistory'));
-  assert('Context Change Timeline section', chatSrc.includes('Context Change Timeline'));
-  assert('summarizeChange helper exists', chatSrc.includes('function summarizeChange'));
+  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
+  assert('buildLabContext reads changeHistory', labCtxSrc.includes('changeHistory'));
+  assert('Context Change Timeline section', labCtxSrc.includes('Context Change Timeline'));
+  assert('summarizeChange helper exists', labCtxSrc.includes('function summarizeChange'));
 
   // ═══════════════════════════════════════
   // 15. saveAndRefresh accepts field param

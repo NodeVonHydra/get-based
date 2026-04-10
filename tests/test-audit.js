@@ -50,7 +50,8 @@
   assert('Correlation option names escaped', /escapeHTML\(marker\.name\)/.test(viewsSrc));
 
   const chatSrc = await fetchWithRetry('js/chat.js');
-  assert('Markdown URL has quote escaping', chatSrc.includes('.replace(/"/g, \'&quot;\')'));
+  const mdSrc = await fetchWithRetry('js/markdown.js');
+  assert('Markdown URL has quote escaping', mdSrc.includes('.replace(/"/g, \'&quot;\')'));
   assert('Clipboard has navigator.clipboard guard', chatSrc.includes('if (!navigator.clipboard)'));
 
   // ═══════════════════════════════════════
@@ -96,8 +97,7 @@
   console.log('%c 7. Error Handling ', 'font-weight:bold;color:#f59e0b');
 
   const apiSrc = await fetchWithRetry('js/api.js');
-  assert('Venice models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-venice-models')"));
-  assert('OpenRouter models JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-models')"));
+  assert('Model display JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem(`labcharts-${provider}-models`)"));
   assert('OpenRouter pricing JSON.parse guarded', apiSrc.includes("try { cached = JSON.parse(localStorage.getItem('labcharts-openrouter-pricing')"));
 
   const exportSrc = await fetchWithRetry('js/export.js');
@@ -222,43 +222,44 @@
   // ═══════════════════════════════════════
   console.log('%c 16. Context Assembly Pipeline ', 'font-weight:bold;color:#f59e0b');
 
-  // buildLabContext enriched header
-  assert('buildLabContext has age computation', chatSrc.includes('Math.floor((new Date() - new Date(state.profileDob))'));
-  assert('buildLabContext has today ISO date', chatSrc.includes("new Date().toISOString().slice(0, 10)"));
-  assert('buildLabContext has unit system label', chatSrc.includes("unit system: ${unitLabel}"));
-  assert('buildLabContext has fmtDate helper', chatSrc.includes("const fmtDate = d => new Date(d + 'T00:00:00')"));
+  // buildLabContext enriched header (now in lab-context.js)
+  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
+  assert('buildLabContext has age computation', labCtxSrc.includes('Math.floor((new Date() - new Date(state.profileDob))'));
+  assert('buildLabContext has today ISO date', labCtxSrc.includes("new Date().toISOString().slice(0, 10)"));
+  assert('buildLabContext has unit system label', labCtxSrc.includes("unit system: ${unitLabel}"));
+  assert('buildLabContext has fmtDate helper', labCtxSrc.includes("const fmtDate = d => new Date(d + 'T00:00:00')"));
 
   // Section ordering: goals before lab values, lab values before lifestyle
-  const goalsIdx = chatSrc.indexOf('## Health Goals (Things to Solve)');
-  const labValuesIdx = chatSrc.indexOf('## ${cat.label}');
-  const dietIdx = chatSrc.indexOf('## Diet\\n');
-  const flaggedIdx = chatSrc.indexOf('## Flagged Results (Latest)');
-  const notesIdx = chatSrc.indexOf('## User Notes');
-  const diagIdx = chatSrc.indexOf('## Medical Conditions / Diagnoses');
+  const goalsIdx = labCtxSrc.indexOf('## Health Goals (Things to Solve)');
+  const labValuesIdx = labCtxSrc.indexOf('## ${cat.label}');
+  const dietIdx = labCtxSrc.indexOf('## Diet\\n');
+  const flaggedIdx = labCtxSrc.indexOf('## Flagged Results (Latest)');
+  const notesIdx = labCtxSrc.indexOf('## User Notes');
+  const diagIdx = labCtxSrc.indexOf('## Medical Conditions / Diagnoses');
   // Goals should appear before diet in the source (section ordering)
-  assert('Health Goals section before Diet section', chatSrc.indexOf('## Health Goals') < chatSrc.indexOf('## Diet'));
-  assert('Interpretive Lens before lab values', chatSrc.indexOf('Interpretive Lens') < chatSrc.indexOf('${cat.label}'));
+  assert('Health Goals section before Diet section', labCtxSrc.indexOf('## Health Goals') < labCtxSrc.indexOf('## Diet'));
+  assert('Interpretive Lens before lab values', labCtxSrc.indexOf('Interpretive Lens') < labCtxSrc.indexOf('${cat.label}'));
 
   // Staleness signals (global + per-category)
-  assert('buildLabContext has global staleness daysSince', chatSrc.includes('daysSince'));
-  assert('buildLabContext has global staleness months ago', chatSrc.includes('months ago'));
-  assert('buildLabContext has per-category staleness', chatSrc.includes('catDaysSince') && chatSrc.includes('catMonthsAgo'));
-  assert('Per-category staleness uses warning marker', chatSrc.includes('⚠ Last tested'));
+  assert('buildLabContext has global staleness daysSince', labCtxSrc.includes('daysSince'));
+  assert('buildLabContext has global staleness months ago', labCtxSrc.includes('months ago'));
+  assert('buildLabContext has per-category staleness', labCtxSrc.includes('catDaysSince') && labCtxSrc.includes('catMonthsAgo'));
+  assert('Per-category staleness uses warning marker', labCtxSrc.includes('⚠ Last tested'));
   assert('buildFocusContext has last labs date', viewsSrc.includes('last labs'));
 
   // Auto-gating: 7 cards use hasCardContent(), 4 have custom logic
-  const hccCount = (chatSrc.match(/hasCardContent\(/g) || []).length;
-  assert('chat.js uses hasCardContent for 7 card gates', hccCount >= 7, `found ${hccCount}`);
-  assert('chat.js imports hasCardContent', chatSrc.includes("hasCardContent") && chatSrc.includes("from './utils.js'"));
-  assert('Diagnoses uses hasCardContent', chatSrc.includes('hasCardContent(diag)'));
-  assert('Diet uses hasCardContent', chatSrc.includes('hasCardContent(diet)'));
-  assert('Exercise uses hasCardContent', chatSrc.includes('hasCardContent(ex)'));
-  assert('Sleep uses hasCardContent', chatSrc.includes('hasCardContent(sl)'));
-  assert('Stress uses hasCardContent', chatSrc.includes('hasCardContent(st)'));
-  assert('LoveLife uses hasCardContent', chatSrc.includes('hasCardContent(ll)'));
-  assert('Environment uses hasCardContent', chatSrc.includes('hasCardContent(env)'));
+  const hccCount = (labCtxSrc.match(/hasCardContent\(/g) || []).length;
+  assert('lab-context.js uses hasCardContent for 7 card gates', hccCount >= 7, `found ${hccCount}`);
+  assert('lab-context.js imports hasCardContent', labCtxSrc.includes("hasCardContent") && labCtxSrc.includes("from './utils.js'"));
+  assert('Diagnoses uses hasCardContent', labCtxSrc.includes('hasCardContent(diag)'));
+  assert('Diet uses hasCardContent', labCtxSrc.includes('hasCardContent(diet)'));
+  assert('Exercise uses hasCardContent', labCtxSrc.includes('hasCardContent(ex)'));
+  assert('Sleep uses hasCardContent', labCtxSrc.includes('hasCardContent(sl)'));
+  assert('Stress uses hasCardContent', labCtxSrc.includes('hasCardContent(st)'));
+  assert('LoveLife uses hasCardContent', labCtxSrc.includes('hasCardContent(ll)'));
+  assert('Environment uses hasCardContent', labCtxSrc.includes('hasCardContent(env)'));
   // Light & Circadian still uses custom gate (external latitude data)
-  assert('Light still uses lc || autoLat gate', chatSrc.includes('lc || autoLat'));
+  assert('Light still uses lc || autoLat gate', labCtxSrc.includes('lc || autoLat'));
   // hasCardContent in utils.js
   const utilsSrc3 = await fetchWithRetry('js/utils.js');
   assert('hasCardContent exported from utils.js', utilsSrc3.includes('export function hasCardContent'));

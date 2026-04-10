@@ -140,7 +140,7 @@
   assert('extractPDFImages in pdf-import', pdfSrc.includes('export async function extractPDFImages'));
   assert('parseLabPDFWithAIImages in pdf-import', pdfSrc.includes('export async function parseLabPDFWithAIImages'));
   assert('handleImageFile in pdf-import', pdfSrc.includes('export async function handleImageFile'));
-  assert('Auto image mode for poor text quality', pdfSrc.includes("useImageMode = true"));
+  assert('Image mode dialog for poor text quality', pdfSrc.includes("_showImageModeDialog()"));
 
   // ═══════════════════════════════════════
   // SUMMARY
