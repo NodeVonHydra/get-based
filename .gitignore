@@ -14,7 +14,3 @@ BingSiteAuth.xml
 docs/plans/
 tools/
 dev-chrome.sh
-test-screenshots/
-.mcp.json
-figma-prompt.md
-docs/cashu-wallet-implementation.md

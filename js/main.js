@@ -24,11 +24,9 @@ for (const fn of _emfFns) {
 import './pdf-import.js';
 import { ensureSNPTable, ensureHaplogroupTable } from './dna.js';
 import './export.js';
-import './lab-context.js';
 import './chat.js';
 import './image-utils.js';
 import './settings.js';
-import './provider-panels.js';
 import './cashu-wallet.js';
 import './nostr-discovery.js';
 import './glossary.js';

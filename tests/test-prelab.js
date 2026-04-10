@@ -16,31 +16,30 @@
   console.log('%c 1. buildLabContext() No-Data Path ', 'font-weight:bold;color:#f59e0b');
 
   const chatSrc = await fetchWithRetry('js/chat.js');
-  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
 
-  assert('No sentinel return string', !labCtxSrc.includes("return 'No lab data is currently loaded for this profile.'"),
+  assert('No sentinel return string', !chatSrc.includes("return 'No lab data is currently loaded for this profile.'"),
     'The old sentinel early-return should be removed');
-  assert('hasLabData variable declared', labCtxSrc.includes('const hasLabData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate)'),
+  assert('hasLabData variable declared', chatSrc.includes('const hasLabData = data.dates.length > 0 || Object.values(data.categories).some(c => c.singleDate)'),
     'Should compute hasLabData from dates + singleDate categories');
-  assert('No-data header includes profile context', labCtxSrc.includes("Profile context (sex:"),
+  assert('No-data header includes profile context', chatSrc.includes("Profile context (sex:"),
     'No-data header should say "Profile context" not "Lab data"');
-  assert('No-data NOTE recommends tests and encourages all cards', labCtxSrc.includes('recommend which blood panels') && labCtxSrc.includes('encourage filling all of them'),
+  assert('No-data NOTE recommends tests and encourages all cards', chatSrc.includes('recommend which blood panels') && chatSrc.includes('encourage filling all of them'),
     'NOTE should instruct AI to recommend panels and push for all cards');
-  assert('No-data path flags missing demographics', labCtxSrc.includes('missingDemo') && labCtxSrc.includes("urge the user to set"),
+  assert('No-data path flags missing demographics', chatSrc.includes('missingDemo') && chatSrc.includes("urge the user to set"),
     'Should add IMPORTANT warning when sex/DOB missing');
-  assert('Lab values section gated by hasLabData', labCtxSrc.includes('if (hasLabData) {') && labCtxSrc.includes("const rangeLabel"),
+  assert('Lab values section gated by hasLabData', chatSrc.includes('if (hasLabData) {') && chatSrc.includes("const rangeLabel"),
     'Lab values + flagged results should be wrapped in if (hasLabData)');
-  assert('Flagged results inside hasLabData guard', labCtxSrc.includes("const allFlags = getAllFlaggedMarkers(data)") && labCtxSrc.includes("if (flags.length > 0)"),
+  assert('Flagged results inside hasLabData guard', chatSrc.includes("const allFlags = getAllFlaggedMarkers(data)") && chatSrc.includes("if (flags.length > 0)"),
     'Flagged results should be inside the hasLabData block');
-  assert('Staleness uses hasLabData guard', labCtxSrc.includes('if (hasLabData && data.dates.length > 0)'),
+  assert('Staleness uses hasLabData guard', chatSrc.includes('if (hasLabData && data.dates.length > 0)'),
     'Staleness signal should check hasLabData first');
 
   // Sections 5-16 (notes, conditions, supplements, cycle, lifestyle cards) should NOT be gated by hasLabData
-  assert('User Notes section not gated by hasLabData', labCtxSrc.includes("// ── 5. User Notes ──\n  const notes"),
+  assert('User Notes section not gated by hasLabData', chatSrc.includes("// ── 5. User Notes ──\n  const notes"),
     'User Notes should be at top level, not inside hasLabData block');
-  assert('Medical Conditions section not gated by hasLabData', labCtxSrc.includes("// ── 6. Medical Conditions"),
+  assert('Medical Conditions section not gated by hasLabData', chatSrc.includes("// ── 6. Medical Conditions"),
     'Conditions should serialize without lab data');
-  assert('Diet section not gated by hasLabData', labCtxSrc.includes("// ── 9. Diet"),
+  assert('Diet section not gated by hasLabData', chatSrc.includes("// ── 9. Diet"),
     'Diet should serialize without lab data');
 
   // ═══════════════════════════════════════
@@ -160,18 +159,18 @@
   // Verify that _buildLabContextInner doesn't early-return before section 1
   // (buildLabContext wrapper may return cached context — that's intentional)
   assert('buildLabContext has no early return before section 1', (() => {
-    const fnStart = labCtxSrc.indexOf('function _buildLabContextInner()');
-    const section1 = labCtxSrc.indexOf('// ── 1. Health Goals', fnStart);
-    const between = labCtxSrc.substring(fnStart, section1);
+    const fnStart = chatSrc.indexOf('function _buildLabContextInner()');
+    const section1 = chatSrc.indexOf('// ── 1. Health Goals', fnStart);
+    const between = chatSrc.substring(fnStart, section1);
     // Should not have a bare return statement (only conditional ctx assignment)
     const returnCount = (between.match(/\breturn\b/g) || []).length;
     return returnCount === 0;
   })(), 'No early return between inner function start and section 1');
 
   assert('buildLabContext ends with return ctx', (() => {
-    const fnStart = labCtxSrc.indexOf('function _buildLabContextInner()');
-    const fnEnd = labCtxSrc.indexOf('\n// ═══', fnStart + 100);
-    const fnBody = labCtxSrc.substring(fnStart, fnEnd);
+    const fnStart = chatSrc.indexOf('function _buildLabContextInner()');
+    const fnEnd = chatSrc.indexOf('\n// ═══', fnStart + 100);
+    const fnBody = chatSrc.substring(fnStart, fnEnd);
     return fnBody.includes('return ctx;\n}');
   })(), 'Should always return the built context string');
 

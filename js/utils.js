@@ -95,7 +95,7 @@ export function showNotification(message, type, duration) {
   }, duration || 3000);
 }
 
-export function showConfirmDialog(message, onConfirm, onCancel) {
+export function showConfirmDialog(message, onConfirm) {
   let overlay = document.getElementById("confirm-dialog-overlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -111,7 +111,7 @@ export function showConfirmDialog(message, onConfirm, onCancel) {
     </div></div>`;
   overlay.classList.add("show");
   document.getElementById("confirm-ok").onclick = () => { overlay.classList.remove("show"); onConfirm(); };
-  document.getElementById("confirm-cancel").onclick = () => { overlay.classList.remove("show"); if (onCancel) onCancel(); };
+  document.getElementById("confirm-cancel").onclick = () => { overlay.classList.remove("show"); };
   overlay.onclick = (e) => { if (e.target === overlay) { const d = overlay.querySelector('.confirm-dialog'); if (d) { d.classList.add('modal-nudge'); d.addEventListener('animationend', () => d.classList.remove('modal-nudge'), { once: true }); } } };
   document.getElementById("confirm-cancel").focus();
 }

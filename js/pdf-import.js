@@ -14,10 +14,7 @@ import { detectProduct, normalizeWithAdapter, getAdapterByTestType } from './ada
 // UNIT NORMALIZATION — convert US-unit values to SI before storage
 // ═══════════════════════════════════════════════
 function normalizeUnitStr(s) {
-  let n = s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug').replace(/^iu\//, 'u/');
-  // Equivalence: mcg/L = ug/L = ng/mL (micro/liter = nano/milliliter)
-  if (n === 'ug/l') n = 'ng/ml';
-  return n;
+  return s.toLowerCase().replace(/\s/g, '').replace(/[\u00b5\u03bc]/g, 'u').replace(/^mcg/, 'ug').replace(/^iu\//, 'u/');
 }
 
 function normalizeToSI(key, value, unit) {
@@ -611,7 +608,7 @@ export function showImportPreview(parseResult) {
   let html = `<button class="modal-close" onclick="closeImportModal()">&times;</button>
     ${batchLabel}<h3>Import Preview</h3>
     <p style="color:var(--text-secondary);margin-bottom:16px">
-      File: ${escapeHTML(fileName)}<br>Collection Date: <strong>${dateFormatted}</strong><br>
+      File: ${fileName}<br>Collection Date: <strong>${dateFormatted}</strong><br>
       Matched: <span style="color:var(--green)">${matched.length}</span> \u00b7
       New: <span style="color:var(--accent)">${newMarkers.length}</span> \u00b7
       Unmatched: <span style="color:var(--yellow)">${unmatched.length}</span></p>`;
@@ -1013,7 +1010,7 @@ function _buildProgressHTML(step, fileName) {
         : '<span class="step-icon">\u25CB</span>';
     html += `<div class="progress-step ${cls}">${icon}<span>${IMPORT_STEPS[i]}${isActive ? "..." : ""}</span></div>`;
   }
-  if (fileName) html += `<div class="import-progress-filename">${escapeHTML(fileName)}</div>`;
+  if (fileName) html += `<div class="import-progress-filename">${fileName}</div>`;
   html += '</div>';
   return html;
 }
@@ -1316,13 +1313,11 @@ export async function handlePDFFile(file, forceImageMode = false, preExtractedTe
     const pdfText = preExtractedText || await extractPDFText(file);
     const textQuality = preExtractedText ? 'good' : assessTextQuality(pdfText);
 
-    // Determine import mode — ask user before switching to image mode for scanned/empty PDFs
+    // Determine import mode — auto-switch to image mode for scanned/empty PDFs
     let useImageMode = forceImageMode;
     if (!forceImageMode && (textQuality === 'empty' || textQuality === 'poor')) {
-      const choice = await _showImageModeDialog();
-      if (choice === 'cancel') return;
-      useImageMode = choice === 'image';
-      if (isDebugMode()) console.log(`[Import] User chose ${choice} mode (text quality: ${textQuality})`);
+      useImageMode = true;
+      if (isDebugMode()) console.log(`[Import] Auto-switching to image mode (text quality: ${textQuality})`);
     }
 
     if (useImageMode) {
@@ -1716,11 +1711,6 @@ export async function handleImageFile(file) {
     setTimeout(() => window.openSettingsModal(), 500);
     return;
   }
-  // Warn: images bypass PII obfuscation
-  const proceed = await new Promise(resolve => {
-    window.showConfirmDialog('Image imports send the full image to your AI provider. PII obfuscation is not possible for images — the AI will see all personal information in the image. Continue?', () => resolve(true), () => resolve(false));
-  });
-  if (!proceed) return;
   const _startProfileId = state.currentProfile;
   try {
     await showImportProgress(3, file.name);

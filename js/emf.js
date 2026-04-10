@@ -11,7 +11,7 @@ import { escapeHTML, showNotification, showConfirmDialog, isPIIReviewEnabled } f
 import { saveImportedData } from './data.js';
 import { resizeImage, isValidImageType } from './image-utils.js';
 import { callClaudeAPI, hasAIProvider, getAIProvider, getActiveModelId, getActiveModelDisplay } from './api.js';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown } from './chat.js';
 import { extractPDFText } from './pdf-import.js';
 import { obfuscatePDFText, sanitizeWithOllama, sanitizeWithOllamaStreaming, checkOllamaPII, reviewPIIBeforeSend } from './pii.js';
 
