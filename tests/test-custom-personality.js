@@ -243,8 +243,8 @@
   // ── 15. Backup compat ──
   console.log('%c▶ 15. Backup compat', 'font-weight:bold');
   try {
-    const backupSrc = await fetchWithRetry('js/backup.js');
-    assert('PER_PROFILE_PREF_SUFFIXES has chatPersonalityCustom', backupSrc.includes('chatPersonalityCustom'));
+    const cryptoSrc = await fetchWithRetry('js/crypto.js');
+    assert('PER_PROFILE_PREF_SUFFIXES has chatPersonalityCustom', cryptoSrc.includes('chatPersonalityCustom'));
   } catch {
     assert('Could read crypto.js', false);
   }

@@ -53,15 +53,9 @@
     'createLineChart','getMarkerDescription'
   ];
 
-  // lab-context.js (5)
-  const labContextExports = [
-    'buildLabContext','invalidateLabContextCache','getContextSummary',
-    'isGroupInAIContext','setGroupInAIContext'
-  ];
-
-  // chat.js (23)
+  // chat.js (24)
   const chatExports = [
-    'getChatStorageKey',
+    'buildLabContext','getChatStorageKey',
     'getActivePersonality','getCustomPersonalityText',
     'setChatPersonality','loadChatPersonality',
     'updateChatHeaderTitle','updatePersonalityBar','togglePersonalityBar',
@@ -183,13 +177,20 @@
     'detectLatitudeWithAI'
   ];
 
-  // settings.js (8)
+  // settings.js (20)
   const settingsExports = [
     'openSettingsModal','closeSettingsModal',
-    'renderPrivacySection',
+    'renderAIProviderPanel','renderPrivacySection',
     'togglePrivacyConfigure','updatePrivacyStatusCard',
-    'updateSettingsUI',
-    'renderDataEntriesSection','refreshDataEntriesSection'
+    'switchAIProvider',
+    'initSettingsModelFetch','initSettingsOllamaCheck','updateSettingsUI',
+    'testOllamaConnection','testPIIOllamaConnection',
+    'updateVeniceModelPricing',
+    'handleSaveVeniceKey','handleRemoveVeniceKey',
+    'renderVeniceModelDropdown',
+    'handleSaveRoutstrKey','handleRemoveRoutstrKey',
+    'renderRoutstrModelDropdown','refreshRoutstrBalance',
+    'refreshOpenRouterBalance'
   ];
 
   // supplements.js (4)
@@ -229,7 +230,6 @@
   const allModules = {
     'api.js': apiExports,
     'charts.js': chartsExports,
-    'lab-context.js': labContextExports,
     'chat.js': chatExports,
     'client-list.js': clientListExports,
     'context-cards.js': contextCardsExports,

@@ -375,7 +375,6 @@ export function deleteProfile(profileId, onComplete) {
     localStorage.removeItem(profileStorageKey(profileId, 'noteOverlay'));
     localStorage.removeItem(profileStorageKey(profileId, 'rangeMode'));
     localStorage.removeItem(profileStorageKey(profileId, 'suppImpact'));
-    localStorage.removeItem(`labcharts-${profileId}-sync-ts`);
     localStorage.removeItem(`labcharts-${profileId}-chat`);
     // Remove thread index + all per-thread message keys
     const threadIndexRaw = localStorage.getItem(`labcharts-${profileId}-chat-threads`);

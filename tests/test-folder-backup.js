@@ -99,18 +99,18 @@
   }
 
   // ═══════════════════════════════════════════════
-  // 7. backup.js source has folder backup functions
+  // 7. crypto.js source has folder backup functions
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetchWithRetry('/js/backup.js');
-    assert('backup.js has initFolderBackup', src.includes('async function initFolderBackup'));
-    assert('backup.js has pickFolderForBackup', src.includes('async function pickFolderForBackup'));
-    assert('backup.js has reauthorizeFolderBackup', src.includes('async function reauthorizeFolderBackup'));
-    assert('backup.js has removeFolderBackup', src.includes('function removeFolderBackup'));
-    assert('backup.js has getFolderBackupState', src.includes('function getFolderBackupState'));
-    assert('backup.js has writeFolderBackup', src.includes('async function writeFolderBackup'));
-    assert('backup.js has showDirectoryPicker check', src.includes('showDirectoryPicker'));
-    assert('backup.js has folder-handle store constant', src.includes("'folder-handle'"));
+    const src = await fetchWithRetry('/js/crypto.js');
+    assert('crypto.js has initFolderBackup', src.includes('async function initFolderBackup'));
+    assert('crypto.js has pickFolderForBackup', src.includes('async function pickFolderForBackup'));
+    assert('crypto.js has reauthorizeFolderBackup', src.includes('async function reauthorizeFolderBackup'));
+    assert('crypto.js has removeFolderBackup', src.includes('function removeFolderBackup'));
+    assert('crypto.js has getFolderBackupState', src.includes('function getFolderBackupState'));
+    assert('crypto.js has writeFolderBackup', src.includes('async function writeFolderBackup'));
+    assert('crypto.js has showDirectoryPicker check', src.includes('showDirectoryPicker'));
+    assert('crypto.js has folder-handle store constant', src.includes("'folder-handle'"));
     assert('performAutoBackup calls writeFolderBackup', src.includes('writeFolderBackup()'));
     assert('writeFolderBackup uses buildBackupSnapshot', src.includes('buildBackupSnapshot()'));
   } catch (e) {
