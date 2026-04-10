@@ -538,7 +538,7 @@ let _mnemonicRetryTimer = null;
 const MNEMONIC_MASK = '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022';
 
 function loadMnemonic() {
-  getMnemonic().then(m => {
+  Promise.resolve(getMnemonic()).then(m => {
     if (m) {
       _mnemonicCache = m;
       _mnemonicRetries = 0;

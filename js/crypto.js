@@ -749,7 +749,7 @@ export async function loadBackupSnapshots() {
     return;
   }
   if (toggle) toggle.style.display = '';
-  const shown = snapshots.slice(0, MAX_SNAPSHOTS);
+  const shown = snapshots.slice(0, 5);
   list.innerHTML = shown.map(s => {
     const date = new Date(s.createdAt).toLocaleString();
     const profileCount = (s.snapshot && s.snapshot.profiles) ? s.snapshot.profiles.length : '?';
