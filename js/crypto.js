@@ -464,7 +464,8 @@ export function maybeShowBackupNudge() {
   });
   if (!hasAnyData) return;
   // Skip if folder backup is active and healthy
-  if (_folderHandle && !_folderPermissionLost) return;
+  const _fbState = window.getFolderBackupState?.();
+  if (_fbState?.folderName && !_fbState?.permissionLost) return;
   // Skip if snoozed
   const snoozedUntil = localStorage.getItem('labcharts-backup-nudge-snoozed-until');
   if (snoozedUntil && Date.now() < Number(snoozedUntil)) return;
