@@ -311,7 +311,9 @@ function _buildLabContextInner() {
     ctx += `[section:supplements]\n## Supplements & Medications\n`;
     for (const s of supps) {
       const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
-      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}\n`;
+      ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}`;
+      if (s.ingredients?.length) ctx += ` | ingredients: ${s.ingredients.map(ing => `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`).join(', ')}`;
+      ctx += `\n`;
     }
     // Mitochondrial harm warnings (from curated PubMed-cited database)
     const mitoWarnings = scanSupplementsForWarnings(supps);
