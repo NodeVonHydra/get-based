@@ -1293,8 +1293,11 @@ async function _showImageModeDialog() {
         <button class="btn" style="padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);cursor:pointer">Try text anyway</button>
         <button class="btn" style="padding:7px 16px;border-radius:6px;border:none;background:var(--accent-gradient);color:white;cursor:pointer;font-weight:500">Use image mode</button>
       </div>`;
+    const onKey = (e) => { if (e.key === 'Escape') { overlay.classList.remove('show'); resolve('cancel'); } };
+    document.addEventListener('keydown', onKey, { once: true });
     dialog.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
+        document.removeEventListener('keydown', onKey);
         const action = btn.textContent.trim();
         overlay.classList.remove('show');
         if (action === 'Cancel') resolve('cancel');

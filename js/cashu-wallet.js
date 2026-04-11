@@ -13,6 +13,8 @@ const WALLET_FEE_PCT = 0; // disabled for beta testing (normally 0.03 = 3%)
 const FEE_LN_ADDRESS = 'denimgecko11@primal.net';
 const FEE_MELT_MIN_SATS = 100; // don't attempt melt below this — mint fees eat it
 const MAX_WALLET_BALANCE = 25000; // safety cap until battle-tested
+const PROOF_CHECK_COOLDOWN = 60_000; // 60s between proof state checks
+let _lastProofCheck = 0;
 const DB_NAME = 'getbased-cashu';
 const DB_VERSION = 2;
 const STORE_PROOFS = 'proofs';
@@ -133,6 +135,30 @@ async function _deleteProofs(proofs) {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
+}
+
+/** Check proof states against mint, delete spent proofs.
+ *  Pending proofs are kept (may be in-flight melts).
+ *  Returns unspent + pending proofs. Respects cooldown unless force=true.
+ *  Must be called inside _withWalletLock when force=true. */
+async function _pruneSpentProofs(force = false) {
+  const now = Date.now();
+  const proofs = await _getAllProofs();
+  if (!proofs.length) return proofs;
+  if (!force && (now - _lastProofCheck) < PROOF_CHECK_COOLDOWN) return proofs;
+  try {
+    const wallet = await _getWallet();
+    const { unspent, spent, pending } = await wallet.groupProofsByState(proofs);
+    if (spent.length > 0) {
+      await _deleteProofs(spent);
+      if (isDebugMode()) console.log(`[cashu-wallet] Pruned ${spent.length} spent proofs` + (pending.length ? `, ${pending.length} pending (kept)` : ''));
+    }
+    _lastProofCheck = Date.now();
+    return [...unspent, ...pending];
+  } catch (e) {
+    if (isDebugMode()) console.warn('[cashu-wallet] Proof state check failed:', e.message);
+    return proofs; // on network error, return all proofs (don't delete anything)
+  }
 }
 
 async function _clearAllProofs() {
@@ -383,10 +409,18 @@ export async function restoreWalletFromSeed(mnemonic) {
   }); // _withWalletLock
 }
 
-/** Get wallet balance in sats */
+/** Get wallet balance in sats (prunes spent proofs on first call / after cooldown) */
 export async function getWalletBalance() {
-  const proofs = await _getAllProofs();
+  const proofs = await _pruneSpentProofs();
   return cashuts.sumProofs(proofs);
+}
+
+/** Force-check all proof states against mint and return updated balance */
+export async function checkProofStates() {
+  return _withWalletLock(async () => {
+    const proofs = await _pruneSpentProofs(true);
+    return cashuts.sumProofs(proofs);
+  });
 }
 
 /** Create a Lightning invoice to fund the wallet.
@@ -466,7 +500,7 @@ export async function receiveToken(tokenString) {
 export async function depositToNode(nodeUrl, amountSats, existingKey) {
   nodeUrl = nodeUrl.replace(/\/+$/, ''); // normalize trailing slashes
   return _withWalletLock(async () => {
-    const proofs = await _getAllProofs();
+    const proofs = await _pruneSpentProofs(true);
     const total = cashuts.sumProofs(proofs);
     if (total < amountSats) throw new Error('Insufficient wallet balance: ' + total + ' sats, need ' + amountSats);
 
@@ -556,7 +590,7 @@ export async function executeWithdraw(quoteId) {
     const wallet = await _getWallet();
     const quote = await wallet.checkMeltQuoteBolt11(quoteId);
     const amountNeeded = (quote.amount || 0) + (quote.fee_reserve || 0);
-    const proofs = await _getAllProofs();
+    const proofs = await _pruneSpentProofs(true);
     const total = cashuts.sumProofs(proofs);
     if (total < amountNeeded) throw new Error('Insufficient balance: ' + total + ' sats, need ' + amountNeeded);
 
@@ -644,7 +678,7 @@ export async function retryFeeAutoMelt() {
  *  Returns { token, amount, remaining } */
 export async function sendAsToken(amountSats) {
   return _withWalletLock(async () => {
-    const proofs = await _getAllProofs();
+    const proofs = await _pruneSpentProofs(true);
     const total = cashuts.sumProofs(proofs);
     if (total < amountSats) throw new Error('Insufficient balance: ' + total + ' sats, need ' + amountSats);
     const wallet = await _getWallet();
@@ -813,6 +847,7 @@ export function getFeePct() {
 // ═══════════════════════════════════════════════
 Object.assign(window, {
   cashuGetBalance: getWalletBalance,
+  cashuCheckProofStates: checkProofStates,
   cashuCreateFundingInvoice: createFundingInvoice,
   cashuCheckFundingStatus: checkFundingStatus,
   cashuReceiveToken: receiveToken,

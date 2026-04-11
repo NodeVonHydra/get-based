@@ -59,10 +59,10 @@ const PORT = process.env.PORT || 8000;
     const text = msg.text();
 
     // Strip %c style args for clean terminal output
-    const clean = text.replace(/%c/g, '').replace(/[a-z\-]+:[^;]+;?/g, '').trim();
+    const clean = text.replace(/%c/g, '').replace(/(?:color|background|font-weight|font-size|font-family|padding|border-radius|margin|display)\s*:[^;]+;?/g, '').trim();
     if (!clean) return;
 
-    if (clean.includes('FAIL') || clean.includes('\u274C')) {
+    if (clean.startsWith('FAIL ') || clean.startsWith('PAGE ERROR') || clean.includes('\u274C')) {
       fails.push(clean);
       console.log('\x1b[31m' + clean + '\x1b[0m');
     } else if (clean.includes('passed') || clean.includes('Results')) {

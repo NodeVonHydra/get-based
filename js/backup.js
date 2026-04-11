@@ -193,7 +193,7 @@ export function importEncryptedBackup(file) {
 const BACKUP_DB_NAME = 'labcharts-backups';
 const BACKUP_STORE = 'snapshots';
 const FOLDER_HANDLE_STORE = 'folder-handle';
-const MAX_SNAPSHOTS = 5;
+export const MAX_SNAPSHOTS = 5;
 const AUTO_BACKUP_COOLDOWN = 300000; // 5 minutes
 let _autoBackupTimer = null;
 let _dbPromise = null;

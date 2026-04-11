@@ -329,10 +329,14 @@ export function buildFocusContext() {
   if (supps.length > 0) {
     ctx += `Supplements:\n`;
     for (const s of supps) {
-      const dateRange = `${s.startDate} → ${s.endDate || 'ongoing'}`;
+      const pds = (s.periods && s.periods.length > 0) ? [...s.periods].sort((a, b) => a.start.localeCompare(b.start)) : [{ start: s.startDate, end: s.endDate }];
+      const dateRange = pds.length === 1
+        ? `${pds[0].start} \u2192 ${pds[0].end || 'ongoing'}`
+        : pds.map(p => `${p.start}\u2192${p.end || 'now'}`).join(', ');
       let timing = '';
-      if (lastDate && s.startDate > lastDate) timing = ' (started AFTER last labs — cannot have affected these results)';
-      else if (lastDate && data.dates.length >= 2 && s.startDate > data.dates[data.dates.length - 2]) timing = ' (started between last two labs)';
+      const firstStart = pds[0].start;
+      if (lastDate && firstStart > lastDate) timing = ' (started AFTER last labs — cannot have affected these results)';
+      else if (lastDate && data.dates.length >= 2 && firstStart > data.dates[data.dates.length - 2]) timing = ' (started between last two labs)';
       // Top impact summary for AI context
       let impactNote = '';
       if (!timing && data.dates.length >= 2) {

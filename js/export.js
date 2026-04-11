@@ -158,8 +158,10 @@ export function buildReportHTML(profileName, sexLabel, data, flags, notes, supps
   if (supps.length > 0) {
     body += `<h2>Supplements & Medications</h2><table><thead><tr><th>Name</th><th>Dosage</th><th>Type</th><th>Period</th><th>Note</th></tr></thead><tbody>`;
     for (const s of supps) {
+      const pds = (s.periods && s.periods.length > 0) ? s.periods : [{ start: s.startDate, end: s.endDate }];
+      const periodStr = pds.map(p => `${fmtDate(p.start)} \u2192 ${p.end ? fmtDate(p.end) : 'ongoing'}`).join('<br>');
       body += `<tr><td>${esc(s.name)}</td><td>${esc(s.dosage || '\u2014')}</td><td>${s.type}</td>
-        <td>${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}</td><td style="font-size:11px">${esc(s.note || '\u2014')}</td></tr>`;
+        <td>${periodStr}</td><td style="font-size:11px">${esc(s.note || '\u2014')}</td></tr>`;
     }
     body += `</tbody></table>`;
   }
@@ -714,7 +716,7 @@ export function importDataJSON(file) {
         for (const s of json.supplements) {
           if (!s.name || !s.startDate) continue;
           const exists = state.importedData.supplements.some(x => x.name === s.name && x.startDate === s.startDate);
-          if (!exists) { const entry = { name: s.name, dosage: s.dosage || '', startDate: s.startDate, endDate: s.endDate || null, type: s.type || 'supplement', note: s.note || '' }; if (s.ingredients) entry.ingredients = s.ingredients; state.importedData.supplements.push(entry); }
+          if (!exists) { const entry = { name: s.name, dosage: s.dosage || '', startDate: s.startDate, endDate: s.endDate || null, type: s.type || 'supplement', note: s.note || '' }; if (s.ingredients) entry.ingredients = s.ingredients; if (s.periods && s.periods.length > 1) entry.periods = s.periods; state.importedData.supplements.push(entry); }
         }
       }
       // Import notes

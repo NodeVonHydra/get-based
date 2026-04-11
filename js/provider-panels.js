@@ -107,7 +107,7 @@ export function renderAIProviderPanel(provider) {
     const walletHtml = `<div style="padding:10px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border);margin-bottom:10px">
       <div style="${_sectionLabel}">\u26a1 Wallet</div>
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
-        <div style="font-size:13px;font-weight:600;color:var(--text-primary)"><span id="routstr-wallet-balance">\u26a1 loading...</span></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary)"><span id="routstr-wallet-balance">\u26a1 loading...</span> <a href="#" onclick="refreshCashuWalletBalance();return false" style="color:var(--accent);font-size:10px;text-decoration:none" title="Verify proofs against mint">\u21bb</a></div>
         <div id="routstr-wallet-actions" style="display:flex;gap:4px;flex-wrap:wrap">
           ${_walletActionButtons(null)}
         </div>
@@ -404,7 +404,7 @@ export function initSettingsModelFetch() {
           '<textarea class="api-key-input" style="font-size:10px;font-family:monospace;height:40px;resize:none;user-select:all" readonly onclick="this.select()">' + escapeHTML(token) + '</textarea>' +
           '<div style="display:flex;gap:4px;margin-top:4px">' +
           '<button class="import-btn import-btn-primary" style="font-size:11px;padding:3px 10px;flex:1" onclick="cashuImportWallet(document.querySelector(\'#routstr-wallet-fund-area textarea\').value).then(()=>{cashuClearPendingDeposit();showNotification(\'Recovered!\',\'success\');location.reload()}).catch(e=>showNotification(e.message,\'error\'))">Recover to Wallet</button>' +
-          '<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" onclick="navigator.clipboard.writeText(\'' + token.replace(/'/g, "\\'") + '\');this.textContent=\'\u2713 Copied\'">Copy Token</button>' +
+          '<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" data-token="' + escapeAttr(token) + '" onclick="navigator.clipboard.writeText(this.dataset.token);this.textContent=\'\u2713 Copied\'">Copy Token</button>' +
           '</div></div>';
       }
     });
@@ -1110,6 +1110,18 @@ function _rsBalanceHtml(sats) {
   const color = sats < 100 ? 'var(--red)' : sats < 500 ? 'var(--yellow, #f0a800)' : 'var(--green)';
   return 'Balance: <span style="color:' + color + '">\u26a1 ' + sats.toLocaleString() + ' sats</span>';
 }
+export function refreshCashuWalletBalance() {
+  const el = document.getElementById('routstr-wallet-balance');
+  if (el) el.textContent = '\u26a1 verifying...';
+  if (window.cashuCheckProofStates) {
+    window.cashuCheckProofStates().then(function(bal) {
+      if (el) el.textContent = '\u26a1 ' + bal.toLocaleString() + ' sats';
+    }).catch(function() {
+      if (el) el.textContent = '\u26a1 check failed';
+    });
+  }
+}
+
 export function refreshRoutstrBalance() {
   const el = document.getElementById('routstr-node-balance') || document.getElementById('routstr-balance');
   if (el) el.textContent = 'Balance: refreshing...';
@@ -1455,8 +1467,8 @@ export async function doRoutstrNodeDeposit(nodeUrl, amount) {
         '<div style="font-size:11px;color:var(--yellow, #f0a800);margin-bottom:4px">\u26a0 Deposit failed \u2014 your sats are safe</div>' +
         '<div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">The node rejected the deposit. Recover the token back to your wallet:</div>' +
         '<div style="display:flex;gap:4px">' +
-        '<button class="import-btn import-btn-primary" style="font-size:11px;padding:3px 10px;flex:1" onclick="cashuImportWallet(\'' + token.replace(/'/g, "\\'") + '\').then(()=>{cashuClearPendingDeposit();showNotification(\'Recovered!\',\'success\');location.reload()}).catch(e=>showNotification(e.message,\'error\'))">Recover to Wallet</button>' +
-        '<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" onclick="navigator.clipboard.writeText(\'' + token.replace(/'/g, "\\'") + '\');this.textContent=\'\u2713 Copied\'">Copy Token</button>' +
+        '<button class="import-btn import-btn-primary" style="font-size:11px;padding:3px 10px;flex:1" data-token="' + escapeAttr(token) + '" onclick="cashuImportWallet(this.dataset.token).then(()=>{cashuClearPendingDeposit();showNotification(\'Recovered!\',\'success\');location.reload()}).catch(e=>showNotification(e.message,\'error\'))">Recover to Wallet</button>' +
+        '<button class="import-btn import-btn-secondary" style="font-size:11px;padding:3px 10px" data-token="' + escapeAttr(token) + '" onclick="navigator.clipboard.writeText(this.dataset.token);this.textContent=\'\u2713 Copied\'">Copy Token</button>' +
         '</div></div>';
     });
   }
@@ -2242,6 +2254,7 @@ Object.assign(window, {
   handleSaveRoutstrKey,
   handleRemoveRoutstrKey,
   renderRoutstrModelDropdown,
+  refreshCashuWalletBalance,
   refreshRoutstrBalance,
   showRoutstrWalletFund,
   rsWalletFundCustomInput,

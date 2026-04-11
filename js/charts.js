@@ -215,8 +215,11 @@ export function getSupplementsForChart(chartDates) {
   const maxDate = chartDates[chartDates.length - 1];
   const today = new Date().toISOString().slice(0, 10);
   return supps.filter(s => {
-    const end = s.endDate || today;
-    return s.startDate <= maxDate && end >= minDate;
+    const pds = (s.periods && s.periods.length > 0) ? s.periods : [{ start: s.startDate, end: s.endDate }];
+    return pds.some(p => {
+      const end = p.end || today;
+      return p.start <= maxDate && end >= minDate;
+    });
   });
 }
 
@@ -250,17 +253,21 @@ export const supplementBarPlugin = {
     const today = new Date().toISOString().slice(0, 10);
     const rects = [];
     cfg.supplements.forEach((s, i) => {
-      const startX = this._dateToPixelX(s.startDate, chart);
-      const endDate = s.endDate || today;
-      const endX = this._dateToPixelX(endDate, chart);
-      const clampedLeft = Math.max(startX, left);
-      const clampedRight = Math.min(endX, right);
-      if (clampedRight <= clampedLeft) return;
-      const y = top + TOP_PAD + i * (BAR_H + GAP);
-      rects.push({
-        x: clampedLeft, y, w: clampedRight - clampedLeft, h: BAR_H,
-        supplement: s, ongoing: !s.endDate
-      });
+      const pds = (s.periods && s.periods.length > 0) ? s.periods : [{ start: s.startDate, end: s.endDate }];
+      for (const p of pds) {
+        const startX = this._dateToPixelX(p.start, chart);
+        const endDate = p.end || today;
+        const endX = this._dateToPixelX(endDate, chart);
+        const clampedLeft = Math.max(startX, left);
+        const clampedRight = Math.min(endX, right);
+        if (clampedRight <= clampedLeft) continue;
+        const y = top + TOP_PAD + i * (BAR_H + GAP);
+        rects.push({
+          x: clampedLeft, y, w: clampedRight - clampedLeft, h: BAR_H,
+          supplement: s, ongoing: !p.end,
+          periodStart: p.start, periodEnd: p.end
+        });
+      }
     });
     return rects;
   },
@@ -300,7 +307,7 @@ export const supplementBarPlugin = {
       const s = r.supplement;
       const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const line1 = `${s.name}${s.dosage ? ' — ' + s.dosage : ''}`;
-      const line2 = `${fmtDate(s.startDate)} → ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      const line2 = `${fmtDate(r.periodStart)} \u2192 ${r.periodEnd ? fmtDate(r.periodEnd) : 'ongoing'}`;
       const line3 = s.note ? (s.note.length > 60 ? s.note.slice(0, 57) + '...' : s.note) : null;
       ctx.font = '12px Inter, sans-serif';
       const w1 = ctx.measureText(line1).width;

@@ -1248,7 +1248,7 @@ body {
 }
 .supp-bar-row:hover { background: var(--bg-hover); }
 .supp-bar-label {
-  width: 140px; flex-shrink: 0; font-size: 13px; font-weight: 500;
+  flex-shrink: 0; font-size: 13px; font-weight: 500; max-width: 40%;
   color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .supp-bar-dosage {
@@ -1263,9 +1263,20 @@ body {
 }
 .supp-bar-supplement { background: var(--cyan); }
 .supp-bar-medication { background: var(--purple-light); }
+.supp-bar-gap {
+  position: absolute; height: 100%;
+  background: repeating-linear-gradient(90deg, transparent 0px, transparent 3px, var(--text-muted) 3px, var(--text-muted) 4px);
+  opacity: 0.15;
+}
 .supp-bar-ongoing {
-  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
-  mask-image: linear-gradient(to right, black 70%, transparent 100%);
+  border-top-right-radius: 0; border-bottom-right-radius: 0;
+  -webkit-mask-image: linear-gradient(to right, black 80%, rgba(0,0,0,0.4) 95%, rgba(0,0,0,0.15));
+  mask-image: linear-gradient(to right, black 80%, rgba(0,0,0,0.4) 95%, rgba(0,0,0,0.15));
+}
+.supp-bar-ongoing::after {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
+  background: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, currentColor 2px, currentColor 4px);
+  opacity: 0.35;
 }
 .supp-empty {
   font-size: 12px; color: var(--text-muted); font-style: italic; text-align: center;
@@ -1276,21 +1287,25 @@ body {
 .supp-list-item {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  margin-bottom: 6px; font-size: 13px;
+  margin-bottom: 0; font-size: 13px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
 }
+.supp-list-item:not(:last-child):not(.supp-list-item-active) { margin-bottom: 6px; }
+.supp-list-item:hover { border-color: var(--accent); }
+.supp-list-item-active { border-color: var(--accent); background: rgba(99, 135, 255, 0.06); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.supp-list-expanded {
+  border: 1px solid var(--accent); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 12px; margin-bottom: 6px; background: rgba(99, 135, 255, 0.03);
+}
+.supp-list-expanded .supp-form { border-top: none; padding-top: 0; margin-top: 0; }
+.supp-add-section { margin-top: 8px; }
+.supp-add-section .supp-add-btn { width: 100%; padding: 8px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: none; color: var(--text-muted); font-size: 13px; cursor: pointer; font-family: inherit; }
+.supp-add-section .supp-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+.supp-add-section .supp-form { margin-top: 8px; }
 .supp-list-icon { font-size: 14px; flex-shrink: 0; }
 .supp-list-info { flex: 1; min-width: 0; }
 .supp-list-name { font-weight: 500; color: var(--text-primary); }
 .supp-list-meta { font-size: 11px; color: var(--text-muted); }
 .supp-list-note { font-size: 11px; color: var(--text-secondary); font-style: italic; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.supp-list-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.supp-list-actions button {
-  background: none; border: 1px solid var(--border); color: var(--text-muted);
-  font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;
-  font-family: inherit; transition: all 0.15s;
-}
-.supp-list-actions button:hover { color: var(--accent); border-color: var(--accent); }
-.supp-list-actions button.delete:hover { color: var(--red); border-color: var(--red); }
 /* Supplement impact analysis (AI-driven) */
 .supp-impact-section { border-top: 1px solid var(--border); padding: 12px 0; }
 .supp-impact-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-primary); }
@@ -1340,6 +1355,16 @@ body {
 .supp-ingredient-add { background: none; border: 1px dashed var(--border-color); color: var(--text-muted); font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
 .supp-ingredient-add:hover { border-color: var(--accent); color: var(--accent); }
 .supp-ingredient-add:disabled { opacity: 0.5; cursor: wait; }
+/* Period rows */
+.supp-period-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; }
+.supp-period-row input[type="date"] { flex: 1; font-size: 12px; padding: 5px 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); }
+.supp-period-row input[type="date"]:focus { border-color: var(--accent); outline: none; }
+.supp-period-arrow { color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
+.supp-period-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.supp-period-remove:hover { color: var(--danger, #ef4444); background: rgba(239, 68, 68, 0.1); }
+.supp-period-actions { display: flex; gap: 6px; margin-top: 4px; }
+.supp-period-add { background: none; border: 1px dashed var(--border-color); color: var(--text-muted); font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.supp-period-add:hover { border-color: var(--accent); color: var(--accent); }
 .supp-list-ingredients { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .supp-ing-pill { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary); white-space: nowrap; }
 .supp-mitotox {
@@ -1357,7 +1382,7 @@ body {
   .supp-mitotox-ask, .supp-mitotox-link { min-height: 44px; display: inline-flex; align-items: center; }
 }
 @media (max-width: 768px) {
-  .supp-bar-label { width: 100px; font-size: 12px; }
+  .supp-bar-label { max-width: 35%; font-size: 12px; }
   .supp-form-row { flex-direction: column; gap: 8px; }
 }
 /* Empty State */
@@ -3523,7 +3548,7 @@ select.chat-onboard-input option { background: var(--bg-secondary); color: var(-
   .corr-dropdown { min-width: 100%; }
   .alert-card { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
   .alert-ref { width: auto; text-align: left; }
-  .supp-bar-label { width: 80px; font-size: 11px; }
+  .supp-bar-label { max-width: 30%; font-size: 11px; }
   .empty-state { padding: 32px 16px; }
   .welcome-hero { padding: 28px 14px 24px; }
   .demo-cards { flex-direction: column; align-items: stretch; }

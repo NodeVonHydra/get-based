@@ -310,7 +310,10 @@ function _buildLabContextInner() {
   if (supps.length > 0) {
     ctx += `[section:supplements]\n## Supplements & Medications\n`;
     for (const s of supps) {
-      const dateRange = `${fmtDate(s.startDate)} \u2192 ${s.endDate ? fmtDate(s.endDate) : 'ongoing'}`;
+      const pds = (s.periods && s.periods.length > 0) ? s.periods : [{ start: s.startDate, end: s.endDate }];
+      const dateRange = pds.length === 1
+        ? `${fmtDate(pds[0].start)} \u2192 ${pds[0].end ? fmtDate(pds[0].end) : 'ongoing'}`
+        : `CYCLING: ${pds.map(p => fmtDate(p.start) + '\u2192' + (p.end ? fmtDate(p.end) : 'ongoing')).join(', ')}`;
       ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}`;
       if (s.ingredients?.length) ctx += ` | ingredients: ${s.ingredients.map(ing => `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`).join(', ')}`;
       ctx += `\n`;
