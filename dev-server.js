@@ -40,9 +40,19 @@ function serveFile(res, filePath) {
   });
 }
 
+function isSameOrigin(req) {
+  const origin = req.headers.origin || req.headers.referer || '';
+  return origin.includes(`localhost:${PORT}`) || origin.includes(`127.0.0.1:${PORT}`);
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let pathname = decodeURIComponent(url.pathname);
+
+  // Same-origin guard for proxy/API endpoints
+  if (pathname.startsWith('/api/') && !isSameOrigin(req)) {
+    res.writeHead(403); res.end('Forbidden'); return;
+  }
 
   // API: HEAD-check a URL and return the real status code (bypasses browser CORS)
   if (pathname === '/api/check-url') {
@@ -278,8 +288,8 @@ const server = http.createServer((req, res) => {
   res.writeHead(404); res.end('Not found');
 });
 
-server.listen(PORT, () => {
-  console.log(`Dev server running at http://localhost:${PORT}`);
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`Dev server running at http://127.0.0.1:${PORT}`);
   if (hasSite) {
     console.log(`  /        → landing page (${SITE_DIR})`);
     console.log(`  /app     → index.html`);
