@@ -1,7 +1,7 @@
 // test-chat-actions.js — Browser test for chat action buttons + scientific sources
 // Run: fetch('tests/test-chat-actions.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   const results = [];
   let passed = 0, failed = 0;
 

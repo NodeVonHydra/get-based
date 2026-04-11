@@ -1,7 +1,7 @@
 // test-demo.js — Verify demo data onboarding redesign
 // Run: fetch('tests/test-demo.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   function assert(name, condition, detail) {
     if (condition) { pass++; console.log(`  ✅ ${name}`); }

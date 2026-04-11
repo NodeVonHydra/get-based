@@ -1,5 +1,5 @@
 // test-provenance.js — Import provenance (markerSources) tests
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   function assert(name, condition, detail) {
     if (condition) { pass++; console.log(`  ✓ ${name}`); }

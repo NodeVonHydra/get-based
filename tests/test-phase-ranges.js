@@ -1,7 +1,7 @@
 // test-phase-ranges.js — Browser test for phase-aware reference ranges
 // Run: fetch('tests/test-phase-ranges.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let passed = 0, failed = 0;
   const results = [];
   function assert(name, condition, detail) {

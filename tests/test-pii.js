@@ -1,7 +1,7 @@
 // test-pii.js — PII obfuscation: regex patterns, word-level diff, patient name extraction
 // Run: fetch('tests/test-pii.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   function assert(name, condition, detail) {
     if (condition) { pass++; console.log(`%c PASS %c ${name}`, 'background:#22c55e;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }

@@ -1,6 +1,6 @@
 // test-mobile.js — Browser-based verification of mobile responsiveness fixes
 // Run: fetch('tests/test-mobile.js').then(r=>r.text()).then(s=>Function(s)())
-(async function() {
+return (async function() {
   let passed = 0, failed = 0;
   const results = [];
 

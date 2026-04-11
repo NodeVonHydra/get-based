@@ -1,5 +1,5 @@
 // test-venice-e2ee.js — Venice E2EE crypto and integration tests
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   const results = [];
   function assert(name, condition, detail) {

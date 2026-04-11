@@ -1,7 +1,7 @@
 // test-custom-personality.js — Multiple Custom Personalities
 // Run: fetch('tests/test-custom-personality.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   const results = { passed: 0, failed: 0, total: 0 };
   function assert(name, condition, detail) {
     results.total++;

@@ -1,7 +1,7 @@
 // test-cycle-improvements.js — Browser test for cycle improvements
 // Run: fetch('tests/test-cycle-improvements.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   const results = [];
 

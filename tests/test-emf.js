@@ -1,4 +1,4 @@
-(async () => {
+return (async () => {
   const assert = (name, condition, detail) => {
     if (condition) {
       console.log(`%c✔ ${name}`, 'color: green');

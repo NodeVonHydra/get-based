@@ -1,7 +1,7 @@
 // test-crypto.js — Browser-based verification for encryption, backup, and cross-tab sync
 // Run: fetch('tests/test-crypto.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   const results = [];
   function assert(name, condition, detail) {

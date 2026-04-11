@@ -1,7 +1,7 @@
 // test-cycle-tour.js — Cycle tour feature tests
 // Run: fetch('tests/test-cycle-tour.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   const results = [];
   let pass = 0, fail = 0;
   function assert(name, condition, detail) {

@@ -1,6 +1,6 @@
 // test-custom-api.js — Verify Custom API as 6th AI provider
 // Run: fetch('tests/test-custom-api.js').then(r=>r.text()).then(s=>Function(s)())
-(async function() {
+return (async function() {
   const results = [];
   let passed = 0, failed = 0;
   function assert(name, condition, detail) {

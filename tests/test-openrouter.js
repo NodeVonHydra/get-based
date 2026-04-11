@@ -1,6 +1,6 @@
 // test-openrouter.js — Verify OpenRouter as 4th AI provider
 // Run: fetch('tests/test-openrouter.js').then(r=>r.text()).then(s=>Function(s)())
-(async function() {
+return (async function() {
   const results = [];
   let passed = 0, failed = 0;
   function assert(name, condition, detail) {

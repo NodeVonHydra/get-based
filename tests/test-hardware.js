@@ -1,7 +1,7 @@
 // test-hardware.js — Model advisor hardware detection + assessment
 // Run: fetch('tests/test-hardware.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   function assert(name, condition, detail) {
     if (condition) { pass++; console.log(`%c PASS %c ${name}`, 'background:#22c55e;color:#fff;padding:2px 6px;border-radius:3px', '', detail || ''); }

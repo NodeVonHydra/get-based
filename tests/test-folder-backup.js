@@ -1,7 +1,7 @@
 // test-folder-backup.js — Browser-based verification for folder backup feature
 // Run: fetch('tests/test-folder-backup.js').then(r=>r.text()).then(s=>Function(s)())
 
-(async function() {
+return (async function() {
   let pass = 0, fail = 0;
   const results = [];
   function assert(name, condition, detail) {
