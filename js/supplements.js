@@ -457,6 +457,9 @@ export function saveSupplement(idx) {
   }
   saveImportedData();
   showNotification(idx >= 0 ? 'Supplement updated' : 'Supplement added', 'success');
+  // Re-render dashboard supplements section
+  const el = document.querySelector('.supp-timeline-section');
+  if (el) el.outerHTML = renderSupplementsSection();
   // Re-render modal with the saved supplement expanded
   const savedIdx = idx >= 0 ? idx : state.importedData.supplements.length - 1;
   openSupplementsEditor(savedIdx);
@@ -468,6 +471,9 @@ export function deleteSupplement(idx) {
   state.importedData.supplements.splice(idx, 1);
   saveImportedData();
   showNotification(`"${name}" removed`, 'info');
+  // Re-render dashboard supplements section
+  const el = document.querySelector('.supp-timeline-section');
+  if (el) el.outerHTML = renderSupplementsSection();
   // Re-render the modal with remaining supplements
   if (state.importedData.supplements.length > 0) {
     openSupplementsEditor();

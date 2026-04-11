@@ -5,7 +5,7 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.18.3', date: '2026-04-10', title: 'Security Fixes + Codebase Refactoring',
+    version: '1.18.4', date: '2026-04-11', title: 'Security Fixes + Codebase Refactoring',
     items: [
       'Fix Vitamin D mcg/L import \u2014 unit now correctly converts to nmol/L (#102)',
       'Custom API key now encrypted at rest when encryption is enabled (#103)',
