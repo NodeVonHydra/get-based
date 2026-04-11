@@ -167,11 +167,11 @@
   // ═══════════════════════════════════════
   console.log('%c 8. Settings Integration ', 'font-weight:bold;color:#f59e0b');
 
-  const providerSrc = await fetchWithRetry('js/provider-panels.js');
-  assert('Provider panels imports hardware.js', providerSrc.includes("from './hardware.js'"));
-  assert('Provider panels has advisor placeholder', providerSrc.includes('local-ai-advisor'));
-  assert('Provider panels calls renderModelAdvisor', providerSrc.includes('renderModelAdvisor'));
-  assert('Provider panels exports copyOllamaPullCmd', providerSrc.includes('copyOllamaPullCmd'));
+  const settingsSrc = await fetchWithRetry('js/settings.js');
+  assert('Settings imports hardware.js', settingsSrc.includes("from './hardware.js'"));
+  assert('Settings has advisor placeholder', settingsSrc.includes('local-ai-advisor'));
+  assert('Settings calls renderModelAdvisor', settingsSrc.includes('renderModelAdvisor'));
+  assert('Settings exports copyOllamaPullCmd', settingsSrc.includes('copyOllamaPullCmd'));
 
   // ═══════════════════════════════════════
   // Results

@@ -201,8 +201,7 @@
   console.log('%c Section 17: Source inspection', 'font-weight:bold;color:#6366f1');
 
   const chatSrc = await fetchWithRetry('js/chat.js');
-  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
-  assert('lab-context.js has getContextSummary', labCtxSrc.includes('function getContextSummary'), 'found');
+  assert('chat.js has getContextSummary', chatSrc.includes('function getContextSummary'), 'found');
   assert('chat.js has buildActionBar', chatSrc.includes('function buildActionBar'), 'found');
   assert('chat.js has regenerateLastMessage', chatSrc.includes('function regenerateLastMessage'), 'found');
   assert('chat.js does NOT have readAloud', !chatSrc.includes('function readAloud'), 'removed');

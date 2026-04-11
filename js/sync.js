@@ -787,7 +787,7 @@ export function pushContextToGateway() {
   clearTimeout(_contextPushTimer);
   _contextPushTimer = setTimeout(async () => {
     try {
-      const { buildLabContext } = await import('./lab-context.js');
+      const { buildLabContext } = await import('./chat.js');
       const context = buildLabContext();
       const profileId = state.currentProfile || 'default';
       const profiles = getProfiles().map(p => ({ id: p.id, name: p.name }));

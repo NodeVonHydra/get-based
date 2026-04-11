@@ -5,17 +5,6 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
-    version: '1.18.1', date: '2026-04-10', title: 'Security Fixes + Codebase Refactoring',
-    items: [
-      'Fix Vitamin D mcg/L import \u2014 unit now correctly converts to nmol/L (#102)',
-      'Custom API key now encrypted at rest when encryption is enabled (#103)',
-      'Dev server locked to localhost, proxy endpoints require same-origin (#104, #105)',
-      'Filename XSS fix in import preview (#106)',
-      'Image import PII warning \u2014 confirmation dialog before sending images to AI (#107)',
-      'Codebase refactoring \u2014 extracted markdown, backup, lab-context, provider-panels into separate modules',
-    ]
-  },
-  {
     version: '1.18.0', date: '2026-04-10', title: 'Import Provenance + Supplement Intelligence',
     items: [
       'Import provenance \u2014 every value tracks which PDF or manual entry it came from, shown on hover in detail modal',

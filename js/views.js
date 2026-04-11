@@ -13,8 +13,7 @@ import { renderMenstrualCycleSection } from './cycle.js';
 import { renderProfileContextCards, renderInterpretiveLensSection, loadContextHealthDots, closeSuggestionsOnClickOutside } from './context-cards.js';
 import { callClaudeAPI, hasAIProvider, isAIPaused, getAIProvider, getActiveModelId } from './api.js';
 import { setupDropZone } from './pdf-import.js';
-import { buildLabContext } from './lab-context.js';
-import { applyInlineMarkdown } from './markdown.js';
+import { buildLabContext, applyInlineMarkdown } from './chat.js';
 
 function markerHasData(m) { return m.values?.some(v => v !== null) ?? false; }
 

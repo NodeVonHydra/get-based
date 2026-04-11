@@ -13,7 +13,7 @@
   const walletSrc = await fetchWithRetry('js/cashu-wallet.js');
   const discoverySrc = await fetchWithRetry('js/nostr-discovery.js');
   const apiSrc = await fetchWithRetry('js/api.js');
-  const settingsSrc = await fetchWithRetry('js/provider-panels.js');
+  const settingsSrc = await fetchWithRetry('js/settings.js');
   const syncSrc = await fetchWithRetry('js/sync.js');
   const cryptoSrc = await fetchWithRetry('js/crypto.js');
   const exportSrc = await fetchWithRetry('js/export.js');
@@ -175,8 +175,7 @@
   assert('Wallet mint in AI_SETTINGS_KEYS', syncSrc.includes("'labcharts-cashu-wallet-mint'"));
   assert('Node URL in AI_SETTINGS_KEYS', syncSrc.includes("'labcharts-routstr-node'"));
   assert('Mnemonic in ENCRYPTED_AI_KEYS', syncSrc.includes("'labcharts-cashu-wallet-mnemonic'"));
-  const backupSrc = await fetchWithRetry('js/backup.js');
-  assert('Wallet keys in GLOBAL_SETTINGS_KEYS', backupSrc.includes("'labcharts-cashu-wallet-mint'") && backupSrc.includes("'labcharts-routstr-node'"));
+  assert('Wallet keys in GLOBAL_SETTINGS_KEYS', cryptoSrc.includes("'labcharts-cashu-wallet-mint'") && cryptoSrc.includes("'labcharts-routstr-node'"));
 
   // ═══════════════════════════════════════
   // 12. EXPORT/IMPORT INTEGRATION
