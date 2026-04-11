@@ -53,9 +53,15 @@
     'createLineChart','getMarkerDescription'
   ];
 
-  // chat.js (24)
+  // lab-context.js (5)
+  const labContextExports = [
+    'buildLabContext','invalidateLabContextCache','getContextSummary',
+    'isGroupInAIContext','setGroupInAIContext'
+  ];
+
+  // chat.js (23)
   const chatExports = [
-    'buildLabContext','getChatStorageKey',
+    'getChatStorageKey',
     'getActivePersonality','getCustomPersonalityText',
     'setChatPersonality','loadChatPersonality',
     'updateChatHeaderTitle','updatePersonalityBar','togglePersonalityBar',
@@ -177,20 +183,51 @@
     'detectLatitudeWithAI'
   ];
 
-  // settings.js (20)
+  // settings.js (8)
   const settingsExports = [
     'openSettingsModal','closeSettingsModal',
-    'renderAIProviderPanel','renderPrivacySection',
+    'renderPrivacySection',
     'togglePrivacyConfigure','updatePrivacyStatusCard',
-    'switchAIProvider',
-    'initSettingsModelFetch','initSettingsOllamaCheck','updateSettingsUI',
+    'updateSettingsUI',
+    'renderDataEntriesSection','refreshDataEntriesSection'
+  ];
+
+  // provider-panels.js (72)
+  const providerPanelsExports = [
+    'renderAIProviderPanel','toggleAIPause','switchAIProvider',
+    'initSettingsModelFetch','initSettingsOllamaCheck',
     'testOllamaConnection','testPIIOllamaConnection',
-    'updateVeniceModelPricing',
-    'handleSaveVeniceKey','handleRemoveVeniceKey',
-    'renderVeniceModelDropdown',
-    'handleSaveRoutstrKey','handleRemoveRoutstrKey',
-    'renderRoutstrModelDropdown','refreshRoutstrBalance',
-    'refreshOpenRouterBalance'
+    'refreshVeniceBalance','updateVeniceModelPricing','toggleVeniceE2EE',
+    'updateOpenRouterModelPricing','updateRoutstrModelPricing',
+    'handleSaveVeniceKey','handleRemoveVeniceKey','renderVeniceModelDropdown',
+    'handleSaveOpenRouterKey','handleRemoveOpenRouterKey','renderOpenRouterModelDropdown',
+    'applyCustomOpenRouterModel','onOpenRouterDropdownChange',
+    'handleSaveRoutstrKey','handleRemoveRoutstrKey','renderRoutstrModelDropdown',
+    'refreshCashuWalletBalance','refreshRoutstrBalance',
+    'showRoutstrWalletFund','rsWalletFundCustomInput','doRoutstrWalletFundCustom','doRoutstrWalletFund',
+    'doRoutstrWalletReceiveCashu','showRoutstrMintEdit','doRoutstrMintChange',
+    'showRoutstrWalletBackup','showRoutstrNodePicker','connectRoutstrNode',
+    'doRoutstrNodeDeposit','doRoutstrNodeWithdraw','_setActiveNodeAction',
+    'walletSeedAcknowledged','showWalletSeedPhrase',
+    'showRoutstrWithdraw','showRoutstrWithdrawLightning','showRoutstrWithdrawToken',
+    'doRoutstrSendToken','doRoutstrWithdrawQuote','doRoutstrWithdrawExecute','doRoutstrWalletRestore',
+    'handleCreatePpqAccount','dismissPpqKeyReveal',
+    'handleSavePpqKey','handleRemovePpqKey','renderPpqModelDropdown',
+    'updatePpqModelPricing','refreshPpqBalance',
+    'showPpqTopup','selectPpqMethod','doPpqTopup','ppqShowCustomInput','doPpqTopupCustom','cancelPpqTopup',
+    'refreshOpenRouterBalance',
+    'handleSaveCustomApi','handleRemoveCustomApi','renderCustomApiModelDropdown',
+    'applyCustomApiManualModel','updateCustomModelPricing',
+    'copyOllamaPullCmd','refreshModelAdvisor',
+    'applyHardwareOverride','clearHardwareOverride',
+  ];
+
+  // backup.js (13)
+  const backupExports = [
+    'buildBackupSnapshot','exportEncryptedBackup','importEncryptedBackup',
+    'scheduleAutoBackup','getAutoBackupSnapshots','restoreAutoBackup','openBackupDB',
+    'initFolderBackup','pickFolderForBackup','reauthorizeFolderBackup',
+    'removeFolderBackup','getFolderBackupState','renderFolderBackupSection',
   ];
 
   // supplements.js (4)
@@ -230,6 +267,7 @@
   const allModules = {
     'api.js': apiExports,
     'charts.js': chartsExports,
+    'lab-context.js': labContextExports,
     'chat.js': chatExports,
     'client-list.js': clientListExports,
     'context-cards.js': contextCardsExports,
@@ -243,6 +281,8 @@
     'pii.js': piiExports,
     'profile.js': profileExports,
     'settings.js': settingsExports,
+    'provider-panels.js': providerPanelsExports,
+    'backup.js': backupExports,
     'supplements.js': supplementsExports,
     'theme.js': themeExports,
     'utils.js': utilsExports,

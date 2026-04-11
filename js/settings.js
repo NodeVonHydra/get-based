@@ -2865,6 +2865,7 @@ function regenerateMessengerToken() {
 
 Object.assign(window, { toggleSync, toggleMnemonicVisibility, copyMnemonic, showMnemonicRestore, doMnemonicRestore, saveSyncRelay, closeSyncSetup, syncSetupNew, syncSetupRestore, syncSetupBack, syncSetupDoRestore, syncSetupDone, toggleMessenger, toggleMessengerToken, copyMessengerToken, regenerateMessengerToken });
 
+
 export function renderDataEntriesSection() {
   const entries = (state.importedData && state.importedData.entries) ? state.importedData.entries : [];
   if (entries.length === 0) {

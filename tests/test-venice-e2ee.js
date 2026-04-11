@@ -131,10 +131,10 @@
   else localStorage.removeItem('labcharts-ai-provider');
 
   // 15. Settings + Chat source checks
-  const settingsSrc = await fetchWithRetry('/js/settings.js');
-  assert('settings has venice-e2ee-toggle', settingsSrc.includes('venice-e2ee-toggle'));
-  assert('settings has venice-e2ee-indicator', settingsSrc.includes('venice-e2ee-indicator'));
-  assert('settings has toggleVeniceE2EE', settingsSrc.includes('toggleVeniceE2EE'));
+  const providerSrc = await fetchWithRetry('/js/provider-panels.js');
+  assert('provider-panels has venice-e2ee-toggle', providerSrc.includes('venice-e2ee-toggle'));
+  assert('provider-panels has venice-e2ee-indicator', providerSrc.includes('venice-e2ee-indicator'));
+  assert('provider-panels has toggleVeniceE2EE', providerSrc.includes('toggleVeniceE2EE'));
   const chatSrc = await fetchWithRetry('/js/chat.js');
   assert('chat uses isVeniceE2EEActive', chatSrc.includes('isVeniceE2EEActive'));
   assert('chat shows lock emoji for E2EE', chatSrc.includes('\\uD83D\\uDD12'));
