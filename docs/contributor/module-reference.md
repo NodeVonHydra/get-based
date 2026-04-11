@@ -1,6 +1,6 @@
 # Module Reference
 
-All 38 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
+All 42 modules live under `js/`. Grouped by layer — lower layers have no dependencies on higher ones.
 
 ---
 
@@ -445,12 +445,10 @@ Data export, import, and reset.
 
 ### `chat.js`
 
-AI chat panel, context building, and markdown rendering.
+AI chat panel and streaming.
 
 **Key exports:**
-- `buildLabContext()` — serializes all lab entries + all 9 context cards + interpretiveLens + contextNotes + cycle data + notes into a structured AI context string
 - `sendChatMessage()` — sends user message (with optional image attachments) and last 30 messages to the active AI provider, streams response with typewriter trickle
-- `renderMarkdown(text)` — block-aware parser: headings, lists, code blocks, HR, paragraphs + inline formatting
 - `askAIAboutMarker(markerKey)` — per-marker AI explanation, streams into the chat panel
 - Thread management: `createNewThread()`, `loadThread(id)`, `deleteThread(id)`, `renameThread(id)`
 - `setChatPersonality(id)` — switches personality, updates system prompt
@@ -475,10 +473,8 @@ Settings modal with 6 sections.
 - `initSettingsModelFetch()` — fetches model lists for all providers on modal open
 - `saveProfileSettings()` — saves sex, DOB, location from the Profile section
 - `setUnitSystem(system)` — `'EU'` | `'US'`
-- `loadBackupSnapshots()` — async; populates the Backup & Restore section with IndexedDB snapshots
-- `restoreAutoBackup(id)` — confirm + restore a snapshot, reloads the page
 
-**Window exports:** `openSettingsModal`, `closeSettingsModal`, `saveProfileSettings`, `setUnitSystem`, `setAIProvider`, `restoreAutoBackup`, `startTour`
+**Window exports:** `openSettingsModal`, `closeSettingsModal`, `saveProfileSettings`, `setUnitSystem`, `setAIProvider`, `startTour`
 
 ---
 
@@ -614,17 +610,61 @@ Supplement and lifestyle recommendations driven by a lazy-loaded catalog.
 
 ### `crypto.js`
 
-Data encryption at rest, IndexedDB auto-backup, and folder backup.
+Data encryption at rest and cross-tab sync.
 
 **Key exports:**
 - `encryptedSetItem(key, value)` / `encryptedGetItem(key)` — AES-256-GCM via PBKDF2 passphrase
 - `getEncryptionEnabled()` / `setEncryptionEnabled(bool)` — encryption toggle
 - `validatePassphrase(p)` — checks 4 strength rules (8+ chars, lowercase, uppercase, special), returns `{ valid, message }`
-- `scheduleAutoBackup()` — debounced 60s trigger; saves up to 5 snapshots to IndexedDB + writes to folder backup if configured
-- `buildBackupSnapshot()` — captures all importedData + per-profile preferences
-- `restoreAutoBackup(id)` — writes snapshot to localStorage, reloads
-- `saveFolderBackup(snapshot)` — writes `getbased-backup-latest.json` + daily dated snapshot to user-selected folder via File System Access API
 - `broadcastDataChanged(profileId)` — BroadcastChannel message for multi-tab sync
 - `SENSITIVE_PATTERNS` — array of localStorage key pattern strings that get encrypted
 
-**Window exports:** `setEncryptionEnabled`, `changePassphrase`, `restoreAutoBackup`, `exportBackup`, `importBackup`, `pickBackupFolder`, `showBackupReminder`
+**Window exports:** `setEncryptionEnabled`, `changePassphrase`, `exportBackup`, `importBackup`
+
+---
+
+### `backup.js`
+
+IndexedDB auto-backup, folder backup via File System Access API, and backup restore. Extracted from `crypto.js`.
+
+**Key exports:**
+- `scheduleAutoBackup()` — debounced 60s trigger; saves up to 5 snapshots to IndexedDB + writes to folder backup if configured
+- `buildBackupSnapshot()` — captures all importedData + per-profile preferences
+- `loadBackupSnapshots()` — async; populates the Backup & Restore section with IndexedDB snapshots
+- `restoreAutoBackup(id)` — writes snapshot to localStorage, reloads
+- `saveFolderBackup(snapshot)` — writes `getbased-backup-latest.json` + daily dated snapshot to user-selected folder via File System Access API
+
+**Window exports:** `restoreAutoBackup`, `pickBackupFolder`, `showBackupReminder`
+
+---
+
+### `lab-context.js`
+
+Central AI context serializer. Extracted from `chat.js`.
+
+**Key exports:**
+- `buildLabContext()` — serializes all lab entries + all 9 context cards + interpretiveLens + contextNotes + cycle data + notes into a structured AI context string
+
+**Window exports:** `buildLabContext`
+
+---
+
+### `markdown.js`
+
+Block-aware markdown parser for chat rendering. Extracted from `chat.js`.
+
+**Key exports:**
+- `renderMarkdown(text)` — block-aware parser: headings, lists, code blocks, HR, paragraphs + inline formatting
+
+**Window exports:** `renderMarkdown`
+
+---
+
+### `provider-panels.js`
+
+AI provider panel rendering for the settings modal. Extracted from `settings.js`.
+
+**Key exports:**
+- `renderProviderPanels()` — renders the AI provider configuration panels in the settings modal
+
+**Window exports:** none (imported by `settings.js`)

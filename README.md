@@ -11,7 +11,7 @@
 ## What it does
 
 - **AI-powered PDF import** — drop any lab report (any format, language, or country) and AI extracts and maps results to 287+ known biomarkers automatically. Batch import, direct image import (JPG/PNG/WebP), auto image mode for scanned PDFs
-- **Biomarker trend charts** — interactive line charts with proportional time scale, reference bands, optimal ranges, and trend detection across 16 categories
+- **Biomarker trend charts** — interactive line charts with proportional time scale, reference bands, optimal ranges, and trend detection across 17 standard categories
 - **AI chat** — ask questions about your results with full health context, image attachments, multiple personalities, conversation threads
 - **DNA import** — upload raw data from AncestryDNA, 23andMe, MyHeritage, FTDNA, or Living DNA. 42 curated SNPs across 10 categories (methylation, iron, lipids, vitamin D, etc.) with APOE haplotype resolution. Genetic factors shown on dashboard, detail modals, and in AI context
 - **Specialty lab adapters** — OAT (165 markers), fatty acids (Spadia, ZinZino, OmegaQuant), Metabolomix+. Any other specialty test imports through the custom marker pipeline
@@ -91,7 +91,7 @@ Open `http://localhost:8000`. You need an AI provider API key or local AI server
 
 ## Tech stack
 
-No build tools, no bundler, no package manager. Pure ES modules — 38 files under `js/`.
+No build tools, no bundler, no package manager. Pure ES modules — 42 modules under `js/`.
 
 - Chart.js for interactive charts
 - pdf.js for PDF text extraction
@@ -100,7 +100,7 @@ No build tools, no bundler, no package manager. Pure ES modules — 38 files und
 
 ## Testing
 
-30 browser-based test files run headlessly:
+41 browser-based test files run headlessly:
 
 ```bash
 ./run-tests.sh

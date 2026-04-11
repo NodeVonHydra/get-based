@@ -23,7 +23,7 @@ data/
   demo-male.json    — Male demo profile (Alex)
 
 tests/
-  test-*.js         — 30 browser-based test files
+  test-*.js         — 41 browser-based test files
   verify-modules.js — Module integrity assertions
 
 js/
@@ -33,7 +33,7 @@ js/
   state.js          — Single shared mutable state object
   utils.js          — escapeHTML, hashString, getStatus, formatValue, showNotification, linearRegression
   theme.js          — Theme get/set/toggle, getChartColors, time format helpers
-  api.js            — AI provider routing, all 5 providers, model management
+  api.js            — AI provider routing, 6 providers (PPQ, Routstr, OpenRouter, Venice, Local AI, Custom), model management
   profile.js        — Profile CRUD, sex/DOB/location, migrateProfileData, profile dropdown
   data.js           — getActiveData() pipeline, unit conversion, date range, saveImportedData
   pii.js            — PII obfuscation: local AI (OpenAI-compatible) + regex fallback, diff viewer
@@ -44,18 +44,22 @@ js/
   context-cards.js  — 9 context card editors, health dots, AI tips, summaries
   pdf-import.js     — PDF pipeline, batch import, import preview, drop zone
   export.js         — JSON export/import (single, per-client, database bundle), PDF report, clearAllData
-  chat.js           — Chat panel, buildLabContext, markdown, personalities, per-marker AI
+  chat.js           — Chat panel, personalities, per-marker AI
   client-list.js    — Client List modal: search/sort/filter profiles, inline CRUD, archive/flag/pin
   recommendations.js — Supplement & lifestyle recommendations, lazy catalog, 3 touchpoints
   cashu-wallet.js   — In-app Cashu eCash wallet: BIP-39 seed, IndexedDB proofs, Lightning fund/withdraw
   nostr-discovery.js — Nostr relay queries for Routstr nodes (Kind 38421), health checks, caching
-  settings.js       — Settings modal: profile, display, AI providers, privacy, security, backup
+  settings.js       — Settings modal: profile, display, AI providers, privacy, security
   glossary.js       — Marker glossary modal
   feedback.js       — Feedback modal (bug reports, feature requests)
   tour.js           — Guided tour spotlight engine (app tour + cycle tour)
   nav.js            — Sidebar, date range filter, chart layers dropdown
   views.js          — navigate(), dashboard, category views, modals, manual entry, onboarding
-  crypto.js         — AES-256-GCM encryption, IndexedDB auto-backup, folder backup, backup restore
+  crypto.js         — AES-256-GCM encryption, cross-tab sync (BroadcastChannel)
+  backup.js          — IndexedDB auto-backup, folder backup (File System Access API), backup restore
+  lab-context.js     — buildLabContext() central AI context serializer (extracted from chat.js)
+  markdown.js        — renderMarkdown() block-aware parser (extracted from chat.js)
+  provider-panels.js — AI provider panel rendering for settings modal (extracted from settings.js)
 ```
 
 ## Entry point
@@ -131,7 +135,7 @@ window.showDashboard();
 
 ## External dependencies
 
-Loaded from CDN with SRI integrity hashes in `index.html`:
+Bundled locally under `vendor/`:
 
 | Library | Version | Purpose |
 |---|---|---|

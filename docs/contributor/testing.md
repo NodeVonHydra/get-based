@@ -38,40 +38,51 @@ Every test file defines a local `assert` helper and collects results:
 
 The `detail` argument appears in the failure output — use it to print the actual value that caused the failure.
 
-## The 30 test files
+## The 41 test files
 
 All test files live in the `tests/` directory. Run `ls tests/test-*.js | wc -l` for the current count.
 
 | File | What it covers |
 |---|---|
+| `tests/test-adapters.js` | Adapter registry: structure, fatty acids, OAT, metabolomix, cross-adapter |
 | `tests/test-audit.js` | Security audit: XSS escaping, null guards, div-by-zero, JSON.parse guards, focus trapping, CSP |
 | `tests/test-biometrics.js` | Biometrics time-series: weight, BP, pulse, BMI auto-calc |
+| `tests/test-biostarks-adapter.js` | BioStarks adapter: registration, detection, markers, normalization |
+| `tests/test-calculated-markers.js` | Calculated markers: PhenoAge, Bortz Age, Biological Age, BUN/Creatinine, Free Water Deficit, hs-CRP/HDL |
 | `tests/test-cashu-wallet.js` | Cashu wallet: module exports, security (encrypted mnemonic, locks), proof management, recovery, fee mechanism, Nostr discovery, API nodeUrl guard, sync/export integration, BIP-39 seed generation |
 | `tests/test-change-history.js` | Change history: `recordChange` dedup, snapshot deep-copy, cap, AI context timeline, export/import round-trip |
 | `tests/test-changelog.js` | What's New modal + `hasCardContent` auto-gating: version sync, HTML, main.js wiring, settings, behavioral tests |
 | `tests/test-chat-actions.js` | Chat message action buttons: regenerate, copy, context toggle |
 | `tests/test-chat-threads.js` | Chat thread CRUD, auto-naming, migration, encryption patterns, backup inclusion |
-| `tests/test-crypto.js` | AES-256-GCM encryption, PBKDF2, IndexedDB auto-backup, passphrase validation (20+ sections) |
+| `tests/test-crypto.js` | AES-256-GCM encryption, PBKDF2, passphrase validation (20+ sections) |
+| `tests/test-custom-api.js` | Custom API provider: 6th provider registration, endpoint config, model fetch |
 | `tests/test-custom-personality.js` | Named custom personalities: storage, icon picker, generation, dirty state, thread metadata |
 | `tests/test-cycle-improvements.js` | Phase-aware ranges, cycle iron alerts, perimenopause detection, heavy flow alerts |
 | `tests/test-cycle-tour.js` | Cycle spotlight tour: 8 steps, DOM elements, auto-trigger, storage key |
+| `tests/test-data-pipeline.js` | Core data pipeline: getActiveData, unit conversion, date filtering, trend detection |
 | `tests/test-demo.js` | Demo data files: v2 structure, structured context cards, menstrual cycle for Sarah |
 | `tests/test-dna.js` | DNA import: SNP parsing, APOE haplotype, format detection, dashboard rendering |
 | `tests/test-dna-recommendations.js` | DNA-aware supplement recommendations: snpHints, buildDNAHints, gene-keyword scanner |
 | `tests/test-emf.js` | EMF assessment: SBM-2015 severity, room CRUD, source/mitigation tags |
+| `tests/test-export-import.js` | Export/import roundtrip: JSON structure, date merge, context field handling |
 | `tests/test-folder-backup.js` | Folder backup: File System Access API, snapshot format, daily filenames, IndexedDB v2 handle persistence |
 | `tests/test-hardware.js` | Model Advisor: GPU detection, VRAM badges, model fitness ratings |
 | `tests/test-image-utils.js` | Image utilities: resize, format, vision content building |
 | `tests/test-integration-batch2.js` | Integration: batch import, marker keys, custom markers, adapters |
 | `tests/test-mobile.js` | Responsive layout: breakpoints, grid overflow, touch tap targets, safe grid sizing |
+| `tests/test-normalize-units.js` | Unit normalization: SI conversion in the PDF import pipeline |
 | `tests/test-openrouter.js` | OpenRouter provider: curated model list, pricing cache, exclude blocklist, model fetch |
 | `tests/test-phase-ranges.js` | Phase-aware reference ranges for estradiol and progesterone aligned with dates |
 | `tests/test-pii.js` | PII obfuscation: regex patterns, streaming sanitizer |
 | `tests/test-prelab.js` | Pre-lab onboarding: context assembly without data, chat prompts |
+| `tests/test-provenance.js` | Import provenance: markerSources tracking, PDF/manual source attribution |
 | `tests/test-recommendations.js` | Supplement recommendations: catalog slots, keyword scanner, safety caveats, disclosure gate |
 | `tests/test-schema.js` | MARKER_SCHEMA integrity, unit conversions, optimal ranges, phase ranges |
+| `tests/test-supplement-impact.js` | Supplement-biomarker impact analysis: batched computation, caching, health dots |
 | `tests/test-sync.js` | Cross-device sync: payload format, AI settings keys, encrypted keys, Evolu integration |
 | `tests/test-tour.js` | App tour: 7 steps, spotlight DOM, positioning, escape key, completion flag (154 assertions) |
+| `tests/test-trend-alerts.js` | Trend detection: sudden change alerts, linear regression, status logic |
+| `tests/test-ui-flows.js` | Behavioral UI tests: key user flows, rendered output verification |
 | `tests/test-unit-import.js` | Unit normalization on import: SI conversion, enzyme units, FA adapter safety |
 | `tests/test-venice-e2ee.js` | Venice E2EE: ECDH key exchange, AES-GCM encryption, TEE headers, model detection |
 

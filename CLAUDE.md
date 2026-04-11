@@ -15,7 +15,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
 - **`BRAND.md`** — brand manual (name rules, colors, typography, voice). Brand name is always `getbased` — lowercase, no space
 - **`index.html`** — HTML structure only (header, sidebar, modals with `role="dialog"`, chat panel, script/CSS includes)
 - **`styles.css`** — all CSS (dark/light themes, responsive layout with 10 breakpoints, touch/hover media queries)
-- **`js/`** — 38 ES modules loaded via `js/main.js`:
+- **`js/`** — 42 ES modules loaded via `js/main.js`:
   - `schema.js` — `MARKER_SCHEMA`, `SPECIALTY_MARKER_DEFS` (re-exported from adapters.js), `UNIT_CONVERSIONS`, `OPTIMAL_RANGES`, `PHASE_RANGES`, `CHIP_COLORS`, `MODEL_PRICING`, `SBM_2015_THRESHOLDS`, `getEMFSeverity`, `trackUsage`, `getProfileUsage`, `getGlobalUsage`
   - `adapters.js` — parser adapter registry for specialty labs. `ADAPTER_MARKERS` (217 entries), `detectProduct`, `normalizeWithAdapter`, `getAdapterByTestType`. Adapters: fattyAcids (29 markers, product detection), metabolomix (FA routing), oat (165 markers), biostarks (23 markers — amino acids, serum FA, intracellular minerals, cortisol, T/C ratio, vitamin E)
   - `constants.js` — option arrays, `CHAT_PERSONALITIES`, `CHAT_SYSTEM_PROMPT`, fake data, `COUNTRY_LATITUDES`, `EMF_ROOM_PRESETS`, `EMF_SOURCES`, `EMF_MITIGATIONS`
@@ -29,7 +29,8 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `data.js` — `getActiveData`, unit conversion, date range filtering, `saveImportedData`, `buildMarkerReference`
   - `pii.js` — regex + local AI PII obfuscation (Ollama & OpenAI-compatible), streaming sanitizer, diff viewer
   - `charts.js` — Chart.js plugins (4), `createLineChart`, `destroyAllCharts`
-  - `crypto.js` — AES-256-GCM encryption at rest (PBKDF2), auto-backup (IndexedDB + File System Access API), cross-tab sync (BroadcastChannel)
+  - `crypto.js` — AES-256-GCM encryption at rest (PBKDF2), cross-tab sync (BroadcastChannel)
+  - `backup.js` — backup/restore, IndexedDB auto-backup, folder backup (extracted from crypto.js)
   - `notes.js` — note editor (open/save/delete)
   - `supplements.js` — supplement editor + render section + ingredient tracking (manual, label scan, URL fetch) + impact analysis (`computeSupplementImpact`, `computeAllImpacts`, `renderSupplementImpact`) + mitochondrial warnings
   - `supplement-warnings.js` — mitochondrial compound warnings for supplements (108 entries, PubMed-cited)
@@ -40,11 +41,14 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `emf.js` — Baubiologie EMF assessment editor, room CRUD, SBM-2015 severity, PDF import for consultant reports
   - `pdf-import.js` — PDF pipeline, batch import, import preview (with per-row exclude), import FAB, auto image mode for scanned PDFs, direct image import (JPG/PNG/WebP). AI detects test type and uses prefixed categories for specialty labs
   - `export.js` — JSON export/import (single-profile, per-client, full database bundle), PDF report, `clearAllData`, `buildAllDataBundle`
-  - `chat.js` — chat panel, `buildLabContext`, markdown rendering, personalities, per-marker AI, image attachments
+  - `chat.js` — chat panel, streaming, personalities, per-marker AI, image attachments, web search hints
+  - `lab-context.js` — `buildLabContext`, AI context assembly, memoization (extracted from chat.js)
+  - `markdown.js` — `applyInlineMarkdown`, `renderMarkdown` (extracted from chat.js)
   - `cashu-wallet.js` — in-app Cashu eCash wallet (BIP-39 seed, IndexedDB proofs, mint namespacing, Lightning fund/withdraw, Cashu token send/receive, fee splitting, pending deposit/withdraw recovery)
   - `nostr-discovery.js` — Nostr relay queries for Kind 38421 Routstr node events, health checks, caching, node selection
   - `sync.js` — Evolu CRDT sync layer, push/pull, mnemonic identity, AI settings sync, debounced `onDataSaved` hook, sync status indicator (header badge + popover)
-  - `settings.js` — settings modal, provider panels, privacy section, sync setup modal, Routstr wallet/node UI
+  - `settings.js` — settings modal, privacy section, sync setup modal
+  - `provider-panels.js` — AI provider panel rendering, model dropdowns, wallet UI (extracted from settings.js)
   - `glossary.js` — marker glossary modal
   - `feedback.js` — feedback modal (bug reports, feature requests)
   - `tour.js` — guided tour (spotlight walkthrough, auto-triggers after first data import) + cycle tour
@@ -55,7 +59,7 @@ No build system, no bundler, no package manager. Native ES modules (`<script typ
   - `main.js` — `DOMContentLoaded` init, OAuth callback, event listeners, refresh callback
 - **`vendor/`** — locally bundled Chart.js, chartjs-adapter-native (custom date adapter, zero deps), pdf.js (+worker), Google Fonts (woff2), noble-secp256k1 v1.7.1 (Venice E2EE), Evolu (CRDT sync engine + SQLite WASM + OPFS worker), cashu-ts v3.6.2 (Cashu eCash protocol), bip39-minimal (BIP-39 mnemonic generation). Run `./update-vendor.sh` to update
 - **`data/`** — `demo-female.json`, `demo-male.json`, `emf-assessment-template.html`, `snp-health.json` (42 autosomal SNPs), `haplogroups.json` (28 mtDNA haplogroups with Wallace coupling classification), `mito-compounds.json` (108 mitochondrial compound effects)
-- **`tests/`** — 34 browser-based test files (`test-*.js`) + `verify-modules.js`
+- **`tests/`** — 41 browser-based test files (`test-*.js`) + `verify-modules.js`
 
 Functions called from inline HTML `onclick` handlers are exposed via `Object.assign(window, {...})` at the bottom of each module. Cross-module calls use `window.fn()` to avoid circular dependencies.
 
@@ -63,7 +67,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 1. `getActiveData()` is the central pipeline: clones `MARKER_SCHEMA` → collects dates from `importedData.entries` → populates `values` arrays → calculates ratios/PhenoAge → unit conversion if US mode
 2. All data in `importedData` under `localStorage` key `labcharts-{profileId}-imported`. Legacy fields auto-migrated via `migrateProfileData()`
-3. `refOverrides` stores per-marker ref/optimal ranges. `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` stores per-marker freeform notes. `changeHistory` is a capped (200) array of timestamped context field snapshots for AI temporal reasoning. `biometrics` stores time-series weight/BP/pulse arrays (height is on profile object)
+3. `refOverrides`, `categoryLabels`/`categoryIcons`/`markerLabels` override display. `markerNotes` for freeform notes. `changeHistory` (capped 200) for AI temporal reasoning. `biometrics` stores time-series weight/BP/pulse (height on profile object)
 4. Marker values are arrays aligned with `dates`; `null` = no result. `singlePoint` categories use grid cards. Charts use `spanGaps: true`
 5. Each entry has `markerSources` (per-marker provenance): `{ "category.markerKey": { file: "filename.pdf", at: unixMs } }`. `file: null` = manual entry. Detail modal shows source filename per value
 
@@ -75,12 +79,7 @@ Functions called from inline HTML `onclick` handlers are exposed via `Object.ass
 
 ### Profile Context Cards
 
-Nine cards stored as structured objects in `importedData`. Editors use `.ctx-btn-group`/`.ctx-btn-option` pill buttons with multi-select tag pills. Cards: Health Goals, Medical Conditions, Diet & Digestion, Exercise, Sleep & Rest, Light & Circadian, Stress, Love Life & Relationships, Environment. Each has AI health dot (green/yellow/red) + tip, cached per-card via fingerprint.
-
-- `buildLabContext()` serializes all 9 areas + interpretiveLens + contextNotes + EMF assessment to AI context
-- `hasCardContent(obj)` gates empty cards from AI context
-- All fields included in JSON export/import and PDF report
-- See source for exact data structures per card
+Nine cards stored as structured objects in `importedData`. Cards: Health Goals, Medical Conditions, Diet & Digestion, Exercise, Sleep & Rest, Light & Circadian, Stress, Love Life & Relationships, Environment. Each has AI health dot (green/yellow/red) + tip. `buildLabContext()` in `lab-context.js` serializes all cards to AI context. See source for data structures.
 
 ### Menstrual Cycle Tracking
 
@@ -92,7 +91,7 @@ Baubiologie sub-module under Environment card. Room-by-room measurements with SB
 
 ### Cross-Device Sync
 
-Opt-in Evolu CRDT sync (Settings → Data). E2E encrypted — relay only sees ciphertext. Identity is a BIP-39 24-word mnemonic (256-bit CSPRNG). Setup modal: "New setup" (generate mnemonic, require acknowledgment) or "Join existing" (restore from mnemonic). Mnemonic masked in UI by default, clipboard auto-clears after 60s. `sync.js` pushes all profiles on enable, debounced `onDataSaved` hook for ongoing changes. Last-write-wins conflict resolution via `syncedAt` timestamps. AI settings (keys, models, provider) synced alongside profile data. Evolu stores its DB in OPFS (outside app encryption scope). Sync status indicator: header badge (green/blue-pulse/amber/red) with click-to-expand popover showing relay connectivity, push confirmation (via Evolu `onComplete` callback), pull status, and timestamps. 60s periodic relay probe + `evolu.subscribeError()` for connection monitoring. See `sync.js`, `settings.js`.
+Opt-in Evolu CRDT sync (Settings → Data). E2E encrypted, BIP-39 mnemonic identity. Last-write-wins via `syncedAt`. Header badge shows relay status. See `sync.js`, `settings.js`.
 
 ### Calculated Markers
 
@@ -104,9 +103,7 @@ Slide-out panel with streaming. 2+custom personalities, stop/discuss buttons, co
 
 ### AI Provider System
 
-Six active backends. Provider stored in `labcharts-ai-provider`. `callClaudeAPI(opts)` routes to the active provider. `hasAIProvider()` gates all AI features. PPQ (pay-per-query, 300+ models, crypto topup, OpenAI-compatible), Routstr (decentralized — Nostr node discovery via Kind 38421, in-app Cashu wallet with BIP-39 seed, deposit to any node, OpenAI-compatible), OpenRouter (recommended for non-crypto, OAuth PKCE), Venice (with optional E2EE — prompts encrypted client-side, decrypted in TEE), Local (Ollama/LM Studio/Jan — internal key `'ollama'`), Custom (any OpenAI-compatible endpoint — user sets base URL + API key, models fetched from `/v1/models`). See `api.js`, `cashu-wallet.js`, `nostr-discovery.js` for details.
-
-Venice E2EE: toggle in settings swaps model dropdown to `e2ee-*` models. `callVeniceAPI` auto-branches: encrypts all messages, adds `X-Venice-TEE-*` headers, decrypts streamed response chunks per-chunk via ECDH. Web search + vision disabled when E2EE active. Lock emoji in chat header, `🔒 e2ee` in message footer. Session has 30-min TTL.
+Six backends: PPQ, Routstr, OpenRouter, Venice, Local AI (Ollama/LM Studio/Jan), Custom. `callClaudeAPI(opts)` routes to active provider. `hasAIProvider()` gates all AI features. Venice E2EE: ECDH + AES-256-GCM, per-chunk streaming decryption, 30-min TTL. See `api.js`, `provider-panels.js`, `cashu-wallet.js`.
 
 ### Dashboard Section Order
 
@@ -131,7 +128,7 @@ Dev server mirrors production routing. Landing page repo (`../get-based-site`) s
 
 ### Tests
 
-34 browser-based test files run headlessly:
+41 browser-based test files run headlessly:
 ```
 ./run-tests.sh
 ```

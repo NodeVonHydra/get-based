@@ -27,7 +27,7 @@ Open `http://localhost:8000`. That's it — no install step, no build step.
 
 ## Architecture overview
 
-getbased has no build system. It's 36 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
+getbased has no build system. It's 42 native ES modules under `js/`, loaded via `<script type="module" src="js/main.js">` in `index.html`. There's nothing to compile.
 
 ```
 index.html        — HTML structure, script/CSS includes
@@ -36,10 +36,10 @@ js/
   main.js         — DOMContentLoaded init, event listeners, entry point
   schema.js       — MARKER_SCHEMA, reference ranges, unit conversions
   state.js        — single shared mutable state object
-  api.js          — AI provider routing, all 4 providers, model management
+  api.js          — AI provider routing, all 6 providers, model management
   views.js        — dashboard, category views, modals, navigation
   data.js         — getActiveData() pipeline, unit conversion, storage
-  ... (30 more modules — see CLAUDE.md for full list)
+  ... (36 more modules — see CLAUDE.md for full list)
 service-worker.js — PWA cache, API bypass strategies
 manifest.json     — PWA manifest
 ```
@@ -78,7 +78,7 @@ There is no linter. Just follow the patterns you see in the existing code.
 
 ## Tests
 
-There are 29 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
+There are 41 browser-based test files (`test-*.js`). Each is a self-executing IIFE that runs assertions against the live DOM, source code, CSS, and behavior. They don't use a test framework — just a small `assert(name, condition, detail)` helper pattern.
 
 Run all headlessly:
 

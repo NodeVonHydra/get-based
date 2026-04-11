@@ -62,7 +62,7 @@ Everything the AI can know about the user comes from these sources:
 
 ## buildLabContext() — The Central Serializer
 
-`buildLabContext()` in `chat.js` is the single function that converts all user data into a plain-text block. It is used by Chat and Health Dots. The Focus Card uses the lighter `buildFocusContext()` instead.
+`buildLabContext()` in `lab-context.js` is the single function that converts all user data into a plain-text block. It is used by Chat and Health Dots. The Focus Card uses the lighter `buildFocusContext()` instead.
 
 ### Output Structure
 
@@ -593,7 +593,7 @@ Each entry documents:
 |---|---|
 | `js/utils.js` | `hasCardContent()` — generic empty-card gate for context assembly |
 | `js/constants.js` | `CHAT_SYSTEM_PROMPT` — priority-tiered system prompt |
-| `js/chat.js` | `buildLabContext()` — central serializer (full context) |
+| `js/lab-context.js` | `buildLabContext()` — central serializer (full context) |
 | `js/chat.js` | `sendChatMessage()` — chat prompt composition |
 | `js/chat.js` | `askAIAboutMarker()` — per-marker prompt (effective ranges + trend) |
 | `js/chat.js` | `generateCustomPersonality()` — persona generator prompt |
