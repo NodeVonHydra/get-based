@@ -202,8 +202,8 @@ i123456\t1\t100\tAA
   const pdfSrc = await fetchWithRetry('js/pdf-import.js');
   assert('pdf-import.js checks isDNAFile in drop', pdfSrc.includes('isDNAFile'));
 
-  const chatSrc = await fetchWithRetry('js/chat.js');
-  assert('chat.js includes genetics in context', chatSrc.includes('_buildGeneticsContext'));
+  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
+  assert('lab-context.js includes genetics in context', labCtxSrc.includes('_buildGeneticsContext'));
 
   const indexSrc = await fetchWithRetry('/app');
   assert('File input accepts .txt', indexSrc.includes('.txt'));

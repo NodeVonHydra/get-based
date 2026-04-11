@@ -95,7 +95,7 @@
   // ── Section 6: PER_PROFILE_PREF_SUFFIXES includes phaseOverlay ──
   console.log('Section 6: PER_PROFILE_PREF_SUFFIXES');
   {
-    const src = await fetchWithRetry('js/crypto.js');
+    const src = await fetchWithRetry('js/backup.js');
     assert('phaseOverlay in PER_PROFILE_PREF_SUFFIXES', src.includes("'phaseOverlay'"));
   }
 
@@ -273,13 +273,13 @@
     const phasePassCount = (viewsSrc.match(/phaseLabels/g) || []).length;
     assert('views.js passes phaseLabels to createLineChart', phasePassCount >= 4, `found ${phasePassCount} references`);
 
-    // chat.js includes symptom + alert context
-    const chatSrc = await fetchWithRetry('js/chat.js');
-    assert('chat.js includes symptoms in periods', chatSrc.includes('p.symptoms'));
-    assert('chat.js imports detectPerimenopausePattern', chatSrc.includes('detectPerimenopausePattern'));
-    assert('chat.js imports detectCycleIronAlerts', chatSrc.includes('detectCycleIronAlerts'));
-    assert('chat.js includes PERIMENOPAUSE ALERT', chatSrc.includes('PERIMENOPAUSE ALERT'));
-    assert('chat.js includes IRON/FLOW ALERTS', chatSrc.includes('IRON/FLOW ALERTS'));
+    // lab-context.js includes symptom + alert context (extracted from chat.js)
+    const labCtxSrc = await fetchWithRetry('js/lab-context.js');
+    assert('lab-context.js includes symptoms in periods', labCtxSrc.includes('p.symptoms'));
+    assert('lab-context.js imports detectPerimenopausePattern', labCtxSrc.includes('detectPerimenopausePattern'));
+    assert('lab-context.js imports detectCycleIronAlerts', labCtxSrc.includes('detectCycleIronAlerts'));
+    assert('lab-context.js includes PERIMENOPAUSE ALERT', labCtxSrc.includes('PERIMENOPAUSE ALERT'));
+    assert('lab-context.js includes IRON/FLOW ALERTS', labCtxSrc.includes('IRON/FLOW ALERTS'));
 
     // cycle.js imports
     const cycleSrc = await fetchWithRetry('js/cycle.js');

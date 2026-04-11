@@ -107,28 +107,29 @@
   }
 
   // ═══════════════════════════════════════
-  // 7. chat.js uses hasCardContent for 7 gates
+  // 7. lab-context.js uses hasCardContent for 7 gates
   // ═══════════════════════════════════════
-  console.log('%c 7. Auto-Gating in chat.js ', 'font-weight:bold;color:#f59e0b');
+  console.log('%c 7. Auto-Gating in lab-context.js ', 'font-weight:bold;color:#f59e0b');
 
-  const hccMatches = (chatSrc.match(/hasCardContent\(/g) || []).length;
-  assert('chat.js has 7+ hasCardContent calls', hccMatches >= 7, `found ${hccMatches}`);
-  assert('chat.js imports hasCardContent', chatSrc.includes('hasCardContent'));
-  assert('Diagnoses gate: hasCardContent(diag)', chatSrc.includes('hasCardContent(diag)'));
-  assert('Diet gate: hasCardContent(diet)', chatSrc.includes('hasCardContent(diet)'));
-  assert('Exercise gate: hasCardContent(ex)', chatSrc.includes('hasCardContent(ex)'));
-  assert('Sleep gate: hasCardContent(sl)', chatSrc.includes('hasCardContent(sl)'));
-  assert('Stress gate: hasCardContent(st)', chatSrc.includes('hasCardContent(st)'));
-  assert('LoveLife gate: hasCardContent(ll)', chatSrc.includes('hasCardContent(ll)'));
-  assert('Environment gate: hasCardContent(env)', chatSrc.includes('hasCardContent(env)'));
+  const labCtxSrc = await fetchWithRetry('js/lab-context.js');
+  const hccMatches = (labCtxSrc.match(/hasCardContent\(/g) || []).length;
+  assert('lab-context.js has 7+ hasCardContent calls', hccMatches >= 7, `found ${hccMatches}`);
+  assert('lab-context.js imports hasCardContent', labCtxSrc.includes('hasCardContent'));
+  assert('Diagnoses gate: hasCardContent(diag)', labCtxSrc.includes('hasCardContent(diag)'));
+  assert('Diet gate: hasCardContent(diet)', labCtxSrc.includes('hasCardContent(diet)'));
+  assert('Exercise gate: hasCardContent(ex)', labCtxSrc.includes('hasCardContent(ex)'));
+  assert('Sleep gate: hasCardContent(sl)', labCtxSrc.includes('hasCardContent(sl)'));
+  assert('Stress gate: hasCardContent(st)', labCtxSrc.includes('hasCardContent(st)'));
+  assert('LoveLife gate: hasCardContent(ll)', labCtxSrc.includes('hasCardContent(ll)'));
+  assert('Environment gate: hasCardContent(env)', labCtxSrc.includes('hasCardContent(env)'));
 
   // ═══════════════════════════════════════
   // 8. Light & Circadian still uses custom gate
   // ═══════════════════════════════════════
   console.log('%c 8. Custom Gates Preserved ', 'font-weight:bold;color:#f59e0b');
 
-  assert('Light & Circadian uses lc || autoLat', chatSrc.includes('lc || autoLat'));
-  assert('No hasCardContent(lc)', !chatSrc.includes('hasCardContent(lc)'));
+  assert('Light & Circadian uses lc || autoLat', labCtxSrc.includes('lc || autoLat'));
+  assert('No hasCardContent(lc)', !labCtxSrc.includes('hasCardContent(lc)'));
 
   // ═══════════════════════════════════════
   // 9. SW includes changelog.js

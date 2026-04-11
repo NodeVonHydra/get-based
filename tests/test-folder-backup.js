@@ -99,22 +99,22 @@
   }
 
   // ═══════════════════════════════════════════════
-  // 7. crypto.js source has folder backup functions
+  // 7. backup.js source has folder backup functions
   // ═══════════════════════════════════════════════
   try {
-    const src = await fetchWithRetry('/js/crypto.js');
-    assert('crypto.js has initFolderBackup', src.includes('async function initFolderBackup'));
-    assert('crypto.js has pickFolderForBackup', src.includes('async function pickFolderForBackup'));
-    assert('crypto.js has reauthorizeFolderBackup', src.includes('async function reauthorizeFolderBackup'));
-    assert('crypto.js has removeFolderBackup', src.includes('function removeFolderBackup'));
-    assert('crypto.js has getFolderBackupState', src.includes('function getFolderBackupState'));
-    assert('crypto.js has writeFolderBackup', src.includes('async function writeFolderBackup'));
-    assert('crypto.js has showDirectoryPicker check', src.includes('showDirectoryPicker'));
-    assert('crypto.js has folder-handle store constant', src.includes("'folder-handle'"));
+    const src = await fetchWithRetry('/js/backup.js');
+    assert('backup.js has initFolderBackup', src.includes('async function initFolderBackup'));
+    assert('backup.js has pickFolderForBackup', src.includes('async function pickFolderForBackup'));
+    assert('backup.js has reauthorizeFolderBackup', src.includes('async function reauthorizeFolderBackup'));
+    assert('backup.js has removeFolderBackup', src.includes('function removeFolderBackup'));
+    assert('backup.js has getFolderBackupState', src.includes('function getFolderBackupState'));
+    assert('backup.js has writeFolderBackup', src.includes('async function writeFolderBackup'));
+    assert('backup.js has showDirectoryPicker check', src.includes('showDirectoryPicker'));
+    assert('backup.js has folder-handle store constant', src.includes("'folder-handle'"));
     assert('performAutoBackup calls writeFolderBackup', src.includes('writeFolderBackup()'));
     assert('writeFolderBackup uses buildBackupSnapshot', src.includes('buildBackupSnapshot()'));
   } catch (e) {
-    assert('crypto.js source inspection', false, e.message);
+    assert('backup.js source inspection', false, e.message);
   }
 
   // ═══════════════════════════════════════════════
@@ -122,10 +122,11 @@
   // ═══════════════════════════════════════════════
   assert('window.maybeShowBackupNudge exists', typeof window.maybeShowBackupNudge === 'function');
   try {
-    const src = await fetchWithRetry('/js/crypto.js');
-    assert('crypto.js has labcharts-last-manual-backup', src.includes('labcharts-last-manual-backup'));
-    assert('crypto.js has backup-nudge-snoozed-until', src.includes('backup-nudge-snoozed-until'));
-    assert('crypto.js has maybeShowBackupNudge function', src.includes('function maybeShowBackupNudge'));
+    const backupSrc2 = await fetchWithRetry('/js/backup.js');
+    const cryptoSrc = await fetchWithRetry('/js/crypto.js');
+    assert('labcharts-last-manual-backup in backup.js', backupSrc2.includes('labcharts-last-manual-backup'));
+    assert('crypto.js has backup-nudge-snoozed-until', cryptoSrc.includes('backup-nudge-snoozed-until'));
+    assert('crypto.js has maybeShowBackupNudge function', cryptoSrc.includes('function maybeShowBackupNudge'));
   } catch (e) {
     assert('backup nudge source inspection', false, e.message);
   }
