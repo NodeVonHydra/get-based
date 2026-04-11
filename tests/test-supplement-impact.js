@@ -132,7 +132,7 @@
 
   const suppSrc = await fetch('/js/supplements.js').then(r => r.text());
   assert('renderSupplementImpact exists', suppSrc.includes('function renderSupplementImpact'));
-  assert('Wired into openSupplementsEditor', suppSrc.includes('renderSupplementImpact(editing'));
+  assert('Wired into openSupplementsEditor', suppSrc.includes('renderSupplementImpact(s,'));
   assert('Detects overlapping supplements', suppSrc.includes('getOverlappingSupplements'));
   assert('computeAllImpacts on window', suppSrc.includes('computeAllImpacts'));
 

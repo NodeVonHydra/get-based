@@ -328,11 +328,11 @@
     assert('Restore sets labcharts-encryption-enabled', bkSrc0.includes("localStorage.setItem('labcharts-encryption-enabled'"));
     assert('Restore sets labcharts-encryption-salt', bkSrc0.includes("localStorage.setItem('labcharts-encryption-salt'"));
     // API keys in backup (now in backup.js)
-    assert('Backup includes labcharts-api-key', src.includes("'labcharts-api-key'") || bkSrc.includes("'labcharts-api-key'"));
-    assert('Backup includes labcharts-venice-key', src.includes("'labcharts-venice-key'") || bkSrc.includes("'labcharts-venice-key'"));
-    assert('Backup includes labcharts-ai-provider', bkSrc.includes("'labcharts-ai-provider'"));
-    assert('Backup includes settings field', bkSrc.includes('settings,') || bkSrc.includes('settings:'));
-    assert('Restore writes global settings', bkSrc.includes('backup.settings'));
+    assert('Backup includes labcharts-api-key', src.includes("'labcharts-api-key'") || bkSrc0.includes("'labcharts-api-key'"));
+    assert('Backup includes labcharts-venice-key', src.includes("'labcharts-venice-key'") || bkSrc0.includes("'labcharts-venice-key'"));
+    assert('Backup includes labcharts-ai-provider', bkSrc0.includes("'labcharts-ai-provider'"));
+    assert('Backup includes settings field', bkSrc0.includes('settings,') || bkSrc0.includes('settings:'));
+    assert('Restore writes global settings', bkSrc0.includes('backup.settings'));
   } catch (e) {
     assert('crypto.js source inspection', false, e.message);
   }
@@ -444,7 +444,8 @@
     assert('backup.js has restoreAutoBackup function', bkSrc.includes('async function restoreAutoBackup'));
     assert('backup.js has MAX_SNAPSHOTS = 5', bkSrc.includes('MAX_SNAPSHOTS = 5'));
     assert('backup.js has AUTO_BACKUP_COOLDOWN = 300000', bkSrc.includes('AUTO_BACKUP_COOLDOWN = 300000'));
-    assert('crypto.js has labcharts-last-autobackup', src.includes('labcharts-last-autobackup'));
+    const cryptoSrc = await fetchWithRetry('js/crypto.js');
+    assert('crypto.js has labcharts-last-autobackup', cryptoSrc.includes('labcharts-last-autobackup'));
   } catch (e) {
     assert('buildBackupSnapshot prefs check', false, e.message);
   }

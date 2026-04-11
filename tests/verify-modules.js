@@ -192,6 +192,44 @@
     'renderDataEntriesSection','refreshDataEntriesSection'
   ];
 
+  // provider-panels.js (72)
+  const providerPanelsExports = [
+    'renderAIProviderPanel','toggleAIPause','switchAIProvider',
+    'initSettingsModelFetch','initSettingsOllamaCheck',
+    'testOllamaConnection','testPIIOllamaConnection',
+    'refreshVeniceBalance','updateVeniceModelPricing','toggleVeniceE2EE',
+    'updateOpenRouterModelPricing','updateRoutstrModelPricing',
+    'handleSaveVeniceKey','handleRemoveVeniceKey','renderVeniceModelDropdown',
+    'handleSaveOpenRouterKey','handleRemoveOpenRouterKey','renderOpenRouterModelDropdown',
+    'applyCustomOpenRouterModel','onOpenRouterDropdownChange',
+    'handleSaveRoutstrKey','handleRemoveRoutstrKey','renderRoutstrModelDropdown',
+    'refreshCashuWalletBalance','refreshRoutstrBalance',
+    'showRoutstrWalletFund','rsWalletFundCustomInput','doRoutstrWalletFundCustom','doRoutstrWalletFund',
+    'doRoutstrWalletReceiveCashu','showRoutstrMintEdit','doRoutstrMintChange',
+    'showRoutstrWalletBackup','showRoutstrNodePicker','connectRoutstrNode',
+    'doRoutstrNodeDeposit','doRoutstrNodeWithdraw','_setActiveNodeAction',
+    'walletSeedAcknowledged','showWalletSeedPhrase',
+    'showRoutstrWithdraw','showRoutstrWithdrawLightning','showRoutstrWithdrawToken',
+    'doRoutstrSendToken','doRoutstrWithdrawQuote','doRoutstrWithdrawExecute','doRoutstrWalletRestore',
+    'handleCreatePpqAccount','dismissPpqKeyReveal',
+    'handleSavePpqKey','handleRemovePpqKey','renderPpqModelDropdown',
+    'updatePpqModelPricing','refreshPpqBalance',
+    'showPpqTopup','selectPpqMethod','doPpqTopup','ppqShowCustomInput','doPpqTopupCustom','cancelPpqTopup',
+    'refreshOpenRouterBalance',
+    'handleSaveCustomApi','handleRemoveCustomApi','renderCustomApiModelDropdown',
+    'applyCustomApiManualModel','updateCustomModelPricing',
+    'copyOllamaPullCmd','refreshModelAdvisor',
+    'applyHardwareOverride','clearHardwareOverride',
+  ];
+
+  // backup.js (13)
+  const backupExports = [
+    'buildBackupSnapshot','exportEncryptedBackup','importEncryptedBackup',
+    'scheduleAutoBackup','getAutoBackupSnapshots','restoreAutoBackup','openBackupDB',
+    'initFolderBackup','pickFolderForBackup','reauthorizeFolderBackup',
+    'removeFolderBackup','getFolderBackupState','renderFolderBackupSection',
+  ];
+
   // supplements.js (4)
   const supplementsExports = [
     'renderSupplementsSection','openSupplementsEditor',
@@ -243,6 +281,8 @@
     'pii.js': piiExports,
     'profile.js': profileExports,
     'settings.js': settingsExports,
+    'provider-panels.js': providerPanelsExports,
+    'backup.js': backupExports,
     'supplements.js': supplementsExports,
     'theme.js': themeExports,
     'utils.js': utilsExports,
