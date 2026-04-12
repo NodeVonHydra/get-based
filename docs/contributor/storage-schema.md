@@ -90,12 +90,20 @@ Stored as JSON at `labcharts-{profileId}-imported`. This is everything a user ca
   // Supplement timeline
   supplements: [
     {
-      name: "Vitamin D3",
-      dose: "5000 IU",
+      name: "Magnesium",
+      dosage: "morning + evening",   // free-text note (display only)
+      type: "supplement",             // or "medication"
       startDate: "2025-01-01",
-      endDate: null,     // null = ongoing
-      color: "#f59e0b",
-      notes: ""
+      endDate: null,                  // null = ongoing
+      periods: [                      // optional; for cycling. If absent, uses startDate/endDate
+        { start: "2025-01-01", end: null }
+      ],
+      timesPerDay: 2,                 // optional outer default multiplier — applied to each ingredient unless overridden
+      ingredients: [                  // optional; per-serving amounts
+        { name: "Bisglycinate", amount: "890mg", timesPerDay: 1 },  // row override: takes precedence over outer
+        { name: "Taurate", amount: "890mg", timesPerDay: 2 }        // "" (inherits outer timesPerDay when blank)
+      ],
+      note: ""
     }
   ],
 

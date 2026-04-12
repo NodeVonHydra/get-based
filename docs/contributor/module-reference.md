@@ -334,15 +334,23 @@ Standalone note management (independent of lab entries).
 
 ### `supplements.js`
 
-Supplement and medication timeline.
+Supplement and medication timeline, editor, ingredient tracking, and AI impact analysis.
 
 **Key exports:**
-- `openSupplementEditor(index?)` — opens the supplement editor modal
-- `saveSupplement()` — saves supplement to `importedData.supplements`
-- `deleteSupplement(index)` — removes by index
-- `renderSupplementsSection(data)` — renders the supplements dashboard section
+- `openSupplementsEditor(index?)` — opens the supplement editor modal
+- `saveSupplement(idx)` — persists current form state to `importedData.supplements`
+- `deleteSupplement(idx)` — removes by index
+- `renderSupplementsSection()` — dashboard timeline bars
+- `renderSupplementImpact(supp, editIdx)` — per-supp impact card (shimmer → cached AI summary)
+- `computeSupplementImpact(supp, markerKey, ...)` — before/after mean comparison for one marker
+- `computeAllImpacts(supp, data)` — impact vectors across all markers, sorted by |pctChange|
+- `parseAmount(str)` — extract `{value, unit}` from "890mg" / "5,4 mg" / "500 IU" (handles comma decimals)
+- `effectiveTimesPerDay(ing, supp)` — row override wins, else supp-level default
+- `ingredientDailyTotal(ing, supp)` — computed `amount × effectiveTimesPerDay`
 
-**Window exports:** `openSupplementEditor`, `saveSupplement`, `deleteSupplement`
+**Ingredient data model:** each supp has an optional outer `timesPerDay` (default multiplier); each `ingredient` row has `{name, amount, timesPerDay?}` where `timesPerDay` is an optional per-row override. Daily total = `amount × (row.timesPerDay ?? supp.timesPerDay)`.
+
+**Impact cache:** per-supp cache in `labcharts-{profileId}-suppImpact` keyed by supp name with a fingerprint that includes dosage, outer `timesPerDay`, per-ingredient fields, periods, and lab dates — any edit auto-invalidates only that supp's cache entry. Concurrent renders are coalesced via a 50ms debounced queue (`scheduleAnalyze` → `flushAnalyses`).
 
 ---
 

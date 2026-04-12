@@ -7,25 +7,47 @@ Tracking your supplements and medications alongside your lab results lets you se
 Scroll to the **Supplements** section on the dashboard and click **Add Supplement** (or the add button). For each entry you can record:
 
 - **Name** — the supplement or medication name
-- **Dosage** — amount and frequency (e.g. 5g/day, 500mg 2x/day)
+- **Dosage** — free-text note (e.g. "with food", "before bed"). Display only.
+- **Doses/day** — how many servings you take per day. Acts as the default multiplier for every ingredient below.
 - **Type** — supplement or medication
 - **Start date** — when you began
 - **End date** — when you stopped (leave blank if ongoing)
-- **Ingredients** — individual ingredients with amounts (see below)
+- **Ingredients** — individual ingredients with per-dose amounts (see below)
 - **Note** — anything worth remembering (brand, why you started, side effects, etc.)
 
-## Ingredients
+## Ingredients & Daily Totals
 
-Each supplement can have a detailed ingredient list. Three ways to add them:
+Each ingredient row has three fields: **Name**, **Per dose** (amount in one serving), and optional **×/day** (override).
 
-- **Manual** — click **+ Add** to add ingredient rows one by one
-- **Scan label** — take a photo of the supplement label (or upload an image). AI extracts the product name, dosage, and active ingredients automatically. Requires a vision-capable AI model.
-- **Paste URL** — paste a product page link and click **Fetch**. AI reads the page and extracts product info. Works best with pages that have ingredient tables in the HTML.
+**How the math works**: `daily total = per_dose × (row ×/day  or  outer Doses/day)`
 
-All three methods populate the same editable rows — review and adjust before saving.
+Typical patterns:
+
+**Combo product** — one pill contains everything, you take N servings a day:
+- Set **Doses/day = 2** (or whatever)
+- Leave every row's **×/day** blank
+- Each ingredient's daily total cascades from the outer Doses/day
+
+**Stack** — separate products on different schedules under one tracked entry (e.g. Magnesium Bisglycinate in the morning + Magnesium Taurate twice a day):
+- Leave **Doses/day** blank
+- Set each row's **×/day** explicitly (1 for bisglycinate, 2 for taurate)
+
+**Hybrid** — most ingredients share a schedule, one differs:
+- Set **Doses/day** to the majority value
+- Override only the row that differs
+
+The daily total shows live next to each ingredient as you type. AI chat and impact analysis receive the pre-computed totals — no ambiguity from free-text dosing.
+
+### Three ways to add ingredients
+
+- **Manual** — click **+ Add** to add rows one by one
+- **Scan label** — photo of the Supplement Facts panel. AI extracts the product name, ingredients, and serving size. Requires a vision-capable model.
+- **Paste URL** — product page link → AI reads the page and fills the form.
+
+All three populate the same editable rows — review before saving. Labels and URLs populate the outer Doses/day where possible; per-row overrides are only needed for stacks.
 
 ::: tip
-The scan label feature works best with clear, well-lit photos of the Supplement Facts panel. Fillers and excipients are automatically excluded — only active ingredients are extracted.
+For stacks with different timing per ingredient (morning/midday/evening), leave the outer Doses/day blank and set each row's ×/day individually. The Dosage free-text field is a good place to note the timing ("1× AM, 2× PM").
 :::
 
 ## Impact Analysis

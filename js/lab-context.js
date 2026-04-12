@@ -9,6 +9,7 @@ import { getProfileLocation, getLatitudeFromLocation } from './profile.js';
 import { getBloodDrawPhases, getNextBestDrawDate, detectPerimenopausePattern, detectCycleIronAlerts } from './cycle.js';
 import { scanSupplementsForWarnings, humanizeEffect } from './supplement-warnings.js';
 import { scanDietForContaminants } from './food-contaminants.js';
+import { ingredientDailyTotal, effectiveTimesPerDay } from './supplements.js';
 
 // ═══════════════════════════════════════════════
 // LAB CONTEXT MEMOIZATION
@@ -315,7 +316,13 @@ function _buildLabContextInner() {
         ? `${fmtDate(pds[0].start)} \u2192 ${pds[0].end ? fmtDate(pds[0].end) : 'ongoing'}`
         : `CYCLING: ${pds.map(p => fmtDate(p.start) + '\u2192' + (p.end ? fmtDate(p.end) : 'ongoing')).join(', ')}`;
       ctx += `- ${s.name}${s.dosage ? ' (' + s.dosage + ')' : ''} [${s.type}]: ${dateRange}${s.note ? ' — ' + s.note : ''}`;
-      if (s.ingredients?.length) ctx += ` | ingredients: ${s.ingredients.map(ing => `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`).join(', ')}`;
+      if (s.ingredients?.length) ctx += ` | ingredients: ${s.ingredients.map(ing => {
+        const total = ingredientDailyTotal(ing, s);
+        const times = effectiveTimesPerDay(ing, s);
+        if (total) return `${ing.name} ${ing.amount} × ${times}/day = ${total.value}${total.unit ? ' ' + total.unit : ''}/day`;
+        if (times) return `${ing.name}${ing.amount ? ' ' + ing.amount : ''} × ${times}/day`;
+        return `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`;
+      }).join(', ')}`;
       ctx += `\n`;
     }
     // Mitochondrial harm warnings (from curated PubMed-cited database)

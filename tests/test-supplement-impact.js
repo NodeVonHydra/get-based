@@ -9,7 +9,7 @@ return (async function() {
   console.log('%c Supplement Impact Tests ', 'background:#6366f1;color:#fff;padding:4px 12px;border-radius:4px;font-weight:bold');
 
   // Import computeSupplementImpact and computeAllImpacts
-  const { computeSupplementImpact, computeAllImpacts } = await import('/js/supplements.js');
+  const { computeSupplementImpact, computeAllImpacts, parseAmount, ingredientDailyTotal, effectiveTimesPerDay } = await import('/js/supplements.js');
 
   // ═══════════════════════════════════════
   // 1. computeSupplementImpact — basic case
@@ -139,9 +139,65 @@ return (async function() {
   // AI-driven display (health dots pattern)
   assert('Uses callClaudeAPI', suppSrc.includes('callClaudeAPI'));
   assert('Uses hasAIProvider', suppSrc.includes('hasAIProvider'));
-  assert('Batch fingerprint for all supps', suppSrc.includes('getBatchFingerprint'));
-  assert('Batch AI call for all supps', suppSrc.includes('loadBatchImpactAI'));
+  assert('Per-supp fingerprint includes dosage+ingredients', suppSrc.includes('getSuppFingerprint') && suppSrc.includes('supp.dosage') && suppSrc.includes('supp.ingredients'));
+  assert('Per-supp AI call (not whole batch)', suppSrc.includes('loadImpactsForSupps'));
+  assert('Coalesces concurrent renders via debounce', suppSrc.includes('_pendingAnalyses') && suppSrc.includes('scheduleAnalyze'));
   assert('Deduplicates in-flight calls', suppSrc.includes('_batchPromise'));
+  assert('Cache keyed by supp name with fp field', suppSrc.includes('cache[s.name]') && suppSrc.includes('fp: getSuppFingerprint'));
+  assert('Fingerprint also includes timesPerDay', suppSrc.includes('i.timesPerDay'));
+  assert('Ingredient row has ×/day input', suppSrc.includes('supp-ing-times'));
+  assert('AI prompt uses computed total with supp-level fallback', suppSrc.includes('ingredientDailyTotal(ing, s)') && suppSrc.includes('effectiveTimesPerDay'));
+  assert('Outer ×/day form field exists', suppSrc.includes('id="supp-times"'));
+  assert('Row placeholder is just ×/day (no "inherit N" jargon)', suppSrc.includes('placeholder="×/day"'));
+  assert('Outer label reads "Doses/day" (non-tech)', suppSrc.includes('<label>Doses/day</label>'));
+  assert('Saves supp.timesPerDay when provided', suppSrc.includes('entry.timesPerDay = timesNum'));
+  assert('lab-context uses computed total too', (await fetch('/js/lab-context.js').then(r => r.text())).includes('ingredientDailyTotal'));
+
+  // ═══════════════════════════════════════
+  // 9. parseAmount — number/unit extraction
+  // ═══════════════════════════════════════
+  console.log('%c 9. parseAmount ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Parses "890mg"', JSON.stringify(parseAmount('890mg')) === JSON.stringify({ value: 890, unit: 'mg' }));
+  assert('Parses "500 IU" with space', JSON.stringify(parseAmount('500 IU')) === JSON.stringify({ value: 500, unit: 'IU' }));
+  assert('Parses "25 mcg"', JSON.stringify(parseAmount('25 mcg')) === JSON.stringify({ value: 25, unit: 'mcg' }));
+  assert('Parses "0.5mg" decimal', JSON.stringify(parseAmount('0.5mg')) === JSON.stringify({ value: 0.5, unit: 'mg' }));
+  assert('Parses "1g"', JSON.stringify(parseAmount('1g')) === JSON.stringify({ value: 1, unit: 'g' }));
+  assert('Parses "1 scoop" (value 1, unit scoop)', parseAmount('1 scoop')?.value === 1 && parseAmount('1 scoop')?.unit === 'scoop');
+  assert('Returns null for empty', parseAmount('') === null);
+  assert('Returns null for null input', parseAmount(null) === null);
+  assert('Returns null for pure text', parseAmount('once daily') === null);
+  assert('Returns null for "as needed"', parseAmount('as needed') === null);
+  assert('Parses "5,4 mg" with comma decimal (European)', parseAmount('5,4 mg')?.value === 5.4 && parseAmount('5,4 mg')?.unit === 'mg');
+  assert('Parses "13,8 mg"', parseAmount('13,8 mg')?.value === 13.8);
+
+  // ═══════════════════════════════════════
+  // 10. ingredientDailyTotal — amount × timesPerDay
+  // ═══════════════════════════════════════
+  console.log('%c 10. ingredientDailyTotal ', 'font-weight:bold;color:#f59e0b');
+
+  const t1 = ingredientDailyTotal({ amount: '890mg', timesPerDay: 2 });
+  assert('890mg × 2 = 1780mg', t1?.value === 1780 && t1.unit === 'mg', JSON.stringify(t1));
+  const t2 = ingredientDailyTotal({ amount: '500 IU', timesPerDay: 1 });
+  assert('500 IU × 1 = 500 IU', t2?.value === 500 && t2.unit === 'IU');
+  const t3 = ingredientDailyTotal({ amount: '890mg', timesPerDay: 0.5 });
+  assert('Fractional times (every other day): 890 × 0.5 = 445', t3?.value === 445);
+  assert('No timesPerDay → null', ingredientDailyTotal({ amount: '890mg' }) === null);
+  assert('"1 scoop" × 2/day = 2 scoop (permissive parse)', ingredientDailyTotal({ amount: '1 scoop', timesPerDay: 2 })?.value === 2);
+  assert('Pure text amount → null', ingredientDailyTotal({ amount: 'as needed', timesPerDay: 2 }) === null);
+  assert('No ingredient → null', ingredientDailyTotal(null) === null);
+
+  // ═══════════════════════════════════════
+  // 11. effectiveTimesPerDay — inheritance from supp-level default
+  // ═══════════════════════════════════════
+  console.log('%c 11. effectiveTimesPerDay (inheritance) ', 'font-weight:bold;color:#f59e0b');
+
+  assert('Row override wins', effectiveTimesPerDay({ timesPerDay: 3 }, { timesPerDay: 1 }) === 3);
+  assert('Falls back to supp default', effectiveTimesPerDay({}, { timesPerDay: 2 }) === 2);
+  assert('Row 0 still counts as override', effectiveTimesPerDay({ timesPerDay: 0 }, { timesPerDay: 2 }) === 0);
+  assert('No row + no supp → null', effectiveTimesPerDay({}, {}) === null);
+  assert('Total inherits supp default for combo products', ingredientDailyTotal({ amount: '500mg' }, { timesPerDay: 2 })?.value === 1000);
+  assert('Row override overrides supp default in total', ingredientDailyTotal({ amount: '500mg', timesPerDay: 3 }, { timesPerDay: 1 })?.value === 1500);
   assert('Uses health dot CSS classes', suppSrc.includes('ctx-health-dot'));
   assert('AI returns dot+summary JSON per supp', suppSrc.includes('"dot":"green|yellow|red|gray"'));
   assert('Shimmer while loading', suppSrc.includes('ctx-health-dot-shimmer'));

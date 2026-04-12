@@ -94,19 +94,85 @@ export function renderSupplementsSection() {
   return html;
 }
 
-function _ingredientRowHtml(idx, name = '', amount = '') {
+// Extract numeric value + unit from amount strings like "890mg", "500 IU", "25 mcg", "5,4 mg".
+// Handles both dot and comma decimal separators. Returns null for pure text ("once daily").
+export function parseAmount(str) {
+  if (!str || typeof str !== 'string') return null;
+  const match = str.trim().match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-Zµμ]+)?/);
+  if (!match) return null;
+  const value = parseFloat(match[1].replace(',', '.'));
+  if (!isFinite(value)) return null;
+  const unit = (match[2] || '').trim();
+  return { value, unit };
+}
+
+// Effective timesPerDay for an ingredient: row override wins, else the supp-level default.
+export function effectiveTimesPerDay(ing, supp) {
+  if (ing && (ing.timesPerDay === 0 || ing.timesPerDay)) return Number(ing.timesPerDay);
+  if (supp && (supp.timesPerDay === 0 || supp.timesPerDay)) return Number(supp.timesPerDay);
+  return null;
+}
+
+// Compute daily total when amount is parseable and there's an effective timesPerDay.
+export function ingredientDailyTotal(ing, supp) {
+  const times = effectiveTimesPerDay(ing, supp);
+  if (!ing || !times) return null;
+  const parsed = parseAmount(ing.amount);
+  if (!parsed) return null;
+  const total = parsed.value * times;
+  if (!isFinite(total)) return null;
+  return { value: total, unit: parsed.unit, times };
+}
+
+function _formatTotal(total) {
+  if (!total) return '';
+  const v = total.value % 1 === 0 ? total.value.toString() : total.value.toFixed(2).replace(/\.?0+$/, '');
+  return `${v}${total.unit ? ' ' + total.unit : ''}/day`;
+}
+
+function _ingredientRowHtml(idx, name = '', amount = '', timesPerDay = '', outerTimes = '') {
+  const rowTimes = timesPerDay === 0 || timesPerDay ? String(timesPerDay) : '';
+  const effective = rowTimes || outerTimes;
+  const total = effective ? ingredientDailyTotal({ amount, timesPerDay: effective }) : null;
   return `<div class="supp-ingredient-row" data-idx="${idx}">
     <input type="text" class="supp-ing-name" placeholder="Ingredient" value="${escapeHTML(name)}">
-    <input type="text" class="supp-ing-amount" placeholder="Amount" value="${escapeHTML(amount)}">
+    <input type="text" class="supp-ing-amount" placeholder="Per dose" value="${escapeHTML(amount)}" oninput="updateIngTotal(this)">
+    <input type="number" class="supp-ing-times" placeholder="×/day" min="0" max="99" step="0.5" value="${escapeHTML(rowTimes)}" oninput="updateIngTotal(this)">
+    <span class="supp-ing-total">${total ? escapeHTML(_formatTotal(total)) : ''}</span>
     <button class="supp-ing-remove" onclick="removeIngredientRow(this)" title="Remove">&times;</button>
   </div>`;
+}
+
+function _getOuterTimesFromForm() {
+  const el = document.getElementById('supp-times');
+  return el && el.value ? el.value.trim() : '';
+}
+
+function updateIngTotal(inputEl) {
+  const row = inputEl.closest('.supp-ingredient-row');
+  if (!row) return;
+  const amount = row.querySelector('.supp-ing-amount')?.value || '';
+  const rowTimes = row.querySelector('.supp-ing-times')?.value || '';
+  const totalEl = row.querySelector('.supp-ing-total');
+  if (!totalEl) return;
+  const effective = rowTimes || _getOuterTimesFromForm();
+  const total = effective ? ingredientDailyTotal({ amount, timesPerDay: effective }) : null;
+  totalEl.textContent = total ? _formatTotal(total) : '';
+}
+
+function updateAllIngTotals() {
+  const rows = document.querySelectorAll('#supp-ingredients .supp-ingredient-row');
+  for (const row of rows) {
+    const amountInput = row.querySelector('.supp-ing-amount');
+    if (amountInput) updateIngTotal(amountInput);
+  }
 }
 
 function addIngredientRow() {
   const container = document.getElementById('supp-ingredients');
   if (!container) return;
   const idx = container.children.length;
-  container.insertAdjacentHTML('beforeend', _ingredientRowHtml(idx));
+  container.insertAdjacentHTML('beforeend', _ingredientRowHtml(idx, '', '', '', _getOuterTimesFromForm()));
   const rows = container.querySelectorAll('.supp-ing-name');
   if (rows.length) rows[rows.length - 1].focus();
 }
@@ -161,7 +227,12 @@ function _collectIngredients() {
   for (const row of rows) {
     const name = row.querySelector('.supp-ing-name')?.value.trim();
     const amount = row.querySelector('.supp-ing-amount')?.value.trim();
-    if (name) ingredients.push({ name, amount });
+    const timesRaw = row.querySelector('.supp-ing-times')?.value.trim();
+    if (!name) continue;
+    const ing = { name, amount };
+    const times = timesRaw ? parseFloat(timesRaw) : NaN;
+    if (isFinite(times) && times > 0) ing.timesPerDay = times;
+    ingredients.push(ing);
   }
   return ingredients.length > 0 ? ingredients : undefined;
 }
@@ -196,7 +267,7 @@ function _applyParsedSupplement(parsed) {
       container.innerHTML = '';
       for (let i = 0; i < ingredients.length; i++) {
         const ing = ingredients[i];
-        container.insertAdjacentHTML('beforeend', _ingredientRowHtml(i, ing.name || '', ing.amount || ''));
+        container.insertAdjacentHTML('beforeend', _ingredientRowHtml(i, ing.name || '', ing.amount || '', '', _getOuterTimesFromForm()));
       }
     }
     showNotification(`${ingredients.length} ingredients extracted`, 'success');
@@ -288,8 +359,11 @@ function _suppFormHtml(editIdx, s) {
       <div class="supp-form-field"><label>Name</label>
         <input type="text" id="supp-name" placeholder="e.g. Creatine, Metformin" value="${editing ? escapeHTML(s.name) : ''}">
       </div>
-      <div class="supp-form-field"><label>Dosage</label>
-        <input type="text" id="supp-dosage" placeholder="e.g. 5g/day, 500mg 2x/day" value="${editing ? escapeHTML(s.dosage || '') : ''}">
+      <div class="supp-form-field"><label>Dosage <span style="font-weight:normal;color:var(--text-muted)">(free text)</span></label>
+        <input type="text" id="supp-dosage" placeholder="e.g. with food, before bed" value="${editing ? escapeHTML(s.dosage || '') : ''}">
+      </div>
+      <div class="supp-form-field" style="flex:0 0 100px"><label>Doses/day</label>
+        <input type="number" id="supp-times" placeholder="e.g. 2" min="0" max="99" step="0.5" value="${editing && s.timesPerDay != null ? escapeHTML(String(s.timesPerDay)) : ''}" oninput="updateAllIngTotals()">
       </div>
     </div>
     <div class="supp-form-row">
@@ -306,7 +380,7 @@ function _suppFormHtml(editIdx, s) {
     </div>
     <div class="supp-form-row">
       <div class="supp-form-field" style="flex:1"><label>Ingredients</label>
-        <div id="supp-ingredients">${ingredients.map((ing, i) => _ingredientRowHtml(i, ing.name, ing.amount)).join('')}</div>
+        <div id="supp-ingredients">${ingredients.map((ing, i) => _ingredientRowHtml(i, ing.name, ing.amount, ing.timesPerDay, editing && s.timesPerDay ? s.timesPerDay : '')).join('')}</div>
         <div class="supp-ingredient-actions">
           <button class="supp-ingredient-add" onclick="addIngredientRow()">+ Add</button>
           ${hasAIProvider() && supportsVision() ? `<button class="supp-ingredient-add supp-scan-label" onclick="document.getElementById('supp-label-input').click()">Scan label</button>
@@ -380,7 +454,13 @@ export function openSupplementsEditor(editIdx) {
         <div class="supp-list-info">
           <div class="supp-list-name">${escapeHTML(s.name)}${s.dosage ? ` <span class="supp-list-meta">${escapeHTML(s.dosage)}</span>` : ''}</div>
           <div class="supp-list-meta">${dateRange}</div>
-          ${s.ingredients?.length ? `<div class="supp-list-ingredients">${s.ingredients.map(ing => `<span class="supp-ing-pill">${escapeHTML(ing.name)}${ing.amount ? ` ${escapeHTML(ing.amount)}` : ''}</span>`).join('')}</div>` : ''}
+          ${s.ingredients?.length ? `<div class="supp-list-ingredients">${s.ingredients.map(ing => {
+            const total = ingredientDailyTotal(ing, s);
+            const times = effectiveTimesPerDay(ing, s);
+            const timesStr = times && times > 1 ? ` × ${times}/day` : '';
+            const totalStr = total ? ` → ${_formatTotal(total)}` : '';
+            return `<span class="supp-ing-pill">${escapeHTML(ing.name)}${ing.amount ? ` ${escapeHTML(ing.amount)}` : ''}${escapeHTML(timesStr)}${escapeHTML(totalStr)}</span>`;
+          }).join('')}</div>` : ''}
           ${s.note ? `<div class="supp-list-note">${escapeHTML(s.note)}</div>` : ''}
         </div>
       </div>`;
@@ -446,10 +526,13 @@ export function saveSupplement(idx) {
   const endDate = sorted[sorted.length - 1].end;
   const note = document.getElementById('supp-note').value.trim();
   const ingredients = _collectIngredients();
+  const timesRaw = document.getElementById('supp-times')?.value.trim();
+  const timesNum = timesRaw ? parseFloat(timesRaw) : NaN;
   if (!state.importedData.supplements) state.importedData.supplements = [];
   const entry = { name, dosage, startDate, endDate, type, note };
   if (sorted.length > 1) entry.periods = sorted;
   if (ingredients) entry.ingredients = ingredients;
+  if (isFinite(timesNum) && timesNum > 0) entry.timesPerDay = timesNum;
   if (idx >= 0) {
     state.importedData.supplements[idx] = entry;
   } else {
@@ -567,14 +650,13 @@ function getOverlappingSupplements(supplement, supps) {
   });
 }
 
-// Build a compact data summary for the AI prompt
-// Fingerprint all supplements + lab data together — one cache entry for the whole batch
-function getBatchFingerprint(supps, data) {
+// Per-supplement fingerprint: changes when that supp's edit-visible fields or lab dates change.
+// Editing dosage/ingredients/periods for one supp invalidates only that supp's cache entry.
+function getSuppFingerprint(supp, data) {
   const labPart = (data.dates || []).join(',');
-  const suppPart = supps.map(s => {
-    const pds = getSupplementPeriods(s);
-    return `${s.name}|${pds.map(p => p.start + '~' + (p.end || '')).join(',')}`;
-  }).join(';');
+  const pds = getSupplementPeriods(supp);
+  const ings = (supp.ingredients || []).map(i => `${i.name}:${i.amount || ''}:${i.timesPerDay || ''}`).join(',');
+  const suppPart = `${supp.name}|${supp.dosage || ''}|${supp.timesPerDay || ''}|${supp.type || ''}|${ings}|${pds.map(p => p.start + '~' + (p.end || '')).join(',')}`;
   return hashString(labPart + '||' + suppPart);
 }
 
@@ -582,7 +664,12 @@ function getImpactCache() {
   try {
     const key = profileStorageKey(state.currentProfile, 'suppImpact');
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : {};
+    const parsed = raw ? JSON.parse(raw) : {};
+    // Migrate old batch-fingerprint schema (values without `fp` field) by discarding
+    for (const k of Object.keys(parsed)) {
+      if (!parsed[k] || typeof parsed[k] !== 'object' || typeof parsed[k].fp !== 'string') delete parsed[k];
+    }
+    return parsed;
   } catch { return {}; }
 }
 
@@ -593,7 +680,9 @@ function setImpactCache(cache) {
   } catch { /* quota exceeded */ }
 }
 
-// In-flight promise to prevent duplicate batch calls
+// Debounced queue: coalesces multiple render calls into a single AI request for only the stale/missing supps.
+let _pendingAnalyses = new Map(); // suppName → { supplement, editIdx }
+let _analyzeTimer = null;
 let _batchPromise = null;
 
 export function renderSupplementImpact(supplement, editIdx) {
@@ -612,67 +701,70 @@ export function renderSupplementImpact(supplement, editIdx) {
     return `<div class="supp-impact-section"><div class="supp-impact-header"><span class="ctx-health-dot ctx-health-dot-gray"></span><span>Impact Analysis</span></div><div class="supp-impact-hint">${hint}</div></div>`;
   }
 
-  const supps = state.importedData.supplements || [];
-  const fp = getBatchFingerprint(supps, data);
+  const fp = getSuppFingerprint(supplement, data);
   const cache = getImpactCache();
-  // Check exact fingerprint first, then fall back to any cached entry for this supplement
-  let cached = cache[fp]?.[supplement.name];
-  if (!cached) {
-    for (const batch of Object.values(cache)) {
-      if (batch[supplement.name]) { cached = batch[supplement.name]; break; }
-    }
-  }
+  const entry = cache[supplement.name];
+  const cached = (entry && entry.fp === fp) ? entry : null;
 
   const dotColor = cached ? `ctx-health-dot-${cached.dot}` : (hasAI ? 'ctx-health-dot-shimmer' : 'ctx-health-dot-gray');
   const summaryClass = cached ? `supp-impact-summary-visible supp-impact-summary-${cached.dot}` : '';
   const summaryText = cached ? escapeHTML(cached.summary) : (hasAI ? '' : 'Set up an AI provider for impact insights');
 
-  let html = `<div class="supp-impact-section">
+  const html = `<div class="supp-impact-section">
     <div class="supp-impact-header">
       <span class="ctx-health-dot ${dotColor}" id="supp-impact-dot-${editIdx}"></span>
       <span>Impact Analysis</span>
-      ${cached && !cache[fp]?.[supplement.name] && hasAI ? `<button class="supp-impact-refresh" onclick="refreshSupplementImpact(${editIdx})" title="Re-analyze with current data">refresh</button>` : ''}
+      ${cached && hasAI ? `<button class="supp-impact-refresh" onclick="refreshSupplementImpact(${editIdx})" title="Re-analyze with current data">refresh</button>` : ''}
     </div>
     <div class="supp-impact-summary ${summaryClass}" id="supp-impact-summary-${editIdx}">${summaryText}</div>
   </div>`;
 
-  // Only auto-fire if no cached result exists at all for this supplement
-  if (!cached && hasAI) {
-    setTimeout(() => loadBatchImpactAI(supps, data, fp, editIdx), 50);
-  }
+  // Auto-fire only if fingerprint mismatch (edit) or missing entirely — scoped to this supp only.
+  if (!cached && hasAI) scheduleAnalyze(supplement, editIdx, data);
   return html;
 }
 
-async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
-  // Deduplicate: if a batch call is already in flight, wait for it then check cache
-  if (_batchPromise) {
-    await _batchPromise;
-    const cache = getImpactCache();
-    const batch = cache[fp];
-    if (batch) { applyImpactToDOM(currentEditIdx, batch, supps); return; }
-    // First call failed — fall through to retry
-  }
+function scheduleAnalyze(supplement, editIdx, data) {
+  _pendingAnalyses.set(supplement.name, { supplement, editIdx });
+  if (_analyzeTimer) return;
+  _analyzeTimer = setTimeout(() => { _analyzeTimer = null; flushAnalyses(data); }, 50);
+}
 
-  // Build prompt with ALL supplements
+async function flushAnalyses(data) {
+  const pending = [..._pendingAnalyses.values()];
+  _pendingAnalyses.clear();
+  if (pending.length === 0) return;
+  if (_batchPromise) await _batchPromise;
+  await loadImpactsForSupps(pending, data);
+}
+
+async function loadImpactsForSupps(pending, data) {
+  const allSupps = state.importedData.supplements || [];
   const suppEntries = [];
-  for (const s of supps) {
+  for (const { supplement: s, editIdx } of pending) {
     const impacts = computeAllImpacts(s, data);
     if (impacts.length === 0) continue;
-    suppEntries.push({ supplement: s, impacts });
+    suppEntries.push({ supplement: s, impacts, editIdx });
   }
   if (suppEntries.length === 0) return;
 
   const fmtVal = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
-  let ctx = `Analyze ${suppEntries.length} supplements:\n`;
+  let ctx = `Analyze ${suppEntries.length} supplement${suppEntries.length === 1 ? '' : 's'}:\n`;
   for (const { supplement: s, impacts } of suppEntries) {
     const top = impacts.slice(0, 5);
-    const overlapping = getOverlappingSupplements(s, supps);
+    const overlapping = getOverlappingSupplements(s, allSupps);
     const pds = getSupplementPeriods(s);
     const pdStr = pds.length === 1
       ? `since ${pds[0].start}${pds[0].end ? ' until ' + pds[0].end : ''}`
       : `CYCLING: ${pds.map(p => p.start + ' to ' + (p.end || 'ongoing')).join('; ')}`;
     ctx += `\n[${s.name}] ${s.dosage || ''} (${s.type}) ${pdStr}`;
-    if (s.ingredients?.length) ctx += ` ingredients: ${s.ingredients.map(ing => `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`).join(', ')}`;
+    if (s.ingredients?.length) ctx += ` ingredients: ${s.ingredients.map(ing => {
+      const total = ingredientDailyTotal(ing, s);
+      const times = effectiveTimesPerDay(ing, s);
+      if (total) return `${ing.name} ${ing.amount} × ${times}/day = ${_formatTotal(total)}`;
+      if (times) return `${ing.name}${ing.amount ? ' ' + ing.amount : ''} × ${times}/day`;
+      return `${ing.name}${ing.amount ? ' ' + ing.amount : ''}`;
+    }).join(', ')}`;
     if (overlapping.length > 0) ctx += ` (also taking: ${overlapping.map(o => o.name).join(', ')})`;
     ctx += `\n`;
     for (const imp of top) {
@@ -683,7 +775,7 @@ async function loadBatchImpactAI(supps, data, fp, currentEditIdx) {
   }
 
   const names = suppEntries.map(e => `"${e.supplement.name}"`).join(', ');
-  const system = `ONLY JSON, no thinking, no explanation: {${names.replace(/"/g, '"')}: {"dot":"green|yellow|red|gray","summary":"max 20 words"}, ...}
+  const system = `ONLY JSON, no thinking, no explanation: {${names}: {"dot":"green|yellow|red|gray","summary":"max 20 words"}, ...}
 green=beneficial, yellow=mixed, red=concerning, gray=insufficient data. Mention key markers.`;
 
   _batchPromise = (async () => {
@@ -694,29 +786,23 @@ green=beneficial, yellow=mixed, red=concerning, gray=insufficient data. Mention 
       if (!jsonMatch) return;
       const parsed = JSON.parse(jsonMatch[0]);
 
-      // Normalize: AI may return nested or flat structure
-      const batch = {};
-      for (const { supplement: s } of suppEntries) {
-        const entry = parsed[s.name];
-        if (entry && typeof entry === 'object') {
-          batch[s.name] = {
-            dot: ['green', 'yellow', 'red', 'gray'].includes(entry.dot) ? entry.dot : 'gray',
-            summary: typeof entry.summary === 'string' ? entry.summary.slice(0, 150) : ''
-          };
-        }
-      }
-
-      // Cache the whole batch under one fingerprint
       const cache = getImpactCache();
-      cache[fp] = batch;
-      // Keep max 5 batch entries (each covers all supps)
+      for (const { supplement: s, editIdx } of suppEntries) {
+        const entry = parsed[s.name];
+        if (!entry || typeof entry !== 'object') continue;
+        const record = {
+          fp: getSuppFingerprint(s, data),
+          dot: ['green', 'yellow', 'red', 'gray'].includes(entry.dot) ? entry.dot : 'gray',
+          summary: typeof entry.summary === 'string' ? entry.summary.slice(0, 150) : ''
+        };
+        cache[s.name] = record;
+        applyImpactToDOM(editIdx, record);
+      }
+      // Cap cache at 50 entries (one per supp)
       const keys = Object.keys(cache);
-      if (keys.length > 5) { for (const k of keys.slice(0, keys.length - 5)) delete cache[k]; }
+      if (keys.length > 50) { for (const k of keys.slice(0, keys.length - 50)) delete cache[k]; }
       setImpactCache(cache);
-
-      // Update DOM for the currently visible supplement
-      applyImpactToDOM(currentEditIdx, batch, supps);
-    } catch (e) { if (isDebugMode()) console.warn('[suppImpact] AI batch failed:', e.message || e); }
+    } catch (e) { if (isDebugMode()) console.warn('[suppImpact] AI failed:', e.message || e); }
   })();
 
   await _batchPromise;
@@ -725,28 +811,23 @@ green=beneficial, yellow=mixed, red=concerning, gray=insufficient data. Mention 
 
 function refreshSupplementImpact(editIdx) {
   const supps = state.importedData.supplements || [];
+  const s = supps[editIdx];
+  if (!s) return;
   const data = getActiveData();
   if (!data) return;
-  const fp = getBatchFingerprint(supps, data);
-  // Clear stale cache for this fingerprint to force re-fetch
   const cache = getImpactCache();
-  delete cache[fp];
+  delete cache[s.name];
   setImpactCache(cache);
-  // Reset shimmer
   const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
   if (dotEl) dotEl.className = 'ctx-health-dot ctx-health-dot-shimmer';
   const sumEl = document.getElementById(`supp-impact-summary-${editIdx}`);
   if (sumEl) { sumEl.textContent = ''; sumEl.className = 'supp-impact-summary'; }
-  // Hide refresh button
   const refreshBtn = dotEl?.closest('.supp-impact-header')?.querySelector('.supp-impact-refresh');
   if (refreshBtn) refreshBtn.remove();
-  loadBatchImpactAI(supps, data, fp, editIdx);
+  scheduleAnalyze(s, editIdx, data);
 }
 
-function applyImpactToDOM(editIdx, batch, supps) {
-  const s = supps[editIdx];
-  if (!s) return;
-  const cached = batch[s.name];
+function applyImpactToDOM(editIdx, cached) {
   if (!cached) return;
   const dotEl = document.getElementById(`supp-impact-dot-${editIdx}`);
   if (dotEl) dotEl.className = `ctx-health-dot ctx-health-dot-${cached.dot}`;
@@ -757,4 +838,4 @@ function applyImpactToDOM(editIdx, batch, supps) {
   }
 }
 
-Object.assign(window, { renderSupplementsSection, openSupplementsEditor, toggleSuppAccordion, showAddSuppForm, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts, getSupplementPeriods, addIngredientRow, removeIngredientRow, addPeriodRow, removePeriodRow, scanSupplementLabel, fetchSupplementFromURL, refreshSupplementImpact });
+Object.assign(window, { renderSupplementsSection, openSupplementsEditor, toggleSuppAccordion, showAddSuppForm, saveSupplement, deleteSupplement, askAIMitoContext, computeAllImpacts, getSupplementPeriods, addIngredientRow, removeIngredientRow, addPeriodRow, removePeriodRow, scanSupplementLabel, fetchSupplementFromURL, refreshSupplementImpact, updateIngTotal, updateAllIngTotals });

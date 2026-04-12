@@ -1323,8 +1323,8 @@ body {
 .supp-impact-summary-red { color: var(--red); }
 .supp-form { border-top: 1px solid var(--border); padding-top: 16px; }
 .supp-form-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
-.supp-form-row { display: flex; gap: 12px; margin-bottom: 10px; }
-.supp-form-field { flex: 1; min-width: 0; }
+.supp-form-row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.supp-form-field { flex: 1 1 150px; min-width: 0; }
 .supp-form-field label {
   display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;
 }
@@ -1338,11 +1338,18 @@ body {
 .supp-form-field select:focus { border-color: var(--accent); }
 .supp-form-field select { cursor: pointer; }
 .supp-form-field select option { background: var(--bg-secondary); }
-.supp-ingredient-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; }
-.supp-ingredient-row .supp-ing-name { flex: 2; }
-.supp-ingredient-row .supp-ing-amount { flex: 1; }
+.supp-ingredient-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
+.supp-ingredient-row .supp-ing-name { flex: 3 1 140px; min-width: 110px; }
+.supp-ingredient-row .supp-ing-amount { flex: 1 1 80px; min-width: 70px; }
+.supp-ingredient-row .supp-ing-times { width: 64px; flex: 0 0 64px; text-align: center; }
+.supp-ing-total { font-size: 11px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
 .supp-ingredient-row input { font-size: 12px; padding: 5px 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); }
 .supp-ingredient-row input:focus { border-color: var(--accent); outline: none; }
+/* Narrow viewports: total drops below inputs to avoid crammed wrap */
+@media (max-width: 600px) {
+  .supp-ingredient-row { row-gap: 2px; }
+  .supp-ing-total { flex-basis: 100%; text-align: left; padding-left: 2px; margin-top: -2px; }
+}
 .supp-ing-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
 .supp-ing-remove:hover { color: var(--danger, #ef4444); background: rgba(239, 68, 68, 0.1); }
 .supp-url-input-row { display: flex; gap: 6px; }

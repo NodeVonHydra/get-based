@@ -5,6 +5,17 @@ import { escapeHTML } from './utils.js';
 
 const CHANGELOG = [
   {
+    version: '1.19.0', date: '2026-04-12', title: 'Precise Supplement Dosing',
+    items: [
+      'New "Doses/day" field on supplements \u2014 set once as the default multiplier for every ingredient in a combo product',
+      'Per-ingredient \u00d7/day override \u2014 for stacks where different ingredients have different schedules (e.g. Mg Bisglycinate 1\u00d7 AM + Taurate 2\u00d7/day)',
+      'Live daily total next to each ingredient as you type \u2014 catches entry mistakes before saving',
+      'AI receives explicit daily totals (no more guessing the math from free-text dosing)',
+      'Comma-decimal parsing fixed \u2014 "5,4 mg" now parses correctly instead of dropping the decimal',
+      'Impact analysis cache is now per-supplement \u2014 editing one supp re-analyzes only that supp, not the whole batch',
+    ]
+  },
+  {
     version: '1.18.4', date: '2026-04-11', title: 'Security Fixes + Codebase Refactoring',
     items: [
       'Fix Vitamin D mcg/L import \u2014 unit now correctly converts to nmol/L (#102)',
